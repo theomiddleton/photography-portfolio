@@ -1,18 +1,31 @@
-// layout.tsx
-import React from 'react';
+import "~/styles/globals.css";
+import { siteConfig } from "~/config/site"
+import { SiteFooter } from "~/components/site-footer";
 
-const Layout: React.FC = ({ children }) => {
-  return (
-    <div>
-      <header>
-        <h1>Next app</h1>
-      </header>
-      <main>{children}</main>
-      <footer>
-        <p>Footer</p>
-      </footer>
-    </div>
-  );
+import { Inter } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+export const metadata = {
+  title: siteConfig.title,
+  description: siteConfig.description,
+  icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export default Layout;
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <SiteFooter />
+      <body className={`font-sans ${inter.variable}`}>
+        {children}
+      </body>
+    </html>
+  );
+}
