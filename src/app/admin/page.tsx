@@ -16,9 +16,51 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   }
 }
 
-const handleUpload = (
-  console.log('uploading')
-)
+const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault()
+
+  if (!file) {
+    alert('Please select a file to upload.')
+    return
+  }
+
+  setUploading(true)
+
+  const response = await fetch(
+    '/api/upload',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ filename: file.name, contentType: file.type }),
+    }
+  )
+
+  if (response.ok) {
+    const { url } = await response.json()
+    console.log('Got pre-signed URL:', url)
+
+    const uploadResponse = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': file.type,
+      },
+      body: file,
+    })
+
+    if (uploadResponse.ok) {
+      alert('Upload successful!')
+    } else {
+      console.error('R2 Upload Error:', uploadResponse)
+      alert('Upload failed.')
+    }
+  } else {
+    alert('Failed to get pre-signed URL.')
+  }
+
+  setUploading(false)
+}
 
 return (
   <div className="min-h-screen bg-white text-black space-y-12">
