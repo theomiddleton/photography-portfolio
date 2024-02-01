@@ -1,0 +1,28 @@
+{
+  "name": "portfolio-project",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "next lint",
+    "start": "next start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@t3-oss/env-nextjs": "^0.8.0",
+    "next": "^14.1.0",
+    "tailwind": "^4.0.0",
+    "zod": "^3.22.4"
+  },
+  "packageManager": "pnpm@8.14.1",
+  "devDependencies": {
+    "@types/node": "20.11.15",
+    "@types/react": "18.2.51",
+    "typescript": "5.3.3"
+  }
+}
