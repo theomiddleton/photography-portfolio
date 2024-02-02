@@ -3,6 +3,9 @@ import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { v4 as uuidv4 } from 'uuid'
 import { r2 } from '~/lib/r2'
 
+import { db } from '~/server/db'
+import { imageData } from '~/server/db/schema'
+
 export async function POST(request: Request) {
   const { filename } = await request.json()
 
@@ -15,6 +18,14 @@ export async function POST(request: Request) {
       Key: keyName + '.' + fileExtension,
     });
     const url = await getSignedUrl(r2, command, { expiresIn: 60 });
+
+    const newFileName = keyName + '.' + fileExtension
+    const fileUrl = url.split('?')[0];
+
+    await db.insert(imageData).values({ uuid: keyName, fileName: newFileName, fileUrl: fileUrl })
+
+    const result = await db.select(imageData).where({ uuid: keyName }).getOne()
+    console.log('Inserted data:', result)
 
     return Response.json({ url })
   } catch (error) {
