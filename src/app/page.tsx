@@ -1,8 +1,17 @@
 import React from 'react';
 import Link from "next/link";
 import { SiteHeader } from '~/components/site-header';
+import { db } from '~/server/db'
+import { imageData } from '~/server/db/schema'
 
 export default async function Home() {
+
+  //const image = await db.select(imageData.fileUrl).from(imageData);
+
+  const result = await db.select({ fileUrls: imageData }).from(imageData);
+  //const imageNew = await db.query.fileUrl.from(imageData)
+  console.log(result)
+
   return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
         <SiteHeader />
@@ -10,6 +19,7 @@ export default async function Home() {
           <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
             Center
           </h1>
+          <img src="https://img.theomiddleton.me/garf.jpeg" alt="hero" className="w-1/2" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
             <Link
               className="flex max-w-xs flex-col gap-4 rounded-xl bg-black/10 p-4 hover:bg-black/20"

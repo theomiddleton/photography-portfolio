@@ -1,123 +1,140 @@
-'use client'
-import React from 'react'
-import { useState } from 'react'
-import { Icons } from '~/components/ui/icons'
-import { Button } from '~/components/ui/button'
+  'use client'
+  import React from 'react'
+  import { useState } from 'react'
+  import { Icons } from '~/components/ui/icons'
+  import { Button } from '~/components/ui/button'
 
-const Admin = () => {
+  import { db } from '~/server/db'
+  import { imageData } from '~/server/db/schema'
 
-const [file, setFile] = useState<File | null>(null)
-const [uploading, setUploading] = useState(false)
 
-const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  if (event.target.files) {
-    const currentFile = event.target.files[0]
-    setFile(currentFile)
-  }
-}
+  const Admin = () => {
+    async function fetchImages() {
+        const result = await db
+          .select({
+            fileUrl: imageData.fileUrl,
+          })
+          .from(imageData)
+        console.log('image map', result)
 
-const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault()
+  const [file, setFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
 
-  if (!file) {
-    alert('Please select a file to upload.')
-    return
-  }
-
-  setUploading(true)
-
-  const response = await fetch(
-    '/api/upload',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ filename: file.name, contentType: file.type }),
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const currentFile = event.target.files[0]
+      setFile(currentFile)
     }
-  )
+  }
 
-  if (response.ok) {
-    const { url } = await response.json()
-    console.log('Got pre-signed URL:', url)
+  const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
 
-    const uploadResponse = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': file.type,
-      },
-      body: file,
-    })
+    if (!file) {
+      alert('Please select a file to upload.')
+      return
+    }
 
-    if (uploadResponse.ok) {
-      alert('Upload successful!')
+    setUploading(true)
+
+    const response = await fetch(
+      '/api/upload',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filename: file.name, contentType: file.type }),
+      }
+    )
+
+    if (response.ok) {
+      const { url } = await response.json()
+      console.log('Got pre-signed URL:', url)
+      const uploadResponse = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      })
+
+      if (uploadResponse.ok) {
+        alert('Upload successful!')
+      } else {
+        console.error('R2 Upload Error:', uploadResponse)
+        alert('Upload failed.')
+      }
     } else {
-      console.error('R2 Upload Error:', uploadResponse)
-      alert('Upload failed.')
+      alert('Failed to get pre-signed URL.')
     }
-  } else {
-    alert('Failed to get pre-signed URL.')
+
+    setUploading(false)
   }
 
-  setUploading(false)
-}
+  return (
+    <div className="min-h-screen bg-white text-black space-y-12">
+      <div className="max-w-2xl mx-auto py-24 px-4">
+        <h2 className="text-base font-semibold leading-7 text-black">
+          Admin Panel
+        </h2>
+        <p className="mt-1 text-sm leading-6 text-gray-800">
+          Upload the image
+        </p>
 
-return (
-  <div className="min-h-screen bg-white text-black space-y-12">
-    <div className="max-w-2xl mx-auto py-24 px-4">
-      <h2 className="text-base font-semibold leading-7 text-black">
-        Admin Panel
-      </h2>
-      <p className="mt-1 text-sm leading-6 text-gray-800">
-        Upload the image
-      </p>
-
-      <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-        <div className="col-span-full">
-          <label
-            htmlFor="jpg-file"
-            className="block text-sm font-medium leading-6 text-black"
-          >
-            Image
-          </label>
-          <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
-            <div className="text-center">
-              <Icons.imageIcon
-                className="mx-auto h-12 w-12 text-gray-500"
-                aria-hidden="true"
-              />
-              <div className="mt-4 text-sm leading-6 text-gray-600">
-                <label
-                  htmlFor="file-upload"
-                  className="relative cursor-pointer rounded-md bg-gray-100 font-semibold text-black focus-within:outline-none focus-within:ring-2 focus-within:ring-gray-600 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 hover:text-gray-500"
-                >
-                  <span>Upload a file</span>
-                  <input
-                    type="file"
-                    accept="image/jpeg, image/png"
-                    id="file-upload"
-                    name="file-upload"
-                    className="sr-only"
-                    onChange={handleFileChange}
-                  />
-                </label>
+        <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+          <div className="col-span-full">
+            <label
+              htmlFor="jpg-file"
+              className="block text-sm font-medium leading-6 text-black"
+            >
+              Image
+            </label>
+            <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
+              <div className="text-center">
+                <Icons.imageIcon
+                  className="mx-auto h-12 w-12 text-gray-500"
+                  aria-hidden="true"
+                />
+                <div className="mt-4 text-sm leading-6 text-gray-600">
+                  <label
+                    htmlFor="file-upload"
+                    className="relative cursor-pointer rounded-md bg-gray-100 font-semibold text-black focus-within:outline-none focus-within:ring-2 focus-within:ring-gray-600 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 hover:text-gray-500"
+                  >
+                    <span>Upload a file</span>
+                    <input
+                      type="file"
+                      accept="image/jpeg, image/png"
+                      id="file-upload"
+                      name="file-upload"
+                      className="sr-only"
+                      onChange={handleFileChange}
+                    />
+                  </label>
+                </div>
+                <p className="text-xs leading-5 text-gray-600">
+                  {file?.name ? file.name : 'Image up to 16MB'}
+                </p>
               </div>
-              <p className="text-xs leading-5 text-gray-600">
-                {file?.name ? file.name : 'Image up to 16MB'}
-              </p>
             </div>
           </div>
         </div>
-      </div>
-      <div className="mt-6 flex items-center justify-end gap-x-6">
+        <div className="mt-6 flex items-center justify-end gap-x-6">
 
-        <Button type="submit" onClick={handleUpload}>
-          Upload
-        </Button>
+          <Button type="submit" onClick={handleUpload}>
+            Upload
+          </Button>
+        </div>
+        <div>
+        <div className="mt-6 flex items-center justify-end gap-x-6">
+          <Button type="submit" onClick={fetchImages}>
+            Fetch Images
+          </Button>
+        </div>
       </div>
     </div>
-  </div>
-)
-}
+</div>
+  )
+  }
 
-export default Admin
+  export default Admin

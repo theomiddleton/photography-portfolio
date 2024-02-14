@@ -1,6 +1,7 @@
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { r2 } from '~/lib/r2'
 
+import { eq, sql } from 'drizzle-orm';
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 
@@ -11,6 +12,15 @@ export async function POST(request: Request) {
         Bucket: process.env.R2_BUCKET_NAME,
         Key: newFileName,
     });
+
+    const result = await db
+      .select({
+        fileUrl: imageData.fileUrl,
+      })
+      .from(imageData)
+      .where(eq(imageData.uuid, sql.placeholder('uuid')))
+      .prepare()
+      .execute({ uuid: uuid });
 
     try {
         const response = await r2.send(command);
