@@ -7,28 +7,25 @@
   import { db } from '~/server/db'
   import { imageData } from '~/server/db/schema'
 
+  export default function Admin() {
 
-  const Admin = () => {
+    const [file, setFile] = useState<File | null>(null)
+    const [uploading, setUploading] = useState(false)
 
-  const [file, setFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const currentFile = event.target.files[0]
-      setFile(currentFile)
-    }
-  }
-
-  const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    if (!file) {
-      alert('Please select a file to upload.')
-      return
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (event.target.files) {
+        const currentFile = event.target.files[0]
+        setFile(currentFile)
+      }
     }
 
-    setUploading(true)
+    const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      if (!file) {
+        alert('Please select a file to upload.')
+        return
+      }
+      setUploading(true)
 
     const response = await fetch(
       '/api/upload',
@@ -120,8 +117,7 @@
         </div>
       </div>
     </div>
-</div>
+  </div>
   )
-  }
 
-  export default Admin
+}
