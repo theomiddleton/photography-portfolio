@@ -9,13 +9,6 @@
 
 
   const Admin = () => {
-    async function fetchImages() {
-        const result = await db
-          .select({
-            fileUrl: imageData.fileUrl,
-          })
-          .from(imageData)
-        console.log('image map', result)
 
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -112,9 +105,6 @@
                     />
                   </label>
                 </div>
-                <p className="text-xs leading-5 text-gray-600">
-                  {file?.name ? file.name : 'Image up to 16MB'}
-                </p>
               </div>
             </div>
           </div>
@@ -127,9 +117,6 @@
         </div>
         <div>
         <div className="mt-6 flex items-center justify-end gap-x-6">
-          <Button type="submit" onClick={fetchImages}>
-            Fetch Images
-          </Button>
         </div>
       </div>
     </div>
