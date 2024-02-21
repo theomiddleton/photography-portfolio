@@ -1,16 +1,62 @@
   'use client'
   import React from 'react'
-  import { useState } from 'react'
+  import { useState, useEffect } from 'react'
   import { Icons } from '~/components/ui/icons'
   import { Button } from '~/components/ui/button'
 
   import { db } from '~/server/db'
   import { imageData } from '~/server/db/schema'
 
+  import { Card, CardContent } from "~/components/ui/card"
+  import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+  } from "~/components/ui/carousel"
+
   export default function Admin() {
 
     const [file, setFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
+    const [imageUrl, setImageUrl] = useState<string>('');
+
+    const fetchImages = async () => {
+      //try {
+        console.log('fetching')
+        const response = await fetch('/api/fetch/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log('Response:', response); // Log the response
+    
+      //  if (response.ok) {
+      //    const data = await response.json();
+      //    console.log('Response data:', data); // Log the response data
+      //    if (Array.isArray(data) && data.length > 0) {
+      //      const imageUrl = data.map(item => item.fileUrl);
+      //      setImageUrl(imageUrl);
+      //    } else {
+      //      console.error('Invalid response data format');
+      //      // Handle error appropriately
+      //      console.log('client data:', response);
+      //    }
+      //  } else {
+      //    console.error('Failed to fetch image URL');
+      //    // Handle error appropriately
+      //  }
+      //} catch (error) {
+      //  console.error('Error fetching image URL:', error);
+      //  // Handle error appropriately
+      //}
+    };
+
+
+    const url = 'https://img.theomiddleton.me/garf.jpeg'
+    
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (event.target.files) {
@@ -19,7 +65,8 @@
       }
     }
 
-    const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleUpload = async () => {
+      console.log('uploading')
       e.preventDefault()
       if (!file) {
         alert('Please select a file to upload.')
@@ -27,16 +74,16 @@
       }
       setUploading(true)
 
-    const response = await fetch(
-      '/api/upload',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ filename: file.name, contentType: file.type }),
-      }
-    )
+      const response = await fetch(
+        '/api/upload',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ filename: file.name, contentType: file.type }),
+        }
+      )
 
     if (response.ok) {
       const { url } = await response.json()
@@ -71,7 +118,6 @@
         <p className="mt-1 text-sm leading-6 text-gray-800">
           Upload the image
         </p>
-
         <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
           <div className="col-span-full">
             <label
@@ -107,17 +153,35 @@
           </div>
         </div>
         <div className="mt-6 flex items-center justify-end gap-x-6">
-
           <Button type="submit" onClick={handleUpload}>
             Upload
           </Button>
         </div>
-        <div>
-        <div className="mt-6 flex items-center justify-end gap-x-6">
+        <div className='mt-6 flex items-center justify-end gap-x-6'>
+          <Button type='submit' onClick={fetchImages}>Fetch</Button>
+        </div> {/* This closing tag was missing */}
+        <div className="flex justify-center">
+          <div className="mt-6 flex items-center justify-end gap-x-6">
+            <Carousel className="w-full max-w-xs">
+              <CarouselContent>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <CarouselItem key={index}>
+                    <div className="p-1">
+                      <Card>
+                        <CardContent className="flex aspect-square items-center justify-center p-6">
+                          <img src={url} alt={`Image ${index + 1}`}/>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          </div>
         </div>
       </div>
     </div>
-  </div>
   )
-
 }
