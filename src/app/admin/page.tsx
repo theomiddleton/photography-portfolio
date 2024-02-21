@@ -20,39 +20,41 @@
 
     const [file, setFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
-    const [imageUrl, setImageUrl] = useState<string>('');
+    const [imageUrl, setImageUrl] = useState<string>('')
 
     const fetchImages = async () => {
-      //try {
+      try {
         console.log('fetching')
         const response = await fetch('/api/fetch/', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
-        });
-        console.log('Response:', response); // Log the response
+        })
+        //console.log('Response:', response)
     
-      //  if (response.ok) {
-      //    const data = await response.json();
-      //    console.log('Response data:', data); // Log the response data
-      //    if (Array.isArray(data) && data.length > 0) {
-      //      const imageUrl = data.map(item => item.fileUrl);
-      //      setImageUrl(imageUrl);
-      //    } else {
-      //      console.error('Invalid response data format');
-      //      // Handle error appropriately
-      //      console.log('client data:', response);
-      //    }
-      //  } else {
-      //    console.error('Failed to fetch image URL');
-      //    // Handle error appropriately
-      //  }
-      //} catch (error) {
-      //  console.error('Error fetching image URL:', error);
-      //  // Handle error appropriately
-      //}
-    };
+        if (response.ok) {
+          const responseData = await response.json()
+          console.log('Response data:', responseData)
+          
+          if (responseData && responseData.result && Array.isArray(responseData.result) && responseData.result.length > 0) {
+            const imageUrl = responseData.result.map(item => item.fileUrl)
+            setImageUrl(imageUrl)
+          } else {
+            console.error('Invalid response data format')
+            // Handle error appropriately
+            //console.log('client data:', response)
+          }
+        } else {
+          console.error('Failed to fetch image URL')
+          // Handle error appropriately
+        }
+      } catch (error) {
+        console.error('Error fetching image URL:', error)
+        // Handle error appropriately
+      }
+    }
+    console.log ('imageUrl:', imageUrl)
 
 
     const url = 'https://img.theomiddleton.me/garf.jpeg'
@@ -156,10 +158,8 @@
           <Button type="submit" onClick={handleUpload}>
             Upload
           </Button>
-        </div>
-        <div className='mt-6 flex items-center justify-end gap-x-6'>
           <Button type='submit' onClick={fetchImages}>Fetch</Button>
-        </div> {/* This closing tag was missing */}
+        </div>
         <div className="flex justify-center">
           <div className="mt-6 flex items-center justify-end gap-x-6">
             <Carousel className="w-full max-w-xs">
