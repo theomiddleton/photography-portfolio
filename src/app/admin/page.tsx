@@ -4,9 +4,6 @@
   import { Icons } from '~/components/ui/icons'
   import { Button } from '~/components/ui/button'
 
-  import { db } from '~/server/db'
-  import { imageData } from '~/server/db/schema'
-
   import { Card, CardContent } from "~/components/ui/card"
   import {
     Carousel,
@@ -20,44 +17,33 @@
 
     const [file, setFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
-    const [imageUrl, setImageUrl] = useState<string>('')
+    const [imageUrls, setImageUrls] = useState<string[]>([]) 
 
     const fetchImages = async () => {
       try {
-        console.log('fetching')
         const response = await fetch('/api/fetch/', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
-        })
-        //console.log('Response:', response)
-    
+        }) 
+  
         if (response.ok) {
           const responseData = await response.json()
-          console.log('Response data:', responseData)
           
           if (responseData && responseData.result && Array.isArray(responseData.result) && responseData.result.length > 0) {
-            const imageUrl = responseData.result.map(item => item.fileUrl)
-            setImageUrl(imageUrl)
+            const imageUrlArray = responseData.result.map(item => item.fileUrl) 
+            setImageUrls(imageUrlArray) 
           } else {
             console.error('Invalid response data format')
-            // Handle error appropriately
-            //console.log('client data:', response)
           }
         } else {
-          console.error('Failed to fetch image URL')
-          // Handle error appropriately
+          console.error('Failed to fetch image URL') 
         }
       } catch (error) {
         console.error('Error fetching image URL:', error)
-        // Handle error appropriately
       }
-    }
-    console.log ('imageUrl:', imageUrl)
-
-
-    const url = 'https://img.theomiddleton.me/garf.jpeg'
+    } 
     
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +53,7 @@
       }
     }
 
-    const handleUpload = async () => {
+    const handleUpload = async (e: React.MouseEvent<HTMLButtonElement>) => {
       console.log('uploading')
       e.preventDefault()
       if (!file) {
@@ -75,7 +61,7 @@
         return
       }
       setUploading(true)
-
+    
       const response = await fetch(
         '/api/upload',
         {
@@ -86,30 +72,30 @@
           body: JSON.stringify({ filename: file.name, contentType: file.type }),
         }
       )
-
-    if (response.ok) {
-      const { url } = await response.json()
-      console.log('Got pre-signed URL:', url)
-      const uploadResponse = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type,
-        },
-        body: file,
-      })
-
-      if (uploadResponse.ok) {
-        alert('Upload successful!')
+    
+      if (response.ok) {
+        const { url } = await response.json()
+        console.log('Got pre-signed URL:', url)
+        const uploadResponse = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': file.type,
+          },
+          body: file,
+        })
+    
+        if (uploadResponse.ok) {
+          alert('Upload successful!')
+        } else {
+          console.error('R2 Upload Error:', uploadResponse)
+          alert('Upload failed.')
+        }
       } else {
-        console.error('R2 Upload Error:', uploadResponse)
-        alert('Upload failed.')
+        alert('Failed to get pre-signed URL.')
       }
-    } else {
-      alert('Failed to get pre-signed URL.')
+    
+      setUploading(false)
     }
-
-    setUploading(false)
-  }
 
   return (
     <div className="min-h-screen bg-white text-black space-y-12">
@@ -150,6 +136,9 @@
                     />
                   </label>
                 </div>
+                <p className="text-xs leading-5 text-gray-600">
+									{file?.name ? file.name : 'JPEG up to 100MB'}
+								</p>
               </div>
             </div>
           </div>
@@ -161,27 +150,27 @@
           <Button type='submit' onClick={fetchImages}>Fetch</Button>
         </div>
         <div className="flex justify-center">
-          <div className="mt-6 flex items-center justify-end gap-x-6">
-            <Carousel className="w-full max-w-xs">
-              <CarouselContent>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <CarouselItem key={index}>
-                    <div className="p-1">
-                      <Card>
-                        <CardContent className="flex aspect-square items-center justify-center p-6">
-                          <img src={url} alt={`Image ${index + 1}`}/>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </div>
+        <div className="mt-6 flex items-center justify-end gap-x-6">
+          <Carousel className="w-full max-w-xs">
+            <CarouselContent>
+              {imageUrls.map((imageUrl, index) => (
+                <CarouselItem key={index}>
+                  <div className="p-1">
+                    <Card>
+                      <CardContent className="flex aspect-square items-center justify-center p-6">
+                        <img src={imageUrl} alt={`Image ${index + 1}`}/>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
         </div>
       </div>
     </div>
+  </div>
   )
 }

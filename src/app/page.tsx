@@ -10,8 +10,10 @@ export default async function Home() {
     id: imageData.id,
     fileUrl: imageData.fileUrl,
   }).from(imageData);
-  console.log(result);
+  //console.log(result);
   const fileUrl = result[1].fileUrl //the array index is not currently synced to database id
+
+  const imageUrls = result.map((item) => item.fileUrl);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
@@ -20,7 +22,16 @@ export default async function Home() {
         <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
           Center
         </h1>
-        <img src={fileUrl} alt="img" className="w-1/2" />
+        <section className="columns-4 max-h-5xl mx-auto space-y-4">
+          {imageUrls.map((url) => (
+            <div key={url} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
+              <img src={url} alt="img" height={600} width={400} />
+            </div>
+          ))}
+        
+        </section>
+        {/* <img src={fileUrl} alt="img" className="w-1/2" /> */}
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
           <Link
             className="flex max-w-xs flex-col gap-4 rounded-xl bg-black/10 p-4 hover:bg-black/20"
