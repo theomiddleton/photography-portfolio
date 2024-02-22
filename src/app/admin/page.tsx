@@ -11,16 +11,9 @@
     CardFooter,
     CardHeader,
     CardTitle,
-  } from "~/components/ui/card"
-  import { Input } from "~/components/ui/input"
-  import { Label } from "~/components/ui/label"
-  import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-  } from "~/components/ui/select"
+  } from '~/components/ui/card'
+  import { Input } from '~/components/ui/input'
+  import { Label } from '~/components/ui/label'
 
   import {
     Carousel,
@@ -28,16 +21,16 @@
     CarouselItem,
     CarouselNext,
     CarouselPrevious,
-  } from "~/components/ui/carousel"
+  } from '~/components/ui/carousel'
 
   export default function Admin() {
 
     const [file, setFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
     const [imageUrls, setImageUrls] = useState<string[]>([])
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [tags, setTags] = useState('');
+    const [name, setName] = useState('') 
+    const [description, setDescription] = useState('') 
+    const [tags, setTags] = useState('') 
 
     const fetchImages = async () => {
       try {

@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react'
 import { Icons } from '~/components/ui/icons'
 import { Button } from '~/components/ui/button'
 
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm' 
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 
 const Admin = async () => {
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState([]) 
 
   const result = await db.select({
     fileUrl: imageData.fileUrl,
@@ -24,13 +24,13 @@ const Admin = async () => {
       .then(response => {
         if (response.ok) {
           // Remove the deleted image from the state
-          setImages(prevImages => prevImages.filter(image => uuid !== uuid));
+          setImages(prevImages => prevImages.filter(image => uuid !== uuid)) 
         } else {
-          console.error('Failed to delete image:', response);
+          console.error('Failed to delete image:', response) 
         }
       })
-      .catch(error => console.error('Failed to delete image:', error));
-  };
+      .catch(error => console.error('Failed to delete image:', error)) 
+  } 
 
   return (
     <div className="min-h-screen bg-white text-black space-y-12">
@@ -61,7 +61,7 @@ const Admin = async () => {
         </div>
       </div>
     </div>
-  );
-};
+  ) 
+} 
 
-export default Admin;
+export default Admin 

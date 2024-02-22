@@ -1,7 +1,7 @@
-import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3" 
 import { r2 } from '~/lib/r2'
 
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm' 
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const command = new DeleteObjectCommand({
         Bucket: process.env.R2_BUCKET_NAME,
         Key: newFileName,
-    });
+    }) 
 
     const result = await db
       .select({
@@ -20,15 +20,15 @@ export async function POST(request: Request) {
       .from(imageData)
       .where(eq(imageData.uuid, sql.placeholder('uuid')))
       .prepare()
-      .execute({ uuid: uuid });
+      .execute({ uuid: uuid }) 
 
     try {
-        const response = await r2.send(command);
-        console.log(response);
-        await db.delete(imageData).where(eq(imageData.uuid, uuid));
-        return { message: 'Success' };
+        const response = await r2.send(command) 
+        console.log(response) 
+        await db.delete(imageData).where(eq(imageData.uuid, uuid)) 
+        return { message: 'Success' } 
     } catch (err) {
-        console.error(err);
-        return { message: 'Error' };
+        console.error(err) 
+        return { message: 'Error' } 
     }
 }

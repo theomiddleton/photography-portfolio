@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm"
+import { relations, sql } from 'drizzle-orm'
 import {
   bigint,
   index,
@@ -8,7 +8,7 @@ import {
   text,
   timestamp,
   varchar,
-} from "drizzle-orm/mysql-core"
+} from 'drizzle-orm/mysql-core'
 
 export const mysqlTable = mysqlTableCreator((name) => `portfolio-project_${name}`)
 
