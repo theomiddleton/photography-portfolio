@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SiteHeader } from '~/components/site-header';
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
+import { siteConfig } from '~/config/site'
 
 export default async function Home() {
 
@@ -17,12 +18,14 @@ export default async function Home() {
       <SiteHeader />
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
         <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-          Center
+          {siteConfig.headers.main}
         </h1>
         <section className="columns-4 max-h-5xl mx-auto space-y-4">
           {imageUrls.map((url) => (
             <div key={url} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
-              <img src={url} alt="img" height={600} width={400} />
+              <a href={url} target="_blank" rel="noreferrer">
+                <img src={url} alt="img" height={600} width={400} />
+              </a>
             </div>
           ))}
         

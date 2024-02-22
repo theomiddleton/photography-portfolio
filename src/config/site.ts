@@ -7,6 +7,9 @@ export const siteConfig = {
         github: 'https://github.com/theomiddleton/portfolio-project',
         website: 'https://theomiddleton.me'
     },
+    headers: {
+        main: 'portfolio',
+    }
 }
 
 export type SiteConfig = typeof siteConfig

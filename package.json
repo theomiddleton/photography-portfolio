@@ -11,7 +11,7 @@
     "start": "next start",
     "generate": "drizzle-kit generate:mysql",
     "push": "drizzle-kit push:mysql",
-    "db:studio": "dotenv drizzle-kit studio"
+    "studio": "drizzle-kit studio"
   },
   "keywords": [],
   "author": "",
