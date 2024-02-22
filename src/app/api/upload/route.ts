@@ -9,7 +9,7 @@ import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 
 export async function POST(request: Request) {
-  const { filename } = await request.json()
+  const { filename, name, description, tags } = await request.json()
 
   try {
     const fileExtension = filename.split('.').pop()
@@ -24,7 +24,14 @@ export async function POST(request: Request) {
     const newFileName = keyName + '.' + fileExtension
     const fileUrl =`${siteConfig.bucketUrl}/${newFileName}`
     console.log('fileUrl', fileUrl)
-    await db.insert(imageData).values({ uuid: keyName, fileName: newFileName, fileUrl: fileUrl })
+    await db.insert(imageData).values({
+      uuid: keyName, 
+      fileName: newFileName, 
+      fileUrl: fileUrl,
+      name: name,
+      description: description,
+      tags: tags,
+    })
 
     const result = await db
       .select({

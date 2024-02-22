@@ -9,10 +9,7 @@ export default async function Home() {
   const result = await db.select({
     id: imageData.id,
     fileUrl: imageData.fileUrl,
-  }).from(imageData);
-  //console.log(result);
-  const fileUrl = result[1].fileUrl //the array index is not currently synced to database id
-
+  }).from(imageData)
   const imageUrls = result.map((item) => item.fileUrl);
 
   return (

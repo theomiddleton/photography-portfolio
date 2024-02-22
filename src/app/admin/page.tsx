@@ -4,7 +4,24 @@
   import { Icons } from '~/components/ui/icons'
   import { Button } from '~/components/ui/button'
 
-  import { Card, CardContent } from "~/components/ui/card"
+  import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+  } from "~/components/ui/card"
+  import { Input } from "~/components/ui/input"
+  import { Label } from "~/components/ui/label"
+  import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from "~/components/ui/select"
+
   import {
     Carousel,
     CarouselContent,
@@ -17,7 +34,10 @@
 
     const [file, setFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
-    const [imageUrls, setImageUrls] = useState<string[]>([]) 
+    const [imageUrls, setImageUrls] = useState<string[]>([])
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [tags, setTags] = useState('');
 
     const fetchImages = async () => {
       try {
@@ -69,7 +89,7 @@
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ filename: file.name, contentType: file.type }),
+          body: JSON.stringify({ filename: file.name, contentType: file.type, name, description, tags }),
         }
       )
     
@@ -103,18 +123,16 @@
         <h2 className="text-base font-semibold leading-7 text-black">
           Admin Panel
         </h2>
-        <p className="mt-1 text-sm leading-6 text-gray-800">
-          Upload the image
-        </p>
         <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
           <div className="col-span-full">
-            <label
-              htmlFor="jpg-file"
-              className="block text-sm font-medium leading-6 text-black"
-            >
-              Image
-            </label>
-            <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
+              <Card className="mt-2 justify-center w-full">
+                
+                <CardHeader>
+                  <CardTitle>Upload images</CardTitle>
+                  {/* <CardDescription>Deploy your new project in one-click.</CardDescription> */}
+                </CardHeader>
+                <CardContent>
+                <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
               <div className="text-center">
                 <Icons.imageIcon
                   className="mx-auto h-12 w-12 text-gray-500"
@@ -140,13 +158,33 @@
 									{file?.name ? file.name : 'JPEG up to 100MB'}
 								</p>
               </div>
-            </div>
-          </div>
+              </div>
+                <form>
+                  <div className="grid w-full items-center gap-4">
+                    <span/>
+                    <div className="flex flex-col space-y-1.5">
+                      <Label htmlFor="name">Name</Label>
+                      <Input id="name" placeholder="Name of the image" value={name} onChange={(e) => setName(e.target.value)} />
+                    </div>
+                    <div className="flex flex-col space-y-1.5">
+                      <Label htmlFor="description">Description</Label>
+                      <Input id="description" placeholder="Description of the image" value={description} onChange={(e) => setDescription(e.target.value)} />  
+                    </div>
+                    <div className="flex flex-col space-y-1.5">
+                      <Label htmlFor="tags">Tags</Label>
+                      <Input id="tags" placeholder="Tags" value={tags} onChange={(e) => setTags(e.target.value)} />
+                    </div>
+                  </div>
+                </form>
+                  </CardContent>
+                  <CardFooter className="flex justify-between">
+                    <Button variant="outline">Cancel</Button>
+                    <Button type="submit" onClick={handleUpload}>Upload</Button>
+                  </CardFooter>
+                </Card>
+              </div>
         </div>
         <div className="mt-6 flex items-center justify-end gap-x-6">
-          <Button type="submit" onClick={handleUpload}>
-            Upload
-          </Button>
           <Button type='submit' onClick={fetchImages}>Fetch</Button>
         </div>
         <div className="flex justify-center">

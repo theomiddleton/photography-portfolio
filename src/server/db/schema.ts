@@ -20,7 +20,8 @@ export const imageData = mysqlTable(
     uuid: varchar("uuid", { length: 36 }).notNull(),
     fileName: varchar("fileName", { length: 256 }).notNull(),
     fileUrl: varchar("fileUrl", { length: 256 }).notNull(),
-    comment: text("comment"),
+    name: text("name"),
+    description: text("description"),
     tags: text("tags"),
     uploadedAt: timestamp("uploadedAt")
       .default(sql`CURRENT_TIMESTAMP`)
