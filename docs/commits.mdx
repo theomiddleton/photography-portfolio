@@ -17,3 +17,11 @@ This commit contains the start of the file upload feature, and the start of the 
 ### ✨ Add image upload to a cloudflare R2 bucket
 This commit adds uploading images to a cloudflare R2 bucket. It does this through the aws sdk, as that is how you interface with a cloudflare R2 bucket as per the cloudflare documentation.
 [Link](https://github.com/theomiddleton/portfolio-project/commit/92321d991622563c74aab7cc66200915e55f0bd7)
+
+### 🗃️ Add database and image data schema
+This commit adds the database libraries, for the database I am using planetscale, so I can host it online. The database is mysql, and I am using drizzle to interface with it, drizzle is an orm for mysql, and other databases, but I am only using it for mysql. The image data schema is also added, this is the schema for the imagedata, which is things like the file url, the file name, when it was uploaded and more.
+[Link](https://github.com/theomiddleton/portfolio-project/commit/29d2e8dd939e002c3d28b4a77f1a9b263b39ecf0)
+
+### 🗃️ Add full delete and uploading image data to the database
+This commit adds the full delete functionality, and the uploading of the image data to the database. The full delete functionality is the ability to delete the image from the cloudflare R2 bucket, and the database. The image data is uploaded to the database, and the file url is also uploaded to the database.
+[Link](https://github.com/theomiddleton/portfolio-project/commit/e52be60c283ab3bd446c650ba34ade9a38ebc2be)
