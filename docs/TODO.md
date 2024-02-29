@@ -16,16 +16,16 @@
 ## UI
 
 - [ ] Main page
-  - [ ] Image Gallery
+  - [x] Image Gallery
     - [ ] Gallery order - within admin
       - [ ] Colour based order (adv)
   - [ ] Infinite scroll  
   - [ ] Auto update
   - [ ] Image Select
     - [ ] Metadata
-    - [ ] Title
+    - [x] Title
     - [ ] Location?
-    - [ ] Tags
+    - [x] Tags
     - [ ] Link to print
 - [ ] About page
   - [ ] Made with genorator
@@ -39,26 +39,17 @@
   - [ ] Page views
     - [ ] Rework
   - [ ] Upload
-    - [ ] cloudflare
+    - [x] cloudflare
       - [x] upload
         - [x] upload file info to database
-          - [ ] full delete
+          - [x] full delete
+            - [ ] within admin ui
         - [x] Presigned urls
           - [ ] revisit
-      - [ ] download
-        - [ ] image fetch
-    - [ ] Uploadthing
-      - [x] Basic
-      - [ ] Upload
-        - [ ] auth
-      - [ ] Download
-        - [ ] Image fetch
-      - [ ] Middleware
-        - [ ] Auth for upload
-      - [ ] SSR Plugins
-      - [ ] Theming
+      - [x] download
+        - [x] image fetch
     - [ ] Metadata
-    - [ ] Tags
+    - [x] Tags
     - [ ] Location
   - [ ] Sales
   - [ ] Dashboard
@@ -79,7 +70,6 @@
 - [ ] Metadata store
 - [ ] purchase / sales store
 - [ ] Blob store
-  - [ ] Contact theo (t3)
 - [ ] Blog store
 
 ## Auth / purchase
