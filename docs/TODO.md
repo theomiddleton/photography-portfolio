@@ -19,6 +19,8 @@
   - [x] Image Gallery
     - [ ] Gallery order - within admin
       - [ ] Colour based order (adv)
+    - [x] Image page
+      - [ ] revisit for responsiveness on smaller screens 
   - [ ] Infinite scroll  
   - [ ] Auto update
   - [ ] Image Select
@@ -42,6 +44,7 @@
     - [x] cloudflare
       - [x] upload
         - [x] upload file info to database
+          - [ ] change database
           - [x] full delete
             - [ ] within admin ui
         - [x] Presigned urls
