@@ -1,8 +1,7 @@
-import { sql, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { SiteHeader } from '~/components/site-header'
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
-import { siteConfig } from '~/config/site'
 import Image from 'next/image'
 
 export default async function Photo({ params }: { params: { id: number } }) {

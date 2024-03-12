@@ -12,10 +12,11 @@ import {
 
 export const mysqlTable = mysqlTableCreator((name) => `portfolio-project_${name}`)
 
+// will have to change this while moving away from planetscale :(
+  
 export const imageData = mysqlTable(
   "imageData",
   {
-    //id: bigint("id", { mode: "number" }).primaryKey(),
     id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
     uuid: varchar("uuid", { length: 36 }).notNull(),
     fileName: varchar("fileName", { length: 256 }).notNull(),
