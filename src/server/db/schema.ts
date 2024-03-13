@@ -12,6 +12,8 @@ import {
 
 export const mysqlTable = mysqlTableCreator((name) => `portfolio-project_${name}`)
 
+// will have to change this while moving away from planetscale :(
+  
 export const imageData = mysqlTable(
   "imageData",
   {

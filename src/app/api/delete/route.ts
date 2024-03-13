@@ -26,9 +26,9 @@ export async function POST(request: Request) {
         const response = await r2.send(command) 
         console.log(response) 
         await db.delete(imageData).where(eq(imageData.uuid, uuid)) 
-        return { message: 'Success' } 
+        return Response.json({ message: 'Deleted' }) 
     } catch (err) {
         console.error(err) 
-        return { message: 'Error' } 
+        return Response.json({ error: err.message })
     }
 }

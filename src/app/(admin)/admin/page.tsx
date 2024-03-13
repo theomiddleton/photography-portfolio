@@ -1,6 +1,6 @@
   'use client'
   import React from 'react'
-  import { useState, useEffect } from 'react'
+  import { useState } from 'react'
   import { Icons } from '~/components/ui/icons'
   import { Button } from '~/components/ui/button'
 
@@ -122,7 +122,7 @@
                 
                 <CardHeader>
                   <CardTitle>Upload images</CardTitle>
-                  {/* <CardDescription>Deploy your new project in one-click.</CardDescription> */}
+                  {/* <CardDescription>.</CardDescription> */}
                 </CardHeader>
                 <CardContent>
                 <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
