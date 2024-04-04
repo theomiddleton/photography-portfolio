@@ -2,43 +2,43 @@
 
 ## This doc will contain all the commits made to the project. It will be updated every time a new commit is made
 
-### 🎉 Create initial project files
+## 🎉 Create initial project files
 
 This commit contains the initial project files. It is the starting point of the project.
 
 [Link](https://github.com/theomiddleton/portfolio-project/commit/c915347fbbf0e3e7e10a26a0903a5b9ce899c053)
 
-### 🚧 Create a simple landing page, and add shadcn/ui, tailwind, and more
+## 🚧 Create a simple landing page, and add shadcn/ui, tailwind, and more
 
 This commit contains the creation of a simple landing page, it uses shadcn/ui, and tailwind, so they have been added to the project. Radix UI has also been added to the project as a dev dependency of shadcn/ui, and for some icons.
 
 [Link](https://github.com/theomiddleton/portfolio-project/commit/8b6e7ddec8a36b5f4a4ae7f525e519b121ef90f4)
 
-### 🚧 Start on file upload and start commit documentation
+## 🚧 Start on file upload and start commit documentation
 
 This commit contains the start of the file upload feature, and the start of the this, the commit documentation. The admin page is simply the ui for now, with the functionality to be added later.
 
 [Link](https://github.com/theomiddleton/portfolio-project/commit/d9eb6947b0de1ab61156455bd2a9722c6f206961)
 
-### ✨ Add image upload to a cloudflare R2 bucket
+## ✨ Add image upload to a cloudflare R2 bucket
 
 This commit adds uploading images to a cloudflare R2 bucket. It does this through the aws sdk, as that is how you interface with a cloudflare R2 bucket as per the cloudflare documentation.
 
 [Link](https://github.com/theomiddleton/portfolio-project/commit/92321d991622563c74aab7cc66200915e55f0bd7)
 
-### 🗃️ Add database and image data schema
+## 🗃️ Add database and image data schema
 
 This commit adds the database libraries, for the database I am using planetscale, so I can host it online. The database is MySQL, and I am using drizzle to interface with it, drizzle is an orm for MySQL, and other databases, but I am only using it for MySQL. The image data schema is also added, this is the schema for the image data, which is things like the file URL, the file name, when it was uploaded and more.
 
 [Link](https://github.com/theomiddleton/portfolio-project/commit/29d2e8dd939e002c3d28b4a77f1a9b263b39ecf0)
 
-### 🗃️ Add full delete and uploading image data to the database
+## 🗃️ Add full delete and uploading image data to the database
 
 This commit adds the full delete functionality, and the uploading of the image data to the database. The full delete functionality is the ability to delete the image from the cloudflare R2 bucket, and the database. The image data is uploaded to the database, and the file URL is also uploaded to the database.
 
 [Link](https://github.com/theomiddleton/portfolio-project/commit/e52be60c283ab3bd446c650ba34ade9a38ebc2be)
 
-### 🎉 Fetch ImageUrls from DB, and start on main image gallery
+## 🎉 Fetch ImageUrls from DB, and start on main image gallery
 
 This is a larger commit than most before. It adds the working fetching of ImageUrls and ImageData from the database, meaning, now images can be seen without hardcoding their URLs.  
 
@@ -128,3 +128,91 @@ The result is then put into a map object and takes the form:
 By making it only the urls, it is easier to parse for displaying the images, as shown before; However, there is the ability to include the Id in the key value pair for custom image ordering.
 
 [Link](https://github.com/theomiddleton/portfolio-project/commit/36c7af846e4feb1c538d18e157f99c86281d9dd7)
+
+## 🎉 Add image page
+
+### Image pages
+
+A vital part of this project is the viewing of images. This commit adds the dynamic routes for images. The dynamic routes are created in the file structure:
+
+```text
+├── src
+│   ├── app
+│   │   ├── photo
+│   │   │   ├── [id]
+│   │   │   │   ├── page.tsx
+```
+
+it is the `[id]` section that creates the dynamic route, and the `page.tsx` is the page that renders. I used `[id]` as the images already had id's assosiated associated with them in the database, so it made sense to do it that way.
+
+Within some of the code in `page.tsx` is as follows:
+
+```tsx
+export default async function Photo({ params }: { params: { id: number } }) {
+
+  const result = await db.select({
+      id: imageData.id,
+      fileUrl: imageData.fileUrl,
+      name: imageData.name,
+      description: imageData.description,
+      tags: imageData.tags,
+      uploadedAt: imageData.uploadedAt
+  }).from(imageData).where(eq(imageData.id, params.id))
+
+  const imageUrl = result.map((item) => item.fileUrl) 
+```
+
+The code shown is broken down as such:
+
+`export default function` is used in every next route, it is used to export the page for rendering `async` declares it as asynchronous so await functions can be used for fetching from the database, and then `Photo()` is for the name of the page.
+
+Within `Photo` params are passed, `Photo({ params }` a vital part of dynamic routes, allowing the route to access the id of the page that is active, tellind the page whether the user is on `photo/1`, `photo/2`, `photo/3`, or `photo/4`. The part following `: { params: { id: number } }` is a typescript declaration ensuring only ids of the type number can be accessed or passed, avoiding errors in the future.
+
+The next part fetches data from the database. `const result = await db.select` assigns all returned data to the constant result, with `await` ensuring data will only be assigned when it has been fetched.
+
+Since this is the image page, almost all stored info is fetched, as unlike the main page, the title, description, and tags are displayed.
+
+Finaly the imageUrls are assigned to a map as discussed in the previous [commit](#🎉-fetch-imageurls-from-db-and-start-on-main-image-gallery)
+
+### Changes to the main gallery
+
+Since image pages have been created now, they should be accessable via the main gallery by clicking on the image.
+To do this, the `<a href>` must be changed to the image page.
+
+This means the image id must now be loaded along side the imageUrls. To do this, the code was changed as follows:
+
+```tsx
+const imageUrls = result.map((item) => ({
+  id: item.id,
+  url: item.fileUrl
+}))
+```
+
+The assignment is changed so urls and ids are held within the array, giving access to the url and its id for directing to the image page.
+
+```tsx
+<section className="sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4 max-h-5xl mx-auto space-y-4">
+  {imageUrls.map((image) => (
+    <div key={image.id} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
+      <a href={'/photo/' + image.id} target="_self" rel="noreferrer">
+        <Image src={image.url} alt="img" height={600} width={400} />
+      </a>
+    </div>
+  ))}
+</section>
+```
+
+This code hasn't changed much, but the `href` now directs to the image page, done so by concatenating the string `/photo/` + the image id. 
+
+### Issues 
+
+Something I noticed while building this part of the project, is when running the project through the dev server, all images are desaturated and rather grey. 
+
+After doing some research this appears to be due to the different colour spaces of the images. Many of the images I am using for testing are exported in colour spaces such as Adobe RGB or ProPhoto RGB. Since images for the web should only be in narrower gamut colour spaces such as sRGB or REC.709A for video, the colour space transform was desaturating the image. Further in the research I found that this only occurs on the devopment server, and not on any builds.
+
+### Moving forward 
+
+The plan for the next features will be authentication and all its complexities. Auth is more than just a login page, needing token based session management and a roust login system. 
+For the type of website it is, email and password auth should be used as this will allow us to use the auth components for the print store later.
+For email and password auth, you need an email handler and to hash and store hashed passwords. For the hashing a crypto algorithm must be used, and for the emails, something like resend could be used. 
+If we already have accounts and emails, a newsletter or other emails could be sent from within the app by the admin

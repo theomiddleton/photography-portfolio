@@ -1,36 +1,18 @@
-import { relations, sql } from 'drizzle-orm'
-import {
-  bigint,
-  index,
-  int,
-  mysqlTableCreator,
-  primaryKey,
-  text,
-  timestamp,
-  varchar,
-} from 'drizzle-orm/mysql-core'
+import { drizzle } from 'drizzle-orm/node-postgres';
 
-export const mysqlTable = mysqlTableCreator((name) => `portfolio-project_${name}`)
+import { serial, varchar, timestamp, pgTableCreator } from 'drizzle-orm/pg-core';
 
-// will have to change this while moving away from planetscale :(
-  
-export const imageData = mysqlTable(
-  "imageData",
-  {
-    //id: bigint("id", { mode: "number" }).primaryKey(),
-    id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
-    uuid: varchar("uuid", { length: 36 }).notNull(),
-    fileName: varchar("fileName", { length: 256 }).notNull(),
-    fileUrl: varchar("fileUrl", { length: 256 }).notNull(),
-    name: text("name"),
-    description: text("description"),
-    tags: text("tags"),
-    uploadedAt: timestamp("uploadedAt")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    modifiedAt: timestamp("modifiedAt").onUpdateNow(),
-  },
-  (example) => ({
-    uuidIndex: index("uuid_idx").on(example.uuid),
-  })
-)
+export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
+
+export const imageData = pgTable('imageData', {
+  id: serial('id').primaryKey(),
+  uuid: varchar('uuid', { length: 36 }).notNull(),
+  fileName: varchar('fileName', { length: 256 }).notNull(),
+  fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
+  name: varchar('name', { length: 256 }),
+  description: varchar('description', { length: 256 }),
+  tags: varchar('tags', { length: 256 }),
+  uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),
+  //modifiedAt: timestamp('modifiedAt').$onUpdate(() => new Date()),
+  //modifiedAt: timestamp('modifiedAt').defaultNow(),
+});
