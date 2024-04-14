@@ -44,7 +44,7 @@
     - [x] cloudflare
       - [x] upload
         - [x] upload file info to database
-          - [ ] change database
+          - [x] change database
           - [x] full delete
             - [ ] within admin ui
         - [x] Presigned urls
