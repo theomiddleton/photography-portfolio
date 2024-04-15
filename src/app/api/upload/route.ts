@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       })
       .from(imageData)
       .where(eq(imageData.uuid, sql.placeholder('uuid')))
-      .prepare()
+      //.prepare()
       .execute({ uuid: keyName }) 
     console.log('Inserted data:', result)
 
