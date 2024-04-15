@@ -52,7 +52,6 @@ export const env = createEnv({
     NEXT_PUBLIC_R2_BUCKET_NAME: z.string(),
     NEXT_PUBLIC_R2_ACCOUNT_ID: z.string(),
     NEXT_PUBLIC_R2_REGION: z.string(),
-    
   },
 
   /**

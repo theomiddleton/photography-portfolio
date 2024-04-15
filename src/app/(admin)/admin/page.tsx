@@ -27,6 +27,7 @@
   export default function Admin() {
 
     const { isAuthenticated, isLoading } = useKindeBrowserClient()
+        
     const [file, setFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
     const [imageUrls, setImageUrls] = useState<string[]>([])
