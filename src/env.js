@@ -32,6 +32,12 @@ export const env = createEnv({
     DISCORD_CLIENT_SECRET: z.string(),
     GITHUB_CLIENT_ID: z.string(),
     GITHUB_CLIENT_SECRET: z.string(),
+    KINDE_CLIENT_ID: z.string(),
+    KINDE_CLIENT_SECRET: z.string(),
+    KINDE_ISSUER_URL: z.string(),
+    KINDE_SITE_URL: z.string(),
+    KINDE_POST_LOGOUT_REDIRECT_URL: z.string(),
+    KINDE_POST_LOGIN_REDIRECT_URL: z.string(),
   },
 
   /**
@@ -46,6 +52,7 @@ export const env = createEnv({
     NEXT_PUBLIC_R2_BUCKET_NAME: z.string(),
     NEXT_PUBLIC_R2_ACCOUNT_ID: z.string(),
     NEXT_PUBLIC_R2_REGION: z.string(),
+    
   },
 
   /**
@@ -66,6 +73,12 @@ export const env = createEnv({
     NEXT_PUBLIC_R2_BUCKET_NAME: process.env.R2_BUCKET_NAME,
     NEXT_PUBLIC_R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
     NEXT_PUBLIC_R2_REGION: process.env.R2_ACCOUNT_ID,
+    KINDE_CLIENT_ID: process.env.KINDE_CLIENT_ID,
+    KINDE_CLIENT_SECRET: process.env.KINDE_CLIENT_SECRET,
+    KINDE_ISSUER_URL: process.env.KINDE_ISSUER_URL,
+    KINDE_SITE_URL: process.env.KINDE_SITE_URL,
+    KINDE_POST_LOGOUT_REDIRECT_URL: process.env.KINDE_POST_LOGOUT_REDIRECT_URL,
+    KINDE_POST_LOGIN_REDIRECT_URL: process.env.KINDE_POST_LOGIN_REDIRECT_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
