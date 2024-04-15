@@ -4,10 +4,11 @@
   import { Icons } from '~/components/ui/icons'
   import { Button } from '~/components/ui/button'
 
+  import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
+
   import {
     Card,
     CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
     CardTitle,
@@ -25,12 +26,15 @@
 
   export default function Admin() {
 
+    const { isAuthenticated, isLoading } = useKindeBrowserClient()
     const [file, setFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
     const [imageUrls, setImageUrls] = useState<string[]>([])
     const [name, setName] = useState('') 
     const [description, setDescription] = useState('') 
-    const [tags, setTags] = useState('') 
+    const [tags, setTags] = useState('')
+    
+    if (isLoading) return <div>Loading...</div>
 
     const fetchImages = async () => {
       try {
@@ -110,7 +114,7 @@
       setUploading(false)
     }
 
-  return (
+  return isAuthenticated ? (
     <div className="min-h-screen bg-white text-black space-y-12">
       <div className="max-w-2xl mx-auto py-24 px-4">
         <h2 className="text-base font-semibold leading-7 text-black">
@@ -119,7 +123,6 @@
         <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
           <div className="col-span-full">
               <Card className="mt-2 justify-center w-full">
-                
                 <CardHeader>
                   <CardTitle>Upload images</CardTitle>
                   {/* <CardDescription>.</CardDescription> */}
@@ -203,5 +206,9 @@
       </div>
     </div>
   </div>
-  )
+  ) : (
+    <div>
+      Sorry, But you dont have the permissions to view this page!
+    </div>
+  );
 }
