@@ -45,22 +45,22 @@ return (
                                         <Label htmlFor="password">Password</Label>
                                         <Input id="password" placeholder="**********" value={password} onChange={(e) => setPassword(e.target.value)} />  
                                     </div>
-                                    <div className="flex justify-between">
-                                        <LoginLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 mx-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                                    <div className="flex max-w-full">
+                                        <LoginLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-2 mx-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                                             authUrlParams={{
                                                 connection_id: "conn_72858762b57045f286bff8ffff030550"
                                             }}>
                                             <Icons.discord className="flex align-middle justify-center w-5 h-5 pr-1"/>
                                             Sign In With Discord
                                         </LoginLink>
-                                        <LoginLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 mx-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                                        <LoginLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-2 mx-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                                             authUrlParams={{
                                                 connection_id: 'conn_1d769022b0874cb3bbe66f5ff612dece'
                                             }}>
                                             <Icons.gitHub className="flex align-middle justify-center w-5 h-5 pr-1"/>
                                             Sign In With GitHub
                                         </LoginLink>
-                                        <LoginLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 mx-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                                        <LoginLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-2 mx-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                                                 authUrlParams={{
                                                     connection_id: "conn_617fe5f7c33f4d038116e082e5d34413"
                                                 }}>
