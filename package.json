@@ -40,13 +40,14 @@
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "react-dom": "^18.2.0",
+    "react-remark": "^2.1.0",
     "tailwind-merge": "^2.2.2",
     "tailwindcss": "^3.4.3",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^9.0.1",
     "zod": "^3.22.4"
   },
-  "packageManager": "pnpm@9.0.1",
+  "packageManager": "pnpm@9.0.2",
   "devDependencies": {
     "@types/node": "20.11.15",
     "@types/react": "18.2.51",
