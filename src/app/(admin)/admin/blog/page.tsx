@@ -2,6 +2,8 @@
 import Image from "next/image"
 import { useState } from "react"
 import { Remark } from "react-remark"
+import remarkGfm from "remark-gfm"
+
 import { CounterClockwiseClockIcon } from "@radix-ui/react-icons"
 
 import { Button } from "~/components/ui/button"
@@ -151,7 +153,7 @@ export default function Blog() {
                         className="h-full min-h-[300px] lg:min-h-[700px] xl:min-h-[700px]"
                         onChange={({ currentTarget }) => setMarkdownSource(currentTarget.value)}
                       />
-                      <div className="rounded-md border bg-muted">
+                      <div className="rounded-md border bg-muted prose">
                         <Remark>{markdownSource}</Remark>
                       </div>
                     </div>
@@ -185,13 +187,11 @@ export default function Blog() {
                           />
                         </div>
                       </div>
-                      <div className="mt-[21px] min-h-[400px] rounded-md border bg-muted lg:min-h-[700px]" >
+                      <div className="mt-[21px] min-h-[400px] rounded-md border bg-muted lg:min-h-[700px] prose" >
                         <Remark
-                          remarkPlugins={[
-                            function noRefCheck(){}
-                          ]}>
+                          remarkPlugins={[remarkGfm]}>
                             {markdownSource}
-                        </Remark>                     
+                        </Remark>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">

@@ -41,14 +41,16 @@
     "prettier-plugin-tailwindcss": "^0.5.14",
     "react-dom": "^18.2.0",
     "react-remark": "^2.1.0",
+    "remark-gfm": "^4.0.0",
     "tailwind-merge": "^2.2.2",
     "tailwindcss": "^3.4.3",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^9.0.1",
     "zod": "^3.22.4"
   },
-  "packageManager": "pnpm@9.0.2",
+  "packageManager": "pnpm@9.0.4",
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.12",
     "@types/node": "20.11.15",
     "@types/react": "18.2.51",
     "drizzle-kit": "^0.20.14",
