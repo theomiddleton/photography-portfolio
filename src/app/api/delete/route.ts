@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const { uuid, newFileName } = await request.json()
 
     const command = new DeleteObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME,
+        Bucket: process.env.R2_IMAGE_BUCKET_NAME,
         Key: newFileName,
     }) 
 

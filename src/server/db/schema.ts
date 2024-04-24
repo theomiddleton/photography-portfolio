@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 
-import { serial, varchar, timestamp, pgTableCreator } from 'drizzle-orm/pg-core';
+import { serial, varchar, timestamp, pgTableCreator, text } from 'drizzle-orm/pg-core';
 
 export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
 
@@ -15,4 +15,22 @@ export const imageData = pgTable('imageData', {
   uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),
   //modifiedAt: timestamp('modifiedAt').$onUpdate(() => new Date()),
   //modifiedAt: timestamp('modifiedAt').defaultNow(),
+});
+
+export const blogs = pgTable('blogs', {
+  id: serial('id').primaryKey(),
+  title: varchar('title', { length: 256 }).notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  //modifiedAt: timestamp('modifiedAt').$onUpdate(() => new Date()),
+});
+
+export const blogImages = pgTable('blogImages', {
+  id: serial('id').primaryKey(),
+  blogId: serial('blog_id').references(() => blogs.id),
+  imageId: varchar('imageId', { length: 256 }).notNull(),
+  fileName: varchar('fileName', { length: 256 }).notNull(),
+  fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
+  description: varchar('description', { length: 256 }),
+  uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),
 });

@@ -6,39 +6,43 @@ import { siteConfig } from '~/config/site'
 
 import { eq, sql } from 'drizzle-orm' 
 import { db } from '~/server/db'
-import { imageData } from '~/server/db/schema'
+import { blogImages } from '~/server/db/schema'
 
 export async function POST(request: Request) {
-  const { filename, name, description, tags } = await request.json()
+  const { filename, description } = await request.json()
+
+  if (!filename) {
+    console.error('Filename is required')
+    throw new Error('Filename is required')
+  }
 
   try {
     const fileExtension = filename.split('.').pop()
-    const keyName = uuidv4() 
+    const keyName = uuidv4()
 
     const command = new PutObjectCommand({
-      Bucket: process.env.R2_IMAGE_BUCKET_NAME,
+      Bucket: process.env.R2_BLOG_IMAGE_BUCKET_NAME,
       Key: keyName + '.' + fileExtension,
     }) 
     const url = await getSignedUrl(r2, command, { expiresIn: 60 }) 
     console.log('server side url', url)
     const newFileName = keyName + '.' + fileExtension
-    const fileUrl =`${siteConfig.bucketUrl}/${newFileName}`
+    const fileUrl =`${siteConfig.blogImagesBucketUrl}/${newFileName}`
     console.log('fileUrl', fileUrl)
-    await db.insert(imageData).values({
-      uuid: keyName, 
+
+    await db.insert(blogImages).values({
+      imageId: keyName, 
       fileName: newFileName, 
       fileUrl: fileUrl,
-      name: name,
       description: description,
-      tags: tags,
     })
-
+    
     const result = await db
       .select({
-        fileUrl: imageData.fileUrl,
+        fileUrl: blogImages.fileUrl,
       })
-      .from(imageData)
-      .where(eq(imageData.uuid, sql.placeholder('uuid')))
+      .from(blogImages)
+      .where(eq(blogImages.imageId, sql.placeholder('uuid')))
       //.prepare()
       .execute({ uuid: keyName }) 
     console.log('Inserted data:', result)
