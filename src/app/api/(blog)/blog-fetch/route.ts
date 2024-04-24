@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { db } from '~/server/db'
 import { blogImages } from '~/server/db/schema'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const route = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
         const result = await db.select({
             id: blogImages.id,
@@ -18,3 +18,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(500).json({ error: 'Error fetching image URL from the database' });
     }
 }
+
+export default route
