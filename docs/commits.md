@@ -202,11 +202,11 @@ The assignment is changed so urls and ids are held within the array, giving acce
 </section>
 ```
 
-This code hasn't changed much, but the `href` now directs to the image page, done so by concatenating the string `/photo/` + the image id. 
+This code hasn't changed much, but the `href` now directs to the image page, done so by concatenating the string `/photo/` + the image id.
 
 ### Issues
 
-Something I noticed while building this part of the project, is when running the project through the dev server, all images are desaturated and rather grey. 
+Something I noticed while building this part of the project, is when running the project through the dev server, all images are desaturated and rather grey.
 
 After doing some research this appears to be due to the different colour spaces of the images. Many of the images I am using for testing are exported in colour spaces such as Adobe RGB or ProPhoto RGB. Since images for the web should only be in narrower gamut colour spaces such as sRGB or REC.709A for video, the colour space transform was desaturating the image. Further in the research I found that this only occurs on the devopment server, and not on any builds.
 
@@ -266,3 +266,5 @@ return isAuthenticated ? (
       Sorry, But you dont have the permissions to view this page!
     </div>
 ```
+
+<https://excalidraw.com/#json=NusT72QrRy-Ww7xZ6-YiS,hLkDc-7xOCMCl9xMeIkbdA>

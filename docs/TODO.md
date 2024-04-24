@@ -34,6 +34,11 @@
   - [ ] Gear section / page
 - [ ] Blog
   - [ ] Write from admin page
+    - [ ] Have image upload section
+      - [ ] uploaded images go into other blob store
+      - [ ] uploaded imageData goes into other table
+    - [ ] have title and image header
+    - [ ] work with markdown
   - [ ] Update without redeploy
     - tRPC
 - [ ] Film release with mux
