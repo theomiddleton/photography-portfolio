@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 
-export async function GET(res: NextApiResponse) {
+export async function GET(req: NextApiRequest, res: NextApiResponse) {
 //export async function GET() {
     try{
         const result = await db.select({
