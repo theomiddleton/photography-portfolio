@@ -7,11 +7,13 @@ import { SiteHeader } from '~/components/site-header'
 
 export default async function Blog({ params }: { params: { slug: string } }) {
 
+	const slugAsNumber = Number(params.slug);
+
     const result = await db.select({
         id: blogs.id,
         title: blogs.title,
         content: blogs.content,
-    }).from(blogs).where(eq(blogs.id, params.slug))
+    }).from(blogs).where(eq(blogs.id, slugAsNumber))
 
     const posts = result.map((post) => ({
 		slug: post.id,
@@ -19,7 +21,7 @@ export default async function Blog({ params }: { params: { slug: string } }) {
 
 	const images = await db.select({
 		fileUrl: blogImages.fileUrl,
-	}).from(blogImages).where(eq(blogImages.blogId, params.slug))
+	}).from(blogImages).where(eq(blogImages.blogId, slugAsNumber))
 
 	const mainContent = useRemarkSync(result[0].content)
 

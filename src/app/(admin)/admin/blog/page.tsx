@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Remark } from 'react-remark'
 import { Icons } from '~/components/ui/icons'
 
+import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
+
 import { CounterClockwiseClockIcon } from '@radix-ui/react-icons'
 
 import { Input } from '~/components/ui/input'
@@ -29,9 +31,9 @@ import { blogImages } from '~/server/db/schema'
 import { eq, sql } from 'drizzle-orm' 
 import { db } from '~/server/db'
 
-//have option to upload image and put imageurl into a []()
-
 export default function Blog() {
+
+  const { isAuthenticated, isLoading } = useKindeBrowserClient()
 
   const [file, setFile] = useState<File | null>(null)
   const [markdownSource, setMarkdownSource] = useState('')
@@ -117,11 +119,12 @@ const [markdownLink, setMarkdownLink] = useState("");
   
       const data = await response.json() 
       console.log('Response data:', data) 
-  
+
       if (data.result && data.result.length > 0) {
         const fileUrl = data.result[0].fileUrl 
+        // const fileDescription = data.result[0].description
         console.log('File URL:', fileUrl)
-        const newMarkdownLink = `[](${fileUrl})`
+        const newMarkdownLink = `![ ](${fileUrl})`
         setMarkdownLink(newMarkdownLink)
         await navigator.clipboard.writeText(newMarkdownLink)
       }
@@ -130,7 +133,9 @@ const [markdownLink, setMarkdownLink] = useState("");
     }
   }
 
-  return (
+  if (isLoading) return <div>Loading...</div>
+
+  return isAuthenticated ? (
     <>
       <div className="md:hidden">
       </div>
@@ -370,5 +375,9 @@ const [markdownLink, setMarkdownLink] = useState("");
         </Tabs>
       </div>
     </>
-  )
+    ) : (
+      <div>
+        Sorry, But you dont have the permissions to view this page!
+      </div>
+    )
 }
