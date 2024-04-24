@@ -40,6 +40,7 @@ export default function Blog() {
   const [content, setContent] = useState('')
   const [description, setDescription] = useState('') 
   const [imageUrls, setImageUrls] = useState<string[]>([])
+const [markdownLink, setMarkdownLink] = useState("");
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -111,18 +112,21 @@ export default function Blog() {
       })
   
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error('Network response was not ok') 
       }
   
-      const data = await response.json();
-      console.log('Response data:', data);
+      const data = await response.json() 
+      console.log('Response data:', data) 
   
       if (data.result && data.result.length > 0) {
-        const fileUrl = data.result[0].fileUrl;
-        console.log('File URL:', fileUrl);
+        const fileUrl = data.result[0].fileUrl 
+        console.log('File URL:', fileUrl)
+        const newMarkdownLink = `[](${fileUrl})`
+        setMarkdownLink(newMarkdownLink)
+        await navigator.clipboard.writeText(newMarkdownLink)
       }
     } catch (error) {
-      console.error('Fetch error:', error);
+      console.error('Fetch error:', error) 
     }
   }
 
@@ -290,8 +294,9 @@ export default function Blog() {
                     </CardContent>
                     <CardFooter className="flex justify-center">
                       <Button type="submit" onClick={handleUpload}>Upload</Button>
-                      <Button type="submit" onClick={fetchImages}>Fetch</Button>
+                      {/* <Button type="submit" onClick={fetchImages}>Fetch</Button> */}
                     </CardFooter>
+                    <div className='flex justify-center pb-4 break-all'>{markdownLink}</div>
                   </Card>
                 </div>
               </div>
