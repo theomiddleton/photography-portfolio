@@ -3,6 +3,7 @@ export const siteConfig = {
     title: ':3',
     description: ';' ,
     bucketUrl: 'https://img.theomiddleton.me',
+    blogImagesBucketUrl: 'https://blog-img.theomiddleton.me',
     links: {
         github: 'https://github.com/theomiddleton/portfolio-project',
         website: 'https://theomiddleton.me'

@@ -2,13 +2,13 @@
 
 ## Features
 
-- [ ] Main image gallery
+- [x] Main image gallery
   - [ ] Decide what tech to do this with - tRPC, etc
 - [ ] Print store
 - [ ] Admin page
   - [ ] Analytics
-- [ ] Metadata store
-- [ ] Blob store
+- [x] Metadata store
+- [x] Blob store
 - [ ] Blog
 - [ ] Infinte scroll
 - [ ] rethink auth
@@ -32,10 +32,14 @@
 - [ ] About page
   - [ ] Made with genorator
   - [ ] Gear section / page
-- [ ] Blog
-  - [ ] Write from admin page
-  - [ ] Update without redeploy
-    - tRPC
+- [x] Blog
+  - [x] Write from admin page
+    - [x] Have image upload section
+      - [x] uploaded images go into other blob store
+      - [x] uploaded imageData goes into other table
+    - [x] have title and image header
+    - [x] work with markdown
+  - [x] Update without redeploy
 - [ ] Film release with mux
 - [ ] Admin
   - [ ] Page views

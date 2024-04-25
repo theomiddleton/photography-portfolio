@@ -7,8 +7,8 @@ import { imageData } from '~/server/db/schema'
 export async function GET() {
     try{
         const result = await db.select({
-          id: imageData.id,
-          fileUrl: imageData.fileUrl,
+            id: imageData.id,
+            fileUrl: imageData.fileUrl,
         }).from(imageData) 
         
         return NextResponse.json({ result: result })
@@ -17,3 +17,5 @@ export async function GET() {
         //res.status(500).send('Error fetching image URL from the database') 
     }
 }
+
+export const runtime = 'edge'

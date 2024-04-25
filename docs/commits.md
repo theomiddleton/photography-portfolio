@@ -202,17 +202,69 @@ The assignment is changed so urls and ids are held within the array, giving acce
 </section>
 ```
 
-This code hasn't changed much, but the `href` now directs to the image page, done so by concatenating the string `/photo/` + the image id. 
+This code hasn't changed much, but the `href` now directs to the image page, done so by concatenating the string `/photo/` + the image id.
 
-### Issues 
+### Issues
 
-Something I noticed while building this part of the project, is when running the project through the dev server, all images are desaturated and rather grey. 
+Something I noticed while building this part of the project, is when running the project through the dev server, all images are desaturated and rather grey.
 
 After doing some research this appears to be due to the different colour spaces of the images. Many of the images I am using for testing are exported in colour spaces such as Adobe RGB or ProPhoto RGB. Since images for the web should only be in narrower gamut colour spaces such as sRGB or REC.709A for video, the colour space transform was desaturating the image. Further in the research I found that this only occurs on the devopment server, and not on any builds.
 
-### Moving forward 
+### Moving forward
 
-The plan for the next features will be authentication and all its complexities. Auth is more than just a login page, needing token based session management and a roust login system. 
+The plan for the next features will be authentication and all its complexities. Auth is more than just a login page, needing token based session management and a roust login system.
 For the type of website it is, email and password auth should be used as this will allow us to use the auth components for the print store later.
-For email and password auth, you need an email handler and to hash and store hashed passwords. For the hashing a crypto algorithm must be used, and for the emails, something like resend could be used. 
+For email and password auth, you need an email handler and to hash and store hashed passwords. For the hashing a crypto algorithm must be used, and for the emails, something like resend could be used.
 If we already have accounts and emails, a newsletter or other emails could be sent from within the app by the admin
+
+## 🎉 Add Authentication and signin / register pages
+
+Authentication is a major part of this project. Without it, anyone would be able to upload images to the blob store, and to the database. That would be a massive security issue, so auth is needed.
+
+### What I used
+
+There are many different authentication providers avalible, clerk, next auth, auth0, lucia auth, and more. for now, I chose kinde auth. There isnt a specific reason I chose them, but the sdk drops in well with my current codebase, and it wont be hard to migrate away from then in the future if needed. So far login is only needed for access to the admin page, but as I implement the store in more, it will be needed for many users.
+
+The I made the signin similar to the upload page, a shadcn/ui card with form elements and styled with tailwind. Since it is in card form, I can easily move it to a component, so it is accessable on all pages.
+
+I am a strong beliver in the useablility and speed of social sign on, or sso for short. Its those sign in with google, facebook, microsoft buttons you see, and therefore I chose to use them. For the auth providers I added, I decided based on what I would personaly use, github, which I use for most dev tools, discord, a ever growing social platform, and microsoft, since I primarily use their email.
+
+Kinde has components within their sdk for sso, so I used unstyled versions of them as such:
+
+```tsx
+<LoginLink className="bg-primary...."
+    authUrlParams={{
+        connection_id: 'conn_1d769022b0874cb3bbe66f5ff612dece'
+    }}>
+    <Icons.gitHub className="flex align-middle justify-center w-5 h-5 pr-1"/>
+    Sign In With GitHub
+</LoginLink>
+```
+
+This code is an example of the github sso button, The className has been shortened, as to style it along with other shadcn/ui buttons, the className is over 300 characters long. It also holds an svg icon within the button for better ux.
+
+There is also a currently unconnected email and password signin form, which I will finish at a later date.
+
+### Authenticating pages
+
+All this is currently only for the admin page, where `useKindeBrowserClient()` is imported, This is what allows us to see if the user is authenticated.
+
+The following lines initialise this, and return a loading message while fetching the users login state and comparing that to the users
+
+```tsx
+const { isAuthenticated, isLoading } = useKindeBrowserClient()
+if (isLoading) return <div>Loading...</div>
+```
+
+Then, if the user is authenticated, the normal page is shown, otherwise a simple message is shown
+
+```tsx
+return isAuthenticated ? (
+  //Normal page goes here  
+  ) : (
+    <div>
+      Sorry, But you dont have the permissions to view this page!
+    </div>
+```
+
+<https://excalidraw.com/#json=NusT72QrRy-Ww7xZ6-YiS,hLkDc-7xOCMCl9xMeIkbdA>
