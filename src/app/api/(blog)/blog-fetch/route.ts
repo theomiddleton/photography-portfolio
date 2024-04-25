@@ -1,8 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next' 
+import { NextResponse } from 'next/server' 
 import { db } from '~/server/db'
 import { blogImages } from '~/server/db/schema'
 
-export async function GET(req: NextApiRequest, res: NextApiResponse) {
+//export async function GET(req: NextRequest, res: NextApiResponse) {
+export async function GET() {
     try {
         const result = await db.select({
             id: blogImages.id,
@@ -12,7 +14,7 @@ export async function GET(req: NextApiRequest, res: NextApiResponse) {
 
         //console.log('Server side Fetched data:', result);
         
-        res.status(200).json({ result });
+        return NextResponse.json({ result });
     } catch (error) {
         console.error('Error fetching image URL from the database:', error);
         //res.status(500).json({ error: 'Error fetching image URL from the database' });
