@@ -1,6 +1,8 @@
 import "~/styles/globals.css" 
 import { siteConfig } from "~/config/site"
 import { SiteFooter } from "~/components/site-footer" 
+import { Analytics } from "@vercel/analytics/react"
+import { AxiomWebVitals } from 'next-axiom';
 
 import { Inter } from "next/font/google" 
 
@@ -25,6 +27,8 @@ export default function RootLayout({
       <SiteFooter />
       <body className={`font-sans ${inter.variable}`}>
         {children}
+        <Analytics />
+        <AxiomWebVitals />
       </body>
     </html>
   ) 
