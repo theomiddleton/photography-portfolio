@@ -24,12 +24,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <SiteFooter />
       <body className={`font-sans ${inter.variable}`}>
         {children}
         <Analytics />
         <AxiomWebVitals />
       </body>
+      <SiteFooter />
     </html>
   ) 
 }

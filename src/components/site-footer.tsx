@@ -42,8 +42,8 @@ export function SiteFooter() {
                                     "w-9 px-0"
                                 )}
                             >
-                                <Icons.twitter className="h-3 w-3 fill-current" />
-                                <span className="sr-only">Twitter</span>
+                                <Icons.website className="h-3 w-3 fill-current" />
+                                <span className="sr-only">website</span>
                             </div>
                         </Link>
                     </nav>
