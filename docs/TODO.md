@@ -32,15 +32,14 @@
 - [ ] About page
   - [ ] Made with genorator
   - [ ] Gear section / page
-- [ ] Blog
-  - [ ] Write from admin page
-    - [ ] Have image upload section
-      - [ ] uploaded images go into other blob store
-      - [ ] uploaded imageData goes into other table
-    - [ ] have title and image header
-    - [ ] work with markdown
-  - [ ] Update without redeploy
-    - tRPC
+- [x] Blog
+  - [x] Write from admin page
+    - [x] Have image upload section
+      - [x] uploaded images go into other blob store
+      - [x] uploaded imageData goes into other table
+    - [x] have title and image header
+    - [x] work with markdown
+  - [x] Update without redeploy
 - [ ] Film release with mux
 - [ ] Admin
   - [ ] Page views
