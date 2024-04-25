@@ -24,3 +24,5 @@ export async function POST(request: Request) {
 
     return Response.json({ blog })   
 }
+
+export const runtime = 'edge'

@@ -17,3 +17,5 @@ export async function GET() {
         //res.status(500).send('Error fetching image URL from the database') 
     }
 }
+
+export const runtime = 'edge'

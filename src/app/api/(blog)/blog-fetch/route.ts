@@ -20,3 +20,5 @@ export async function GET() {
         //res.status(500).json({ error: 'Error fetching image URL from the database' });
     }
 }
+
+export const runtime = 'edge'

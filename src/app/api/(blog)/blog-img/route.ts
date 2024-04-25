@@ -53,3 +53,5 @@ export async function POST(request: Request) {
     return Response.json({ error: error.message })
   }
 }
+
+export const runtime = 'edge'
