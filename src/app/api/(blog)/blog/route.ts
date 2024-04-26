@@ -1,15 +1,16 @@
 
 
-import { eq, sql } from 'drizzle-orm' 
+import { eq, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { blogs, blogImages } from '~/server/db/schema'
 
 export async function POST(request: Request) {
     const { title, content } = await request.json()
 
-    await db.insert(blogs).values({ 
+    await db.insert(blogs).values({
         title: title,
-        content: content
+        content: content,
+        visable: visable
     })
 
     const blog = await db
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
 
     console.log('Inserted data:', blog)
 
-    return Response.json({ blog })   
+    return Response.json({ blog })
 }
 
 export const runtime = 'edge'

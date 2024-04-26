@@ -27,8 +27,8 @@ import {
 } from '~/components/ui/card'
 import { Textarea } from '~/components/ui/textarea'
 
-import { blogImages } from '~/server/db/schema'
-import { eq, sql } from 'drizzle-orm' 
+import { blogImages, blogs } from '~/server/db/schema'
+import { eq, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
 
 export default function Blog() {
@@ -40,9 +40,24 @@ export default function Blog() {
   const [uploading, setUploading] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [description, setDescription] = useState('') 
+  const [visable, setVisable] = useState(false)
+  const [description, setDescription] = useState('')
   const [imageUrls, setImageUrls] = useState<string[]>([])
-const [markdownLink, setMarkdownLink] = useState("");
+  const [markdownLink, setMarkdownLink] = useState("")
+
+  const handleSave = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    const draft = await fetch(
+      '/api/blog',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, content, visable }),
+      }
+    )
+  }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -69,6 +84,8 @@ const [markdownLink, setMarkdownLink] = useState("");
     e.preventDefault()
     setUploading(true)
 
+    handleSave()
+
     const response = await fetch(
       '/api/blog-img',
       {
@@ -90,7 +107,7 @@ const [markdownLink, setMarkdownLink] = useState("");
         },
         body: file,
       })
-  
+
       if (uploadResponse.ok) {
         alert('Upload successful!')
         fetchImages()
@@ -112,16 +129,16 @@ const [markdownLink, setMarkdownLink] = useState("");
           'Content-Type': 'application/json',
         },
       })
-  
+
       if (!response.ok) {
-        throw new Error('Network response was not ok') 
+        throw new Error('Network response was not ok')
       }
-  
-      const data = await response.json() 
-      console.log('Response data:', data) 
+
+      const data = await response.json()
+      console.log('Response data:', data)
 
       if (data.result && data.result.length > 0) {
-        const fileUrl = data.result[0].fileUrl 
+        const fileUrl = data.result[0].fileUrl
         // const fileDescription = data.result[0].description
         console.log('File URL:', fileUrl)
         const newMarkdownLink = `![ ](${fileUrl})`
@@ -129,13 +146,14 @@ const [markdownLink, setMarkdownLink] = useState("");
         await navigator.clipboard.writeText(newMarkdownLink)
       }
     } catch (error) {
-      console.error('Fetch error:', error) 
+      console.error('Fetch error:', error)
     }
   }
 
   if (isLoading) return <div>Loading...</div>
 
-  return isAuthenticated ? (
+  // return isAuthenticated ? (
+  return (
     <>
       <div className="md:hidden">
       </div>
@@ -292,7 +310,7 @@ const [markdownLink, setMarkdownLink] = useState("");
                           <span/>
                           <div className="flex flex-col space-y-1.5">
                             <Label htmlFor="description">Description</Label>
-                            <Input id="description" placeholder="Description of the image" value={description} onChange={(e) => setDescription(e.target.value)} />  
+                            <Input id="description" placeholder="Description of the image" value={description} onChange={(e) => setDescription(e.target.value)} />
                           </div>
                         </div>
                       </form>
@@ -361,11 +379,12 @@ const [markdownLink, setMarkdownLink] = useState("");
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Button onClick={handleBlogUpload}>Submit</Button>
+                      <Button onClick={handleBlogUpload}>Publish</Button>
                       <Button variant="secondary">
                         <span className="sr-only">Show history</span>
                         <CounterClockwiseClockIcon className="h-4 w-4" />
                       </Button>
+                      <Button variant="seconday" onClick={handleSave}>Save</Button>
                     </div>
                   </div>
                 </TabsContent>
@@ -375,9 +394,9 @@ const [markdownLink, setMarkdownLink] = useState("");
         </Tabs>
       </div>
     </>
-    ) : (
-      <div>
-        Sorry, But you dont have the permissions to view this page!
-      </div>
-    )
+    // ) : (
+        // <div>
+          // {/* Sorry, But you dont have the permissions to view this page! */}
+        // {/* </div> */}
+      )
 }

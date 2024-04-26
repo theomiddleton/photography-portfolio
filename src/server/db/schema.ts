@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 
-import { serial, varchar, timestamp, pgTableCreator, text } from 'drizzle-orm/pg-core';
+import { serial, varchar, timestamp, pgTableCreator, text, boolean } from 'drizzle-orm/pg-core';
 
 export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
 
@@ -21,8 +21,9 @@ export const blogs = pgTable('blogs', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 256 }).notNull(),
   content: text('content').notNull(),
+  //visable: boolean('visible').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
-  //modifiedAt: timestamp('modifiedAt').$onUpdate(() => new Date()),
+  //modifiedAt: timestamp('modifiedAt').defaultNow(),
 });
 
 export const blogImages = pgTable('blogImages', {
