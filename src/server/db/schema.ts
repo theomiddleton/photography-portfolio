@@ -21,9 +21,9 @@ export const blogs = pgTable('blogs', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 256 }).notNull(),
   content: text('content').notNull(),
-  //visable: boolean('visible').notNull(),
+  visible: boolean('visible').default(false).notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
-  //modifiedAt: timestamp('modifiedAt').defaultNow(),
+  modifiedAt: timestamp('modifiedAt').defaultNow(),
 });
 
 export const blogImages = pgTable('blogImages', {

@@ -27,14 +27,9 @@ import {
 } from '~/components/ui/card'
 import { Textarea } from '~/components/ui/textarea'
 
-import { blogImages, blogs } from '~/server/db/schema'
-import { eq, sql } from 'drizzle-orm'
-import { db } from '~/server/db'
-
 export default function Blog() {
 
   const { isAuthenticated, isLoading } = useKindeBrowserClient()
-
   const [file, setFile] = useState<File | null>(null)
   const [markdownSource, setMarkdownSource] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -47,6 +42,9 @@ export default function Blog() {
 
   const handleSave = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
+
+    setVisable(false)
+
     const draft = await fetch(
       '/api/blog',
       {
@@ -67,6 +65,9 @@ export default function Blog() {
   }
 
   const handleBlogUpload = async (e: React.MouseEvent<HTMLButtonElement>) => {
+
+    await handleSave(e)
+
     const data = await fetch(
       '/api/blog',
       {
@@ -74,7 +75,7 @@ export default function Blog() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, content }),
+        body: JSON.stringify({ title, content, visable }),
       }
     )
   }
@@ -83,8 +84,7 @@ export default function Blog() {
     //console.log('uploading')
     e.preventDefault()
     setUploading(true)
-
-    handleSave()
+    setVisable(true)
 
     const response = await fetch(
       '/api/blog-img',
@@ -384,7 +384,7 @@ export default function Blog() {
                         <span className="sr-only">Show history</span>
                         <CounterClockwiseClockIcon className="h-4 w-4" />
                       </Button>
-                      <Button variant="seconday" onClick={handleSave}>Save</Button>
+                      <Button variant="secondary" onClick={handleSave}>Save</Button>
                     </div>
                   </div>
                 </TabsContent>

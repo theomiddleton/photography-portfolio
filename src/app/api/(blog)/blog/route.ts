@@ -1,16 +1,14 @@
-
-
 import { eq, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { blogs, blogImages } from '~/server/db/schema'
 
 export async function POST(request: Request) {
-    const { title, content } = await request.json()
+    const { title, content, visible } = await request.json()
 
     await db.insert(blogs).values({
         title: title,
         content: content,
-        visable: visable
+        visible: visible,
     })
 
     const blog = await db
