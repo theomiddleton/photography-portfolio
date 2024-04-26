@@ -40,23 +40,23 @@ This commit adds the full delete functionality, and the uploading of the image d
 
 ## 🎉 Fetch ImageUrls from DB, and start on main image gallery
 
-This is a larger commit than most before. It adds the working fetching of ImageUrls and ImageData from the database, meaning, now images can be seen without hardcoding their URLs.  
+This is a larger commit than most before. It adds the working fetching of ImageUrls and ImageData from the database, meaning, now images can be seen without hardcoding their URLs.
 
 This allowed me to add a image carousel to the admin page, allowing for the preview of all images with their data stored in the database. In adding this carousel, I refactored the admin page, making the UI more inline with the rest of the design language, and adding the ability to add more data to the images, allowing for image titles, tags, and descriptions.
 
 Since I could now fetch imageData, it allowed me to start on the main image gallery, which is simpler to create than I originally thought with the help of the tailwind class 'columns' in the layout section. This allows the images to be added to a gallery, while preserving their original aspect ratio.
-The code:  
+The code:
 
 ```tsx
-<section className="columns-4 max-h-5xl mx-auto space-y-4"> 
-  {imageUrls.map((url) => ( 
-    <div key={url} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100"> 
-      <a href={url} target="_blank" rel="noreferrer"> 
-        <img src={url} alt="img" height={600} width={400} /> 
-      </a> 
-    </div> 
-  ))} 
-</section> 
+<section className="columns-4 max-h-5xl mx-auto space-y-4">
+  {imageUrls.map((url) => (
+    <div key={url} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
+      <a href={url} target="_blank" rel="noreferrer">
+        <img src={url} alt="img" height={600} width={400} />
+      </a>
+    </div>
+  ))}
+</section>
 ```
 
 The first line is what makes the gallery work. the `columns-4` creates 4 columns of images, `space-y-4` creates a gap of 16px vertically between images.
@@ -72,7 +72,7 @@ Fetching ImageUrls from the database is done with this function
     id: imageData.id,
     fileUrl: imageData.fileUrl,
   }).from(imageData)
-  const imageUrls = result.map((item) => item.fileUrl) 
+  const imageUrls = result.map((item) => item.fileUrl)
 ```
 
 For the image map it only fetches the Id and fileUrl currently, as the gallery only shows the images, metadata, tags, titles, and description would only need to be fetched for the image page, where those things are shown.
@@ -159,7 +159,7 @@ export default async function Photo({ params }: { params: { id: number } }) {
       uploadedAt: imageData.uploadedAt
   }).from(imageData).where(eq(imageData.id, params.id))
 
-  const imageUrl = result.map((item) => item.fileUrl) 
+  const imageUrl = result.map((item) => item.fileUrl)
 ```
 
 The code shown is broken down as such:
@@ -260,7 +260,7 @@ Then, if the user is authenticated, the normal page is shown, otherwise a simple
 
 ```tsx
 return isAuthenticated ? (
-  //Normal page goes here  
+  //Normal page goes here
   ) : (
     <div>
       Sorry, But you dont have the permissions to view this page!
@@ -271,9 +271,24 @@ return isAuthenticated ? (
 
 ## 🎉 Add blog writing and blog pages, analytics, and cloudflare pages
 
-### currrent issues 
+This commit added blog writing and displaying to the website. The blog writing page has a section for writing the content in markdown, and a section next to that for viewing the markdown rendered correctly. There is then a form for uploading images, which, when correctly uploaded, will add the markdown verion of the link `![](url)`
+
+The blog page is a simple page that displays all the blogs in the database, displayed in their title form, then when clicked on, points to a dynamic page with the full blog post.
+
+The database has two tables for blogs, one for the blog itself, with rows for the title, content, and date. I will discuss later how this is an issue and another row had to be added.
+The second table is for the blog images, with a similar structure to imageData, but without the title and tags, with a blogId row added, to link the image to the blog, but this causes issues.
+
+### currrent issues
 
 This commit added the writing and displaying of blogs. Images are often a vital part of blogs, whether it be a header image or for added context, but, in this commit, the database has two tables for blogs
 ![alt text](images/database-structure.png)
 
 The issue with this comes when one tries to upload an image while writing a blog. The image needs the BlogId, but the blog hasn't been uploaded yet.
+
+### Solution
+
+There are various ways of fixing this, but the one I chose was to upload the blog first, then upload the image. This way, the blogId is known and can be assigned to the image. This however is not the best solution, as it means the unfinished blog will be visible to the public, but the image will not yet ne attached to it. Therefore I will add a flag to the blog table, which will be set to false until the blog is finished, and give the writer an option to publish the blog.
+
+This also means that draft posts can be written and saved, and published at a later date. To do this however, I will need to change the ui to allow for this, and add functionality needed for drafts.
+![alt text](images/new-database-structure.png)
+
