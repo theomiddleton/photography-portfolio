@@ -30,7 +30,7 @@ export default async function Blog({ params }: { params: { slug: string } }) {
 		<SiteHeader />
 		<main className="flex min-h-screen flex-col items-center bg-white text-black">
 		<div>
-			<h1 className='scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl'>{result[0].title}</h1>
+			{/* <h1 className='scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl'>{result[0].title}</h1> */}
 			<span></span>
 			<p className='prose'>{mainContent}</p>
 		</div>

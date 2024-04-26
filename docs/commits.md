@@ -268,3 +268,12 @@ return isAuthenticated ? (
 ```
 
 <https://excalidraw.com/#json=NusT72QrRy-Ww7xZ6-YiS,hLkDc-7xOCMCl9xMeIkbdA>
+
+## 🎉 Add blog writing and blog pages, analytics, and cloudflare pages
+
+### currrent issues 
+
+This commit added the writing and displaying of blogs. Images are often a vital part of blogs, whether it be a header image or for added context, but, in this commit, the database has two tables for blogs
+![alt text](images/database-structure.png)
+
+The issue with this comes when one tries to upload an image while writing a blog. The image needs the BlogId, but the blog hasn't been uploaded yet.
