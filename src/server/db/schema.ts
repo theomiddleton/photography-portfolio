@@ -24,6 +24,7 @@ export const blogs = pgTable('blogs', {
   visible: boolean('visible').default(false).notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
+  tempId: varchar('tempId', { length: 256 }),
 });
 
 export const blogImages = pgTable('blogImages', {

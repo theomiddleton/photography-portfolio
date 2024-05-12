@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { Remark } from 'react-remark'
 import { Icons } from '~/components/ui/icons'
+import { v4 as uuidv4 } from 'uuid'
 
 import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
 
@@ -27,9 +28,12 @@ import {
 } from '~/components/ui/card'
 import { Textarea } from '~/components/ui/textarea'
 
+import { useCookies } from 'next-client-cookies'
+import { create, read } from '~/lib/actions/cookies'
+
 export default function Blog() {
 
-  const { isAuthenticated, isLoading } = useKindeBrowserClient()
+  //const { isAuthenticated, isLoading } = useKindeBrowserClient()
   const [file, setFile] = useState<File | null>(null)
   const [markdownSource, setMarkdownSource] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -38,12 +42,65 @@ export default function Blog() {
   const [visable, setVisable] = useState(false)
   const [description, setDescription] = useState('')
   const [imageUrls, setImageUrls] = useState<string[]>([])
-  const [markdownLink, setMarkdownLink] = useState("")
+  const [markdownLink, setMarkdownLink] = useState('')
+  const cookies = useCookies();
+
+  const handleFetch = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    
+    const response = await fetch(
+      '/api/blog-fetch/',
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+    console.log('Response:', response)
+
+  }
 
   const handleSave = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
 
+    const tempId = uuidv4()
+    const cookie = await create({ tempId })
+    console.log('Cookie:', cookie)
+
     setVisable(false)
+
+    const isSaved = await cookies.get({ tempId: '' })
+    console.log('Cookie:', isSaved)
+
+    if (isSaved && isSaved.tempId) {
+
+      const response = await fetch(
+        '/api/blog-fetch/',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+
+      console.log('TempId cookie exists:', isSaved.tempId)
+
+    } else {
+      console.log('TempId cookie does not exist or is empty')
+    }
+
+    const response = await fetch(
+      '/api/blog-fetch/',
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+    console.log('Response:', response)
 
     const draft = await fetch(
       '/api/blog',
@@ -52,9 +109,11 @@ export default function Blog() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, content, visable }),
+        body: JSON.stringify({ title, content, visable, tempId }),
       }
     )
+    //we need to ensure when the save button is pressed, the id is stored, and it only writes to that id in the db, not a new row
+    //create a new column in the db for a temp id, 
   }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +126,6 @@ export default function Blog() {
   const handleBlogUpload = async (e: React.MouseEvent<HTMLButtonElement>) => {
 
     await handleSave(e)
-
     const data = await fetch(
       '/api/blog',
       {
@@ -123,7 +181,7 @@ export default function Blog() {
 
   const fetchImages = async () => {
     try {
-      const response = await fetch('/api/blog-fetch/', {
+      const response = await fetch('/api/blog-img-fetch/', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +208,7 @@ export default function Blog() {
     }
   }
 
-  if (isLoading) return <div>Loading...</div>
+  //if (isLoading) return <div>Loading...</div>
 
   // return isAuthenticated ? (
   return (
@@ -320,6 +378,17 @@ export default function Blog() {
                       {/* <Button type="submit" onClick={fetchImages}>Fetch</Button> */}
                     </CardFooter>
                     <div className='flex justify-center pb-4 break-all'>{markdownLink}</div>
+                  </Card>
+                  
+                  <Card className="mt-2 justify-center w-full">
+                    <CardHeader>
+                      <CardTitle>Fetch</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex justify-center">
+                        <Button type="submit" onClick={handleFetch}>Fetch</Button>
+                      </div>
+                    </CardContent>
                   </Card>
                 </div>
               </div>

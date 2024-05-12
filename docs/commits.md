@@ -292,3 +292,10 @@ There are various ways of fixing this, but the one I chose was to upload the blo
 This also means that draft posts can be written and saved, and published at a later date. To do this however, I will need to change the ui to allow for this, and add functionality needed for drafts.
 ![alt text](images/new-database-structure.png)
 
+### Problems with entire codebase
+
+At this point the codebase is rather complucated. With nextjs file routing, the pages and api endpoints alone are a mess.
+![alt text](images/file-structure.png)
+
+As to not make an incredibly long image, it has been cut into sections, but the red line is the root of app
+Most of these api routes are doing the samething, fetching from the database for client pages, but fetching different data from different tables.
