@@ -20,7 +20,7 @@
     - [ ] Gallery order - within admin
       - [ ] Colour based order (adv)
     - [x] Image page
-      - [ ] revisit for responsiveness on smaller screens 
+      - [ ] revisit for responsiveness on smaller screens
   - [ ] Infinite scroll  
   - [ ] Auto update
   - [ ] Image Select
