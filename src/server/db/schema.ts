@@ -36,3 +36,10 @@ export const blogImages = pgTable('blogImages', {
   description: varchar('description', { length: 256 }),
   uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),
 });
+
+export const about = pgTable('about', {
+  id: serial('id').primaryKey(),
+  content: text('content').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  modifiedAt: timestamp('modifiedAt').defaultNow(),
+});
