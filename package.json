@@ -6,11 +6,11 @@
   "type": "module",
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "lint": "next lint",
     "start": "next start",
-    "generate": "drizzle-kit generate:pg",
-    "push": "drizzle-kit push:pg",
+    "generate": "drizzle-kit generate",
+    "push": "drizzle-kit push",
     "studio": "drizzle-kit studio"
   },
   "keywords": [],
