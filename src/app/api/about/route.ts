@@ -5,11 +5,13 @@ import { about } from '~/server/db/schema'
 export async function POST(request: Request) {
     const { content } = await request.json()
 
-    await db.insert(about).values({
+    if (content === null || content === undefined) {
+        return new Response('Invalid content', { status: 400 });
+    }
+
+    const result = await db.insert(about).values({
         content: content,
     })
 
-    return Response.json({ about })
+    return Response.json({ about: result })
 }
-
-export const runtime = 'edge'

@@ -19,7 +19,7 @@ import {
 } from '~/components/ui/tabs'
 import { Textarea } from '~/components/ui/textarea'
 
-import { read, update } from '~/lib/actions/about'
+// import { read, update } from '~/lib/actions/about'
 
 
 export default function AboutGenerator() {
@@ -37,16 +37,23 @@ export default function AboutGenerator() {
     }
 
     const upload = async (e: React.MouseEvent<HTMLButtonElement>) => {
-      const data = {
+      const old = {
         content: markdownSource,
       }
-    
-      try {
-        const response = await update(data)
-        console.log(response)
-      } catch (error) {
-        console.error(error)
-      }
+
+      const data = await fetch(
+        '/api/about',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ markdownSource }),
+        }
+      )
+      console.log(data)
+      console.log(markdownSource)
+      console.log('*********************************************************************************************')
     }
 
   return (

@@ -14,12 +14,12 @@ export async function update(data) {
     return Response.json({ about })
 }
 
-export async function read(data) {
-    const result = await db.select({
-        id: about.id,
-        content: about.content,
-    }).from(about)
-    
-    return result
-}
+// export async function read(data) {
+    // const result = await db.select({
+        // id: about.id,
+        // content: about.content,
+    // }).from(about)
+    // 
+    // return result
+// }
 

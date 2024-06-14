@@ -40,6 +40,8 @@ export const blogImages = pgTable('blogImages', {
 export const about = pgTable('about', {
   id: serial('id').primaryKey(),
   content: text('content').notNull(),
+  imageBool: boolean('imageBool').default(false).notNull(),
+  imageUrl: varchar('imageUrl', { length: 256 }),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
 });
