@@ -24,10 +24,15 @@ import { UploadDropzone } from '~/components/upload-dropzone'
 import { read } from '~/lib/actions/about'
 
 export default function AboutGenerator() {
+  async function fetchContent() {
+    const data = await read()
+    console.log(data)
+    setContent(data)
+  }
     
     //const { isAuthenticated, isLoading } = useKindeBrowserClient()
-    console.log("Reading current about me:")
-    console.log("wug")
+    fetchContent()
+    
 
     const [markdownSource, setMarkdownSource] = useState(null)
     const [content, setContent] = useState(null)
