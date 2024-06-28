@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { NextPageContext } from 'next'
 import { Remark } from 'react-remark'
 import { Icons } from '~/components/ui/icons'
 
@@ -23,17 +24,18 @@ import { UploadDropzone } from '~/components/upload-dropzone'
 
 import { read } from '~/lib/actions/about'
 
+async function fetchContent() {
+  const data = await read()
+  console.log("lol")
+  console.log(data)
+}
+fetchContent()
+
+// { data }: { data: string }
 export default function AboutGenerator() {
-  async function fetchContent() {
-    const data = await read()
-    console.log(data)
-    setContent(data)
-  }
     
     //const { isAuthenticated, isLoading } = useKindeBrowserClient()
-    fetchContent()
     
-
     const [markdownSource, setMarkdownSource] = useState(null)
     const [content, setContent] = useState(null)
 
