@@ -1,6 +1,5 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { NextPageContext } from 'next'
 import { Remark } from 'react-remark'
 import { Icons } from '~/components/ui/icons'
 
@@ -22,36 +21,39 @@ import { Textarea } from '~/components/ui/textarea'
 
 import { UploadDropzone } from '~/components/upload-dropzone'
 
-import { read } from '~/lib/actions/about'
+import { read, write } from '~/lib/actions/about'
 
 async function fetchContent() {
   const data = await read()
-  console.log("lol")
-  console.log(data)
+  return data
 }
 fetchContent()
 
-// { data }: { data: string }
-export default function AboutGenerator() {
-    
-    //const { isAuthenticated, isLoading } = useKindeBrowserClient()
-    
-    const [markdownSource, setMarkdownSource] = useState(null)
-    const [content, setContent] = useState(null)
+// https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations#event-handlers
 
-    const upload = async (e: React.MouseEvent<HTMLButtonElement>) => {
+export default function AboutGenerator({ data }: { data: string }) {
+  //const { isAuthenticated, isLoading } = useKindeBrowserClient()
 
-      const data = await fetch(
-        '/api/about',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ markdownSource }),
-        }
-      )
-    }
+  const [about, setAbout] = useState(data)
+  useEffect(() => {
+    setAbout(data)
+  }, [data])
+  const [markdownSource, setMarkdownSource] = useState(null)
+  const [content, setContent] = useState(null)
+
+  const upload = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    const data = await fetch(
+      '/api/about',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ markdownSource }),
+      }
+    )
+    
+  }
 
   return (
     <div className="">
@@ -96,12 +98,16 @@ export default function AboutGenerator() {
                         <div className="flex flex-col space-y-2">
                             <Label htmlFor="title">Current</Label>
                             <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"/>
-                            owaj
+                            {about}
                           </div>
                       </div>
                       </div>
                     <div className="flex items-center space-x-2">
-                      <Button onClick={upload}>Submit</Button>
+
+                      <Button onClick={async () => {
+                        const content = await write(markdownSource)
+                      }}>Submit</Button>
+
                       <Button variant="secondary">
                         <span className="sr-only">Show history</span>
                         <CounterClockwiseClockIcon className="h-4 w-4" />
