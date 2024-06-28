@@ -19,27 +19,20 @@ import {
 } from '~/components/ui/tabs'
 import { Textarea } from '~/components/ui/textarea'
 
-// import { read, update } from '~/lib/actions/about'
+import { UploadDropzone } from '~/components/upload-dropzone'
 
+import { read } from '~/lib/actions/about'
 
 export default function AboutGenerator() {
     
     //const { isAuthenticated, isLoading } = useKindeBrowserClient()
+    console.log("Reading current about me:")
+    console.log("wug")
 
     const [markdownSource, setMarkdownSource] = useState(null)
-    const [title, setTitle] = useState(null)
     const [content, setContent] = useState(null)
 
-
-    const doNothing = async (e: React.MouseEvent<HTMLButtonElement>) => {
-      console.log('do nothing')
-      console.log()
-    }
-
     const upload = async (e: React.MouseEvent<HTMLButtonElement>) => {
-      const old = {
-        content: markdownSource,
-      }
 
       const data = await fetch(
         '/api/about',
@@ -51,9 +44,6 @@ export default function AboutGenerator() {
           body: JSON.stringify({ markdownSource }),
         }
       )
-      console.log(data)
-      console.log(markdownSource)
-      console.log('*********************************************************************************************')
     }
 
   return (
@@ -117,6 +107,7 @@ export default function AboutGenerator() {
           </div>
         </Tabs>
       </div>
+      <UploadDropzone/>
     </div>
   )
 }

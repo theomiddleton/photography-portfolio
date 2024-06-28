@@ -11,10 +11,28 @@ export default async function Home() {
   const result = await db.select({
     id: about.id,
     content: about.content,
-    image: about.image
+    image: about.imageBool
   }).from(about)
 
-  if about.image = True {
+  if (result[0].image == true) {
+    const imageResult = await db.select({
+      id: about.id,
+      imageUrl: about.imageUrl
+    }).from(about)
+
+    const imageUrls = imageResult.map((item) => ({
+      id: item.id,
+      url: item.imageUrl
+    }))
+    
+    return (
+      <div>
+        {imageUrls.map((image) => (
+          <Image src={image.url} alt="Fetched Image" />
+        ))}
+      </div>
+    )
+   } else {
     
   }
 

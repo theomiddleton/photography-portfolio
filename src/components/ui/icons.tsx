@@ -1,3 +1,5 @@
+import { UploadIcon } from "@radix-ui/react-icons"
+
 type IconProps = React.HTMLAttributes<SVGElement>
 
 export const Icons = {
@@ -190,5 +192,23 @@ export const Icons = {
       <path d="M 1.6 5 v -0.8 h 2.8 v 0.8 H 1.6 Z m 0 -1.6 v -0.8 h 4.4 v 0.8 H 1.6 Z m 0 -1.6 v -0.8 h 4.4 v 0.8 H 1.6 Z m 3.6 5.6 v -1.23 l 2.21 -2.2 q 0.09 -0.09 0.2 -0.13 t 0.22 -0.04 q 0.12 0 0.23 0.045 t 0.2 0.135 l 0.37 0.37 q 0.08 0.09 0.125 0.2 t 0.045 0.22 q 0 0.11 -0.04 0.225 T 8.63 5.2 L 6.43 7.4 H 5.2 Z m 3 -2.63 l -0.37 -0.37 l 0.37 0.37 Z M 5.8 6.8 h 0.38 l 1.21 -1.22 l -0.18 -0.19 l -0.19 -0.18 l -1.22 1.21 v 0.38 Z m 1.41 -1.41 l -0.19 -0.18 l 0.37 0.37 l -0.18 -0.19 Z" 
       fill="currentColor"/>
     </svg>
+  ),
+  Upload: (props: IconProps) => (
+    <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" x2="12" y1="3" y2="15" />
+  </svg>
   ),
 }
