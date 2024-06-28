@@ -1,7 +1,6 @@
 'use server'
 
 import { eq, sql } from 'drizzle-orm'
-import { Turret_Road } from 'next/font/google'
 import { db } from '~/server/db'
 import { about } from '~/server/db/schema'
 
@@ -13,8 +12,7 @@ export async function read() {
     return result
 }
 
-export async function write(request: Request) {
-    const { content } = await request.json()
+export async function write(content: string) {
     if (content === null || content === undefined) {
         return new Response('Invalid content', { status: 400 });
     } 
@@ -26,6 +24,4 @@ export async function write(request: Request) {
         content: content,
         current: true,
     })
-
-    return Response.json({ about: result })
 }

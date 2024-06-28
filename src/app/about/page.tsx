@@ -2,6 +2,7 @@ import React from 'react'
 import Link from "next/link" 
 import { SiteHeader } from '~/components/site-header' 
 import { db } from '~/server/db'
+import { eq } from 'drizzle-orm'
 import { about } from '~/server/db/schema'
 import { siteConfig } from '~/config/site'
 import Image from 'next/image'
@@ -12,7 +13,7 @@ export default async function Home() {
     id: about.id,
     content: about.content,
     image: about.imageBool
-  }).from(about)
+  }).from(about).where(eq(about.current, true)) 
 
   if (result[0].image == true) {
     const imageResult = await db.select({
