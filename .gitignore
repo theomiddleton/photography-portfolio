@@ -9,13 +9,13 @@
 /coverage
 
 # database
-/prisma/db.sqlite
-/prisma/db.sqlite-journal
+/drizzle/
 
 # next.js
 /.next/
 /out/
 next-env.d.ts
++ .turbo
 
 # production
 /build

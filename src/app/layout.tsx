@@ -2,6 +2,7 @@ import "~/styles/globals.css"
 import { siteConfig } from "~/config/site"
 import { SiteFooter } from "~/components/site-footer" 
 import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { AxiomWebVitals } from 'next-axiom';
 
 import { Inter } from "next/font/google" 
@@ -24,12 +25,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <SiteFooter />
       <body className={`font-sans ${inter.variable}`}>
         {children}
         <Analytics />
         <AxiomWebVitals />
+        <SpeedInsights />
       </body>
+      <SiteFooter />
     </html>
   ) 
 }

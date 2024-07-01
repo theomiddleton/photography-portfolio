@@ -40,23 +40,23 @@ This commit adds the full delete functionality, and the uploading of the image d
 
 ## 🎉 Fetch ImageUrls from DB, and start on main image gallery
 
-This is a larger commit than most before. It adds the working fetching of ImageUrls and ImageData from the database, meaning, now images can be seen without hardcoding their URLs.  
+This is a larger commit than most before. It adds the working fetching of ImageUrls and ImageData from the database, meaning, now images can be seen without hardcoding their URLs.
 
 This allowed me to add a image carousel to the admin page, allowing for the preview of all images with their data stored in the database. In adding this carousel, I refactored the admin page, making the UI more inline with the rest of the design language, and adding the ability to add more data to the images, allowing for image titles, tags, and descriptions.
 
 Since I could now fetch imageData, it allowed me to start on the main image gallery, which is simpler to create than I originally thought with the help of the tailwind class 'columns' in the layout section. This allows the images to be added to a gallery, while preserving their original aspect ratio.
-The code:  
+The code:
 
 ```tsx
-<section className="columns-4 max-h-5xl mx-auto space-y-4"> 
-  {imageUrls.map((url) => ( 
-    <div key={url} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100"> 
-      <a href={url} target="_blank" rel="noreferrer"> 
-        <img src={url} alt="img" height={600} width={400} /> 
-      </a> 
-    </div> 
-  ))} 
-</section> 
+<section className="columns-4 max-h-5xl mx-auto space-y-4">
+  {imageUrls.map((url) => (
+    <div key={url} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
+      <a href={url} target="_blank" rel="noreferrer">
+        <img src={url} alt="img" height={600} width={400} />
+      </a>
+    </div>
+  ))}
+</section>
 ```
 
 The first line is what makes the gallery work. the `columns-4` creates 4 columns of images, `space-y-4` creates a gap of 16px vertically between images.
@@ -72,7 +72,7 @@ Fetching ImageUrls from the database is done with this function
     id: imageData.id,
     fileUrl: imageData.fileUrl,
   }).from(imageData)
-  const imageUrls = result.map((item) => item.fileUrl) 
+  const imageUrls = result.map((item) => item.fileUrl)
 ```
 
 For the image map it only fetches the Id and fileUrl currently, as the gallery only shows the images, metadata, tags, titles, and description would only need to be fetched for the image page, where those things are shown.
@@ -159,7 +159,7 @@ export default async function Photo({ params }: { params: { id: number } }) {
       uploadedAt: imageData.uploadedAt
   }).from(imageData).where(eq(imageData.id, params.id))
 
-  const imageUrl = result.map((item) => item.fileUrl) 
+  const imageUrl = result.map((item) => item.fileUrl)
 ```
 
 The code shown is broken down as such:
@@ -203,17 +203,23 @@ The assignment is changed so urls and ids are held within the array, giving acce
 ```
 
 This code hasn't changed much, but the `href` now directs to the image page, done so by concatenating the string `/photo/` + the image id.
+This code hasn't changed much, but the `href` now directs to the image page, done so by concatenating the string `/photo/` + the image id.
 
 ### Issues
+### Issues
 
+Something I noticed while building this part of the project, is when running the project through the dev server, all images are desaturated and rather grey.
 Something I noticed while building this part of the project, is when running the project through the dev server, all images are desaturated and rather grey.
 
 After doing some research this appears to be due to the different colour spaces of the images. Many of the images I am using for testing are exported in colour spaces such as Adobe RGB or ProPhoto RGB. Since images for the web should only be in narrower gamut colour spaces such as sRGB or REC.709A for video, the colour space transform was desaturating the image. Further in the research I found that this only occurs on the devopment server, and not on any builds.
 
 ### Moving forward
+### Moving forward
 
 The plan for the next features will be authentication and all its complexities. Auth is more than just a login page, needing token based session management and a roust login system.
+The plan for the next features will be authentication and all its complexities. Auth is more than just a login page, needing token based session management and a roust login system.
 For the type of website it is, email and password auth should be used as this will allow us to use the auth components for the print store later.
+For email and password auth, you need an email handler and to hash and store hashed passwords. For the hashing a crypto algorithm must be used, and for the emails, something like resend could be used.
 For email and password auth, you need an email handler and to hash and store hashed passwords. For the hashing a crypto algorithm must be used, and for the emails, something like resend could be used.
 If we already have accounts and emails, a newsletter or other emails could be sent from within the app by the admin
 
@@ -260,7 +266,7 @@ Then, if the user is authenticated, the normal page is shown, otherwise a simple
 
 ```tsx
 return isAuthenticated ? (
-  //Normal page goes here  
+  //Normal page goes here
   ) : (
     <div>
       Sorry, But you dont have the permissions to view this page!
@@ -268,3 +274,34 @@ return isAuthenticated ? (
 ```
 
 <https://excalidraw.com/#json=NusT72QrRy-Ww7xZ6-YiS,hLkDc-7xOCMCl9xMeIkbdA>
+
+## 🎉 Add blog writing and blog pages, analytics, and cloudflare pages
+
+This commit added blog writing and displaying to the website. The blog writing page has a section for writing the content in markdown, and a section next to that for viewing the markdown rendered correctly. There is then a form for uploading images, which, when correctly uploaded, will add the markdown verion of the link `![](url)`
+
+The blog page is a simple page that displays all the blogs in the database, displayed in their title form, then when clicked on, points to a dynamic page with the full blog post.
+
+The database has two tables for blogs, one for the blog itself, with rows for the title, content, and date. I will discuss later how this is an issue and another row had to be added.
+The second table is for the blog images, with a similar structure to imageData, but without the title and tags, with a blogId row added, to link the image to the blog, but this causes issues.
+
+### currrent issues
+
+This commit added the writing and displaying of blogs. Images are often a vital part of blogs, whether it be a header image or for added context, but, in this commit, the database has two tables for blogs
+![alt text](images/database-structure.png)
+
+The issue with this comes when one tries to upload an image while writing a blog. The image needs the BlogId, but the blog hasn't been uploaded yet.
+
+### Solution
+
+There are various ways of fixing this, but the one I chose was to upload the blog first, then upload the image. This way, the blogId is known and can be assigned to the image. This however is not the best solution, as it means the unfinished blog will be visible to the public, but the image will not yet ne attached to it. Therefore I will add a flag to the blog table, which will be set to false until the blog is finished, and give the writer an option to publish the blog.
+
+This also means that draft posts can be written and saved, and published at a later date. To do this however, I will need to change the ui to allow for this, and add functionality needed for drafts.
+![alt text](images/new-database-structure.png)
+
+### Problems with entire codebase
+
+At this point the codebase is rather complucated. With nextjs file routing, the pages and api endpoints alone are a mess.
+![alt text](images/file-structure.png)
+
+As to not make an incredibly long image, it has been cut into sections, but the red line is the root of app
+Most of these api routes are doing the samething, fetching from the database for client pages, but fetching different data from different tables.

@@ -1,3 +1,5 @@
+import { UploadIcon } from "@radix-ui/react-icons"
+
 type IconProps = React.HTMLAttributes<SVGElement>
 
 export const Icons = {
@@ -170,5 +172,43 @@ export const Icons = {
     >
       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
     </svg>
+  ),
+  write: (props: IconProps) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="none"
+      className="h-5 w-5"
+    >
+    <path d="M14.491 7.769a.888.888 0 0 1 .287.648.888.888 0 0 1-.287.648l-3.916 3.667a1.013 1.013 0 0 1-.692.268c-.26 0-.509-.097-.692-.268L5.275 9.065A.886.886 0 0 1 5 8.42a.889.889 0 0 1 .287-.64c.181-.17.427-.267.683-.269.257-.002.504.09.69.258L8.903 9.87V3.917c0-.243.103-.477.287-.649.183-.171.432-.268.692-.268.26 0 .509.097.692.268a.888.888 0 0 1 .287.649V9.87l2.245-2.102c.183-.172.432-.269.692-.269.26 0 .508.097.692.269Z" />
+    <rect x="4" y="15" width="3" height="2" rx="1" />
+    <rect x="8.5" y="15" width="3" height="2" rx="1" />
+    <rect x="13" y="15" width="3" height="2" rx="1" />
+
+    </svg>
+  ),
+  edit: (props: IconProps) => (
+    <svg role="img" viewBox="0 0 24 24" {...props}>
+      <path d="M 1.6 5 v -0.8 h 2.8 v 0.8 H 1.6 Z m 0 -1.6 v -0.8 h 4.4 v 0.8 H 1.6 Z m 0 -1.6 v -0.8 h 4.4 v 0.8 H 1.6 Z m 3.6 5.6 v -1.23 l 2.21 -2.2 q 0.09 -0.09 0.2 -0.13 t 0.22 -0.04 q 0.12 0 0.23 0.045 t 0.2 0.135 l 0.37 0.37 q 0.08 0.09 0.125 0.2 t 0.045 0.22 q 0 0.11 -0.04 0.225 T 8.63 5.2 L 6.43 7.4 H 5.2 Z m 3 -2.63 l -0.37 -0.37 l 0.37 0.37 Z M 5.8 6.8 h 0.38 l 1.21 -1.22 l -0.18 -0.19 l -0.19 -0.18 l -1.22 1.21 v 0.38 Z m 1.41 -1.41 l -0.19 -0.18 l 0.37 0.37 l -0.18 -0.19 Z" 
+      fill="currentColor"/>
+    </svg>
+  ),
+  Upload: (props: IconProps) => (
+    <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" x2="12" y1="3" y2="15" />
+  </svg>
   ),
 }

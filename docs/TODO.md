@@ -3,10 +3,13 @@
 ## Features
 
 - [x] Main image gallery
+- [x] Main image gallery
   - [ ] Decide what tech to do this with - tRPC, etc
 - [ ] Print store
 - [ ] Admin page
   - [ ] Analytics
+- [x] Metadata store
+- [x] Blob store
 - [x] Metadata store
 - [x] Blob store
 - [ ] Blog
@@ -20,7 +23,7 @@
     - [ ] Gallery order - within admin
       - [ ] Colour based order (adv)
     - [x] Image page
-      - [ ] revisit for responsiveness on smaller screens 
+      - [ ] revisit for responsiveness on smaller screens
   - [ ] Infinite scroll  
   - [ ] Auto update
   - [ ] Image Select
@@ -34,6 +37,7 @@
   - [ ] Gear section / page
 - [x] Blog
   - [x] Write from admin page
+  - [ ] write, save, publish, edit
     - [x] Have image upload section
       - [x] uploaded images go into other blob store
       - [x] uploaded imageData goes into other table
