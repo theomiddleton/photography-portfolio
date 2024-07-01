@@ -31,7 +31,7 @@ import { Textarea } from '~/components/ui/textarea'
 
 export default function Blog() {
 
-  //const { isAuthenticated, isLoading } = useKindeBrowserClient()
+  const { isAuthenticated, isLoading } = useKindeBrowserClient()
   const [file, setFile] = useState<File | null>(null)
   const [markdownSource, setMarkdownSource] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -180,10 +180,9 @@ export default function Blog() {
     }
   }
 
-  //if (isLoading) return <div>Loading...</div>
+  if (isLoading) return <div>Loading...</div>
 
-  // return isAuthenticated ? (
-  return (
+  return isAuthenticated ? (
     <>
       <div className="md:hidden">
       </div>
@@ -435,9 +434,9 @@ export default function Blog() {
         </Tabs>
       </div>
     </>
-    // ) : (
-        // <div>
-          // {/* Sorry, But you dont have the permissions to view this page! */}
-        // {/* </div> */}
+    ) : (
+        <div>
+          Sorry, But you dont have the permissions to view this page!
+        </div>
       )
 }

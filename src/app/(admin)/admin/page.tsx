@@ -10,11 +10,10 @@
 
   export default function Admin() {
 
-    // const { isAuthenticated, isLoading } = useKindeBrowserClient()
-    // if (isLoading) return <div>Loading...</div>
+    const { isAuthenticated, isLoading } = useKindeBrowserClient()
+    if (isLoading) return <div>Loading...</div>
 
-  // return isAuthenticated ? (
-    return (
+  return isAuthenticated ? (
       <div className="min-h-screen bg-white text-black space-y-12">
         <div className="max-w-2xl mx-auto py-24 px-4">
           <h2 className="text-base font-semibold leading-7 text-black">
@@ -23,12 +22,9 @@
       <UploadImg/>
       </div>
     </div>
-    )
-  }
-
-//   ) : (
-//     <div>
-//       Sorry, But you dont have the permissions to view this page!
-//     </div>
-//   );
-// }
+  ) : (
+    <div>
+      Sorry, But you dont have the permissions to view this page!
+    </div>
+  );
+}
