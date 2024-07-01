@@ -25,7 +25,7 @@ import { UploadDropzone } from '~/components/upload-dropzone'
 import { read, write } from '~/lib/actions/about'
 
 export default function AboutGenerator() {
-  const [about, setAbout] = useState<string>('')
+  const [about, setAbout] = useState<string[]>([])
   const [markdownSource, setMarkdownSource] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
 

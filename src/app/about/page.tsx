@@ -15,27 +15,27 @@ export default async function Home() {
     image: about.imageBool
   }).from(about).where(eq(about.current, true)) 
 
-  if (result[0].image == true) {
-    const imageResult = await db.select({
-      id: about.id,
-      imageUrl: about.imageUrl
-    }).from(about)
+  // if (result[0].image == true) {
+  //   const imageResult = await db.select({
+  //     id: about.id,
+  //     imageUrl: about.imageUrl
+  //   }).from(about)
 
-    const imageUrls = imageResult.map((item) => ({
-      id: item.id,
-      url: item.imageUrl
-    }))
+  //   const imageUrls = imageResult.map((item) => ({
+  //     id: item.id,
+  //     url: item.imageUrl
+  //   }))
     
-    return (
-      <div>
-        {imageUrls.map((image) => (
-          <Image src={image.url} alt="Fetched Image" />
-        ))}
-      </div>
-    )
-   } else {
+  //   return (
+  //     <div>
+  //       {imageUrls.map((image) => (
+  //         <Image src={image.url} alt="Fetched Image" />
+  //       ))}
+  //     </div>
+  //   )
+  // } else {
     
-  }
+  // }
 
 
   return (

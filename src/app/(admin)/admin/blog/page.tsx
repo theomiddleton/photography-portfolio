@@ -28,8 +28,6 @@ import {
 } from '~/components/ui/card'
 import { Textarea } from '~/components/ui/textarea'
 
-import { useCookies } from 'next-client-cookies'
-import { create, read } from '~/lib/actions/cookies'
 
 export default function Blog() {
 
@@ -43,7 +41,6 @@ export default function Blog() {
   const [description, setDescription] = useState('')
   const [imageUrls, setImageUrls] = useState<string[]>([])
   const [markdownLink, setMarkdownLink] = useState('')
-  const cookies = useCookies();
 
   const handleFetch = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -64,32 +61,7 @@ export default function Blog() {
   const handleSave = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
 
-    const tempId = uuidv4()
-    const cookie = await create({ tempId })
-    console.log('Cookie:', cookie)
-
     setVisable(false)
-
-    const isSaved = await cookies.get({ tempId: '' })
-    console.log('Cookie:', isSaved)
-
-    if (isSaved && isSaved.tempId) {
-
-      const response = await fetch(
-        '/api/blog-fetch/',
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      )
-
-      console.log('TempId cookie exists:', isSaved.tempId)
-
-    } else {
-      console.log('TempId cookie does not exist or is empty')
-    }
 
     const response = await fetch(
       '/api/blog-fetch/',
@@ -109,7 +81,7 @@ export default function Blog() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, content, visable, tempId }),
+        body: JSON.stringify({ title, content, visable }),
       }
     )
     //we need to ensure when the save button is pressed, the id is stored, and it only writes to that id in the db, not a new row
