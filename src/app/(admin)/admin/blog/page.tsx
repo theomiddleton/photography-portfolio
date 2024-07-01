@@ -440,3 +440,5 @@ export default function Blog() {
         </div>
       )
 }
+
+export const runtime = 'edge';
