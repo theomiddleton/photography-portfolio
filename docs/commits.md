@@ -203,17 +203,23 @@ The assignment is changed so urls and ids are held within the array, giving acce
 ```
 
 This code hasn't changed much, but the `href` now directs to the image page, done so by concatenating the string `/photo/` + the image id.
+This code hasn't changed much, but the `href` now directs to the image page, done so by concatenating the string `/photo/` + the image id.
 
 ### Issues
+### Issues
 
+Something I noticed while building this part of the project, is when running the project through the dev server, all images are desaturated and rather grey.
 Something I noticed while building this part of the project, is when running the project through the dev server, all images are desaturated and rather grey.
 
 After doing some research this appears to be due to the different colour spaces of the images. Many of the images I am using for testing are exported in colour spaces such as Adobe RGB or ProPhoto RGB. Since images for the web should only be in narrower gamut colour spaces such as sRGB or REC.709A for video, the colour space transform was desaturating the image. Further in the research I found that this only occurs on the devopment server, and not on any builds.
 
 ### Moving forward
+### Moving forward
 
 The plan for the next features will be authentication and all its complexities. Auth is more than just a login page, needing token based session management and a roust login system.
+The plan for the next features will be authentication and all its complexities. Auth is more than just a login page, needing token based session management and a roust login system.
 For the type of website it is, email and password auth should be used as this will allow us to use the auth components for the print store later.
+For email and password auth, you need an email handler and to hash and store hashed passwords. For the hashing a crypto algorithm must be used, and for the emails, something like resend could be used.
 For email and password auth, you need an email handler and to hash and store hashed passwords. For the hashing a crypto algorithm must be used, and for the emails, something like resend could be used.
 If we already have accounts and emails, a newsletter or other emails could be sent from within the app by the admin
 

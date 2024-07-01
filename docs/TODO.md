@@ -3,10 +3,13 @@
 ## Features
 
 - [x] Main image gallery
+- [x] Main image gallery
   - [ ] Decide what tech to do this with - tRPC, etc
 - [ ] Print store
 - [ ] Admin page
   - [ ] Analytics
+- [x] Metadata store
+- [x] Blob store
 - [x] Metadata store
 - [x] Blob store
 - [ ] Blog
