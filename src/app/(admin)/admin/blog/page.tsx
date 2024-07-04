@@ -1,28 +1,17 @@
 'use client'
-import Image from 'next/image'
 import { useState, useEffect } from 'react'
-import { Remark } from 'react-remark'
-import { Icons } from '~/components/ui/icons'
-import { v4 as uuidv4 } from 'uuid'
 
-import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
-
-import { CounterClockwiseClockIcon } from '@radix-ui/react-icons'
-
-import { Input } from '~/components/ui/input'
-import { Button } from '~/components/ui/button'
-import { Label } from '~/components/ui/label'
-import { Separator } from '~/components/ui/separator'
+import { Button } from "~/components/ui/button"
+import { Label } from "~/components/ui/label"
+import { Separator } from "~/components/ui/separator"
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '~/components/ui/tabs'
-
-import { Checkbox } from "~/components/ui/checkbox"
-
-import { Textarea } from '~/components/ui/textarea'
+} from "~/components/ui/tabs"
+import { Textarea } from "~/components/ui/textarea"
+import { Input } from "~/components/ui/input"
 import {
   Dialog,
   DialogContent,
@@ -31,192 +20,209 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "~/components/ui/dialog"
+import { Remark } from 'react-remark'
 
-import { blogWrite, blogFetch, blogEditFetch, blogEdit } from '~/lib/actions/blog'
-// import { blogWrite } from '~/lib/actions/blogWrite'
 import { BlogPosts } from '~/components/blog-posts'
 
+import { blogEdit, blogEditFetch, blogWrite } from '~/lib/actions/blog'
 
 export default function Blog() {
 
   // const { isAuthenticated, isLoading } = useKindeBrowserClient()
+
   const [title, setTitle] = useState<string>('')
   const [content, setContent] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(true)
   const [isVisible, setIsVisible] = useState<boolean>(true)
-  const [markdownSource, setMarkdownSource] = useState<string | null>(null)
-  const [editId, setEditId] = useState<string>('')
 
+  const [editTitle, setEditTitle] = useState<string>('')
+  const [editContent, setEditContent] = useState<string>('')
+  const [editIsVisible, setEditIsVisible] = useState<boolean>(true)
+
+  const [editId, setEditId] = useState<number>(0)
+  const [loading, setLoading] = useState<boolean>(true)
+  
   const handleCheckboxChange = (event) => {
     setIsVisible(event.target.checked)
   }
 
-  // need to prompt the user whether they want to edit or create a new post
-  // if they want to edit, fetch the content of the post they want to edit
-  // if they want to create a new post, just create a new post
-  // need to pass the id of the post to edit to the blogEditFetch function 
-  //from blog. fetches data in server action, decides what to pass, then passses it
-
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await blogEditFetch(editId)
-      const content = data.map(item => item.content).join('\n\n')
-      setContent(content)
-      setLoading(false)
-    }
-    void fetchData()
+    setLoading(false)
   }, [])
 
+  const handleEdit = async () => {
+    if (editId) { 
+      setLoading(true)
+      const data = await blogEditFetch(editId) as { id: number; title: string; content: string; visible: boolean}
+      setEditContent(data.content)
+      setEditIsVisible(data.visible)
+      setLoading(false)
+    } else {
+      console.error("No post selected for editing")
+    }
+  }
 
-  // if (isLoading) return <div>Loading...</div>
+  if (loading) return <div className="h-screen flex items-center justify-center">Loading content...</div>
 
-  // return isAuthenticated ? (
+  // if (isLoading) return <div className="h-screen flex items-center justify-center">Loading auth...</div>
+
   return (
     <>
-    <div className="md:hidden">
-    </div>
-    <div className="hidden h-full flex-col md:flex">
-      <div className="container flex flex-col items-start justify-between space-y-2 py-4 sm:flex-row sm:items-center sm:space-y-0 md:h-16">
-        <h2 className="text-lg font-semibold">Blog</h2>
-      </div>
-      <Separator />
-      <div className="container h-full py-6">
-        <div className="hidden flex-col space-y-3 sm:flex md:order-2">
-          <Tabs defaultValue='write'>
-            <TabsList>
-              <TabsTrigger value="write">Write</TabsTrigger>
-              <TabsTrigger value="edit">Edit</TabsTrigger>
-            </TabsList>
-            <TabsContent value="write">
-              <div className="flex flex-col space-y-4">
-                <div className="grid h-full gap-6 lg:grid-cols-2">
-                  <div className="flex flex-col space-y-4">
-                    <div className="flex flex-1 flex-col space-y-2">
-                      <Label htmlFor="input">Post</Label>
-                      <Textarea
-                        id="input"
-                        value={content}
-                        className="flex-1 lg:min-h-[580px]"
-                        onChange={({ currentTarget }) => setContent(currentTarget.value)}
-                      />
-                    </div>
-                    <div className="flex flex-col space-y-2">
-                      <Label htmlFor="title">Post Title</Label>
-                      <Textarea
-                        id="title"
-                        placeholder="Title"
-                        value={title}
-                        onChange={({ currentTarget }) => setTitle(currentTarget.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-[21px] min-h-[400px] rounded-md border bg-muted lg:min-h-[700px] prose px-4">
-                    <Remark>
-                      {content}
-                    </Remark>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button onClick={async () => { 
-                    await blogWrite(content, title, isVisible)
-                  }}>Publish</Button>
-                  <Checkbox id="visible" checked={isVisible} onChange={handleCheckboxChange}/>
-                  <input type="checkbox" checked={isVisible} onChange={handleCheckboxChange} />
-                  <label
-                    htmlFor="visible"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Visible?
-                  </label>
-                  <Button variant="secondary">
-                    <span className="sr-only">Show history</span>
-                    <CounterClockwiseClockIcon className="h-4 w-4" />
-                  </Button>
-                  <Button variant="secondary">Save</Button>
-                </div>
+      <div className="hidden h-full flex-col md:flex">
+        <div className="container flex flex-col items-start justify-between space-y-2 py-4 sm:flex-row sm:items-center sm:space-y-0 md:h-16">
+          <h2 className="text-lg font-semibold">Blog</h2>
+          <div className="ml-auto flex w-full space-x-2 sm:justify-end">
+            <div className="hidden space-x-2 md:flex">
+            </div>
+          </div>
+        </div>
+        <Separator />
+        <Tabs defaultValue="write" className="flex-1">
+          <div className="container h-full py-6">
+              <span className="text-sm font-medium leading-none">
+                Mode
+              </span>
+              <div className="flex items-center space-x-2">
+                <TabsList className="grid grid-cols-2 pd-2">
+                  <TabsTrigger value="write">Write</TabsTrigger>
+                  <TabsTrigger value="edit">Edit</TabsTrigger>
+                </TabsList>
               </div>
-            </TabsContent>
-            <TabsContent value="edit">
-              <div className="flex flex-col space-y-4">
-                <div className="grid h-full gap-6 lg:grid-cols-2">
+            <div className="grid h-full items-stretch gap-6 md:grid-cols-1 mt-4">
+              <div className="hidden flex-col space-y-4 sm:flex md:order-2">
+              </div>
+              <div className="md:order-1">
+                <TabsContent value="write" className="mt-0 border-0 p-0">
                   <div className="flex flex-col space-y-4">
-                    <div className="flex flex-1 flex-col space-y-2">
-                      <Label htmlFor="input">Edit</Label>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline">Select Post To Edit</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                          <DialogHeader>
-                            <DialogTitle>Select Post To Edit</DialogTitle>
-                            <DialogDescription>
-                              Input a posts Id to edit it. 
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            <div className="items-center">
-                              <BlogPosts />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="id" className="text-right">
-                                Id
-                              </Label>
-                              <Input
-                                id="id"
-                                defaultValue="1"
-                                className="col-span-3"
-                                onChange={({ currentTarget }) => setEditId(currentTarget.value)}
-                              />
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button type="submit">Edit</Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                      <div>
-                        <div className="flex flex-col space-y-4">
-                          <div className="grid h-full grid-rows-2 gap-6">
-                            <Textarea
-                              placeholder="Write your about me page here"
-                              className="h-full min-h-[300px] lg:min-h-[700px] xl:min-h-[700px]"
-                              value={markdownSource || ''}
-                              onChange={({ currentTarget }) => setMarkdownSource(currentTarget.value)}
-                            />
-                            <div className="flex flex-2 flex-col space-y-2">
-                              <div className="rounded-md border flex-1 lg:min-h-[580px] bg-muted prose">
-                                <Remark>{markdownSource}</Remark>
-                              </div>
-                              <div className="flex flex-col space-y-2">
-                                <Label htmlFor="title">Current</Label>
-                                <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"/>
-                                {title}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button onClick={async () => {
-                              await blogEdit(editId ,markdownSource, title, isVisible)
-                            }}>Submit</Button>
-                            <Button variant="secondary">
-                              <span className="sr-only">Show history</span>
-                              <CounterClockwiseClockIcon className="h-4 w-4" />
-                            </Button>
-                          </div>
+                    <div className="grid h-full gap-6 lg:grid-cols-2">
+                      <div className="flex flex-col space-y-4">
+                        <div className="flex flex-1 flex-col space-y-2">
+                          <Label>Post</Label>
+                          <Textarea
+                            id="input"
+                            value={content}
+                            placeholder="Write your blog post here"
+                            className="flex-1 lg:min-h-[580px]"
+                            onChange={({ currentTarget }) => setContent(currentTarget.value)}
+                          />
+                        </div>
+                        <div className="flex flex-col space-y-2">
+                          <Label htmlFor="instructions">Post Title</Label>
+                          <Textarea
+                            id="title"
+                            placeholder="Write your title here"
+                            value={title}
+                            onChange={({ currentTarget }) => setTitle(currentTarget.value)}
+                          />
                         </div>
                       </div>
+                      <div className="mt-[21px] min-h-[400px] rounded-md border bg-muted lg:min-h-[700px] prose">
+                        <Remark>
+                          {content}
+                        </Remark>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button onClick={async () => {
+                        await blogWrite(content, title, isVisible)
+                      }}>Publish</Button>
+                      <input 
+                        className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                        type="checkbox" 
+                        id="visible" 
+                        checked={isVisible} 
+                        onChange={handleCheckboxChange}
+                      />
+                        <label
+                          htmlFor="visible"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          Visible?
+                        </label>
                     </div>
                   </div>
-                </div>
+                </TabsContent>
+                <TabsContent value="edit" className="mt-0 border-0 p-0">
+                  <Label>Edit</Label>
+                  <div className="px-4 py-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">Select Post To Edit</Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Select Post To Edit</DialogTitle>
+                          <DialogDescription>
+                            Input a posts Id to edit it. 
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="items-center">
+                            <BlogPosts />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="id" className="text-right">
+                              Id
+                            </Label>
+                            <Input
+                              id="id"
+                              defaultValue=""
+                              className="col-span-3"
+                              onChange={({ currentTarget }) => setEditId(Number(currentTarget.value))}
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <DialogClose asChild>
+                            <Button type="submit" onClick={handleEdit}>Edit</Button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  <div className="flex flex-col space-y-4">
+                    <div className="grid h-full grid-rows-2 gap-6 lg:grid-cols-2 lg:grid-rows-1">
+                      <Textarea
+                        className="h-full min-h-[300px] lg:min-h-[700px] xl:min-h-[700px]"
+                        id="input"
+                        value={editContent}
+                        onChange={({ currentTarget }) => setEditContent(currentTarget.value)}
+                      />
+                      <div className="rounded-md border bg-muted prose">
+                        <Remark>
+                          {editContent}
+                        </Remark>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button onClick={async () => {
+                        await blogEdit(editId, content, title, isVisible)
+                      }}>Publish</Button>
+                      <input 
+                        className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                        type="checkbox" 
+                        id="visible" 
+                        checked={isVisible} 
+                        onChange={handleCheckboxChange}
+                      />
+                      <label
+                          htmlFor="visible"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          Visible?
+                      </label>
+                    </div>
+                  </div>
+                </TabsContent>
               </div>
-            </TabsContent>
-          </Tabs>
-        </div> 
-      </div> 
-    </div>
+            </div>
+          </div>
+        </Tabs>
+      </div>
     </>
   )
+}
 
   // ) : (
     // <div className="h-screen flex flex-col pt-6 items-center">
@@ -224,7 +230,3 @@ export default function Blog() {
       {/* <p className="mt-2">Sorry, But you don&apos;t have the permissions to view this page!</p> */}
     {/* </div> */}
   // )
-
-}
-
-export const runtime = 'edge';
