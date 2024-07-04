@@ -48,5 +48,3 @@ export async function writeImgDb(request: Request) {
         return new Response('Error fetching image URL from the database', { status: 500 })
     }
 }
-
-export const runtime = 'edge'

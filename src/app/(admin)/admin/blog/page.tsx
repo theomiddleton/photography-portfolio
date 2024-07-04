@@ -38,6 +38,7 @@ import {
 } from "~/components/ui/dialog"
 
 import { blogWrite, blogFetch, blogEditFetch } from '~/lib/actions/blog'
+// import { blogWrite } from '~/lib/actions/blogWrite'
 import { BlogPosts } from '~/components/blog-posts'
 
 
@@ -118,7 +119,6 @@ export default function Blog() {
                   <Button onClick={async () => { 
                     await blogWrite(content, title)
                   }}>Publish</Button>
-                  <Button >Publish</Button>
                   <Button variant="secondary">
                     <span className="sr-only">Show history</span>
                     <CounterClockwiseClockIcon className="h-4 w-4" />

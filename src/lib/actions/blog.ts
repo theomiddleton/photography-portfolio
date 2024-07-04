@@ -1,3 +1,4 @@
+'use server'
 import { eq, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { blogs, blogImages } from '~/server/db/schema'
@@ -9,39 +10,16 @@ import { r2 } from '~/lib/r2'
 import { siteConfig } from '~/config/site'
 
 export async function blogWrite(content: string, title: string) {
-    // const { title, content, visible, tempId } = await request.json()
-    const visible = true
-    const tempId = uuidv4()
 
-    if (tempId === undefined) {
-        await db.insert(blogs).values({
-            title: title,
-            content: content,
-            visible: visible,
-        })
-    } else {
-        await db.update(blogs)
-            .set({
-                title: title,
-                content: content,
-                visible: visible,
-                tempId: tempId,
-            })
-            .where(eq(blogs.tempId, tempId))
-    }
-
-    const blog = await db
-        .select({
-            id: blogs.id,
-        })
-        .from(blogs)
-        .where(eq(blogs.title, sql.placeholder('title')))
-        .execute({ title: title })
+    await db.insert(blogs).values({
+        title: title,
+        content: content,
+    })
 
     //we need the blog to update, currently it is just creating a new row in the database every time
     //it needs to update the existing row, so we can fetch the id and pass it to the blogImages table
 
-    return Response.json({ blog })
+    return new Response('Blog post created', { status: 200 })
 }
 
 export async function blogFetch() {
@@ -129,5 +107,3 @@ export async function fetchBlogImg() {
         return new Response('Error fetching image URL from the database', { status: 500 })
     }
 }
-
-export const runtime = 'edge'
