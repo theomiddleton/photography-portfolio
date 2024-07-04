@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react'
+
 import { blogFetch } from "~/lib/actions/blog"
 
 import {
@@ -12,7 +14,7 @@ import {
 } from "~/components/ui/table"
 
 
-const defNotPosts = [
+const placeholder = [
     {
       id: "1",
       title: "Placeholder Title 1",
@@ -44,37 +46,39 @@ const defNotPosts = [
   ]
 
 export function BlogPosts() {
-    const result = blogFetch()
-    console.log('result', result)
-    {/* 
-    const posts = result.map((post) => ({
-        slug: post.id,
-        title: post.title,
-    }))
-    */}
+  const [posts, setPosts] = useState([])
 
-    return (
-        <Table>
-            <TableCaption>Blog Posts</TableCaption>
-            <TableHeader>
-                <TableRow>
-                    <TableHead className="w-[100px]">Id</TableHead>
-                    <TableHead>Title</TableHead>
-                </TableRow> 
-            </TableHeader>
-            <TableBody>
-                {defNotPosts.map((item) => (
-                    <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.id}</TableCell>
-                        <TableCell>{item.title}</TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-            <TableFooter>
-                <TableRow>
-                    <TableCell colSpan={2}>Total: {defNotPosts.length}</TableCell>
-                </TableRow>
-            </TableFooter>
-        </Table>
-    )
+
+  useEffect(() => {
+      const fetchPosts = async () => {
+        const result = await blogFetch()
+        setPosts(result)
+      }
+      fetchPosts()
+  }, [])
+
+  return (
+      <Table>
+          <TableCaption>Blog Posts</TableCaption>
+          <TableHeader>
+              <TableRow>
+                  <TableHead className="w-[100px]">Id</TableHead>
+                  <TableHead>Title</TableHead>
+              </TableRow> 
+          </TableHeader>
+          <TableBody>
+              {placeholder.map((item) => (
+                  <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.id}</TableCell>
+                      <TableCell>{item.title}</TableCell>
+                  </TableRow>
+              ))}
+          </TableBody>
+          <TableFooter>
+              <TableRow>
+                  <TableCell colSpan={2}>Total: {placeholder.length}</TableCell>
+              </TableRow>
+          </TableFooter>
+      </Table>
+  )
 }
