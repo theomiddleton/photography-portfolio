@@ -14,48 +14,23 @@ import {
 } from "~/components/ui/table"
 
 
-const placeholder = [
-    {
-      id: "1",
-      title: "Placeholder Title 1",
-    },
-    {
-      id: "2",
-      title: "Placeholder Title 2",
-    },
-    {
-      id: "3",
-      title: "Placeholder Title 3",
-    },
-    {
-      id: "4",
-      title: "Placeholder Title 4",
-    },
-    {
-      id: "5",
-      title: "Placeholder Title 5",
-    },
-    {
-      id: "6",
-      title: "Placeholder Title 6",
-    },
-    {
-      id: "7",
-      title: "Placeholder Title 7",
-    },
-  ]
 
 export function BlogPosts() {
   const [posts, setPosts] = useState([])
+  const [loading, setLoading] = useState(true)
 
 
   useEffect(() => {
       const fetchPosts = async () => {
+        setLoading(true)
         const result = await blogFetch()
         setPosts(result)
+        setLoading(false)
       }
       fetchPosts()
   }, [])
+
+  if (loading) return <div className="h-screen flex items-center justify-center">Loading content...</div>
 
   return (
       <Table>
@@ -67,7 +42,7 @@ export function BlogPosts() {
               </TableRow> 
           </TableHeader>
           <TableBody>
-              {placeholder.map((item) => (
+              {posts.map((item) => (
                   <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.id}</TableCell>
                       <TableCell>{item.title}</TableCell>
@@ -76,7 +51,7 @@ export function BlogPosts() {
           </TableBody>
           <TableFooter>
               <TableRow>
-                  <TableCell colSpan={2}>Total: {placeholder.length}</TableCell>
+                  <TableCell colSpan={2}>Total: {posts.length}</TableCell>
               </TableRow>
           </TableFooter>
       </Table>

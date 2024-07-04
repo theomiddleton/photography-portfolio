@@ -33,7 +33,7 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog"
 
-import { blogWrite, blogFetch, blogEditFetch } from '~/lib/actions/blog'
+import { blogWrite, blogFetch, blogEditFetch, blogEdit } from '~/lib/actions/blog'
 // import { blogWrite } from '~/lib/actions/blogWrite'
 import { BlogPosts } from '~/components/blog-posts'
 
@@ -45,6 +45,8 @@ export default function Blog() {
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
   const [isVisible, setIsVisible] = useState<boolean>(true)
+  const [markdownSource, setMarkdownSource] = useState<string | null>(null)
+  const [editId, setEditId] = useState<string>('')
 
   const handleCheckboxChange = (event) => {
     setIsVisible(event.target.checked)
@@ -53,19 +55,18 @@ export default function Blog() {
   // need to prompt the user whether they want to edit or create a new post
   // if they want to edit, fetch the content of the post they want to edit
   // if they want to create a new post, just create a new post
-  // need to pass the id of the post to edit to the blogEditFetch function
-  
-  // from blog. fetches data in server action, decides what to pass, then passses it
-  // useEffect(() => {
-    // const fetchData = async () => {
-      // need to pass this an id of the blog post to edit
-      // const data = await blogEditFetch()
-      // const content = data.map(item => item.content).join('\n\n')
-      // setContent(content)
-      // setLoading(false)
-    // }
-    // void fetchData()
-  // }, [])
+  // need to pass the id of the post to edit to the blogEditFetch function 
+  //from blog. fetches data in server action, decides what to pass, then passses it
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await blogEditFetch(editId)
+      const content = data.map(item => item.content).join('\n\n')
+      setContent(content)
+      setLoading(false)
+    }
+    void fetchData()
+  }, [])
 
 
   // if (isLoading) return <div>Loading...</div>
@@ -165,6 +166,7 @@ export default function Blog() {
                                 id="id"
                                 defaultValue="1"
                                 className="col-span-3"
+                                onChange={({ currentTarget }) => setEditId(currentTarget.value)}
                               />
                             </div>
                           </div>
@@ -173,6 +175,37 @@ export default function Blog() {
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
+                      <div>
+                        <div className="flex flex-col space-y-4">
+                          <div className="grid h-full grid-rows-2 gap-6">
+                            <Textarea
+                              placeholder="Write your about me page here"
+                              className="h-full min-h-[300px] lg:min-h-[700px] xl:min-h-[700px]"
+                              value={markdownSource || ''}
+                              onChange={({ currentTarget }) => setMarkdownSource(currentTarget.value)}
+                            />
+                            <div className="flex flex-2 flex-col space-y-2">
+                              <div className="rounded-md border flex-1 lg:min-h-[580px] bg-muted prose">
+                                <Remark>{markdownSource}</Remark>
+                              </div>
+                              <div className="flex flex-col space-y-2">
+                                <Label htmlFor="title">Current</Label>
+                                <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"/>
+                                {title}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button onClick={async () => {
+                              await blogEdit(editId ,markdownSource, title, isVisible)
+                            }}>Submit</Button>
+                            <Button variant="secondary">
+                              <span className="sr-only">Show history</span>
+                              <CounterClockwiseClockIcon className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

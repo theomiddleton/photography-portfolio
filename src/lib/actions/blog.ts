@@ -24,8 +24,6 @@ export async function blogWrite(content: string, title: string, visible: boolean
 }
 
 export async function blogFetch() {
-    // needs modifing into fetching like blog. fetches all, passes only flagged content
-    // fetch all, ask the user the id of what to edit, have a similar but new function to pass just that for editing 
     try {
         const result = await db.select({
             id: blogs.id,
@@ -48,6 +46,20 @@ export async function blogEditFetch(id: string) {
         }).from(blogs).where(eq(blogs.id, Number(id)))
         
         return result
+    } catch (error) {
+        return new Response('Error fetching image URL from the database', { status: 500 })
+    }
+}
+
+export async function blogEdit(id: string, content: string, title: string, visible: boolean) {
+    try {
+        await db.update(blogs).set({
+            title: title,
+            content: content,
+            visible: visible,
+        }).where(eq(blogs.id, Number(id)))
+
+        return new Response('Blog post updated', { status: 200 })
     } catch (error) {
         return new Response('Error fetching image URL from the database', { status: 500 })
     }
