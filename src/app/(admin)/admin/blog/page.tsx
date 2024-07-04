@@ -115,9 +115,9 @@ export default function Blog() {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  {/* <Button onClick={async () => { 
+                  <Button onClick={async () => { 
                     await blogWrite(content, title)
-                  }}>Publish</Button>*/}
+                  }}>Publish</Button>
                   <Button >Publish</Button>
                   <Button variant="secondary">
                     <span className="sr-only">Show history</span>
