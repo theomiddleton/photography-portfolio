@@ -8,8 +8,10 @@ import { v4 as uuidv4 } from 'uuid'
 import { r2 } from '~/lib/r2'
 import { siteConfig } from '~/config/site'
 
-export async function blogWrite(request: Request) {
-    const { title, content, visible, tempId } = await request.json()
+export async function blogWrite(content: string, title: string) {
+    // const { title, content, visible, tempId } = await request.json()
+    const visible = true
+    const tempId = uuidv4()
 
     if (tempId === undefined) {
         await db.insert(blogs).values({
@@ -43,12 +45,28 @@ export async function blogWrite(request: Request) {
 }
 
 export async function blogFetch() {
+    // needs modifing into fetching like blog. fetches all, passes only flagged content
+    // fetch all, ask the user the id of what to edit, have a similar but new function to pass just that for editing 
     try {
         const result = await db.select({
             id: blogs.id,
             title: blogs.title,
             content: blogs.content,
         }).from(blogs)
+        
+        return result
+    } catch (error) {
+        return new Response('Error fetching image URL from the database', { status: 500 })
+    }
+}
+
+export async function blogEditFetch(id: string) {
+    try {
+        const result = await db.select({
+            id: blogs.id,
+            title: blogs.title,
+            content: blogs.content,
+        }).from(blogs).where(eq(blogs.id, Number(id)))
         
         return result
     } catch (error) {
