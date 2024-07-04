@@ -19,13 +19,9 @@ import {
   TabsList,
   TabsTrigger,
 } from '~/components/ui/tabs'
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card'
+
+import { Checkbox } from "~/components/ui/checkbox"
+
 import { Textarea } from '~/components/ui/textarea'
 import {
   Dialog,
@@ -48,6 +44,11 @@ export default function Blog() {
   const [title, setTitle] = useState<string>('')
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
+  const [isVisible, setIsVisible] = useState<boolean>(true)
+
+  const handleCheckboxChange = (event) => {
+    setIsVisible(event.target.checked)
+  }
 
   // need to prompt the user whether they want to edit or create a new post
   // if they want to edit, fetch the content of the post they want to edit
@@ -117,8 +118,16 @@ export default function Blog() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button onClick={async () => { 
-                    await blogWrite(content, title)
+                    await blogWrite(content, title, isVisible)
                   }}>Publish</Button>
+                  <Checkbox id="visible" checked={isVisible} onChange={handleCheckboxChange}/>
+                  <input type="checkbox" checked={isVisible} onChange={handleCheckboxChange} />
+                  <label
+                    htmlFor="visible"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Visible?
+                  </label>
                   <Button variant="secondary">
                     <span className="sr-only">Show history</span>
                     <CounterClockwiseClockIcon className="h-4 w-4" />

@@ -9,11 +9,12 @@ import { v4 as uuidv4 } from 'uuid'
 import { r2 } from '~/lib/r2'
 import { siteConfig } from '~/config/site'
 
-export async function blogWrite(content: string, title: string) {
+export async function blogWrite(content: string, title: string, visible: boolean) {
 
     await db.insert(blogs).values({
         title: title,
         content: content,
+        visible: visible,
     })
 
     //we need the blog to update, currently it is just creating a new row in the database every time

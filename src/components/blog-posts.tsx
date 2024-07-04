@@ -44,18 +44,14 @@ const defNotPosts = [
   ]
 
 export function BlogPosts() {
-{/*
-    const result = await db.select({
-        id: blogs.id,
-        title: blogs.title,
-        content: blogs.content,
-    }).from(blogs)
-
+    const result = blogFetch()
+    console.log('result', result)
+    {/* 
     const posts = result.map((post) => ({
         slug: post.id,
         title: post.title,
     }))
-*/}
+    */}
 
     return (
         <Table>
@@ -64,7 +60,7 @@ export function BlogPosts() {
                 <TableRow>
                     <TableHead className="w-[100px]">Id</TableHead>
                     <TableHead>Title</TableHead>
-                </TableRow>
+                </TableRow> 
             </TableHeader>
             <TableBody>
                 {defNotPosts.map((item) => (
