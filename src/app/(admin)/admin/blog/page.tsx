@@ -1,18 +1,18 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Remark } from "react-remark"
+import { Remark } from 'react-remark'
 
-import { Button } from "~/components/ui/button"
-import { Label } from "~/components/ui/label"
-import { Separator } from "~/components/ui/separator"
+import { Button } from '~/components/ui/button'
+import { Label } from '~/components/ui/label'
+import { Separator } from '~/components/ui/separator'
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "~/components/ui/tabs"
-import { Textarea } from "~/components/ui/textarea"
-import { Input } from "~/components/ui/input"
+} from '~/components/ui/tabs'
+import { Textarea } from '~/components/ui/textarea'
+import { Input } from '~/components/ui/input'
 import {
   Dialog,
   DialogContent,
@@ -22,11 +22,13 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
-} from "~/components/ui/dialog"
+} from '~/components/ui/dialog'
 
-import { BlogPosts } from "~/components/blog-posts"
+import { BlogPosts } from '~/components/blog-posts'
 
-import { blogEdit, blogEditFetch, blogWrite } from "~/lib/actions/blog"
+import { blogEdit, blogEditFetch, blogWrite } from '~/lib/actions/blog'
+
+import { NotAuthenticated } from '~/components/not-authenticated'
 
 export default function Blog() {
 
@@ -160,7 +162,7 @@ export default function Blog() {
                         <DialogHeader>
                           <DialogTitle>Select Post To Edit</DialogTitle>
                           <DialogDescription>
-                            Input a posts Id to edit it. 
+                            Click a post to edit it 
                           </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
@@ -233,11 +235,8 @@ export default function Blog() {
       </div>
     </>
   )
-}
 
   // ) : (
-    // <div className="h-screen flex flex-col pt-6 items-center">
-      {/* <h1 className="text-2xl font-semibold">Unauthorized</h1> */}
-      {/* <p className="mt-2">Sorry, But you don&apos;t have the permissions to view this page!</p> */}
-    {/* </div> */}
+  //   <NotAuthenticated />
   // )
+}

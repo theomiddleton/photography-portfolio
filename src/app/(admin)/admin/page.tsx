@@ -6,6 +6,8 @@
 
   import { UploadImg } from '~/components/upload-img' 
 
+  import { NotAuthenticated } from '~/components/not-authenticated'
+
   import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
 
   export default function Admin() {
@@ -23,8 +25,6 @@
       </div>
     </div>
   ) : (
-    <div>
-      Sorry, But you dont have the permissions to view this page!
-    </div>
-  );
+    <NotAuthenticated />
+  )
 }

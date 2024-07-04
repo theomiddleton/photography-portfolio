@@ -1,22 +1,21 @@
 import { useState, useEffect } from 'react'
 
-import { blogFetch } from "~/lib/actions/blog"
-
 import {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableFooter,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "~/components/ui/table"
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '~/components/ui/table'
+
+import { blogFetch } from '~/lib/actions/blog'
 
 export function BlogPosts({ setEditId }) {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
-
 
   useEffect(() => {
       const fetchPosts = async () => {
@@ -37,14 +36,15 @@ export function BlogPosts({ setEditId }) {
         <TableRow>
           <TableHead className="w-[100px]">Id</TableHead>
           <TableHead>Title</TableHead>
+          <TableHead>Visible</TableHead>
         </TableRow> 
       </TableHeader>
       <TableBody>
         {posts.map((item) => (
-          // Attach onClick event to each TableRow
           <TableRow key={item.id} onClick={() => setEditId(item.id)} className="cursor-pointer">
             <TableCell className="font-medium">{item.id}</TableCell>
             <TableCell>{item.title}</TableCell>
+            <TableCell>{item.visible ? 'Yes' : 'No'}</TableCell>
           </TableRow>
         ))}
       </TableBody>

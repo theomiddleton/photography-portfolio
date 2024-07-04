@@ -29,6 +29,7 @@ export async function blogFetch() {
             id: blogs.id,
             title: blogs.title,
             content: blogs.content,
+            visible: blogs.visible,
         }).from(blogs)
         
         return result
