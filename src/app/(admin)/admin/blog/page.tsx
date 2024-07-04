@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { Remark } from "react-remark"
 
 import { Button } from "~/components/ui/button"
 import { Label } from "~/components/ui/label"
@@ -22,11 +23,10 @@ import {
   DialogTrigger,
   DialogClose,
 } from "~/components/ui/dialog"
-import { Remark } from 'react-remark'
 
-import { BlogPosts } from '~/components/blog-posts'
+import { BlogPosts } from "~/components/blog-posts"
 
-import { blogEdit, blogEditFetch, blogWrite } from '~/lib/actions/blog'
+import { blogEdit, blogEditFetch, blogWrite } from "~/lib/actions/blog"
 
 export default function Blog() {
 
@@ -40,18 +40,24 @@ export default function Blog() {
   const [editContent, setEditContent] = useState<string>('')
   const [editIsVisible, setEditIsVisible] = useState<boolean>(true)
 
-  const [editId, setEditId] = useState<number>(0)
+  const [editId, setEditId] = useState<number>(1)
   const [loading, setLoading] = useState<boolean>(true)
+  const [activeTab, setActiveTab] = useState('write')
   
   const handleCheckboxChange = (event) => {
     setIsVisible(event.target.checked)
+  }
+
+  const handleEditCheckboxChange = (event) => {
+    setEditIsVisible(event.target.checked)
   }
 
   useEffect(() => {
     setLoading(false)
   }, [])
 
-  const handleEdit = async () => {
+  const handleEdit = async (event) => {
+    event.preventDefault()
     if (editId) { 
       setLoading(true)
       const data = await blogEditFetch(editId) as { id: number; title: string; content: string; visible: boolean}
@@ -78,7 +84,7 @@ export default function Blog() {
           </div>
         </div>
         <Separator />
-        <Tabs defaultValue="write" className="flex-1">
+        <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="write" className="flex-1">
           <div className="container h-full py-6">
               <span className="text-sm font-medium leading-none">
                 Mode
@@ -159,7 +165,7 @@ export default function Blog() {
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                           <div className="items-center">
-                            <BlogPosts />
+                            <BlogPosts setEditId={setEditId} />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="id" className="text-right">
@@ -167,7 +173,7 @@ export default function Blog() {
                             </Label>
                             <Input
                               id="id"
-                              defaultValue=""
+                              value={editId}
                               className="col-span-3"
                               onChange={({ currentTarget }) => setEditId(Number(currentTarget.value))}
                             />
@@ -175,7 +181,12 @@ export default function Blog() {
                         </div>
                         <DialogFooter>
                           <DialogClose asChild>
-                            <Button type="submit" onClick={handleEdit}>Edit</Button>
+                            <Button type="submit" onClick={(event) => {
+                              handleEdit(event);
+                              event.preventDefault()
+                            }}>
+                                Edit
+                            </Button>
                           </DialogClose>
                         </DialogFooter>
                       </DialogContent>
@@ -197,14 +208,14 @@ export default function Blog() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button onClick={async () => {
-                        await blogEdit(editId, content, title, isVisible)
+                        await blogEdit(editId, editContent, editTitle, editIsVisible)
                       }}>Publish</Button>
                       <input 
                         className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                         type="checkbox" 
                         id="visible" 
-                        checked={isVisible} 
-                        onChange={handleCheckboxChange}
+                        checked={editIsVisible} 
+                        onChange={handleEditCheckboxChange}
                       />
                       <label
                           htmlFor="visible"
