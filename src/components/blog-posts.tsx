@@ -13,8 +13,6 @@ import {
     TableRow,
 } from "~/components/ui/table"
 
-
-
 export function BlogPosts({ setEditId }) {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
