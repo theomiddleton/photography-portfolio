@@ -184,7 +184,7 @@ export default function Blog() {
                         <DialogFooter>
                           <DialogClose asChild>
                             <Button type="submit" onClick={(event) => {
-                              handleEdit(event);
+                              handleEdit(event)
                               event.preventDefault()
                             }}>
                                 Edit
@@ -211,7 +211,7 @@ export default function Blog() {
                     <div className="flex items-center space-x-2">
                       <Button onClick={async () => {
                         await blogEdit(editId, editContent, editTitle, editIsVisible)
-                      }}>Publish</Button>
+                      }}>Save</Button>
                       <input 
                         className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                         type="checkbox" 

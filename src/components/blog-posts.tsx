@@ -21,11 +21,16 @@ export function BlogPosts({ setEditId }) {
       const fetchPosts = async () => {
         setLoading(true)
         const result = await blogFetch()
-        setPosts(result)
+        if (Array.isArray(result)) {
+          setPosts(result)
+        } else {
+          console.error('Failed to fetch posts:', result)
+        }
         setLoading(false)
       }
       fetchPosts()
   }, [])
+
 
   if (loading) return <div className="h-screen flex items-center justify-center">Loading content...</div>
 
