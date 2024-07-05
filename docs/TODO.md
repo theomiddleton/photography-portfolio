@@ -37,7 +37,7 @@
   - [ ] Gear section / page
 - [x] Blog
   - [x] Write from admin page
-  - [ ] write, save, publish, edit
+  - [x] write, save, publish, edit
     - [x] Have image upload section
       - [x] uploaded images go into other blob store
       - [x] uploaded imageData goes into other table

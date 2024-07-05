@@ -10,11 +10,13 @@ export default async function Blog() {
         id: blogs.id,
         title: blogs.title,
         content: blogs.content,
+        visible: blogs.visible,
     }).from(blogs)
 
     const posts = blogPosts.map((post) => ({
         slug: post.id,
         title: post.title,
+        visible: post.visible,
     }))
 
     const images = await db.select({
@@ -41,7 +43,7 @@ export default async function Blog() {
                 <span></span>
                 <section className="sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4 max-h-5xl mx-auto space-y-4">
                     <Suspense fallback={<p>Loading Blog Posts...</p>}>
-                        {postsWithImages.map((post) => (
+                        {postsWithImages.filter(post => post.visible).map((post) => (
                             <div key={post.slug} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
                                 <a href={'/blog/' + post.slug} target="_self" rel="noreferrer">
                                     {post.imageUrl && <img src={post.imageUrl} alt={post.title} />}

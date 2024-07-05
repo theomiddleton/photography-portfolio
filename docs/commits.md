@@ -305,3 +305,38 @@ At this point the codebase is rather complucated. With nextjs file routing, the 
 
 As to not make an incredibly long image, it has been cut into sections, but the red line is the root of app
 Most of these api routes are doing the samething, fetching from the database for client pages, but fetching different data from different tables.
+
+## 🎉 Add about me page and editor, further work on blog pages, and general changes
+
+### What this commit includes
+
+This commit doesn't have a main feature unlike many other commits. It got rather convaluted and includes many minor changes, and a few more major bits.
+It futher works on the blog, mainly in the blog writing page, and in a similar vein a start on the about me page and editors.
+
+### Problems
+
+This was the first commit where I really started to feel the weight of the spaggetti code that is some of the client side pages and server api routes. One page could easily require four api routes, such as the blog writing page, needing a content post, fetch, and an image post and fetch, and the naming conventions are just as confusing
+
+```text
+├── src
+│   ├── app
+│   │   ├── admin
+│   │   │   ├── blog
+│   │   │   │   ├── page.tsx
+│   │   ├── api
+│   │   │   ├── (blog)
+│   │   │   │   ├── blog
+│   │   │   │   │   ├── route.ts
+│   │   │   │   ├── blog-fetch
+│   │   │   │   │   ├── route.ts
+│   │   │   │   ├── blog-img
+│   │   │   │   │   ├── route.ts
+│   │   │   │   ├── blog-img-fetch
+│   │   │   │   │   ├── route.ts
+```
+
+Not at all complicated.
+
+### Solutions 
+
+To beat the API route maddness, I need to use server functions. Again, running on the server side and passed to the client side, these functions are more location and name agnostic, simply exporting a function with parameters to be passed to it, it runs on the server so can securely communicate with the database or other services.
