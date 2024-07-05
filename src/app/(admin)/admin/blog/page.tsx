@@ -64,7 +64,6 @@ export default function Blog() {
       setLoading(true)
       const data = await blogEditFetch(editId) as { id: number; title: string; content: string; visible: boolean}
       setEditContent(data.content)
-      setEditTitle(data.title)
       setEditIsVisible(data.visible)
       setLoading(false)
     } else {
