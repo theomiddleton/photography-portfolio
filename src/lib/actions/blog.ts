@@ -50,24 +50,6 @@ export async function blogEditFetch(id: number): Promise<{ id: number; title: st
         if (result.length === 0) {
             throw new Error('Blog post not found')
         }
-        return result[0]
-    } catch (error) {
-        throw new Error('Error fetching blog post from the database')
-    }
-}
-
-export async function blogEditFetchDebug(id: number): Promise<{ id: number; title: string; content: string; visible: boolean }> {
-    try {
-        const result = await db.select({
-            id: blogs.id,
-            title: blogs.title,
-            content: blogs.content,
-            visible: blogs.visible,
-        }).from(blogs).where(eq(blogs.id, Number(id)))
-        
-        if (result.length === 0) {
-            throw new Error('Blog post not found')
-        }
         return { ...result[0] }
     } catch (error) {
         throw new Error('Error fetching blog post from the database')
