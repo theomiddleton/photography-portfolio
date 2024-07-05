@@ -50,7 +50,7 @@ export async function blogEditFetch(id: number): Promise<{ id: number; title: st
         if (result.length === 0) {
             throw new Error('Blog post not found')
         }
-        return result[0]
+        return { ...result[0] }
     } catch (error) {
         throw new Error('Error fetching blog post from the database')
     }
