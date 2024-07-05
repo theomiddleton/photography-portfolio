@@ -24,6 +24,8 @@ import {
   DialogClose,
 } from '~/components/ui/dialog'
 
+import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
+
 import { BlogPosts } from '~/components/blog-posts'
 
 import { blogEdit, blogEditFetch, blogWrite } from '~/lib/actions/blog'
@@ -32,7 +34,7 @@ import { NotAuthenticated } from '~/components/not-authenticated'
 
 export default function Blog() {
 
-  // const { isAuthenticated, isLoading } = useKindeBrowserClient()
+  const { isAuthenticated, isLoading } = useKindeBrowserClient()
 
   const [title, setTitle] = useState<string>('')
   const [content, setContent] = useState<string>('')
@@ -73,9 +75,9 @@ export default function Blog() {
 
   if (loading) return <div className="h-screen flex items-center justify-center">Loading content...</div>
 
-  // if (isLoading) return <div className="h-screen flex items-center justify-center">Loading auth...</div>
+  if (isLoading) return <div className="h-screen flex items-center justify-center">Loading auth...</div>
 
-  return (
+  return isAuthenticated ? (
     <>
       <div className="hidden h-full flex-col md:flex">
         <div className="container flex flex-col items-start justify-between space-y-2 py-4 sm:flex-row sm:items-center sm:space-y-0 md:h-16">
@@ -234,9 +236,7 @@ export default function Blog() {
         </Tabs>
       </div>
     </>
+  ) : (
+    <NotAuthenticated />
   )
-
-  // ) : (
-  //   <NotAuthenticated />
-  // )
 }
