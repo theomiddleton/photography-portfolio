@@ -26,7 +26,7 @@ import {
 
 import { BlogPosts } from '~/components/blog-posts'
 
-import { blogEdit, blogEditFetch, blogWrite } from '~/lib/actions/blog'
+import { blogEdit, blogEditFetch, blogWrite, blogEditFetchDebug } from '~/lib/actions/blog'
 
 import { NotAuthenticated } from '~/components/not-authenticated'
 
@@ -62,8 +62,9 @@ export default function Blog() {
     event.preventDefault()
     if (editId) { 
       setLoading(true)
-      const data = await blogEditFetch(editId) as { id: number; title: string; content: string; visible: boolean}
+      const data = await blogEditFetchDebug(editId) as { id: number; title: string; content: string; visible: boolean}
       setEditContent(data.content)
+      setEditTitle(data.title)
       setEditIsVisible(data.visible)
       setLoading(false)
     } else {
