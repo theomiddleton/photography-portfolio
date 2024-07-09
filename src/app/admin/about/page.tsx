@@ -22,9 +22,15 @@ import { Textarea } from '~/components/ui/textarea'
 
 import { UploadDropzone } from '~/components/upload-dropzone'
 
+// import { AdminLayout } from '~/app/admin/layout'
+import AdminLayout from '~/app/admin/layout'
+import { NotAuthenticated } from '~/components/not-authenticated'
+
 import { read, write } from '~/lib/actions/about'
 
 export default function AboutGenerator() {
+  const { isAuthenticated, isLoading } = useKindeBrowserClient()
+
   const [about, setAbout] = useState<string[]>([])
   const [markdownSource, setMarkdownSource] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
@@ -43,11 +49,11 @@ export default function AboutGenerator() {
     // Implement the upload functionality
   }
 
-  if (loading) {
-    return <div>Loading...</div>
-  }
+  if (loading) return <div className="h-screen flex items-center justify-center">Loading content...</div>
 
-  return (
+  if (isLoading) return <div className="h-screen flex items-center justify-center">Loading auth...</div>
+
+  return isAuthenticated ? (
     <div className="">
       <div className="hidden h-full flex-col md:flex">
         <div className="container flex flex-col items-start justify-between space-y-2 py-4 sm:flex-row sm:items-center sm:space-y-0 md:h-16">
@@ -111,5 +117,7 @@ export default function AboutGenerator() {
       </div>
       <UploadDropzone/>
     </div>
+  ) : (
+    <NotAuthenticated />
   )
 }

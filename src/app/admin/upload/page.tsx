@@ -19,11 +19,11 @@
       <div className="min-h-screen bg-white text-black space-y-12">
         <div className="max-w-2xl mx-auto py-24 px-4">
           <h2 className="text-base font-semibold leading-7 text-black">
-              Admin Panel
+            Admin Panel
           </h2>
-        <UploadImg/>
+          <UploadImg/>
+        </div>
       </div>
-    </div>
   ) : (
     <NotAuthenticated />
   )
