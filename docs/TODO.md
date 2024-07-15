@@ -32,8 +32,8 @@
     - [ ] Location?
     - [x] Tags
     - [ ] Link to print
-- [ ] About page
-  - [ ] Made with genorator
+- [x] About page
+  - [x] Made with genorator
   - [ ] Gear section / page
 - [x] Blog
   - [x] Write from admin page
