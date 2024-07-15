@@ -12,7 +12,9 @@ export default function Header() {
             <Icons.logo className="h-6 w-6" />
             <span>{siteConfig.title}</span>
           </Link>
-          <h1 className="text-lg font-semibold ml-4">Dashboard</h1>
+          <Link href="/admin">
+            <h1 className="text-lg font-semibold ml-4">Dashboard</h1>
+          </Link>
         </div>
       </header>
     </div>

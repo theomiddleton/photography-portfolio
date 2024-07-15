@@ -37,18 +37,18 @@ export function UploadImg() {
   const [description, setDescription] = useState('') 
   const [tags, setTags] = useState('')
 
-  const loacalFetchImages = async () => {
-    setLoading(true)
-    const result = await fetchImages()
-    if (Array.isArray(result)) {
-      setImages(result)
-    } else {
-      console.error('Failed to fetch images:', result)
-    }
-    setLoading(false)
-  
-    return images
-  } 
+  //const loacalFetchImages = async () => {
+  //  setLoading(true)
+  //  const result = await fetchImages()
+  //  if (Array.isArray(result)) {
+  //    setImages(result)
+  //  } else {
+  //    console.error('Failed to fetch images:', result)
+  //  }
+  //  setLoading(false)
+  //
+  //  return images
+  //} 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -153,7 +153,7 @@ export function UploadImg() {
             </div>
       </div>
       <div className="mt-6 flex items-center justify-end gap-x-6">
-        <Button type='submit' onClick={loacalFetchImages}>Fetch</Button>
+        {/* <Button type='submit' onClick={loacalFetchImages}>Fetch</Button> */}
       </div>
       <div className="flex justify-center">
         <div className="mt-6 flex items-center justify-end gap-x-6">
