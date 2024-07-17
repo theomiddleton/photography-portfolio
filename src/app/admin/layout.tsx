@@ -1,5 +1,5 @@
 import React from 'react'
-import { ReactNode } from 'react';
+import { ReactNode } from 'react'
 import Header from '~/components/admin/header'
 import Sidebar from '~/components/admin/sidebar'
 import { Icons } from '~/components/ui/icons'

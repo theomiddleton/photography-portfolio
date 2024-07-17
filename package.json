@@ -19,7 +19,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.614.0",
     "@aws-sdk/s3-request-presigner": "^3.614.0",
-    "@kinde-oss/kinde-auth-nextjs": "^2.3.4",
+    "@kinde-oss/kinde-auth-nextjs": "^2.3.5",
     "@neondatabase/serverless": "^0.9.4",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.1.1",
@@ -52,7 +52,7 @@
     "react-remark": "^2.1.0",
     "remark-gfm": "^4.0.0",
     "tailwind-merge": "^2.4.0",
-    "tailwindcss": "^3.4.4",
+    "tailwindcss": "^3.4.6",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^9.0.1",
     "zod": "^3.23.8"
