@@ -4,8 +4,6 @@ import React, { useEffect, useState } from 'react'
 import { Remark } from 'react-remark'
 import { Icons } from '~/components/ui/icons'
 
-import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
-
 import { CounterClockwiseClockIcon } from '@radix-ui/react-icons'
 
 import { Input } from '~/components/ui/input'
@@ -22,9 +20,13 @@ import { Textarea } from '~/components/ui/textarea'
 
 import { UploadDropzone } from '~/components/upload-dropzone'
 
+
+import AdminLayout from '~/app/admin/layout'
+
 import { read, write } from '~/lib/actions/about'
 
 export default function AboutGenerator() {
+
   const [about, setAbout] = useState<string[]>([])
   const [markdownSource, setMarkdownSource] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
@@ -43,9 +45,8 @@ export default function AboutGenerator() {
     // Implement the upload functionality
   }
 
-  if (loading) {
-    return <div>Loading...</div>
-  }
+  if (loading) return <div className="h-screen flex items-center justify-center">Loading content...</div>
+
 
   return (
     <div className="">

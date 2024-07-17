@@ -7,7 +7,7 @@ import { about } from '~/server/db/schema'
 import { siteConfig } from '~/config/site'
 import Image from 'next/image'
 
-export default async function Home() {
+export default async function About() {
 
   const result = await db.select({
     id: about.id,

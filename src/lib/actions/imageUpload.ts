@@ -8,8 +8,7 @@ import { eq, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 
-export async function writeImgDb(request: Request) {
-    const { filename, name, description, tags } = await request.json()
+export async function writeImgDb( filename, name, description, tags ) {
 
     try {
         const fileExtension = filename.split('.').pop()
@@ -41,7 +40,8 @@ export async function writeImgDb(request: Request) {
             //.prepare()
             .execute({ uuid: keyName }) 
         console.log('Inserted data:', result)
-        return url
+        // return url
+        return new Response(url)
         // return Response.json({ url })
     } catch (error) {
         console.error(error) 
