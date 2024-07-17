@@ -337,6 +337,10 @@ This was the first commit where I really started to feel the weight of the spagg
 
 Not at all complicated.
 
-### Solutions 
+### Solutions
 
 To beat the API route maddness, I need to use server functions. Again, running on the server side and passed to the client side, these functions are more location and name agnostic, simply exporting a function with parameters to be passed to it, it runs on the server so can securely communicate with the database or other services.
+
+## ✨ Finish blog post writing and editing
+
+## 🔒️ Add middleware based authentication
