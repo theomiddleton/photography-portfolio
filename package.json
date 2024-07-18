@@ -12,8 +12,7 @@
     "generate": "drizzle-kit generate",
     "push": "drizzle-kit push",
     "studio": "drizzle-kit studio",
-    "test": "jest",
-    "test2": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "keywords": [],
   "author": "",

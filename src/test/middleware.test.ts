@@ -7,30 +7,24 @@ import next from 'next'
 const dev = process.env.NODE_ENV !== 'production'
 const app = next({ dev })
 const handle = app.getRequestHandler()
+let server
 
 describe('middleware', () => {
-    let server
     beforeAll(async () => {
         await app.prepare()
         server = createServer((req, res) => {
-        const parsedUrl = parse(req.url, true)
-        handle(req, res, parsedUrl)
-        })
-        await new Promise<void>((resolve, reject) => {
-        server.listen(3000, (err) => {
-            if (err) return reject(err)
-            resolve()
-        })
-        })
-    })
-    
+            const parsedUrl = parse(req.url, true)
+            handle(req, res, parsedUrl)
+        }).listen(3000)
+    }, 30000)
+
     afterAll(async () => {
-        await app.close()
-        await new Promise<void>((resolve, reject) => {
-        server.close((err) => {
-            if (err) return reject(err)
-            resolve()
-        })
+        if (app) await app.close()
+        if (server) await new Promise<void>((resolve, reject) => {
+            server.close((err) => {
+                if (err) reject(err)
+                resolve()
+            })
         })
     })
     
