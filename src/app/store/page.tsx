@@ -6,44 +6,34 @@ import { eq } from 'drizzle-orm'
 
 export default async function Store() {
 
-	const storeResult = await db.select({
-		imageName: imageData.name,
-		imageFileUrl: imageData.fileUrl,
+	const results = await db.select({
 		storeImageId: storeImages.id,
-		price: storeImages.price,
-	  })
-	  .from(storeImages)
-	  .innerJoin(imageData, eq(storeImages.imageId, imageData.id))
-	//   use sharp for image composite
-
-	const imgResult = await db.select({
-		id: imageData.id,
 		fileUrl: imageData.fileUrl,
-	  }).from(imageData)
+		imageName: imageData.name,
+		price: storeImages.price
+	}).from(storeImages)
+		.innerJoin(imageData, eq(storeImages.imageId, imageData.id))
 
-	const mergedResults = storeResult.map((store) => {
-		const matchingImg = imgResult.find((img) => img.id === store.storeImageId)
-		return {
-			...store,
-			...matchingImg,
-		}
-	})
+	const photos = results.map((result) => ({
+		storeImageId: result.storeImageId,
+		fileUrl: result.fileUrl,
+		imageName: result.imageName,
+		price: result.price
+	}))
 
 	return (
 		<div className="flex flex-col">
 			<SiteHeader />
-			<section className="w-full py-12 md:py-24 lg:py-32">
 				<div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
 					<h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
 						Print Store
 					</h1>
 				</div>
-			</section>
 			<section className="w-full py-12 md:py-24 lg:py-32">
 				<div className="container grid gap-8 px-4 md:grid-cols-2 lg:grid-cols-3 md:px-6">
-					{mergedResults.map((result) => (
+					{photos.map((result) => (
 						<div key={result.storeImageId} className="group relative overflow-hidden rounded-lg shadow-lg transition-all hover:shadow-xl">
-							<Link href="#" className="absolute inset-0 z-10" prefetch={false}>
+							<Link href={"store/" + result.storeImageId} className="absolute inset-0 z-10" prefetch={false}>
 								<span className="sr-only">View Print</span>
 							</Link>
 							<img
