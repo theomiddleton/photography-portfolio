@@ -6,10 +6,10 @@ import { siteConfig } from '~/config/site'
 
 import { eq, sql } from 'drizzle-orm' 
 import { db } from '~/server/db'
-import { imageData } from '~/server/db/schema'
+import { imageData, storeImages } from '~/server/db/schema'
 
 export async function POST(request: Request) {
-  const { filename, name, description, tags } = await request.json()
+  const { filename, name, description, tags, sale } = await request.json()
 
   try {
     const fileExtension = filename.split('.').pop()
@@ -32,6 +32,15 @@ export async function POST(request: Request) {
       description: description,
       tags: tags,
     })
+    if (sale == true) {
+      console.log('sale', sale)
+      await db.insert(storeImages).values({
+        imageId: keyName, 
+        price: 100,
+        stock: 10,
+        //change to a componetnt within the image upload to set stock and price
+      })
+    }
 
     const result = await db
       .select({

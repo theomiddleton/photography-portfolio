@@ -15,6 +15,7 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    "/admin/:path*",
+    // "/admin/:path*",
+    "/empty",
   ]
 }
