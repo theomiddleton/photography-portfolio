@@ -6,7 +6,8 @@ import {
   CardTitle,
 } from "~/components/ui/card"
 import { Label } from "~/components/ui/label"
-import { Input } from "~/components/ui/input"
+
+import { EditableField } from '~/components/store/editable-product-details'
 
 import { db } from '~/server/db'
 import { storeImages, imageData } from '~/server/db/schema'
@@ -23,10 +24,16 @@ export async function ProductDetails({ id }: { id: number }) {
     stock: storeImages.stock,
     visible : storeImages.visible,
     createdAt: storeImages.createdAt,
-    })
+  })
   .from(storeImages)
   .innerJoin(imageData, eq(storeImages.imageId, imageData.id))
   .where(eq(storeImages.id, id))
+
+  if (!result || result.length === 0) {
+    return <div>No product found</div>
+  }
+
+  const product = result[0]
 
   return (
     <Card>
@@ -41,35 +48,19 @@ export async function ProductDetails({ id }: { id: number }) {
           <div className="grid gap-3">
             <Label htmlFor="name">Name</Label>
             <div title="This is the title for the image, so it isn't editable here" className="border border-gray-300 rounded-md p-2 bg-gray-50 text-gray-800">
-              {result[0].imageName}
+              {product.imageName}
             </div>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="description">Description</Label>
             <div title="This is the description for the image, so it isn't editable here" className="border border-gray-300 rounded-md p-2 bg-gray-50 text-gray-800">
-              {result[0].imageDescription}
+              {product.imageDescription}
             </div>
           </div>
           <div className="grid gap-3">
             <div className="flex gap-4">
-              <div className="flex-1">
-                <Label htmlFor="price">Price</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  className="w-full"
-                  defaultValue={result[0].price}
-                />
-              </div>
-              <div className="flex-1">
-                <Label htmlFor="stock">Stock</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  className="w-full"
-                  defaultValue={result[0].stock}
-                />
-              </div>
+              <EditableField id="price" label="Price" defaultValue={product.price} />
+              <EditableField id="stock" label="Stock" defaultValue={product.stock} />
             </div>
           </div>
         </div>

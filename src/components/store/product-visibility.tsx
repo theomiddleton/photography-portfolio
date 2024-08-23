@@ -36,7 +36,7 @@ export async function ProductVisibility({ id }: { id: number }) {
             <Label htmlFor="visibility">Visibility</Label>
             <Select>
               <SelectTrigger id="status" aria-label="Set visibility">
-                <SelectValue placeholder="Set visibility" />
+                <SelectValue placeholder={result[0].visible ? 'Visible' : 'Hidden'} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="visible">Visible</SelectItem>
