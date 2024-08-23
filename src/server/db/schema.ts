@@ -9,13 +9,11 @@ export const imageData = pgTable('imageData', {
   uuid: varchar('uuid', { length: 36 }).notNull(),
   fileName: varchar('fileName', { length: 256 }).notNull(),
   fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
-  name: varchar('name', { length: 256 }),
+  name: varchar('name', { length: 256 }).notNull(),
   description: varchar('description', { length: 256 }),
-  tags: varchar('tags', { length: 256 }),
-  uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),
-  //modifiedAt: timestamp('modifiedAt').$onUpdate(() => new Date()),
-  //modifiedAt: timestamp('modifiedAt').defaultNow(),
+  uploadedAt: timestamp('uploadedAt').defaultNow(),
 });
+
 
 export const blogs = pgTable('blogs', {
   id: serial('id').primaryKey(),
@@ -49,7 +47,22 @@ export const about = pgTable('about', {
 
 export const storeImages = pgTable('storeImages', {
   id: serial('id').primaryKey(),
-  imageId: integer('imageId').references(() => imageData.id).notNull(),
+  imageId: integer('imageId'),
+  imageUuid: varchar('uuid', { length: 36 }),
+  fileUrl: varchar('fileUrl', { length: 256 }),
   price: integer('price').notNull(),
   stock: integer('stock').notNull(),
+  visible: boolean('visible').default(false).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
 });
+
+// export const storeImages = pgTable('storeImages', {
+//   id: serial('id').primaryKey(),
+//   imageId: integer('imageId').references(() => imageData.id).notNull(),
+//   imageUuid: varchar('uuid', { length: 36 }).references(() => imageData.uuid).notNull(),
+//   fileUrl: varchar('fileUrl', { length: 256 }).references(() => imageData.fileUrl).notNull(),
+//   price: integer('price').notNull(),
+//   stock: integer('stock').notNull(),
+//   visible: boolean('visible').default(false).notNull(),
+//   createdAt: timestamp('createdAt').defaultNow().notNull(),
+// });

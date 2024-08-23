@@ -6,15 +6,28 @@ import { eq } from 'drizzle-orm'
 
 export default async function Store() {
 
-	const result = await db.select({
+	const storeResult = await db.select({
 		imageName: imageData.name,
 		imageFileUrl: imageData.fileUrl,
 		storeImageId: storeImages.id,
 		price: storeImages.price,
 	  })
 	  .from(storeImages)
-	  .innerJoin(imageData, eq(storeImages.imageId, imageData.id));
+	  .innerJoin(imageData, eq(storeImages.imageId, imageData.id))
 	//   use sharp for image composite
+
+	const imgResult = await db.select({
+		id: imageData.id,
+		fileUrl: imageData.fileUrl,
+	  }).from(imageData)
+
+	const mergedResults = storeResult.map((store) => {
+		const matchingImg = imgResult.find((img) => img.id === store.storeImageId)
+		return {
+			...store,
+			...matchingImg,
+		}
+	})
 
 	return (
 		<div className="flex flex-col">
@@ -28,21 +41,21 @@ export default async function Store() {
 			</section>
 			<section className="w-full py-12 md:py-24 lg:py-32">
 				<div className="container grid gap-8 px-4 md:grid-cols-2 lg:grid-cols-3 md:px-6">
-					{result.map((print) => (
-						<div key={print.storeImageId} className="group relative overflow-hidden rounded-lg shadow-lg transition-all hover:shadow-xl">
+					{mergedResults.map((result) => (
+						<div key={result.storeImageId} className="group relative overflow-hidden rounded-lg shadow-lg transition-all hover:shadow-xl">
 							<Link href="#" className="absolute inset-0 z-10" prefetch={false}>
 								<span className="sr-only">View Print</span>
 							</Link>
 							<img
-								src={print.imageFileUrl}
+								src={result.fileUrl}
 								width={400}
 								height={400}
-								alt={print.imageName}
+								alt={result.imageName}
 								className="aspect-square w-full object-cover transition-all group-hover:scale-105"
 							/>
 							<div className="p-4 bg-background">
-								<h3 className="text-lg font-semibold">{print.imageName}</h3>
-								<p className="text-muted-foreground">£{print.price}</p>
+								<h3 className="text-lg font-semibold">{result.imageName}</h3>
+								<p className="text-muted-foreground">£{result.price}</p>
 							</div>
 						</div>
 					))}

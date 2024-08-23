@@ -31,6 +31,11 @@ export function UploadImg() {
   const [name, setName] = useState('') 
   const [description, setDescription] = useState('') 
   const [tags, setTags] = useState('')
+  const [isSale, setIsSale] = useState<boolean>(true)
+
+  const handleEditCheckboxChange = (event) => {
+    setIsSale(event.target.checked)
+  }
 
   const fetchImages = async () => {
     try {
@@ -71,6 +76,7 @@ export function UploadImg() {
       alert('Please select a file to upload.')
       return
     }
+    console.log('Sale checkbox status:', isSale)
     setUploading(true)
       
     const response = await fetch(
@@ -80,7 +86,7 @@ export function UploadImg() {
         headers: {
         'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ filename: file.name, contentType: file.type, name, description, tags, sale }),
+        body: JSON.stringify({ filename: file.name, contentType: file.type, name, description, tags, isSale }),
       }
     )
     
@@ -159,8 +165,14 @@ export function UploadImg() {
                     <Input id="tags" placeholder="Tags" value={tags} onChange={(e) => setTags(e.target.value)} />
                   </div>
                   <div className="flex items-center space-x-2 space-y-1.5">
-                    <Label htmlFor="sale">For Sale?</Label>
-                    <Checkbox id="sale"/>
+                  <Label htmlFor="sale">For Sale?</Label>
+                    <input 
+                      className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                      type="checkbox" 
+                      id="sale" 
+                      checked={isSale} 
+                      onChange={handleEditCheckboxChange}
+                    />
                   </div>
                 </div>
               </form>
