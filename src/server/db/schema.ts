@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 
 import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean } from 'drizzle-orm/pg-core';
+import { stat } from 'fs';
 
 export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
 
@@ -53,6 +54,17 @@ export const storeImages = pgTable('storeImages', {
   price: integer('price').notNull(),
   stock: integer('stock').notNull(),
   visible: boolean('visible').default(false).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+});
+
+export const storeOrders = pgTable('storeOrders', {
+  id: serial('id').primaryKey(),
+  customerName: varchar('customerName', { length: 256 }).notNull(),
+  imageId: integer('imageId').references(() => imageData.id).notNull(),
+  storeImageId: integer('storeImageId').references(() => storeImages.id).notNull(),
+  status: varchar('status', { length: 256 }).notNull(),
+  quantity: integer('quantity').notNull(),
+  total: integer('total').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 });
 

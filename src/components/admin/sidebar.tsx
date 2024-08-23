@@ -32,6 +32,14 @@ export default function SiteFooter() {
           <Icons.File className="h-4 w-4" />
           About
         </Link>
+        <Link 
+          href="/admin/store"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground"
+          prefetch={false}
+        >
+          <Icons.Store className="h-4 w-4" />
+          Store
+        </Link>
       </nav>
     </div>
   )
