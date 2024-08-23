@@ -29,18 +29,16 @@ export default async function Photo({ params }: { params: { id: number } }) {
   return (
     <main>
       <SiteHeader />
-      <div className="container mx-auto px-4 py-8 h-screen flex items-center">
+      <div className="container mx-auto px-4 py-8 min-h-screen flex items-center">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
-          <div className="w-full h-full flex items-center justify-center" style={{ maxHeight: '180vh' }}>
-            <div className="relative w-full h-full">
-              <Image 
-                src={result[0].fileUrl} 
-                alt="Product Image" 
-                layout="fill" 
-                objectFit="contain"
-                className="w-full h-full"
-              />
-            </div>
+          <div className="w-full aspect-[3/4] md:aspect-auto md:h-[70vh] lg:h-[80vh] xl:h-[90vh] relative max-h-[800px]">
+            <Image 
+              src={result[0].fileUrl} 
+              alt="Product Image" 
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
           </div>
           <div className="flex flex-col justify-center space-y-6">
             <h1 className="text-3xl font-semibold">{result[0].name}</h1>
