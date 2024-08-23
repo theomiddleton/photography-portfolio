@@ -4,27 +4,23 @@ import { db } from '~/server/db'
 import { imageData, storeImages } from '~/server/db/schema'
 import Image from 'next/image'
 
-import { Button } from "~/components/ui/button"
-import { Card, CardContent } from "~/components/ui/card"
-import { Input } from "~/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select"
-// import { FacebookIcon, InstagramIcon, PinterestIcon, TwitterIcon } from "~/components/icons"
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 
 export default async function Photo({ params }: { params: { id: number } }) {
 
   const result = await db.select({
-      id: imageData.id,
-      fileUrl: imageData.fileUrl,
-      name: imageData.name,
-      price: storeImages.price,
-      description: imageData.description,
-      uploadedAt: imageData.uploadedAt
+    id: imageData.id,
+    fileUrl: imageData.fileUrl,
+    name: imageData.name,
+    price: storeImages.price,
+    description: imageData.description,
+    uploadedAt: imageData.uploadedAt
   }).from(imageData).where(eq(imageData.id, params.id))
   .innerJoin(storeImages, eq(imageData.id, storeImages.imageId))
 
-  console.log(result)
   const imageUrl = result.map((item) => item.fileUrl) 
-  console.log("fileUrl", imageUrl)
 
   return (
     <main>
