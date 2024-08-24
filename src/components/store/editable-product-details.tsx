@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from "react"
-import { Label } from "~/components/ui/label"
-import { Input } from "~/components/ui/input"
+import { useState, useEffect } from 'react'
+import { Label } from '~/components/ui/label'
+import { Input } from '~/components/ui/input'
 
 export function EditableField({ id, label, defaultValue }: { id: string, label: string, defaultValue: number }) {
   const [value, setValue] = useState(defaultValue)

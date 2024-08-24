@@ -4,8 +4,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "~/components/ui/card"
-import { Label } from "~/components/ui/label"
+} from '~/components/ui/card'
+import { Label } from '~/components/ui/label'
 
 import { EditableField } from '~/components/store/editable-product-details'
 

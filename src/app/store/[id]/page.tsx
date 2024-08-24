@@ -67,7 +67,13 @@ export default async function Photo({ params }: { params: { id: number } }) {
                 />
               </div>
             </div>
-            <Button className="w-full md:w-auto px-8">Add To Cart</Button>
+            {/* <Button className="w-full md:w-auto px-8">Add To Cart</Button> */}
+            <form action={`/store/checkout`} method="GET" className="w-full md:w-auto">
+              <input type="hidden" name="id" value={params.id} />
+              <Button type="submit" className="w-full md:w-auto px-8">
+                Add To Cart
+              </Button>
+            </form>
           </div>
         </div>
       </div>
