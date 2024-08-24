@@ -10,21 +10,27 @@ import PaymentMethodSelector from '~/components/store/checkout/payment'
 import { imageData, storeImages } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { db } from '~/server/db'
+import { createOrder } from '~/lib/actions/store/createOrder'
 
 async function getOrderSummary(id) {
   const result = await db.select({
+    storeImagesImageId: storeImages.imageId,
+    imageDataId: imageData.id,
     price: storeImages.price,
     name: imageData.name,
   }).from(storeImages)
   .innerJoin(imageData, eq(storeImages.imageId, imageData.id))
   .where(eq(storeImages.id, id))
 
-  console.log(result)
-
   const items = result.map(item => ({
+    storeImagesImageId: item.storeImagesImageId,
+    imageDataId: item.imageDataId,
     name: item.name,
     price: item.price,
   }))
+
+  const storeImagesImageId = items[0].storeImagesImageId
+  const imageDataId = items[0].imageDataId
   
   const subtotal = items.reduce((acc, item) => acc + item.price, 0)
   
@@ -33,6 +39,8 @@ async function getOrderSummary(id) {
   const total = subtotal + shipping
   
   return {
+    storeImagesImageId,
+    imageDataId,
     items,
     subtotal,
     shipping,
@@ -42,8 +50,11 @@ async function getOrderSummary(id) {
 
 async function submitOrder(formData: FormData) {
   'use server'
+  // const a = formData, id, quantity, total
+  const countResult = await createOrder(formData)
+  console.log('Count result:', countResult)
 
-  console.log('Order submitted:', Object.fromEntries(formData))
+  // console.log('Order submitted:', Object.fromEntries(formData))
   revalidatePath('/checkout')
 }
 
@@ -55,6 +66,7 @@ export default async function CheckoutPage({
   
   const itemId = searchParams.id
   const orderSummary = await getOrderSummary(itemId)
+  const { imageDataId, storeImagesImageId } = orderSummary
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -90,6 +102,13 @@ export default async function CheckoutPage({
                     <Label htmlFor="postalCode">Postal Code</Label>
                     <Input id="postalCode" name="postalCode" required />
                   </div>
+                  {/* <div> */}
+                  <input type="hidden" name="imageId" value={imageDataId} />
+                  <input type="hidden" name="storeImageId" value={storeImagesImageId} />
+                  <input type="hidden" name="itemId" value={itemId} />
+                  <input type="hidden" name="quantity" value="1" />
+                  <input type="hidden" name="total" value={orderSummary.total.toFixed(2)} />
+                  {/* </div> */}
                 </div>
                 <div>
                   <Label htmlFor="country">Country</Label>

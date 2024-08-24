@@ -62,11 +62,18 @@ export const storeOrders = pgTable('storeOrders', {
   customerName: varchar('customerName', { length: 256 }).notNull(),
   imageId: integer('imageId').references(() => imageData.id).notNull(),
   storeImageId: integer('storeImageId').references(() => storeImages.id).notNull(),
+  address: varchar('address', { length: 256 }).notNull(),
+  city: varchar('city', { length: 256 }).notNull(),
+  postCode: varchar('postCode', { length: 6 }).notNull(),
+  country: varchar('country', { length: 2 }).notNull(),
   status: varchar('status', { length: 256 }).notNull(),
+  paymentMethod: varchar('paymentMethod', { length: 256 }).notNull(),
   quantity: integer('quantity').notNull(),
   total: integer('total').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 });
+
+
 
 // export const storeImages = pgTable('storeImages', {
 //   id: serial('id').primaryKey(),

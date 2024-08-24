@@ -34,27 +34,23 @@ import {
 const result = await db.select({
   id: storeOrders.id,
   customerName: storeOrders.customerName,
-  // imageId: storeImages.imageId,
   imageName: imageData.name,
-  // imageFileUrl: storeImages.fileUrl,
-  quantity: storeOrders.quantity,
-  total: storeOrders.total,
   status: storeOrders.status,
   createdAt: storeOrders.createdAt,
-  })
-.from(storeOrders)
-.innerJoin(storeImages, eq(storeOrders.storeImageId, storeImages.id))
-.innerJoin(imageData, eq(storeImages.imageId, imageData.id))
+  quantity: storeOrders.quantity,
+  total: storeOrders.total,
+}).from(storeOrders)
+  .innerJoin(storeImages, eq(storeOrders.storeImageId, storeImages.id))
+  .innerJoin(imageData, eq(storeImages.imageId, imageData.id))
 
-const itemOrders = result.map((item) => ({
-  id: item.id,
-  // url: item.imageFileUrl,
-  customerName: item.customerName,
-  name: item.imageName,
-  total: item.total,
-  quantity: item.quantity,
-  status: item.status,
-  createdAt: item.createdAt,
+const itemOrders = result.map((order) => ({
+  id: order.id,
+  customerName: order.customerName,
+  name: order.imageName,
+  status: order.status,
+  createdAt: order.createdAt,
+  quantity: order.quantity,
+  total: order.total,
 }))
 
 const totalOrders = itemOrders.length
@@ -119,39 +115,12 @@ export function Orders() {
                 </TableCell>
               </TableRow>
             ))}
-
-            <TableRow>
-              <TableCell>Saul Goodman</TableCell>
-              <TableCell>Alpine Pastures</TableCell>
-              <TableCell className="hidden md:table-cell">
-                  <Badge variant="outline">Shipped</Badge>
-                </TableCell>
-              <TableCell className="hidden md:table-cell">2024-08-23 19:02</TableCell>
-              <TableCell className="hidden md:table-cell">1</TableCell>
-              <TableCell className="hidden md:table-cell">£100</TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Toggle menu</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                    <DropdownMenuItem>Delete</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-
           </TableBody>
         </Table>
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground">
-          Showing <strong>1-{totalOrders}</strong> of <strong>{totalOrders}</strong> products
+          Showing <strong>1-{totalOrders}</strong> of <strong>{totalOrders}</strong> orders
         </div>
       </CardFooter>
     </Card>

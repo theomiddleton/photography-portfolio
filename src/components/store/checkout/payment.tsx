@@ -24,16 +24,16 @@ export default function PaymentMethodSelector() {
         <div className="space-y-4">
           <div>
             <Label htmlFor="cardNumber">Card Number</Label>
-            <Input id="cardNumber" name="cardNumber" required />
+            <Input disabled id="cardNumber" name="cardNumber" required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="expiryDate">Expiry Date</Label>
-              <Input id="expiryDate" name="expiryDate" placeholder="MM/YY" required />
+              <Input disabled id="expiryDate" name="expiryDate" placeholder="MM/YY" required />
             </div>
             <div>
               <Label htmlFor="cvv">CVV</Label>
-              <Input id="cvv" name="cvv" required />
+              <Input disabled id="cvv" name="cvv" required />
             </div>
           </div>
         </div>
