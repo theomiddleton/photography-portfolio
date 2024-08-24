@@ -9,7 +9,8 @@ import { ChevronLeft } from 'lucide-react'
 import { OrderDetails } from '~/components/store/order-details'
 
 
-export default async function Product({ params }: { params: { id: number } }) {
+export default async function Product({ params }: { params: { id: string } }) {
+  const orderId = parseInt(params.id, 10)
 
   const result = await db.select({
     id: storeOrders.id,
@@ -22,11 +23,9 @@ export default async function Product({ params }: { params: { id: number } }) {
     status: storeOrders.status,
     createdAt: storeOrders.createdAt
   }).from(storeOrders)
-  .where(eq(storeOrders.id, params.id))
+  .where(eq(storeOrders.id, orderId))
   .innerJoin(imageData, eq(storeOrders.storeImageId, imageData.id))
   .innerJoin(storeImages, eq(storeOrders.storeImageId, storeImages.id))
-
-  console.log('Result:', result)
 
   return (
     <main>
@@ -51,7 +50,7 @@ export default async function Product({ params }: { params: { id: number } }) {
             <Button size="sm">Save Product</Button>
           </div>
         </div>
-        <OrderDetails id={params.id} />
+        <OrderDetails orderId={params.id} />
       </div>
     </main>
   )

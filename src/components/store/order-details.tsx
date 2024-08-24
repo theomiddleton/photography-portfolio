@@ -1,21 +1,30 @@
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from '~/components/ui/card'
-import { Label } from '~/components/ui/label'
 import { Separator } from '~/components/ui/separator'
-
-
-import { OrderStatusChanger } from '~/components/store/order-status'
+import { notFound } from 'next/navigation'
+import { OrderStatus } from '~/components/store/order-status'
 
 import { db } from '~/server/db'
 import { storeImages, imageData, storeOrders } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
+import { OrderStatusChanger } from './order-status-changer'
 
-export async function OrderDetails({ id }: { id: number }) {
+interface OrderDetailsProps {
+  orderId: string
+}
+
+export async function OrderDetails({ orderId }: OrderDetailsProps) {
+  if (!orderId || isNaN(parseInt(orderId, 10))) {
+    notFound()
+  }
+
+  const id = parseInt(orderId, 10)
+
   const result = await db.select({
     id: storeOrders.id,
     fileUrl: imageData.fileUrl,
@@ -36,7 +45,7 @@ export async function OrderDetails({ id }: { id: number }) {
   .innerJoin(storeImages, eq(storeOrders.storeImageId, storeImages.id))
 
   if (!result || result.length === 0) {
-    return <div>No order found</div>
+    notFound()
   }
 
   const shipping = 5.00
@@ -107,7 +116,10 @@ export async function OrderDetails({ id }: { id: number }) {
 
           <div className="grid gap-3">
             <div className="flex gap-4">
-              <OrderStatusChanger id={id}/>
+              {/* order status
+              <OrderStatus orderId={order.id.toString()} />  */}
+              {/* order status changer */}
+              <OrderStatusChanger id={order.id} initialStatus={order.status} />
             </div>
           </div>
         </div>
