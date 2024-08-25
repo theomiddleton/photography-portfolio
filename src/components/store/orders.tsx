@@ -36,7 +36,7 @@ const result = await db.select({
   customerName: storeOrders.customerName,
   imageName: imageData.name,
   status: storeOrders.status,
-  createdAt: storeOrders.createdAt,
+  // createdAt: storeOrders.createdAt,
   quantity: storeOrders.quantity,
   total: storeOrders.total,
 }).from(storeOrders)
@@ -48,7 +48,7 @@ const itemOrders = result.map((order) => ({
   customerName: order.customerName,
   name: order.imageName,
   status: order.status,
-  createdAt: order.createdAt,
+  // createdAt: order.createdAt,
   quantity: order.quantity,
   total: order.total,
 }))
@@ -88,13 +88,15 @@ export function Orders() {
                   <Badge variant="outline">{order.status}</Badge>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
-                  {new Date(order.createdAt).toLocaleString('en-GB', {
+                  {/* 
+                  {new Date(order.createdAt).toLocaleString('en-GB', { 
                     year: 'numeric',
                     month: 'numeric',
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
                   })}
+                  */}
                 </TableCell>
                 <TableCell className="hidden md:table-cell">{order.quantity}</TableCell>
                 <TableCell className="hidden md:table-cell">£{order.total}</TableCell>

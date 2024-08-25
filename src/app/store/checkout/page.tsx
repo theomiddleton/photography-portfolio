@@ -99,7 +99,7 @@ export default async function CheckoutPage({
                     <Input id="city" name="city" required />
                   </div>
                   <div>
-                    <Label htmlFor="postalCode">Postal Code</Label>
+                    <Label htmlFor="postalCode">Post Code</Label>
                     <Input id="postalCode" name="postalCode" required />
                   </div>
                   {/* <div> */}

@@ -65,7 +65,7 @@ export const storeOrders = pgTable('storeOrders', {
   storeImageId: integer('storeImageId').references(() => storeImages.id).notNull(),
   address: varchar('address', { length: 256 }).notNull(),
   city: varchar('city', { length: 256 }).notNull(),
-  postCode: varchar('postCode', { length: 6 }).notNull(),
+  postCode: varchar('postCode', { length: 256 }).notNull(),
   country: varchar('country', { length: 2 }).notNull(),
   status: varchar('status', { length: 256 }).notNull(),
   paymentMethod: varchar('paymentMethod', { length: 256 }).notNull(),
@@ -73,16 +73,3 @@ export const storeOrders = pgTable('storeOrders', {
   total: integer('total').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 });
-
-
-
-// export const storeImages = pgTable('storeImages', {
-//   id: serial('id').primaryKey(),
-//   imageId: integer('imageId').references(() => imageData.id).notNull(),
-//   imageUuid: varchar('uuid', { length: 36 }).references(() => imageData.uuid).notNull(),
-//   fileUrl: varchar('fileUrl', { length: 256 }).references(() => imageData.fileUrl).notNull(),
-//   price: integer('price').notNull(),
-//   stock: integer('stock').notNull(),
-//   visible: boolean('visible').default(false).notNull(),
-//   createdAt: timestamp('createdAt').defaultNow().notNull(),
-// });
