@@ -3,6 +3,7 @@ import { SiteHeader } from '~/components/site-header'
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 import Image from 'next/image'
+import { Item } from '@radix-ui/react-dropdown-menu'
 
 export default async function Photo({ params }: { params: { id: number } }) {
 
@@ -15,9 +16,7 @@ export default async function Photo({ params }: { params: { id: number } }) {
       uploadedAt: imageData.uploadedAt
   }).from(imageData).where(eq(imageData.id, params.id))
 
-  console.log(result)
   const imageUrl = result.map((item) => item.fileUrl) 
-  console.log("fileUrl", imageUrl)
 
   return (
     <main>
@@ -29,7 +28,9 @@ export default async function Photo({ params }: { params: { id: number } }) {
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
         <section className="max-h-5xl mx-auto space-y-4">
           <div className="rounded-md shadow-2xl">
-            <Image src={imageUrl[0]} alt="img" height={1000} width={600} />
+            <a href={imageUrl[0]} target="_blank" rel="noreferrer">
+              <Image src={imageUrl[0]} alt="img" height={1000} width={600} />
+            </a>
           </div>
         </section>
       </div>

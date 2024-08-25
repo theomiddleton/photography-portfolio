@@ -16,6 +16,7 @@ import {
 import { db } from '~/server/db'
 import { storeImages, imageData } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
+import { Suspense } from 'react'
 
 export async function ProductVisibility({ id }: { id: number }) {
 
@@ -24,6 +25,8 @@ export async function ProductVisibility({ id }: { id: number }) {
     })
   .from(storeImages)
   .where(eq(storeImages.id, id))
+
+  console.log(result)
 
   return (
     <Card>
@@ -36,7 +39,9 @@ export async function ProductVisibility({ id }: { id: number }) {
             <Label htmlFor="visibility">Visibility</Label>
             <Select>
               <SelectTrigger id="status" aria-label="Set visibility">
-                <SelectValue placeholder={result[0].visible ? 'Visible' : 'Hidden'} />
+                <Suspense fallback={<div>Loading...</div>}>
+                  <SelectValue placeholder={result[0].visible ? 'Visible' : 'Hidden'} />
+                </Suspense>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="visible">Visible</SelectItem>
