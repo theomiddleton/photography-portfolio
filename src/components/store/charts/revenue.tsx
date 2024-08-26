@@ -1,8 +1,6 @@
 'use client'
 
-
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
-
 import {
   Card,
   CardContent,
@@ -60,7 +58,7 @@ export function Revenue({ data }: { data: OriginalData[] }) {
       <CardHeader>
         <CardTitle>Area Chart</CardTitle>
         <CardDescription>
-          Showing total visitors for the last 6 months
+          Showing total visitors for the last week
         </CardDescription>
       </CardHeader>
       <CardContent>
