@@ -3,8 +3,8 @@ import { AdminTitle } from '~/components/admin/titles'
 
 export default function Admin() {
   const adminSections = [
-    { title: 'Image Upload', description: 'Manage and upload images', icon: ImageIcon, href: '/admin/image-upload' },
-    { title: 'Blog Post', description: 'Create and edit blog posts', icon: PenIcon, href: '/admin/blog-post' },
+    { title: 'Image Upload', description: 'Manage and upload images', icon: ImageIcon, href: '/admin/upload' },
+    { title: 'Blog Post', description: 'Create and edit blog posts', icon: PenIcon, href: '/admin/blog' },
     { title: 'About', description: 'Edit about page content', icon: InfoIcon, href: '/admin/about' },
     { title: 'Store', description: 'Manage store items and inventory', icon: StoreIcon, href: '/admin/store' },
     { title: 'Return to Home', description: 'Return to home page', icon: HomeIcon, href: '/' },
