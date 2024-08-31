@@ -1,6 +1,6 @@
 'use client'
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import {
   Card,
@@ -9,7 +9,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "~/components/ui/card"
+} from '~/components/ui/card'
 import {
   ChartConfig,
   ChartContainer,
@@ -17,7 +17,7 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "~/components/ui/chart"
+} from '~/components/ui/chart'
 
 type ChartData = {
   imageId: number
@@ -44,6 +44,8 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function ImageIdChart({ data }: { data: any }) {
+
+  // i currently randomly generate data, based somewhat off what is fetched from the db, simply to show the chart during development
   function generateRandomData(): ChartData[] {
     const data: ChartData[] = []
     for (let i = 0; i < 30; i++) {
@@ -84,7 +86,7 @@ export function ImageIdChart({ data }: { data: any }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Bar Chart - Price and Total</CardTitle>
+        <CardTitle>Price and Total</CardTitle>
         <CardDescription>By Image ID</CardDescription>
       </CardHeader>
       <CardContent>

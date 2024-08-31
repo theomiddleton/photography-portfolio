@@ -1,6 +1,7 @@
 import { Products } from '~/components/store/products'
 import { Orders } from '~/components/store/orders'
 import { Analytics } from '~/components/store/analytics'
+import { Separator } from '~/components/ui/separator'
 
 export default function Store() {
   return (
@@ -8,6 +9,7 @@ export default function Store() {
       <Products/>
       <Orders/>
       <Analytics/>
+      <Separator/>
     </div>
   )
 }

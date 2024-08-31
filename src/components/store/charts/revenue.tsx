@@ -1,6 +1,6 @@
 'use client'
 
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
 import {
   Card,
   CardContent,
@@ -8,14 +8,14 @@ import {
 
   CardHeader,
   CardTitle,
-} from "~/components/ui/card"
+} from '~/components/ui/card'
 import {
   ChartConfig,
   ChartContainer,
 
   ChartTooltip,
   ChartTooltipContent,
-} from "~/components/ui/chart"
+} from '~/components/ui/chart'
 
 type OriginalData = {
   id: number
@@ -40,7 +40,6 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function Revenue({ data }: { data: OriginalData[] }) {
-  console.log("inp data", data)
 
   const transformData = (data: OriginalData[]): TransformedData[] => {
     return data.map(item => ({
@@ -55,7 +54,7 @@ export function Revenue({ data }: { data: OriginalData[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Area Chart</CardTitle>
+        <CardTitle>Revenue</CardTitle>
         <CardDescription>
           Showing total revenue for the last week
         </CardDescription>

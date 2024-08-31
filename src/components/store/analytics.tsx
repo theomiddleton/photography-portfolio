@@ -45,7 +45,6 @@ const revOrders = result.map((item) => ({
   createdAt: item.createdAt.toISOString(),
 }))
 
-
 export function Analytics() {
   return (
     <Card className="h-full">

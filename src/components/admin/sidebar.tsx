@@ -2,8 +2,9 @@ import Link from 'next/link'
 
 import { siteConfig } from '~/config/site'
 import { Icons } from '~/components/ui/icons'
+import { ImageIcon, PenIcon, InfoIcon, StoreIcon } from 'lucide-react'
 
-export default function SiteFooter() {
+export function AdminSidebar() {
   return (  
     <div className="flex flex-col gap-4 border-r bg-muted/40 p-4">
 
@@ -13,7 +14,7 @@ export default function SiteFooter() {
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground"
           prefetch={false}
         >
-          <Icons.Image className="h-4 w-4" />
+          <ImageIcon className="h-4 w-4" />
           Image Upload
         </Link>
         <Link
@@ -21,7 +22,7 @@ export default function SiteFooter() {
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground"
           prefetch={false}
         >
-          <Icons.File className="h-4 w-4" />
+          <PenIcon className="h-4 w-4" />
           Blog Post
         </Link>
         <Link
@@ -29,7 +30,7 @@ export default function SiteFooter() {
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground"
           prefetch={false}
         >
-          <Icons.File className="h-4 w-4" />
+          <InfoIcon className="h-4 w-4" />
           About
         </Link>
         <Link 
@@ -37,7 +38,7 @@ export default function SiteFooter() {
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground"
           prefetch={false}
         >
-          <Icons.Store className="h-4 w-4" />
+          <StoreIcon className="h-4 w-4" />
           Store
         </Link>
       </nav>

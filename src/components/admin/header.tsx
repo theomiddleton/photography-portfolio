@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { siteConfig } from '~/config/site'
 import { Icons } from '~/components/ui/icons'
 
-export default function Header() {
+export function AdminHeader() {
   return (
     <div>
       <header className="flex h-14 items-center justify-between border-b bg-muted/40 px-6">
