@@ -34,7 +34,7 @@ type TransformedData = {
 
 const chartConfig = {
   total: {
-    label: "total",
+    label: "Total",
     color: "hsl(var(--chart-1))",
   },
 } satisfies ChartConfig

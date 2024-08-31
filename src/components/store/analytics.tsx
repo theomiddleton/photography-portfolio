@@ -35,6 +35,17 @@ const orders = result.map((item) => ({
   createdAt: item.createdAt,
 }))
 
+const revOrders = result.map((item) => ({
+  id: item.id,
+  storeImageId: item.storeImageId,
+  imageId: item.imageId,
+  quantity: item.quantity,
+  price: item.price,
+  total: item.total,
+  createdAt: item.createdAt.toISOString(),
+}))
+
+
 export function Analytics() {
   return (
     <Card className="h-full">
@@ -50,7 +61,7 @@ export function Analytics() {
             <ImageIdChart data={orders} />
           </div>
           <div className="min-w-0">
-            <Revenue data={orders} />
+            <Revenue data={revOrders} />
           </div>
         </div>
       </CardContent>
