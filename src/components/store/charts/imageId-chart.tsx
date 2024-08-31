@@ -32,7 +32,6 @@ type AggregatedData = {
   total: number
 }
 
-
 const chartConfig = {
   price: {
     label: "Price",

@@ -13,7 +13,6 @@ import { eq } from 'drizzle-orm'
 import { ImageIdChart } from '~/components/store/charts/imageId-chart'
 import { Revenue } from '~/components/store/charts/revenue'
 
-
 const result = await db.select({
   id: storeOrders.id,
   storeImageId: storeImages.id,

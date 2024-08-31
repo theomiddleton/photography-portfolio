@@ -39,7 +39,6 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-
 export function Revenue({ data }: { data: OriginalData[] }) {
   console.log("inp data", data)
 
@@ -58,7 +57,7 @@ export function Revenue({ data }: { data: OriginalData[] }) {
       <CardHeader>
         <CardTitle>Area Chart</CardTitle>
         <CardDescription>
-          Showing total visitors for the last week
+          Showing total revenue for the last week
         </CardDescription>
       </CardHeader>
       <CardContent>
