@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     //console.log('server side url', url)
     const newFileName = keyName + '.' + fileExtension
     const fileUrl =`${siteConfig.bucketUrl}/${newFileName}`
-    console.log('fileUrl', fileUrl)
+    console.log(fileUrl)
     await db.insert(imageData).values({
       uuid: keyName, 
       fileName: newFileName, 

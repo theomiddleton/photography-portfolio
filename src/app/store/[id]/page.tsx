@@ -3,10 +3,14 @@ import { SiteHeader } from '~/components/site-header'
 import { db } from '~/server/db'
 import { imageData, storeImages } from '~/server/db/schema'
 import Image from 'next/image'
+import { notFound } from 'next/navigation'
 
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+
+export const revalidate = 60
+export const dynamicParams = true
 
 export default async function Photo({ params }: { params: { id: number } }) {
 
@@ -20,7 +24,11 @@ export default async function Photo({ params }: { params: { id: number } }) {
   }).from(imageData).where(eq(imageData.id, params.id))
   .innerJoin(storeImages, eq(imageData.id, storeImages.imageId))
 
-  const imageUrl = result.map((item) => item.fileUrl) 
+  if (result.length === 0) {
+    notFound()
+  }
+  
+  const image = result[0]
 
   return (
     <main>
@@ -29,7 +37,7 @@ export default async function Photo({ params }: { params: { id: number } }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
           <div className="w-full aspect-[3/4] md:aspect-auto md:h-[70vh] lg:h-[80vh] xl:h-[90vh] relative max-h-[800px]">
             <Image 
-              src={result[0].fileUrl} 
+              src={image.fileUrl} 
               alt="Product Image" 
               fill
               className="object-contain"
@@ -37,10 +45,10 @@ export default async function Photo({ params }: { params: { id: number } }) {
             />
           </div>
           <div className="flex flex-col justify-center space-y-6">
-            <h1 className="text-3xl font-semibold">{result[0].name}</h1>
-            <p className="text-xl text-muted-foreground">£{result[0].price}</p>
+            <h1 className="text-3xl font-semibold">{image.name}</h1>
+            <p className="text-xl text-muted-foreground">£{image.price}</p>
             <div className="space-y-2">
-              {result[0].description}
+              {image.description}
             </div>
             <div className="space-y-4">
               <div>

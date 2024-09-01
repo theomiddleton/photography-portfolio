@@ -3,21 +3,27 @@ import { SiteHeader } from '~/components/site-header'
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 import Image from 'next/image'
-import { Item } from '@radix-ui/react-dropdown-menu'
+import { notFound } from 'next/navigation'
+
+export const revalidate = 60
+export const dynamicParams = true
 
 export default async function Photo({ params }: { params: { id: number } }) {
-
+  
   const result = await db.select({
-      id: imageData.id,
-      fileUrl: imageData.fileUrl,
-      name: imageData.name,
-      description: imageData.description,
-      tags: imageData.tags,
-      uploadedAt: imageData.uploadedAt
+    id: imageData.id,
+    fileUrl: imageData.fileUrl,
+    name: imageData.name,
+    description: imageData.description,
+    tags: imageData.tags,
+    uploadedAt: imageData.uploadedAt
   }).from(imageData).where(eq(imageData.id, params.id))
 
-  const imageUrl = result.map((item) => item.fileUrl) 
+  if (result.length === 0) {
+    notFound()
+  }
 
+  const image = result[0];
   return (
     <main>
     <SiteHeader />
@@ -28,8 +34,8 @@ export default async function Photo({ params }: { params: { id: number } }) {
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
         <section className="max-h-5xl mx-auto space-y-4">
           <div className="rounded-md shadow-2xl">
-            <a href={imageUrl[0]} target="_blank" rel="noreferrer">
-              <Image src={imageUrl[0]} alt="img" height={1000} width={600} />
+            <a href={image.fileUrl} target="_blank" rel="noreferrer">
+              <Image src={image.fileUrl} alt="img" height={1000} width={600} />
             </a>
           </div>
         </section>
@@ -38,15 +44,15 @@ export default async function Photo({ params }: { params: { id: number } }) {
         {/* idealy when the screen width is small enough, it would go below the image - todo */}
         <div className="container flex flex-col pl-8 items-start justify-center">
           <div className="flex max-w-xs flex-col gap-4">
-            <h3 className="text-2xl font-bold">{result[0].name}</h3>
+            <h3 className="text-2xl font-bold">{image.name || 'Untitled'}</h3>
             <div className="text-lg">
-              {result[0].description}
+              {image.description || 'No description available.'}
             </div>
           </div>
           <div className="flex max-w-xs flex-col gap-4">
             <h3 className="text-2xl font-bold">Tags</h3>
             <div className="text-lg">
-              {result[0].tags}
+              {image.tags || 'No tags available.'}
             </div>
           </div>
         </div>
