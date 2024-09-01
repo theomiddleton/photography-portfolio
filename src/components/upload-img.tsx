@@ -25,6 +25,7 @@ import {
 } from '~/components/ui/carousel'
 
 export function UploadImg() {
+  const router = useRouter()
 
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
