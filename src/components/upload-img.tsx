@@ -3,6 +3,7 @@ import React from 'react'
 import { useState } from 'react'
 import { Icons } from '~/components/ui/icons'
 import { Button } from '~/components/ui/button'
+import { useRouter } from 'next/navigation'
 
 import {
   Card,
@@ -102,6 +103,7 @@ export function UploadImg() {
       })
     if (uploadResponse.ok) {
       alert('Upload successful!')
+      router.refresh()
     } else {
       console.error('R2 Upload Error:', uploadResponse)
       alert('Upload failed.')
