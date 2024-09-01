@@ -6,6 +6,9 @@ import { imageData } from '~/server/db/schema'
 import { siteConfig } from '~/config/site'
 import Image from 'next/image'
 
+export const revalidate = 60
+export const dynamicParams = true
+
 export default async function Home() {
 
   const result = await db.select({
@@ -17,6 +20,8 @@ export default async function Home() {
     id: item.id,
     url: item.fileUrl
   }))
+
+  console.log('refresh')
   
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
@@ -34,29 +39,6 @@ export default async function Home() {
             </div>
           ))}
         </section>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:gap-8">
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-black/10 p-4 hover:bg-black/20"
-            href="blog/"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">Blog</h3>
-            <div className="text-lg">
-              Read blog posts.
-            </div>
-          </Link>
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-black/10 p-4 hover:bg-black/20"
-            href="/"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">Link two</h3>
-            <div className="text-lg">
-              placeholder
-            </div>
-          </Link>
-        </div>
-        <div className="flex flex-col items-center gap-2"></div>
       </div>
     </main>
   ) 

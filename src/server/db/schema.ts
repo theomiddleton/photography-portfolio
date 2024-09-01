@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 
-import { serial, varchar, timestamp, pgTableCreator, text, boolean } from 'drizzle-orm/pg-core';
+import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean } from 'drizzle-orm/pg-core';
+import { stat } from 'fs';
 
 export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
 
@@ -9,13 +10,12 @@ export const imageData = pgTable('imageData', {
   uuid: varchar('uuid', { length: 36 }).notNull(),
   fileName: varchar('fileName', { length: 256 }).notNull(),
   fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
-  name: varchar('name', { length: 256 }),
+  name: varchar('name', { length: 256 }).notNull(),
   description: varchar('description', { length: 256 }),
   tags: varchar('tags', { length: 256 }),
-  uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),
-  //modifiedAt: timestamp('modifiedAt').$onUpdate(() => new Date()),
-  //modifiedAt: timestamp('modifiedAt').defaultNow(),
+  uploadedAt: timestamp('uploadedAt').defaultNow(),
 });
+
 
 export const blogs = pgTable('blogs', {
   id: serial('id').primaryKey(),
@@ -45,4 +45,31 @@ export const about = pgTable('about', {
   imageUrl: varchar('imageUrl', { length: 256 }),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
+});
+
+export const storeImages = pgTable('storeImages', {
+  id: serial('id').primaryKey(),
+  imageId: integer('imageId'),
+  imageUuid: varchar('uuid', { length: 36 }),
+  fileUrl: varchar('fileUrl', { length: 256 }),
+  price: integer('price').notNull(),
+  stock: integer('stock').notNull(),
+  visible: boolean('visible').default(false).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+});
+
+export const storeOrders = pgTable('storeOrders', {
+  id: serial('id').primaryKey(),
+  customerName: varchar('customerName', { length: 256 }).notNull(),
+  imageId: integer('imageId').references(() => imageData.id).notNull(),
+  storeImageId: integer('storeImageId').references(() => storeImages.id).notNull(),
+  address: varchar('address', { length: 256 }).notNull(),
+  city: varchar('city', { length: 256 }).notNull(),
+  postCode: varchar('postCode', { length: 256 }).notNull(),
+  country: varchar('country', { length: 2 }).notNull(),
+  status: varchar('status', { length: 256 }).notNull(),
+  paymentMethod: varchar('paymentMethod', { length: 256 }).notNull(),
+  quantity: integer('quantity').notNull(),
+  total: integer('total').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
 });
