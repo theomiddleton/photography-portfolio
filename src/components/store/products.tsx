@@ -31,6 +31,9 @@ import {
   TableRow,
 } from '~/components/ui/table'
 
+export const revalidate = 10
+export const dynamicParams = true
+
 const result = await db.select({
   imageId: storeImages.imageId,
   imageName: imageData.name,

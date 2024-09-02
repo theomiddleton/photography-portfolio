@@ -31,7 +31,7 @@ import {
   TableRow,
 } from '~/components/ui/table'
 
-export const revalidate = 60
+export const revalidate = 10
 export const dynamicParams = true
 
 const result = await db.select({

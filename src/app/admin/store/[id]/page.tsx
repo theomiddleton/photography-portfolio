@@ -10,6 +10,8 @@ import { ChevronLeft } from 'lucide-react'
 import { ProductDetails } from '~/components/store/product-details'
 import { ProductVisibility } from '~/components/store/product-visibility'
 
+export const revalidate = 60
+export const dynamicParams = true
 
 export default async function Product({ params }: { params: { id: number } }) {
 

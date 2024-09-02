@@ -8,6 +8,8 @@ import { ChevronLeft } from 'lucide-react'
 
 import { OrderDetails } from '~/components/store/order-details'
 
+export const revalidate = 60
+export const dynamicParams = true
 
 export default async function Product({ params }: { params: { id: string } }) {
   const orderId = parseInt(params.id, 10)
