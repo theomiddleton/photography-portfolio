@@ -45,7 +45,7 @@ export function SiteHeader() {
                   "w-9 px-0"
                 )}
               >
-                <Icons.website className="h-3 w-3 fill-current" />
+                <Icons.logo className="h-6 w-6 fill-current" />
                 <span className="sr-only">Website</span>
               </div>
             </Link>

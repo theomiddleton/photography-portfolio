@@ -20,15 +20,15 @@ export default async function Home() {
     id: item.id,
     url: item.fileUrl
   }))
-
-  console.log('refresh')
   
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
       <SiteHeader />
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
         <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-          {siteConfig.headers.main}
+          {siteConfig.headers.main && (
+            <div>{siteConfig.headers.main}</div>
+          )}
         </h1> {/*The following tailwind class is the responsive columns*/}
         <section className="sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4 max-h-5xl mx-auto space-y-4">
           {imageUrls.map((image) => (
