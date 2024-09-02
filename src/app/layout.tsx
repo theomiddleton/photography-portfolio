@@ -3,7 +3,8 @@ import { siteConfig } from "~/config/site"
 import { SiteFooter } from "~/components/site-footer" 
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import { AxiomWebVitals } from 'next-axiom';
+import { AxiomWebVitals } from 'next-axiom'
+import { VercelToolbar } from '@vercel/toolbar/next'
 
 import { Inter } from "next/font/google" 
 
@@ -23,6 +24,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode 
 }) {
+  const shouldInjectToolbar = process.env.NODE_ENV === 'development'
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable}`}>
@@ -30,6 +32,7 @@ export default function RootLayout({
         <Analytics />
         <AxiomWebVitals />
         <SpeedInsights />
+        {shouldInjectToolbar && <VercelToolbar />}
       </body>
       <SiteFooter />
     </html>

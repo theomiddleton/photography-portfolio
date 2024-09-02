@@ -1,4 +1,7 @@
 import { withAxiom } from 'next-axiom'
+// eslint-disable-next-line import/no-unresolved -- unsure
+import withVercelToolbar from '@vercel/toolbar/plugins/next';
+
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -24,4 +27,4 @@ const nextConfig = {
     },
 }
 
-export default withAxiom(nextConfig)
+export default withVercelToolbar()(withAxiom(nextConfig))
