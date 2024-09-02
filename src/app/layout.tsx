@@ -5,6 +5,8 @@ import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { AxiomWebVitals } from 'next-axiom'
 import { VercelToolbar } from '@vercel/toolbar/next'
+import { FlagValues } from "@vercel/flags/react"
+import { get } from '@vercel/edge-config'
 
 import { Inter } from "next/font/google" 
 
@@ -19,12 +21,24 @@ export const metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 } 
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode 
 }) {
+
   const shouldInjectToolbar = process.env.NODE_ENV === 'development'
+  const edgeConfigFlags = await get('featureFlags')
+
+  const flags: Record<string, boolean> = typeof edgeConfigFlags === 'object' && edgeConfigFlags !== null
+    ? Object.entries(edgeConfigFlags).reduce((acc, [key, value]) => {
+        if (typeof value === 'boolean') {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, boolean>)
+    : {};
+
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable}`}>
@@ -33,6 +47,7 @@ export default function RootLayout({
         <AxiomWebVitals />
         <SpeedInsights />
         {shouldInjectToolbar && <VercelToolbar />}
+        <FlagValues values={flags} />
       </body>
       <SiteFooter />
     </html>
