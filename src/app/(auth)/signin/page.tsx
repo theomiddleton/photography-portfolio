@@ -1,12 +1,7 @@
 'use client'
+
 import React from 'react'
-import { useState } from 'react'
-import { Icons } from '~/components/ui/icons'
 import { Button } from '~/components/ui/button'
-import { redirect } from 'next/navigation'
-
-import { RegisterLink, LoginLink } from '@kinde-oss/kinde-auth-nextjs/components'
-
 import {
   Card,
   CardContent,
@@ -15,71 +10,81 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { Form, FormControl, FormField, FormItem, FormLabel } from '~/components/ui/form'
+import Link from 'next/link'
 
-export default function Admin() {
+const LoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8).max(64),
+})
 
-    const [email, setEmail] = useState('') 
-    const [password, setPassword] = useState('') 
+export default function Signin() {
+  const form = useForm<z.infer<typeof LoginSchema>>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
+  
+  function onSubmit(data: z.infer<typeof LoginSchema>) {
+    console.log('submit')
+    console.log(data)
+  }
 
-return (
+  return (
     <div className="min-h-screen bg-white text-black space-y-12">
-        <div className="max-w-2xl mx-auto py-24 px-4">
-                <h2 className="text-base font-semibold leading-7 text-black">
-                    Login
-                </h2>
-            <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                <div className="col-span-full">
-                    <Card className="mt-2 justify-center w-full">
-                        <CardHeader>
-                            <CardTitle>Login</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <form>
-                                <div className="grid w-full items-center gap-4">
-                                    <div className="flex flex-col space-y-1.5">
-                                        <Label htmlFor="name">Email</Label>
-                                        <Input id="email" placeholder="example@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-                                    </div>
-                                    <div className="flex flex-col space-y-1.5">
-                                        <Label htmlFor="password">Password</Label>
-                                        <Input id="password" placeholder="**********" value={password} onChange={(e) => setPassword(e.target.value)} />  
-                                    </div>
-                                    <div className="flex max-w-full">
-                                        <LoginLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-2 mx-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                                            authUrlParams={{
-                                                connection_id: "conn_72858762b57045f286bff8ffff030550"
-                                            }}>
-                                            <Icons.discord className="flex align-middle justify-center w-5 h-5 pr-1"/>
-                                            Sign In With Discord
-                                        </LoginLink>
-                                        <LoginLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-2 mx-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                                            authUrlParams={{
-                                                connection_id: 'conn_1d769022b0874cb3bbe66f5ff612dece'
-                                            }}>
-                                            <Icons.gitHub className="flex align-middle justify-center w-5 h-5 pr-1"/>
-                                            Sign In With GitHub
-                                        </LoginLink>
-                                        <LoginLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-2 mx-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                                                authUrlParams={{
-                                                    connection_id: "conn_617fe5f7c33f4d038116e082e5d34413"
-                                                }}>
-                                            <Icons.microsoft className="flex align-middle justify-center w-5 h-5 pr-1"/>
-                                            Sign In With Microsoft
-                                        </LoginLink>
-                                    </div>
-                                </div>
-                            </form>
-                        </CardContent>
-                        <CardFooter className="flex justify-between">
-                            <Button variant='secondary' type='submit' onClick={() => redirect('/signup')}>Sign Up</Button>
-                            <LoginLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 mx-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Sign in</LoginLink>
-                        </CardFooter>
-                    </Card>
+      <div className="max-w-md mx-auto py-24 px-4">
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="email">Email</FormLabel>
+                      <FormControl>
+                        <Input id="email" placeholder="example@domain.com" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="password">Password</FormLabel>
+                      <FormControl>
+                        <Input id="password" type="password" placeholder="**********" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <div className="pt-2">
+                  <Button variant="default" type="submit" className="w-full">Login</Button>
                 </div>
-            </div>
-        </div>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account? {' '}
+              <Link href='/signup' className='text-blue-500 hover:underline'>
+                Sign Up
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
-
-    )
+  )
 }
