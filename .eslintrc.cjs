@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /** @type {import("eslint").Linter.Config} */
 const config = {
     parser: "@typescript-eslint/parser",
@@ -31,8 +32,8 @@ const config = {
           checksVoidReturn: { attributes: false },
         },
       ],
+      "no-html-link-for-pages": "off",
     },
   };
   
-  module.exports = config;
-  
+module.exports = config;

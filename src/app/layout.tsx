@@ -37,7 +37,7 @@ export default async function RootLayout({
         }
         return acc;
       }, {} as Record<string, boolean>)
-    : {};
+    : {}
 
   return (
     <html lang="en">
