@@ -15,6 +15,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Form, FormControl, FormField, FormItem, FormLabel } from '~/components/ui/form'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { login } from "~/lib/auth"
 
 const LoginSchema = z.object({
   email: z.string().email(),
@@ -22,6 +24,10 @@ const LoginSchema = z.object({
 })
 
 export default function Signin() {
+  const router = useRouter()
+  const [error, setError] = React.useState<string | null>(null)
+  const [isLoading, setIsLoading] = React.useState(false)
+
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -30,10 +36,19 @@ export default function Signin() {
     },
   })
   
-  function onSubmit(data: z.infer<typeof LoginSchema>) {
-    console.log('submit')
-    console.log(data)
-  }
+  // const onSubmit = async (data: z.infer<typeof LoginSchema>) => {
+  //   setIsLoading(true)
+  //   setError(null)
+  //   try {
+  //     await login(data.email, data.password)
+  //     router.push('/dashboard')
+  //   } catch (error) {
+  //     console.error('Login error:', error)
+  //     setError('Login failed. Please check your credentials and try again.')
+  //   } finally {
+  //     setIsLoading(false)
+  //   }
+  // }
 
   return (
     <div className="min-h-screen bg-white text-black space-y-12">
@@ -44,7 +59,10 @@ export default function Signin() {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(await login(data.email, data.password))} className="space-y-4">
+                {error && (
+                  <div className="text-red-500 text-sm">{error}</div>
+                )}
                 <FormField
                   control={form.control}
                   name="email"
@@ -70,7 +88,14 @@ export default function Signin() {
                   )}
                 />
                 <div className="pt-2">
-                  <Button variant="default" type="submit" className="w-full">Login</Button>
+                  <Button 
+                    variant="default" 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Logging in...' : 'Login'}
+                  </Button>
                 </div>
               </form>
             </Form>
@@ -78,7 +103,7 @@ export default function Signin() {
           <CardFooter className="flex justify-center">
             <p className="text-sm text-gray-600">
               Don't have an account? {' '}
-              <Link href='/signup' className='text-blue-500 hover:underline'>
+              <Link href='/signup' className='text-slate-950 hover:underline'>
                 Sign Up
               </Link>
             </p>

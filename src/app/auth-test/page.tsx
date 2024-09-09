@@ -1,23 +1,31 @@
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
+import { redirect } from "next/navigation"
+import { getSession, login, logout } from "~/lib/auth"
 
-const { isAuthenticated } = getKindeServerSession()
-const isUserAuthenticated = await isAuthenticated()
-
-console.log("Authenticated?", isUserAuthenticated)
-
-export default function Dashboard() {
-  if (isUserAuthenticated) {
-    // User is authenticated
-    return (
-      <div className='flex items-center justify-center'>
-        <p>You are authenticated</p>
-      </div>
-    )
-  } else {
-    return (
-      <div className='flex items-center justify-center'>
-        <p>You are <b>not</b> authenticated</p>
-      </div>
-    )
-  }
+export default async function Page() {
+  const session = await getSession()
+  return (
+    <section>
+      <form
+        action={async (formData) => {
+          "use server"
+          await login(formData)
+          redirect("/")
+        }}
+      >
+        <input type="email" placeholder="Email" />
+        <br />
+        <button type="submit">Login</button>
+      </form>
+      <form
+        action={async () => {
+          "use server"
+          await logout()
+          redirect("/")
+        }}
+      >
+        <button type="submit">Logout</button>
+      </form>
+      <pre>{JSON.stringify(session, null, 2)}</pre>
+    </section>
+  )
 }
