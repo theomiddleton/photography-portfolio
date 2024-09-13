@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import { React, useState } from 'react'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -36,19 +36,28 @@ export default function Signin() {
     },
   })
   
-  // const onSubmit = async (data: z.infer<typeof LoginSchema>) => {
-  //   setIsLoading(true)
-  //   setError(null)
-  //   try {
-  //     await login(data.email, data.password)
-  //     router.push('/dashboard')
-  //   } catch (error) {
-  //     console.error('Login error:', error)
-  //     setError('Login failed. Please check your credentials and try again.')
-  //   } finally {
-  //     setIsLoading(false)
-  //   }
-  // }
+  const onSubmit = async (data: z.infer<typeof LoginSchema>) => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      // await login(data.email, data.password)
+      router.push('/dashboard')
+    } catch (error) {
+      console.error('Login error:', error)
+      setError('Login failed. Please check your credentials and try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
+  const [serverResponse, setServerResponse] = useState<string | null>(null)
+  const {register, handleSubmit} = useForm<typeof LoginSchema>()
+    
+  const action: () => void = handleSubmit(async (email, password) => {
+    const response = await login(email, password)
+    console.log(response)
+    // setServerResponse(response)
+  })
 
   return (
     <div className="min-h-screen bg-white text-black space-y-12">
@@ -59,7 +68,7 @@ export default function Signin() {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(await login(data.email, data.password))} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 {error && (
                   <div className="text-red-500 text-sm">{error}</div>
                 )}
