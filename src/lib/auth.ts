@@ -1,3 +1,4 @@
+'use sever'
 import bcrypt from "bcrypt"
 import { SignJWT, jwtVerify } from "jose"
 import { db } from "~/server/db"
@@ -9,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server"
 // Infer the User type from the users schema
 type User = InferModel<typeof users>
 
-const secret = "secret"
+const secret = process.env.AUTH_SECRET
 const key = new TextEncoder().encode(secret)
 
 // Hash the password with bcrypt
