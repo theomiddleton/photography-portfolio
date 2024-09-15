@@ -24,10 +24,7 @@ const LoginSchema = z.object({
 })
 
 export default function Signin() {
-  const router = useRouter()
-  const [error, setError] = React.useState<string | null>(null)
-  const [isLoading, setIsLoading] = React.useState(false)
-
+  
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -36,29 +33,12 @@ export default function Signin() {
     },
   })
   
-  const onSubmit = async (data: z.infer<typeof LoginSchema>) => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      // await login(data.email, data.password)
-      router.push('/dashboard')
-    } catch (error) {
-      console.error('Login error:', error)
-      setError('Login failed. Please check your credentials and try again.')
-    } finally {
-      setIsLoading(false)
-    }
+  async function onSubmit(data: z.output<typeof LoginSchema>) {
+    console.log('swaggggg')
+    
+    await login(data.email, data.password)
   }
   
-  const [serverResponse, setServerResponse] = useState<string | null>(null)
-  const {register, handleSubmit} = useForm<typeof LoginSchema>()
-    
-  const action: () => void = handleSubmit(async (email, password) => {
-    const response = await login(email, password)
-    console.log(response)
-    // setServerResponse(response)
-  })
-
   return (
     <div className="min-h-screen bg-white text-black space-y-12">
       <div className="max-w-md mx-auto py-24 px-4">
@@ -69,9 +49,6 @@ export default function Signin() {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {error && (
-                  <div className="text-red-500 text-sm">{error}</div>
-                )}
                 <FormField
                   control={form.control}
                   name="email"
@@ -101,9 +78,8 @@ export default function Signin() {
                     variant="default" 
                     type="submit" 
                     className="w-full" 
-                    disabled={isLoading}
                   >
-                    {isLoading ? 'Logging in...' : 'Login'}
+                    Login
                   </Button>
                 </div>
               </form>
@@ -111,7 +87,7 @@ export default function Signin() {
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-gray-600">
-              Don't have an account? {' '}
+              Don&apos;t have an account? {' '}
               <Link href='/signup' className='text-slate-950 hover:underline'>
                 Sign Up
               </Link>

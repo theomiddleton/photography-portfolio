@@ -37,7 +37,8 @@ export async function signup(email: string, password: string): Promise<string> {
 }
 
 // Handle user login
-export async function login(email: string, password: string): Promise<void> {
+export async function login(email: string, password: string): Promise<FormState> {
+  'use server'
   // Find the user by email
   const user: User | undefined = await db
     .select(users)
