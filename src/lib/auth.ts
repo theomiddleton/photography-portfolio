@@ -3,7 +3,7 @@ import bcrypt from "bcrypt"
 import { SignJWT, jwtVerify } from "jose"
 import { db } from "~/server/db"
 import { users } from "~/server/db/schema"
-import { InferModel } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -37,13 +37,15 @@ export async function signup(email: string, password: string): Promise<string> {
 }
 
 // Handle user login
-export async function login(email: string, password: string): Promise<FormState> {
+export async function login(email: string, password: string): Promise<void> {
   'use server'
   // Find the user by email
-  const user: User | undefined = await db
-    .select(users)
-    .where(users.email.eq(email))
-    .one()
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1)
+    .then(rows => rows[0] ?? undefined);
 
   if (!user) {
     throw new Error("User not found")
