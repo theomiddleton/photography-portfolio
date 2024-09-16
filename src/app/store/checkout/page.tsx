@@ -56,6 +56,7 @@ async function getOrderSummary(id) {
 }
 
 // submit the order
+// currently does nothing, as the order is not actually submitted
 async function submitOrder(formData: FormData) {
   'use server'
   const orderResult = await createOrder(formData)

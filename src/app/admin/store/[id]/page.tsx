@@ -12,7 +12,10 @@ import { ProductVisibility } from '~/components/store/product-visibility'
 
 export const revalidate = 60
 export const dynamicParams = true
-
+// this page shows the product details and visibility settings, and allows the user to edit them
+// editing and user interaction must be done in a client page, meaning it is rendered on the client side, not the server side
+// this however means data cannot be fetched from it securely, and instead must be fetched from the server
+// this is why the page is a mix of server and client side rendering, so  data can be fetched and passes securely, but the page is interactive
 export default async function Product({ params }: { params: { id: number } }) {
 
   const result = await db.select({
