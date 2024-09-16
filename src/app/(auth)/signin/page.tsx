@@ -19,8 +19,8 @@ import { Input } from '~/components/ui/input'
 import Link from 'next/link'
 
 import { loginSchema } from '~/lib/types/loginSchema'
-import { onSubmitAction } from '~/app/alt/altSubmit'
-import { login } from '~/lib/auth/login'
+
+import { login } from '~/lib/auth'
 
 export default function Signin() {
   const [state, formAction] = useFormState(login, {
