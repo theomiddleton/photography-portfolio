@@ -1,46 +1,44 @@
 'use client'
 
-import { React, useState } from 'react'
-import { Button } from '~/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card'
-import { Input } from '~/components/ui/input'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useRef } from 'react'
+import { useFormState } from 'react-dom'
 import { useForm } from 'react-hook-form'
-import { Form, FormControl, FormField, FormItem, FormLabel } from '~/components/ui/form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { X } from 'lucide-react'
+import { z } from 'zod'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from '~/components/ui/form'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { login } from "~/lib/auth"
 
-const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8).max(64),
-})
+import { loginSchema } from '~/lib/types/loginSchema'
+import { onSubmitAction } from '~/app/alt/altSubmit'
+import { login } from '~/lib/auth/login'
 
 export default function Signin() {
-  
-  const form = useForm<z.infer<typeof LoginSchema>>({
-    resolver: zodResolver(LoginSchema),
+  const [state, formAction] = useFormState(login, {
+    message: '',
+  })
+  const form = useForm<z.output<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
       password: '',
+      ...(state?.fields ?? {}),
     },
   })
-  
-  async function onSubmit(data: z.output<typeof LoginSchema>) {
-    console.log('swaggggg')
-    
-    await login(data.email, data.password)
-  }
-  
+
+  const formRef = useRef<HTMLFormElement>(null)
+
   return (
-    <div className="min-h-screen bg-white text-black space-y-12">
+    <div className="min-h-screen space-y-12">
       <div className="max-w-md mx-auto py-24 px-4">
         <Card className="w-full">
           <CardHeader>
@@ -48,7 +46,32 @@ export default function Signin() {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {state?.message !== '' && !state.issues && (
+                <div className="text-center text-red-500">{state.message}</div>
+              )}
+              {state?.issues && (
+                <div className="text-red-500">
+                  <ul>
+                    {state.issues.map((issue) => (
+                      <li key={issue} className="flex gap-1">
+                        <X fill="red" />
+                        {issue}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <form 
+                ref={formRef}
+                className="space-y-4"
+                action={formAction}
+                onSubmit={(evt) => {
+                  evt.preventDefault()
+                  form.handleSubmit(() => {
+                    formAction(new FormData(formRef.current!))
+                  })(evt)
+                }}
+              >
                 <FormField
                   control={form.control}
                   name="email"
