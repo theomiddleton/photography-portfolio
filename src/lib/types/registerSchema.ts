@@ -10,5 +10,5 @@ export const registerSchema = z.object({
   retypedPass: z.string(),
 }).refine((data) => data.password === data.retypedPass, {
   message: "Passwords do not match",
-  path: ["retypedPassword"],
+  path: ["retypedPass"],
 })

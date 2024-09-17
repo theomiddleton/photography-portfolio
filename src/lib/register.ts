@@ -4,7 +4,7 @@ import { db } from '~/server/db'
 import { users } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 
-import { registerSchema } from './types/registerSchema'
+import { registerSchema } from '~/lib/types/registerSchema'
 
 export type FormState = {
   message: string
@@ -19,9 +19,6 @@ async function hashPassword(password: string): Promise<string> {
 export async function register(prevState: FormState, data: FormData): Promise<FormState> {
   const formData = Object.fromEntries(data)
   const parsed = registerSchema.safeParse(formData)
-  
-  console.log("Form data", formData)
-  console.log("Parsed", parsed)
   
   if (!parsed.success) {
     const fields: Record<string, string> = {}
@@ -38,9 +35,9 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
   const email = parsed.data.email
   const password = parsed.data.password
   const retypedPass = parsed.data.retypedPass
+  const role = 'user'
   
   if (password !== retypedPass) {
-    console.log("Passwords do not match")
     return {
       message: "Passwords do not match",
     }
@@ -55,6 +52,8 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     .where(eq(users.email, email))
     .execute()
   
+  console.log("User", user)
+  
   if (user.length > 0) {
     return {
       message: "User already exists, try logging in instead.",
@@ -62,10 +61,20 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
   }
   
   // Create the user
-  // await db.insert(users).values({
-    // email,
-    // hashedPassword,
-  // })
   
-  return { message: "User created" }
+  try {
+    type NewUser = typeof users.$inferInsert;
+    
+    const insertUser = async (user: NewUser) => {
+      return db.insert(users).values(user)
+    }
+    
+    const newUser: NewUser = { email: email, password: hashedPassword, role: role }
+    await insertUser(newUser)
+    
+    return { message: "User created" }
+  } catch (error) {
+    console.error("Error creating user", error)
+    return { message: "Error creating user" }
+  }
 }

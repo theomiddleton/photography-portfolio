@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import React, { useRef } from 'react'
 import { useFormState } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,16 +13,16 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '~/components/ui/form'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import Link from 'next/link'
 
 import { registerSchema } from '~/lib/types/registerSchema'
-
 import { register } from '~/lib/register'
 
-export default function Signin() {
+export default function Signup() {
   const [state, formAction] = useFormState(register, {
     message: '',
   })
@@ -82,6 +82,7 @@ export default function Signin() {
                       <FormControl>
                         <Input id="email" placeholder="example@domain.com" {...field} />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -94,6 +95,7 @@ export default function Signin() {
                       <FormControl>
                         <Input id="password" type="password" placeholder="**********" {...field} />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -106,6 +108,7 @@ export default function Signin() {
                       <FormControl>
                         <Input id="retypedPass" type="password" placeholder="**********" {...field} />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
