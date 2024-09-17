@@ -20,7 +20,8 @@ import { Input } from '~/components/ui/input'
 import Link from 'next/link'
 
 import { registerSchema } from '~/lib/types/registerSchema'
-import { register } from '~/lib/register'
+
+import { register } from '~/lib/auth'
 
 export default function Signup() {
   const [state, formAction] = useFormState(register, {
