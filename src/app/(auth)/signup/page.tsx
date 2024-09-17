@@ -1,50 +1,78 @@
 'use client'
 
-import React from 'react'
-import { Button } from '~/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card'
-import { Input } from '~/components/ui/input'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useRef } from 'react'
+import { useFormState } from 'react-dom'
 import { useForm } from 'react-hook-form'
-import { Form, FormControl, FormField, FormItem, FormLabel } from '~/components/ui/form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { X } from 'lucide-react'
+import { z } from 'zod'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from '~/components/ui/form'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
 import Link from 'next/link'
 
-const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8).max(64),
-})
+import { registerSchema } from '~/lib/types/registerSchema'
+
+import { register } from '~/lib/register'
 
 export default function Signin() {
-  const form = useForm<z.infer<typeof LoginSchema>>({
-    resolver: zodResolver(LoginSchema),
+  const [state, formAction] = useFormState(register, {
+    message: '',
+  })
+  const form = useForm<z.output<typeof registerSchema>>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       email: '',
       password: '',
+      retypedPass: '',
+      ...(state?.fields ?? {}),
     },
   })
-  
-  function onSubmit(data: z.infer<typeof LoginSchema>) {
-    console.log('submit')
-    console.log(data)
-  }
+
+  const formRef = useRef<HTMLFormElement>(null)
 
   return (
-    <div className="min-h-screen bg-white text-black space-y-12">
+    <div className="min-h-screen space-y-12">
       <div className="max-w-md mx-auto py-24 px-4">
         <Card className="w-full">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">Sign Up</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {state?.message !== '' && !state.issues && (
+                <div className="text-center text-red-500">{state.message}</div>
+              )}
+              {state?.issues && (
+                <div className="text-red-500">
+                  <ul>
+                    {state.issues.map((issue) => (
+                      <li key={issue} className="flex gap-1">
+                        <X fill="red" />
+                        {issue}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <form 
+                ref={formRef}
+                className="space-y-4"
+                action={formAction}
+                onSubmit={(evt) => {
+                  evt.preventDefault()
+                  form.handleSubmit(() => {
+                    formAction(new FormData(formRef.current!))
+                  })(evt)
+                }}
+              >
                 <FormField
                   control={form.control}
                   name="email"
@@ -69,8 +97,26 @@ export default function Signin() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="retypedPass"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="retypedPass">Reenter your password</FormLabel>
+                      <FormControl>
+                        <Input id="retypedPass" type="password" placeholder="**********" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
                 <div className="pt-2">
-                  <Button variant="default" type="submit" className="w-full">Login</Button>
+                  <Button 
+                    variant="default" 
+                    type="submit" 
+                    className="w-full" 
+                  >
+                    Register
+                  </Button>
                 </div>
               </form>
             </Form>
