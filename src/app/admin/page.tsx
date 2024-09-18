@@ -10,7 +10,7 @@ export default function Admin() {
     { title: 'About', description: 'Edit about page content', icon: InfoIcon, href: '/admin/about' },
     { title: 'Store', description: 'Manage store items and inventory', icon: StoreIcon, href: '/admin/store' },
     { title: 'Return to Home', description: 'Return to home page', icon: HomeIcon, href: '/' },
-    { title: 'Logout', description: 'Sign out of admin panel', icon: LogOutIcon, href: '/api/auth/logout' },
+    { title: 'Logout', description: 'Sign out of admin panel', icon: LogOutIcon, href: '/logout' },
   ]
 
   return (

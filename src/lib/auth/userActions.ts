@@ -17,6 +17,12 @@ export type FormState = {
   issues?: string[]
 }
 
+type LogoutState = {
+  success: boolean
+  message: string
+  issues: string[] | null
+}
+
 // login function, returns a FormState for sending messages to the client, takes a FormState and a FormData
 export async function login(prevState: FormState, data: FormData): Promise<FormState> {
   // parse the form data in a type-safe way
@@ -119,6 +125,15 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     }
   }
   
+  const session = await createSession({ email: email, role: role })
+  
+  cookies().set('session', session, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    expires: new Date(Date.now() + 2 * 60 * 60 * 1000) // 2 hours
+  })
+  
   // Create the user
   try {
     type NewUser = typeof users.$inferInsert;
@@ -134,5 +149,34 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
   } catch (error) {
     console.error("Error creating user", error)
     return { message: "Error creating user" }
+  }
+}
+
+
+export async function logout(_prevState: LogoutState, formData: FormData): Promise<LogoutState> {
+  const sessionCookie = cookies().get('session')
+
+  if (!sessionCookie) {
+    return { 
+      success: false,
+      message: "No active session found", 
+      issues: ["You are not currently logged in"] 
+    }
+  }
+
+  try {
+    cookies().set('session', '', { expires: new Date(0) })
+    return {
+      success: true,
+      message: "Logged out successfully, wait to be redirected.",
+      issues: null
+    }
+  } catch (error) {
+    console.error("Error logging out", error)
+    return { 
+      success: false,
+      message: "Error logging out", 
+      issues: ["An unexpected error occurred. Please try again."]
+    }
   }
 }
