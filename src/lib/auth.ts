@@ -7,24 +7,31 @@ import { eq } from 'drizzle-orm'
 import { loginSchema } from '~/lib/types/loginSchema'
 import { registerSchema } from '~/lib/types/registerSchema'
 
+// FormData type
 export type FormState = {
   message: string
   fields?: Record<string, string>
   issues?: string[]
 }
 
+// hashes the password using bcrypt, returns a string of the hashed password, takes a string of the password
+// it salts the password 10 times
 async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, 10)
 }
 
+// compares the password with the hash, returns a boolean, takes a string of the password and a string of the hash
 async function verifyPassword( password: string, hash: string ): Promise<boolean> {
   return await bcrypt.compare(password, hash)
 }
 
+// login function, returns a FormState for sending messages to the client, takes a FormState and a FormData
 export async function login(prevState: FormState, data: FormData): Promise<FormState> {
+  // parse the form data in a type-safe way
   const formData = Object.fromEntries(data)
   const parsed = loginSchema.safeParse(formData)
   
+  // if the form data is invalid, return a message through FormState with the issues
   if (!parsed.success) {
     const fields: Record<string, string> = {}
     for (const key of Object.keys(formData)) {
@@ -36,7 +43,7 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
       issues: parsed.error.issues.map((issue) => issue.message),
     }
   }
-  
+
   // Find the user by email
   const user = await db
     .select()
@@ -45,24 +52,29 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
     .limit(1)
     .then(rows => rows[0] ?? undefined)
   
+  // if the user isnt found, return a message
   if (!user) {
     return { message: "User not found" }
   }
-
-  const isPasswordValid = await verifyPassword(parsed.data.password, user.password)
-  console.log('password check', isPasswordValid)
   
+  // check if the password is valid, boolean
+  const isPasswordValid = await verifyPassword(parsed.data.password, user.password)
+  
+  // if the password is invalid, return a message
   if (!isPasswordValid) {
     return { message: "Invalid password" }
   }
-
+  
+  // if the user is found and the password is valid, return a message
   return { message: "User logged in" }
 }
 
 export async function register(prevState: FormState, data: FormData): Promise<FormState> {
+  // the same as the login function, but with register schema
   const formData = Object.fromEntries(data)
   const parsed = registerSchema.safeParse(formData)
   
+  // if the form data is invalid, return a message through FormState with the issues
   if (!parsed.success) {
     const fields: Record<string, string> = {}
     for (const key of Object.keys(formData)) {
@@ -75,17 +87,21 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     }
   }
   
+  // get the email, password, and retyped password from the form data
   const email = parsed.data.email
   const password = parsed.data.password
   const retypedPass = parsed.data.retypedPass
   const role = 'user'
   
+  // Check if the passwords match, this is also done on the client side
+  // but checks on the server side as well, due to the schema being in a seperate file
   if (password !== retypedPass) {
     return {
       message: "Passwords do not match",
     }
   }
   
+  // hash the password
   const hashedPassword = await hashPassword(password)
   
   // Check if the user already exists
@@ -95,6 +111,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     .where(eq(users.email, email))
     .execute()
   
+  // return a message if the user already exists
   if (user.length > 0) {
     return {
       message: "User already exists, try logging in instead.",

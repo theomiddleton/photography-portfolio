@@ -13,6 +13,9 @@ import { db } from '~/server/db'
 import { createOrder } from '~/lib/actions/store/createOrder'
 
 async function getOrderSummary(id) {
+  // get the storeImages table id, imageId, price, and name
+  // join the imageData table to get the name and id
+  // get the results where the storeImages id is equal to the id of the page,
   const result = await db.select({
     storeImagesImageId: storeImages.imageId,
     imageDataId: imageData.id,
@@ -21,19 +24,23 @@ async function getOrderSummary(id) {
   }).from(storeImages)
   .innerJoin(imageData, eq(storeImages.imageId, imageData.id))
   .where(eq(storeImages.id, id))
-
+  
+  // map the results to an array of objects
   const items = result.map(item => ({
     storeImagesImageId: item.storeImagesImageId,
     imageDataId: item.imageDataId,
     name: item.name,
     price: item.price,
   }))
-
+  
+  // get the storeImagesImageId and imageDataId
   const storeImagesImageId = items[0].storeImagesImageId
   const imageDataId = items[0].imageDataId
   
+  // calculate the subtotal, shipping, and total
   const subtotal = items.reduce((acc, item) => acc + item.price, 0)
-  
+  // shipping is currently a fixed value
+  // this could be changed in the future to be dynamic
   const shipping = 5.0
   
   const total = subtotal + shipping
@@ -48,13 +55,12 @@ async function getOrderSummary(id) {
   }
 }
 
+// submit the order
+// currently does nothing, as the order is not actually submitted
 async function submitOrder(formData: FormData) {
   'use server'
-  // const a = formData, id, quantity, total
-  const countResult = await createOrder(formData)
-  console.log('Count result:', countResult)
-
-  // console.log('Order submitted:', Object.fromEntries(formData))
+  const orderResult = await createOrder(formData)
+  console.log('Count result:', orderResult)
   revalidatePath('/checkout')
 }
 
