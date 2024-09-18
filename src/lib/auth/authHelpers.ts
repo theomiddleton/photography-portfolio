@@ -12,7 +12,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return await bcrypt.compare(password, hash)
 }
 
-export async function createSession(userData: any) {
+export async function createSession(userData: { email: string, role: string }) {
   return await new SignJWT(userData)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()

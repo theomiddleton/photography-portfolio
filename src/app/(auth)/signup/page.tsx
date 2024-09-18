@@ -21,7 +21,7 @@ import Link from 'next/link'
 
 import { registerSchema } from '~/lib/types/registerSchema'
 
-import { register } from '~/lib/auth/login'
+import { register } from '~/lib/auth/userActions'
 
 export default function Signup() {
   const [state, formAction] = useFormState(register, {

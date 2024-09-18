@@ -5,20 +5,20 @@ import { NextRequest, NextResponse } from 'next/server'
 const secret = process.env.JWT_SECRET!
 const key = new TextEncoder().encode(secret)
 
-export async function getSession() {
+export async function getSession(): Promise<any | null> {
   const session = cookies().get('session')?.value
   if (!session) return null
   try {
     const { payload } = await jwtVerify(session, key, { algorithms: ['HS256'] })
-    return payload
+    return payload as { email: string, role: string, exp: number }
   } catch (error) {
     console.error('Failed to verify session:', error)
     return null
   }
 }
 
-export async function updateSession(request: NextRequest) {
-  const session = request.cookies.get("session")?.value
+export async function updateSession(request: NextRequest): Promise<NextResponse> {
+  const session = request.cookies.get('session')?.value
   if (!session) return NextResponse.next()
 
   try {
@@ -32,7 +32,7 @@ export async function updateSession(request: NextRequest) {
     
     const response = NextResponse.next()
     response.cookies.set({
-      name: "session",
+      name: 'session',
       value: newSession,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -43,7 +43,7 @@ export async function updateSession(request: NextRequest) {
   } catch (error) {
     console.error('Failed to update session:', error)
     const response = NextResponse.next()
-    response.cookies.delete("session")
+    response.cookies.delete('session')
     return response
   }
 }
