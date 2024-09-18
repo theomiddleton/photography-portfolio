@@ -1,91 +1,119 @@
-'use sever'
-import bcrypt from "bcrypt"
-import { SignJWT, jwtVerify } from "jose"
-import { db } from "~/server/db"
-import { users } from "~/server/db/schema"
-import { eq } from "drizzle-orm"
-import { cookies } from "next/headers"
-import { NextRequest, NextResponse } from "next/server"
+'use server'
+import bcrypt from 'bcrypt'
+import { db } from '~/server/db'
+import { users } from '~/server/db/schema'
+import { eq } from 'drizzle-orm'
 
-// Infer the User type from the users schema
-type User = InferModel<typeof users>
+import { loginSchema } from '~/lib/types/loginSchema'
+import { registerSchema } from '~/lib/types/registerSchema'
 
-const secret = process.env.AUTH_SECRET
-const key = new TextEncoder().encode(secret)
+export type FormState = {
+  message: string
+  fields?: Record<string, string>
+  issues?: string[]
+}
 
-// Hash the password with bcrypt
 async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, 10)
 }
 
-// Verify the password against the stored hash
-async function verifyPassword(
-    password: string,
-    hash: string,
-  ): Promise<boolean> {
+async function verifyPassword( password: string, hash: string ): Promise<boolean> {
   return await bcrypt.compare(password, hash)
 }
 
-// Handle user signup
-export async function signup(email: string, password: string): Promise<string> {
-  await db.insert(users).values({
-    email: email,
-    password: await hashPassword(password),
-    role: "user",
-  })
-  return "User created"
-}
+export async function login(prevState: FormState, data: FormData): Promise<FormState> {
+  const formData = Object.fromEntries(data)
+  const parsed = loginSchema.safeParse(formData)
+  
+  if (!parsed.success) {
+    const fields: Record<string, string> = {}
+    for (const key of Object.keys(formData)) {
+      fields[key] = formData[key].toString()
+    }
+    return {
+      message: "Invalid form data",
+      fields,
+      issues: parsed.error.issues.map((issue) => issue.message),
+    }
+  }
 
-// Handle user login
-export async function login(email: string, password: string): Promise<void> {
-  'use server'
   // Find the user by email
   const user = await db
     .select()
     .from(users)
-    .where(eq(users.email, email))
+    .where(eq(users.email, parsed.data.email))
     .limit(1)
-    .then(rows => rows[0] ?? undefined);
-
+    .then(rows => rows[0] ?? undefined)
+  
   if (!user) {
-    throw new Error("User not found")
+    return { message: "User not found" }
   }
 
-  const isPasswordValid = await verifyPassword(password, user.password)
-
+  const isPasswordValid = await verifyPassword(parsed.data.password, user.password)
+  
   if (!isPasswordValid) {
-    throw new Error("Invalid password")
+    return { message: "Invalid password" }
   }
 
-  const expires = new Date(Date.now() + 2 * 60 * 60 * 1000)
-  const session = await encryptToken({ email, expires })
-
-  cookies().set("session", session, { expires, httpOnly: true })
+  return { message: "User logged in" }
 }
 
-export async function logout() {
-  cookies().set("token", "", { expires: new Date(0) })
-}
-
-export async function getSession(): Promise<string> {
-  const session = cookies().get("session")?.value
-  if (!session) {
-    return null
+export async function register(prevState: FormState, data: FormData): Promise<FormState> {
+  const formData = Object.fromEntries(data)
+  const parsed = registerSchema.safeParse(formData)
+  
+  if (!parsed.success) {
+    const fields: Record<string, string> = {}
+    for (const key of Object.keys(formData)) {
+      fields[key] = formData[key].toString()
+    }
+    return {
+      message: "Invalid form data",
+      fields,
+      issues: parsed.error.issues.map((issue) => issue.message),
+    }
   }
-  return await decryptToken(session)
-}
-
-async function encryptToken(token: any): Promise<string> {
-  return await new SignJWT(token)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("2h")
-    .sign(key)
-}
-
-async function decryptToken(input: string): Promise<string> {
-  const { token } = await jwtVerify(input, key, {
-    algorithms: ["HS256"],
-  })
-  return token
+  
+  const email = parsed.data.email
+  const password = parsed.data.password
+  const retypedPass = parsed.data.retypedPass
+  const role = 'user'
+  
+  if (password !== retypedPass) {
+    return {
+      message: "Passwords do not match",
+    }
+  }
+  
+  const hashedPassword = await hashPassword(password)
+  
+  // Check if the user already exists
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .execute()
+  
+  if (user.length > 0) {
+    return {
+      message: "User already exists, try logging in instead.",
+    }
+  }
+  
+  // Create the user
+  try {
+    type NewUser = typeof users.$inferInsert;
+    
+    const insertUser = async (user: NewUser) => {
+      return db.insert(users).values(user)
+    }
+    
+    const newUser: NewUser = { email: email, password: hashedPassword, role: role }
+    await insertUser(newUser)
+    
+    return { message: "User created" }
+  } catch (error) {
+    console.error("Error creating user", error)
+    return { message: "Error creating user" }
+  }
 }
