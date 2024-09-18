@@ -1,8 +1,11 @@
 'use server'
-import bcrypt from 'bcrypt'
+
+import { cookies } from 'next/headers'
 import { db } from '~/server/db'
 import { users } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
+
+import { verifyPassword, hashPassword, createSession } from '~/lib/auth/authHelpers'
 
 import { loginSchema } from '~/lib/types/loginSchema'
 import { registerSchema } from '~/lib/types/registerSchema'
@@ -12,17 +15,6 @@ export type FormState = {
   message: string
   fields?: Record<string, string>
   issues?: string[]
-}
-
-// hashes the password using bcrypt, returns a string of the hashed password, takes a string of the password
-// it salts the password 10 times
-async function hashPassword(password: string): Promise<string> {
-  return await bcrypt.hash(password, 10)
-}
-
-// compares the password with the hash, returns a boolean, takes a string of the password and a string of the hash
-async function verifyPassword( password: string, hash: string ): Promise<boolean> {
-  return await bcrypt.compare(password, hash)
 }
 
 // login function, returns a FormState for sending messages to the client, takes a FormState and a FormData
@@ -64,6 +56,15 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
   if (!isPasswordValid) {
     return { message: "Invalid password" }
   }
+  
+  const session = await createSession({ email: user.email, role: user.role })
+  
+  cookies().set('session', session, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    expires: new Date(Date.now() + 2 * 60 * 60 * 1000) // 2 hours
+  })
   
   // if the user is found and the password is valid, return a message
   return { message: "User logged in" }
