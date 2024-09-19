@@ -23,6 +23,15 @@ type LogoutState = {
   issues: string[] | null
 }
 
+interface User {
+  id: number
+  name: string
+  email: string
+  role: string
+  createdAt: Date
+  modifiedAt: Date
+}
+
 // login function, returns a FormState for sending messages to the client, takes a FormState and a FormData
 export async function login(prevState: FormState, data: FormData): Promise<FormState> {
   // parse the form data in a type-safe way
@@ -179,4 +188,36 @@ export async function logout(_prevState: LogoutState, formData: FormData): Promi
       issues: ["An unexpected error occurred. Please try again."]
     }
   }
+}
+
+export async function getUsers(): Promise<User[]> {
+  return db.select({
+    id: users.id,
+    name: users.name,
+    email: users.email,
+    role: users.role,
+    createdAt: users.createdAt,
+    modifiedAt: users.modifiedAt
+  }).from(users)
+}
+
+export async function deleteUser(userId: number): Promise<User[]> {
+  await db.delete(users).where(eq(users.id, userId))
+  return getUsers()
+}
+
+export async function promoteUser(userId: number): Promise<User[]> {
+  await db
+    .update(users)
+    .set({ role: 'admin', modifiedAt: new Date() })
+    .where(eq(users.id, userId))
+  return getUsers()
+}
+
+export async function demoteUser(userId: number): Promise<User[]> {
+  await db
+    .update(users)
+    .set({ role: 'user', modifiedAt: new Date() })
+    .where(eq(users.id, userId))
+  return getUsers()
 }
