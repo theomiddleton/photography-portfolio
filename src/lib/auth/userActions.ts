@@ -95,6 +95,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
   }
   
   // get the email, password, and retyped password from the form data
+  const name = parsed.data.name
   const email = parsed.data.email
   const password = parsed.data.password
   const retypedPass = parsed.data.retypedPass
@@ -142,7 +143,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
       return db.insert(users).values(user)
     }
     
-    const newUser: NewUser = { email: email, password: hashedPassword, role: role }
+    const newUser: NewUser = { name: name, email: email, password: hashedPassword, role: role }
     await insertUser(newUser)
     
     return { message: "User created" }
@@ -151,7 +152,6 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     return { message: "Error creating user" }
   }
 }
-
 
 export async function logout(_prevState: LogoutState, formData: FormData): Promise<LogoutState> {
   const sessionCookie = cookies().get('session')

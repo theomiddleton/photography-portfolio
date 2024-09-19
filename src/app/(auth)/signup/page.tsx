@@ -30,6 +30,7 @@ export default function Signup() {
   const form = useForm<z.output<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      name: '',
       email: '',
       password: '',
       retypedPass: '',
@@ -74,6 +75,19 @@ export default function Signup() {
                   })(evt)
                 }}
               >
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="email">Name</FormLabel>
+                      <FormControl>
+                        <Input id="name" placeholder="first name last name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="email"

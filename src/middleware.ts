@@ -18,6 +18,6 @@ export async function middleware(request: NextRequest) {
 }
 
 // Specify which routes this middleware should run on
-export const config = {
-  matcher: ['/admin/:path*']
-}
+// export const config = {
+//   matcher: ['/admin/:path*']
+// }
