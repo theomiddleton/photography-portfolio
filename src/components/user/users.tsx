@@ -1,21 +1,16 @@
 'use client'
-
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '~/components/ui/table'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
 import { Button } from '~/components/ui/button'
 import { MoreHorizontal } from 'lucide-react'
-
 import { getUsers, deleteUser, promoteUser, demoteUser } from '~/lib/auth/userActions'
+
+import { DeleteUserDialog, PromoteUserDialog, DemoteUserDialog } from '~/components/user/user-dialogs'
 
 interface User {
   id: number
@@ -28,6 +23,9 @@ interface User {
 
 export function UsersTable() {
   const [users, setUsers] = useState<User[]>([])
+  const [userToDelete, setUserToDelete] = useState<User | null>(null)
+  const [userToPromote, setUserToPromote] = useState<User | null>(null)
+  const [userToDemote, setUserToDemote] = useState<User | null>(null)
 
   useEffect(() => {
     fetchUsers()
@@ -39,22 +37,25 @@ export function UsersTable() {
   }
 
   const handleDeleteUser = async (userId: number) => {
-    const updatedUsers = await deleteUser(userId)
+    await deleteUser(userId)
     setUsers(prevUsers => prevUsers.filter(user => user.id !== userId))
+    setUserToDelete(null)
   }
 
   const handlePromoteUser = async (userId: number) => {
-    const updatedUsers = await promoteUser(userId)
+    await promoteUser(userId)
     setUsers(prevUsers => prevUsers.map(user => 
       user.id === userId ? { ...user, role: 'admin' } : user
     ))
+    setUserToPromote(null)
   }
 
   const handleDemoteUser = async (userId: number) => {
-    const updatedUsers = await demoteUser(userId)
+    await demoteUser(userId)
     setUsers(prevUsers => prevUsers.map(user => 
       user.id === userId ? { ...user, role: 'user' } : user
     ))
+    setUserToDemote(null)
   }
 
   const formatDate = (date: Date): string => {
@@ -64,7 +65,7 @@ export function UsersTable() {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     })
   }
 
@@ -72,9 +73,7 @@ export function UsersTable() {
     <Card>
       <CardHeader>
         <CardTitle>Users</CardTitle>
-        <CardDescription>
-          See all registered users
-        </CardDescription>
+        <CardDescription>See all registered users</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
@@ -97,8 +96,8 @@ export function UsersTable() {
                 </TableCell>
                 <TableCell className="hidden md:table-cell">{user.email}</TableCell>
                 <TableCell>
-                  <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                    {user.role === "admin" ? "Admin" : "User"}
+                  <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                    {user.role === 'admin' ? 'Admin' : 'User'}
                   </Badge>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
@@ -115,16 +114,16 @@ export function UsersTable() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       {user.role !== 'admin' && (
-                        <DropdownMenuItem onClick={() => handlePromoteUser(user.id)}>
+                        <DropdownMenuItem onClick={() => setUserToPromote(user)}>
                           Promote to Admin
                         </DropdownMenuItem>
                       )}
                       {user.role === 'admin' && (
-                        <DropdownMenuItem onClick={() => handleDemoteUser(user.id)}>
+                        <DropdownMenuItem onClick={() => setUserToDemote(user)}>
                           Demote to User
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem onClick={() => handleDeleteUser(user.id)}>
+                      <DropdownMenuItem onClick={() => setUserToDelete(user)}>
                         Delete User
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -140,6 +139,24 @@ export function UsersTable() {
           Showing <strong>1-{users.length}</strong> of <strong>{users.length}</strong> users
         </div>
       </CardFooter>
+
+      <DeleteUserDialog 
+        userToDelete={userToDelete}
+        onCancel={() => setUserToDelete(null)}
+        onDelete={handleDeleteUser}
+      />
+      
+      <PromoteUserDialog 
+        userToPromote={userToPromote}
+        onCancel={() => setUserToPromote(null)}
+        onPromote={handlePromoteUser}
+      />
+      
+      <DemoteUserDialog 
+        userToDemote={userToDemote}
+        onCancel={() => setUserToDemote(null)}
+        onDemote={handleDemoteUser}
+      />
     </Card>
   )
 }
