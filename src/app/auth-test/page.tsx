@@ -1,23 +1,21 @@
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
+import { getSession } from '~/lib/auth/auth'
 
-const { isAuthenticated } = getKindeServerSession()
-const isUserAuthenticated = await isAuthenticated()
+export default async function AuthCheck() {
+  const session = await getSession()
 
-console.log("Authenticated?", isUserAuthenticated)
-
-export default function Dashboard() {
-  if (isUserAuthenticated) {
-    // User is authenticated
-    return (
-      <div className='flex items-center justify-center'>
-        <p>You are authenticated</p>
-      </div>
-    )
-  } else {
-    return (
-      <div className='flex items-center justify-center'>
-        <p>You are <b>not</b> authenticated</p>
-      </div>
-    )
-  }
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">Authentication</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <pre className="w-full overflow-auto text-sm bg-gray-50 p-2 rounded">
+            {JSON.stringify(session, null, 2)}
+          </pre>
+        </CardContent>
+      </Card>
+    </div>
+  )
 }

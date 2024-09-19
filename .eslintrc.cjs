@@ -8,7 +8,8 @@ const config = {
   plugins: ["@typescript-eslint"],
   extends: [
     "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended", // Changed from recommended-type-checked
+    // Removed stylistic-type-checked
   ],
   rules: {
     // Disable rules related to strict typing

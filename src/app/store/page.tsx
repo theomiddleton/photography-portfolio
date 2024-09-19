@@ -8,7 +8,11 @@ export const revalidate = 60
 export const dynamicParams = true
 
 export default async function Store() {
-
+  // get all the images from the database
+  // join the imageData table to get the fileUrl
+  // map the results to an array of objects
+  // return the array of objects
+  // this is used to render the images
   const results = await db.select({
     storeImageId: storeImages.id,
     fileUrl: imageData.fileUrl,
@@ -34,6 +38,10 @@ export default async function Store() {
         </div>
       <section className="w-full py-12 md:py-24 lg:py-32">
         <div className="container grid gap-8 px-4 md:grid-cols-2 lg:grid-cols-3 md:px-6">
+          {/* render the images */}
+          {/* the key is used to prevent react from re-rendering the image */}
+          {/* the Link component is used to add a link to the images store page */}
+          {/* the prefetch prop is set to false to prevent the page from being prefetched */}
           {photos.map((result) => (
             <div key={result.storeImageId} className="group relative overflow-hidden rounded-lg shadow-lg transition-all hover:shadow-xl">
               <Link href={"store/" + result.storeImageId} className="absolute inset-0 z-10" prefetch={false}>

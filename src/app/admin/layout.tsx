@@ -7,6 +7,8 @@ interface AdminLayoutProps {
   children: ReactNode;
 }
 
+// this layout is used for the admin pages, all pages within the directory inherit the layout
+// this adds the header and sidebar to the page, for a consistent look and, and navigation experience
 export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="flex flex-col h-screen">

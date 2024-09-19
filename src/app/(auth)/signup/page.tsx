@@ -1,85 +1,140 @@
 'use client'
-import React from 'react'
-import { useState } from 'react'
-import { Icons } from '~/components/ui/icons'
-import { Button } from '~/components/ui/button'
-import { redirect } from 'next/navigation'
 
-import { LoginLink, RegisterLink } from '@kinde-oss/kinde-auth-nextjs/components'
-
+import React, { useRef } from 'react'
+import { useFormState } from 'react-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { X } from 'lucide-react'
+import { z } from 'zod'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card'
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '~/components/ui/form'
+import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
+import Link from 'next/link'
 
-export default function Admin() {
+import { registerSchema } from '~/lib/types/registerSchema'
 
-    const [email, setEmail] = useState('') 
-    const [password, setPassword] = useState('') 
+import { register } from '~/lib/auth/userActions'
 
-return (
-    <div className="min-h-screen bg-white text-black space-y-12">
-        <div className="max-w-2xl mx-auto py-24 px-4">
-                <h2 className="text-base font-semibold leading-7 text-black">
-                    Sign Up
-                </h2>
-            <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                <div className="col-span-full">
-                    <Card className="mt-2 justify-center w-full">
-                        <CardHeader>
-                            <CardTitle>Sign Up</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <form>
-                                <div className="grid w-full items-center gap-4">
-                                    <div className="flex flex-col space-y-1.5">
-                                        <Label htmlFor="name">Email</Label>
-                                        <Input id="email" placeholder="example@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-                                    </div>
-                                    <div className="flex flex-col space-y-1.5">
-                                        <Label htmlFor="password">Password</Label>
-                                        <Input id="password" placeholder="**********" value={password} onChange={(e) => setPassword(e.target.value)} />  
-                                    </div>
-                                    <div className="flex max-w-full">
-                                        <RegisterLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-2 mx-2 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                                            authUrlParams={{
-                                                connection_id: "conn_72858762b57045f286bff8ffff030550"
-                                            }}>
-                                            <Icons.discord className="flex align-middle justify-center w-5 h-5 pr-1"/>
-                                            Sign Up With Discord
-                                        </RegisterLink>
-                                        <RegisterLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-2 mx-2 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                                            authUrlParams={{
-                                                connection_id: 'conn_1d769022b0874cb3bbe66f5ff612dece'
-                                            }}>
-                                            <Icons.gitHub className="flex align-middle justify-center w-5 h-5 pr-1"/>
-                                            Sign Up With GitHub
-                                        </RegisterLink>
-                                        <RegisterLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-2 mx-2 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                                                authUrlParams={{
-                                                    connection_id: "conn_617fe5f7c33f4d038116e082e5d34413"
-                                                }}>
-                                            <Icons.microsoft className="flex align-middle justify-center w-5 h-5 pr-1"/>
-                                            Sign Up With Microsoft
-                                        </RegisterLink>
-                                    </div>
-                                </div>
-                            </form>
-                        </CardContent>
-                        <CardFooter className="flex justify-between">
-                            <Button variant='secondary' type='submit' onClick={() => redirect('/signin')}>Sign in</Button>
-                            <RegisterLink className="bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 mx-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Sign Up</RegisterLink>
-                        </CardFooter>
-                    </Card>
+export default function Signup() {
+  const [state, formAction] = useFormState(register, {
+    message: '',
+  })
+  const form = useForm<z.output<typeof registerSchema>>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      retypedPass: '',
+      ...(state?.fields ?? {}),
+    },
+  })
+
+  const formRef = useRef<HTMLFormElement>(null)
+
+  return (
+    <div className="min-h-screen space-y-12">
+      <div className="max-w-md mx-auto py-24 px-4">
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-center">Sign Up</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              {state?.message !== '' && !state.issues && (
+                <div className="text-center text-red-500">{state.message}</div>
+              )}
+              {state?.issues && (
+                <div className="text-red-500">
+                  <ul>
+                    {state.issues.map((issue) => (
+                      <li key={issue} className="flex gap-1">
+                        <X fill="red" />
+                        {issue}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-            </div>
-        </div>
+              )}
+              <form 
+                ref={formRef}
+                className="space-y-4"
+                action={formAction}
+                onSubmit={(evt) => {
+                  evt.preventDefault()
+                  form.handleSubmit(() => {
+                    formAction(new FormData(formRef.current!))
+                  })(evt)
+                }}
+              >
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="email">Email</FormLabel>
+                      <FormControl>
+                        <Input id="email" placeholder="example@domain.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="password">Password</FormLabel>
+                      <FormControl>
+                        <Input id="password" type="password" placeholder="**********" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="retypedPass"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="retypedPass">Reenter your password</FormLabel>
+                      <FormControl>
+                        <Input id="retypedPass" type="password" placeholder="**********" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="pt-2">
+                  <Button 
+                    variant="default" 
+                    type="submit" 
+                    className="w-full" 
+                  >
+                    Register
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <p className="text-sm text-gray-600">
+              Already have an account? {' '}
+              <Link href='/signin' className='text-slate-950 hover:underline'>
+                Sign In
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
-
-    )
+  )
 }
