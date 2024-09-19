@@ -8,7 +8,19 @@ import { eq, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { imageData, storeImages } from '~/server/db/schema'
 
+import { NextResponse } from 'next/server'
+
+import { getSession } from '~/lib/auth/auth'
+
 export async function POST(request: Request) {
+  
+  const session = await getSession()
+  
+  // If there's no session or the user is not an admin, return an error message
+  if (!session || session.role !== 'admin') {
+    return NextResponse.json({ error: 'User is not authenticated, or is not authorized.' }, { status: 401 })
+  }
+  
   // Get the file name, name, description, tags, and isSale status from the request
   const { filename, name, description, tags, isSale } = await request.json()
   console.log(filename, ',', name, ',', description, ',', tags, ',', isSale)
