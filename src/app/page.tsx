@@ -25,6 +25,8 @@ export default async function Home() {
     id: item.id,
     url: item.fileUrl
   }))
+
+  console.log('refresh')
   
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">

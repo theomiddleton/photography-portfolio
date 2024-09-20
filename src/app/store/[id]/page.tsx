@@ -93,5 +93,3 @@ export default async function Photo({ params }: { params: { id: number } }) {
     </main>
   )
 }
-
-export const runtime = 'edge'
