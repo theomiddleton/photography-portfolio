@@ -1,7 +1,4 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-
-import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean } from 'drizzle-orm/pg-core';
-import { stat } from 'fs';
+import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean } from 'drizzle-orm/pg-core'
 
 export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
 
@@ -14,8 +11,7 @@ export const imageData = pgTable('imageData', {
   description: varchar('description', { length: 256 }),
   tags: varchar('tags', { length: 256 }),
   uploadedAt: timestamp('uploadedAt').defaultNow(),
-});
-
+})
 
 export const blogs = pgTable('blogs', {
   id: serial('id').primaryKey(),
@@ -25,7 +21,7 @@ export const blogs = pgTable('blogs', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
   tempId: varchar('tempId', { length: 256 }),
-});
+})
 
 export const blogImages = pgTable('blogImages', {
   id: serial('id').primaryKey(),
@@ -35,7 +31,7 @@ export const blogImages = pgTable('blogImages', {
   fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
   description: varchar('description', { length: 256 }),
   uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),
-});
+})
 
 export const about = pgTable('about', {
   id: serial('id').primaryKey(),
@@ -45,7 +41,7 @@ export const about = pgTable('about', {
   imageUrl: varchar('imageUrl', { length: 256 }),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
-});
+})
 
 export const storeImages = pgTable('storeImages', {
   id: serial('id').primaryKey(),
@@ -56,7 +52,7 @@ export const storeImages = pgTable('storeImages', {
   stock: integer('stock').notNull(),
   visible: boolean('visible').default(false).notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
-});
+})
 
 export const storeOrders = pgTable('storeOrders', {
   id: serial('id').primaryKey(),
@@ -72,4 +68,14 @@ export const storeOrders = pgTable('storeOrders', {
   quantity: integer('quantity').notNull(),
   total: integer('total').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
-});
+})
+
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  email: varchar('email', { length: 256 }).notNull(),
+  name: varchar('name', { length: 256 }).notNull(),
+  password: varchar('password', { length: 256 }).notNull(),
+  role: varchar('role', { length: 256 }).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  modifiedAt: timestamp('modifiedAt').defaultNow(),
+})

@@ -16,6 +16,10 @@
 - [ ] Infinte scroll
 - [ ] rethink auth
 
+## Security
+
+- [] audit security <https://youtu.be/yUm-ET8w_28>
+
 ## UI
 
 - [ ] Main page
@@ -23,7 +27,7 @@
     - [ ] Gallery order - within admin
       - [ ] Colour based order (adv)
     - [x] Image page
-      - [ ] revisit for responsiveness on smaller screens
+      - [x] revisit for responsiveness on smaller screens
   - [ ] Infinite scroll  
   - [ ] Auto update
   - [ ] Image Select
@@ -67,12 +71,12 @@
 
 ## Store
 
-- [ ] Main store ui
-  - [ ] Product Gallery
-  - [ ] Purchase page
-  - [ ] checkout
+- [x] Main store ui
+  - [x] Product Gallery
+  - [x] Purchase page
+  - [x] checkout
     - [ ] login / account
-  - [ ] Analytics
+  - [x] Analytics
 - [ ] AR
   - /(revisit)
 

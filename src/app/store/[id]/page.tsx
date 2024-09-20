@@ -9,11 +9,14 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 
+// revalidate page content every 60 seconds
+// ensures that the page is always up to date
 export const revalidate = 60
 export const dynamicParams = true
 
 export default async function Photo({ params }: { params: { id: number } }) {
-
+  // fetch the image data from the database
+  // and join it with the storeImages table to get the price of the image 
   const result = await db.select({
     id: imageData.id,
     fileUrl: imageData.fileUrl,
@@ -24,6 +27,8 @@ export default async function Photo({ params }: { params: { id: number } }) {
   }).from(imageData).where(eq(imageData.id, params.id))
   .innerJoin(storeImages, eq(imageData.id, storeImages.imageId))
 
+  // if the data corresponding to the id is not found
+  // then return a 404 page
   if (result.length === 0) {
     notFound()
   }
@@ -88,5 +93,3 @@ export default async function Photo({ params }: { params: { id: number } }) {
     </main>
   )
 }
-
-export const runtime = 'edge'

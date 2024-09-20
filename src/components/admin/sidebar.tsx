@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 import { siteConfig } from '~/config/site'
 import { Icons } from '~/components/ui/icons'
-import { ImageIcon, PenIcon, InfoIcon, StoreIcon } from 'lucide-react'
+import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon } from 'lucide-react'
 
 export function AdminSidebar() {
   return (  
@@ -40,6 +40,14 @@ export function AdminSidebar() {
         >
           <StoreIcon className="h-4 w-4" />
           Store
+        </Link>
+        <Link 
+          href="/admin/users"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground"
+          prefetch={false}
+        >
+          <UserIcon className="h-4 w-4" />
+          Users
         </Link>
       </nav>
     </div>
