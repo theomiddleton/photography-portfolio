@@ -13,6 +13,7 @@ export const dynamicParams = true
 
 // similar to store/[id].tsx, this page is the admin view of orders, with more details and actions available in the OrderDetails component
 // it fetchest all necessary data from the database, joining multiple tables, and renders the OrderDetails component,
+
 export default async function Product({ params }: { params: { id: string } }) {
   const orderId = parseInt(params.id, 10)
 

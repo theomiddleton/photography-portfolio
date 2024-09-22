@@ -36,5 +36,3 @@ export default async function Photo({ params }: { params: { id: number } }) {
   const image = result[0]
   return showAltImagePage ? <AltImagePage data={image} /> : <ImagePage data={image} />
 }
-
-export const runtime = 'edge'
