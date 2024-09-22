@@ -574,3 +574,5 @@ by changing this, the output was reduced to:
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+After a while of fixing these warnings and errors, I only had 9 files with warnings and errors left, but I left these due to the majority of them being in the components/ui folder, meaning they were shadcn/ui files.
