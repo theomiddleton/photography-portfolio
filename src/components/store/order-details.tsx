@@ -7,12 +7,11 @@ import {
 } from '~/components/ui/card'
 import { Separator } from '~/components/ui/separator'
 import { notFound } from 'next/navigation'
-import { OrderStatus } from '~/components/store/order-status'
 
 import { db } from '~/server/db'
 import { storeImages, imageData, storeOrders } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
-import { OrderStatusChanger } from './order-status-changer'
+import { OrderStatusChanger } from '~/components/store/order-status-changer'
 
 interface OrderDetailsProps {
   orderId: string

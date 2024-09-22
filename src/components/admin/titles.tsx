@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription } from '~/components/ui/card'
-import { LucideIcon } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 interface AdminTitleProps {
   title: string

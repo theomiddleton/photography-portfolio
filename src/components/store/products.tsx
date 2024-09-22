@@ -87,7 +87,7 @@ export function Products() {
           </TableHeader>
           <TableBody>
             {imageUrls.map((product) => (
-              <TableRow>
+              <TableRow key={product.id}>
                 <TableCell className="hidden sm:table-cell">
                   <Image
                     alt="Product image"

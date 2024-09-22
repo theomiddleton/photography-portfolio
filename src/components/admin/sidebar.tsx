@@ -1,13 +1,10 @@
 import Link from 'next/link'
 
-import { siteConfig } from '~/config/site'
-import { Icons } from '~/components/ui/icons'
 import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon } from 'lucide-react'
 
 export function AdminSidebar() {
   return (  
     <div className="flex flex-col gap-4 border-r bg-muted/40 p-4">
-
       <nav className="grid gap-2">
         <Link
           href="/admin/upload"

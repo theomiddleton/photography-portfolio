@@ -18,17 +18,17 @@ export function BlogPosts({ setEditId }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-      const fetchPosts = async () => {
-        setLoading(true)
-        const result = await blogFetch()
-        if (Array.isArray(result)) {
-          setPosts(result)
-        } else {
-          console.error('Failed to fetch posts:', result)
-        }
-        setLoading(false)
+    const fetchPosts = async () => {
+      setLoading(true)
+      const result = await blogFetch()
+      if (Array.isArray(result)) {
+        setPosts(result)
+      } else {
+        console.error('Failed to fetch posts:', result)
       }
-      fetchPosts()
+      setLoading(false)
+    }
+    fetchPosts()
   }, [])
 
 

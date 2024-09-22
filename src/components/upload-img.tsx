@@ -14,7 +14,6 @@ import {
 } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
-import { Checkbox } from "~/components/ui/checkbox"
 
 import {
   Carousel,
@@ -121,15 +120,14 @@ export function UploadImg() {
         <div className="col-span-full">
           <Card className="mt-2 justify-center w-full">
             <CardHeader>
-                <CardTitle>Upload images</CardTitle>
-                {/* <CardDescription>.</CardDescription> */}
+              <CardTitle>Upload images</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
                 <div className="text-center">
                   <Icons.imageIcon
-                      className="mx-auto h-12 w-12 text-gray-500"
-                      aria-hidden="true"
+                    className="mx-auto h-12 w-12 text-gray-500"
+                    aria-hidden="true"
                   />
                   <div className="mt-4 text-sm leading-6 text-gray-600">
                     <label
@@ -138,12 +136,12 @@ export function UploadImg() {
                     >
                       <span>Upload a file</span>
                       <input
-                          type="file"
-                          accept="image/jpeg, image/png"
-                          id="file-upload"
-                          name="file-upload"
-                          className="sr-only"
-                          onChange={handleFileChange}
+                        type="file"
+                        accept="image/jpeg, image/png"
+                        id="file-upload"
+                        name="file-upload"
+                        className="sr-only"
+                        onChange={handleFileChange}
                       />
                     </label>
                   </div>
@@ -188,10 +186,10 @@ export function UploadImg() {
         </div>
       </div>
     <div className="mt-6 flex items-center justify-end gap-x-6">
-        <Button type='submit' onClick={fetchImages}>Fetch</Button>
+      <Button type='submit' onClick={fetchImages}>Fetch</Button>
     </div>
     <div className="flex justify-center">
-    <div className="mt-6 flex items-center justify-end gap-x-6">
+      <div className="mt-6 flex items-center justify-end gap-x-6">
         <Carousel className="w-full max-w-xs">
             <CarouselContent>
                 {imageUrls.map((imageUrl, index) => (

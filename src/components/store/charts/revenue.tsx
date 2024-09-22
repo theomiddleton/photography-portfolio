@@ -9,15 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import type { ChartConfig } from '~/components/ui/chart'
 import {
-  ChartConfig,
   ChartContainer,
-
   ChartTooltip,
   ChartTooltipContent,
 } from '~/components/ui/chart'
 
-type OriginalData = {
+interface OriginalData {
   id: number
   storeImageId: number
   imageId: number
@@ -27,7 +26,7 @@ type OriginalData = {
   createdAt: string
 }
 
-type TransformedData = {
+interface TransformedData {
   date: string
   total: number
 }

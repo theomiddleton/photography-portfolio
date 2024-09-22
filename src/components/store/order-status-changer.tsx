@@ -1,10 +1,10 @@
 'use client'
-import { Suspense, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { CardFooter } from '~/components/ui/card'
 import { CheckIcon, XIcon } from 'lucide-react'
-import { updateStatus, fetchStatus } from '~/lib/actions/store/updateStatus'
+import { updateStatus } from '~/lib/actions/store/updateStatus'
 
 interface OrderStatusChangerProps {
   id: number

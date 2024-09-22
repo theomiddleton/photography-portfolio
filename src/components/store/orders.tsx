@@ -2,7 +2,6 @@ import { db } from '~/server/db'
 import { storeImages, imageData, storeOrders } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 
-import Image from 'next/image'
 import { MoreHorizontal } from 'lucide-react'
 
 import { Badge } from '~/components/ui/badge'
@@ -84,7 +83,7 @@ export function Orders() {
           </TableHeader>
           <TableBody>
             {itemOrders.map((order) => (
-              <TableRow>
+              <TableRow key={order.id}>
                 <TableCell>{order.customerName}</TableCell>
                 <TableCell>{order.name}</TableCell>
                 <TableCell className="hidden md:table-cell">
