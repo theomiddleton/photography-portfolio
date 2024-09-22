@@ -1,5 +1,5 @@
 import { db } from '~/server/db'
-import { blogs, blogImages } from '~/server/db/schema'
+import { blogs } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { useRemarkSync } from 'react-remark'
 

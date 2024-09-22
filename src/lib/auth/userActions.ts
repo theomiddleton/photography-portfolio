@@ -11,13 +11,13 @@ import { loginSchema } from '~/lib/types/loginSchema'
 import { registerSchema } from '~/lib/types/registerSchema'
 
 // FormData type
-export type FormState = {
+export interface FormState {
   message: string
   fields?: Record<string, string>
   issues?: string[]
 }
 
-type LogoutState = {
+interface LogoutState {
   success: boolean
   message: string
   issues: string[] | null
@@ -162,7 +162,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
   }
 }
 
-export async function logout(_prevState: LogoutState, formData: FormData): Promise<LogoutState> {
+export async function logout(_prevState: LogoutState): Promise<LogoutState> {
   const sessionCookie = cookies().get('session')
 
   if (!sessionCookie) {

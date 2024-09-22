@@ -5,11 +5,11 @@ const secret = process.env.JWT_SECRET!
 const key = new TextEncoder().encode(secret)
 
 export async function hashPassword(password: string): Promise<string> {
-  return await bcrypt.hash(password, 10)
+  return bcrypt.hash(password, 10) as Promise<string>
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return await bcrypt.compare(password, hash)
+  return bcrypt.compare(password, hash) as Promise<boolean>
 }
 
 export async function createSession(userData: { email: string, role: string }) {
