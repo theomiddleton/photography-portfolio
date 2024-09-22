@@ -1,5 +1,4 @@
 import React from 'react' 
-import Link from "next/link" 
 import { SiteHeader } from '~/components/site-header' 
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'

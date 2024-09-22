@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { storeImages, imageData } from '~/server/db/schema'
-import Image from 'next/image'
 
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'

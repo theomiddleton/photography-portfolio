@@ -6,7 +6,6 @@ import { Icons } from '~/components/ui/icons'
 
 import { CounterClockwiseClockIcon } from '@radix-ui/react-icons'
 
-import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import { Label } from '~/components/ui/label'
 import { Separator } from '~/components/ui/separator'
@@ -17,11 +16,6 @@ import {
   TabsTrigger,
 } from '~/components/ui/tabs'
 import { Textarea } from '~/components/ui/textarea'
-
-import { UploadDropzone } from '~/components/upload-dropzone'
-
-
-import AdminLayout from '~/app/admin/layout'
 
 import { read, write } from '~/lib/actions/about'
 
@@ -41,13 +35,8 @@ export default function AboutGenerator() {
     fetchData()
   }, [])
 
-  const upload = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    // Implement the upload functionality
-  }
-
   if (loading) return <div className="h-screen flex items-center justify-center">Loading content...</div>
-
-
+  
   return (
     <div className="">
       <div className="hidden h-full flex-col md:flex">
@@ -110,7 +99,6 @@ export default function AboutGenerator() {
           </div>
         </Tabs>
       </div>
-      <UploadDropzone/>
     </div>
   )
 }

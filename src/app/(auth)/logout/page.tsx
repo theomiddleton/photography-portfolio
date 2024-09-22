@@ -5,7 +5,7 @@ import { useFormState } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { logout } from '~/lib/auth/userActions'
 
 const initialState = {

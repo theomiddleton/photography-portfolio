@@ -1,8 +1,6 @@
 import { eq } from 'drizzle-orm'
-import { SiteHeader } from '~/components/site-header'
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
-import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getFlags } from '~/app/flags'
 import { ImagePage } from '~/components/image-page'

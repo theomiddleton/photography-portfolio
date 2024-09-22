@@ -1,11 +1,8 @@
 import React from 'react' 
-import Link from "next/link" 
 import { SiteHeader } from '~/components/site-header' 
 import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
 import { about } from '~/server/db/schema'
-import { siteConfig } from '~/config/site'
-import Image from 'next/image'
 
 export default async function About() {
 

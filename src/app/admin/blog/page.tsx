@@ -28,15 +28,13 @@ import { BlogPosts } from '~/components/blog-posts'
 
 import { blogEdit, blogEditFetch, blogWrite } from '~/lib/actions/blog'
 
-import { NotAuthenticated } from '~/components/not-authenticated'
-
 export default function Blog() {
 
   const [title, setTitle] = useState<string>('')
   const [content, setContent] = useState<string>('')
   const [isVisible, setIsVisible] = useState<boolean>(true)
 
-  const [editTitle, setEditTitle] = useState<string>('')
+  const [editTitle] = useState<string>('')
   const [editContent, setEditContent] = useState<string>('')
   const [editIsVisible, setEditIsVisible] = useState<boolean>(true)
 
@@ -70,8 +68,7 @@ export default function Blog() {
   }
 
   if (loading) return <div className="h-screen flex items-center justify-center">Loading content...</div>
-
-
+  
   return (
     <>
       <div className="hidden h-full flex-col md:flex">

@@ -1,10 +1,10 @@
 import React from 'react'
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { AdminHeader } from '~/components/admin/header'
 import { AdminSidebar } from '~/components/admin/sidebar'
 
 interface AdminLayoutProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 // this layout is used for the admin pages, all pages within the directory inherit the layout

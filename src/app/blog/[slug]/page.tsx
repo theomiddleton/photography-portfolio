@@ -10,33 +10,22 @@ export default async function Blog({ params }: { params: { slug: string } }) {
 	const slugAsNumber = Number(params.slug);
 
     const result = await db.select({
-        id: blogs.id,
-        title: blogs.title,
-        content: blogs.content,
+      id: blogs.id,
+      title: blogs.title,
+      content: blogs.content,
     }).from(blogs).where(eq(blogs.id, slugAsNumber))
-
-    const posts = result.map((post) => ({
-		slug: post.id,
-    }))
-
-	const images = await db.select({
-		fileUrl: blogImages.fileUrl,
-	}).from(blogImages).where(eq(blogImages.blogId, slugAsNumber))
 
 	const mainContent = useRemarkSync(result[0].content)
 
 	return (
 		<main>
 		<SiteHeader />
-		<main className="flex min-h-screen flex-col items-center bg-white text-black">
-		<div>
-			<h1 className='scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl'>{result[0].title}</h1>
-			<span></span>
-			<p className='prose'>{mainContent}</p>
-		</div>
-		</main>
+  		<div className="flex min-h-screen flex-col items-center bg-white text-black">
+   			<h1 className='scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl'>{result[0].title}</h1>
+   			<span></span>
+   			<p className='prose'>{mainContent}</p>
+  		</div>
 		</main>
 	)
 }
 
-export const runtime = 'edge'

@@ -5,7 +5,7 @@ import { useFormState } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { X } from 'lucide-react'
-import { z } from 'zod'
+import type { z } from 'zod'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 import {
   Form,
