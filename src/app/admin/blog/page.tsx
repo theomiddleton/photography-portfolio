@@ -5,17 +5,39 @@ import ReactMarkdown from 'react-markdown'
 import { Textarea } from '~/components/ui/textarea'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
+
+import { savePost } from '~/lib/actions/blog'
+
+interface FeedbackState {
+  type: 'success' | 'error' | null
+  message: string
+}
 
 export default function BlogAdmin() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [feedback, setFeedback] = useState<FeedbackState>({ type: null, message: '' })
 
-  const handlePublish = () => {
-    console.log('pub', { title, content })
-  }
-
-  const handleSaveDraft = () => {
-    console.log('draft', { title, content })
+  const handleSave = async (isDraft: boolean) => {
+    setIsLoading(true)
+    setFeedback({ type: null, message: '' })
+    try {
+      const result = await savePost({ title, content, isDraft })
+      if (result.success) {
+        setFeedback({ type: 'success', message: result.message })
+      } else {
+        setFeedback({ type: 'error', message: result.message })
+      }
+    } catch (error) {
+      setFeedback({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'An error occurred. Please try again.' 
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -34,7 +56,8 @@ export default function BlogAdmin() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your post content in Markdown"
-              className="mt-1 h-[calc(100vh-300px)]"
+              className="mt-1 h-[calc(100vh-400px)]"
+              aria-label="Post content"
             />
           </div>
           <div>
@@ -47,16 +70,23 @@ export default function BlogAdmin() {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter your post title"
               className="mt-1"
+              aria-label="Post title"
             />
           </div>
           <div className="flex space-x-2">
-            <Button onClick={handleSaveDraft} variant="outline" className="flex-1">
-              Save Draft
+            <Button onClick={() => handleSave(true)} variant="outline" disabled={isLoading} className="flex-1">
+              {isLoading ? 'Saving...' : 'Save Draft'}
             </Button>
-            <Button onClick={handlePublish} className="flex-1">
-              Publish
+            <Button onClick={() => handleSave(false)} disabled={isLoading} className="flex-1">
+              {isLoading ? 'Publishing...' : 'Publish'}
             </Button>
           </div>
+          {feedback.type && (
+            <Alert variant={feedback.type === 'success' ? 'default' : 'destructive'}>
+              <AlertTitle>{feedback.type === 'success' ? 'Success' : 'Error'}</AlertTitle>
+              <AlertDescription>{feedback.message}</AlertDescription>
+            </Alert>
+          )}
         </div>
         <div className="border rounded-lg p-4 prose prose-sm max-w-none h-[calc(100vh-100px)] overflow-auto">
           <h1>{title}</h1>
