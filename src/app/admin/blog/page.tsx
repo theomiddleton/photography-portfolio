@@ -1,232 +1,68 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { Remark } from 'react-remark'
 
-import { Button } from '~/components/ui/button'
-import { Label } from '~/components/ui/label'
-import { Separator } from '~/components/ui/separator'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '~/components/ui/tabs'
+import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { Textarea } from '~/components/ui/textarea'
 import { Input } from '~/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from '~/components/ui/dialog'
+import { Button } from '~/components/ui/button'
 
-import { BlogPosts } from '~/components/blog-posts'
+export default function BlogAdmin() {
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
 
-import { blogEdit, blogEditFetch, blogWrite } from '~/lib/actions/blog'
-
-export default function Blog() {
-
-  const [title, setTitle] = useState<string>('')
-  const [content, setContent] = useState<string>('')
-  const [isVisible, setIsVisible] = useState<boolean>(true)
-
-  const [editTitle] = useState<string>('')
-  const [editContent, setEditContent] = useState<string>('')
-  const [editIsVisible, setEditIsVisible] = useState<boolean>(true)
-
-  const [editId, setEditId] = useState<number>(1)
-  const [loading, setLoading] = useState<boolean>(true)
-  const [activeTab, setActiveTab] = useState('write')
-  
-  const handleCheckboxChange = (event) => {
-    setIsVisible(event.target.checked)
+  const handlePublish = () => {
+    console.log('pub', { title, content })
   }
 
-  const handleEditCheckboxChange = (event) => {
-    setEditIsVisible(event.target.checked)
+  const handleSaveDraft = () => {
+    console.log('draft', { title, content })
   }
 
-  useEffect(() => {
-    setLoading(false)
-  }, [])
-
-  const handleEdit = async (event) => {
-    event.preventDefault()
-    if (editId) { 
-      setLoading(true)
-      const data = await blogEditFetch(editId) as { id: number; title: string; content: string; visible: boolean}
-      setEditContent(data.content)
-      setEditIsVisible(data.visible)
-      setLoading(false)
-    } else {
-      console.error("No post selected for editing")
-    }
-  }
-
-  if (loading) return <div className="h-screen flex items-center justify-center">Loading content...</div>
-  
   return (
-    <>
-      <div className="hidden h-full flex-col md:flex">
-        <div className="container flex flex-col items-start justify-between space-y-2 py-4 sm:flex-row sm:items-center sm:space-y-0 md:h-16">
-          <h2 className="text-lg font-semibold">Blog</h2>
-          <div className="ml-auto flex w-full space-x-2 sm:justify-end">
-            <div className="hidden space-x-2 md:flex">
-            </div>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">
+        Blog Editor
+      </h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+              Post Content
+            </label>
+            <Textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write your post content in Markdown"
+              className="mt-1 h-[calc(100vh-300px)]"
+            />
+          </div>
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+              Post Title
+            </label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter your post title"
+              className="mt-1"
+            />
+          </div>
+          <div className="flex space-x-2">
+            <Button onClick={handleSaveDraft} variant="outline" className="flex-1">
+              Save Draft
+            </Button>
+            <Button onClick={handlePublish} className="flex-1">
+              Publish
+            </Button>
           </div>
         </div>
-        <Separator />
-        <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="write" className="flex-1">
-          <div className="container h-full py-6">
-              <span className="text-sm font-medium leading-none">
-                Mode
-              </span>
-              <div className="flex items-center space-x-2">
-                <TabsList className="grid grid-cols-2 pd-2">
-                  <TabsTrigger value="write">Write</TabsTrigger>
-                  <TabsTrigger value="edit">Edit</TabsTrigger>
-                </TabsList>
-              </div>
-            <div className="grid h-full items-stretch gap-6 md:grid-cols-1 mt-4">
-              <div className="hidden flex-col space-y-4 sm:flex md:order-2">
-              </div>
-              <div className="md:order-1">
-                <TabsContent value="write" className="mt-0 border-0 p-0">
-                  <div className="flex flex-col space-y-4">
-                    <div className="grid h-full gap-6 lg:grid-cols-2">
-                      <div className="flex flex-col space-y-4">
-                        <div className="flex flex-1 flex-col space-y-2">
-                          <Label>Post</Label>
-                          <Textarea
-                            id="input"
-                            value={content}
-                            placeholder="Write your blog post here"
-                            className="flex-1 lg:min-h-[580px]"
-                            onChange={({ currentTarget }) => setContent(currentTarget.value)}
-                          />
-                        </div>
-                        <div className="flex flex-col space-y-2">
-                          <Label htmlFor="instructions">Post Title</Label>
-                          <Textarea
-                            id="title"
-                            placeholder="Write your title here"
-                            value={title}
-                            onChange={({ currentTarget }) => setTitle(currentTarget.value)}
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-[21px] min-h-[400px] rounded-md border bg-muted lg:min-h-[700px] prose">
-                        <Remark>
-                          {content}
-                        </Remark>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button onClick={async () => {
-                        await blogWrite(content, title, isVisible)
-                      }}>Publish</Button>
-                      <input 
-                        className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                        type="checkbox" 
-                        id="visible" 
-                        checked={isVisible} 
-                        onChange={handleCheckboxChange}
-                      />
-                        <label
-                          htmlFor="visible"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          Visible?
-                        </label>
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="edit" className="mt-0 border-0 p-0">
-                  <Label>Edit</Label>
-                  <div className="px-4 py-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">Select Post To Edit</Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                          <DialogTitle>Select Post To Edit</DialogTitle>
-                          <DialogDescription>
-                            Click a post to edit it 
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                          <div className="items-center">
-                            <BlogPosts setEditId={setEditId} />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="id" className="text-right">
-                              Id
-                            </Label>
-                            <Input
-                              id="id"
-                              value={editId}
-                              className="col-span-3"
-                              onChange={({ currentTarget }) => setEditId(Number(currentTarget.value))}
-                            />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <DialogClose asChild>
-                            <Button type="submit" onClick={(event) => {
-                              handleEdit(event)
-                              event.preventDefault()
-                            }}>
-                                Edit
-                            </Button>
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  <div className="flex flex-col space-y-4">
-                    <div className="grid h-full grid-rows-2 gap-6 lg:grid-cols-2 lg:grid-rows-1">
-                      <Textarea
-                        className="h-full min-h-[300px] lg:min-h-[700px] xl:min-h-[700px]"
-                        id="input"
-                        value={editContent}
-                        onChange={({ currentTarget }) => setEditContent(currentTarget.value)}
-                      />
-                      <div className="rounded-md border bg-muted prose">
-                        <Remark>
-                          {editContent}
-                        </Remark>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button onClick={async () => {
-                        await blogEdit(editId, editContent, editTitle, editIsVisible)
-                      }}>Save</Button>
-                      <input 
-                        className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                        type="checkbox" 
-                        id="visible" 
-                        checked={editIsVisible} 
-                        onChange={handleEditCheckboxChange}
-                      />
-                      <label
-                          htmlFor="visible"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          Visible?
-                      </label>
-                    </div>
-                  </div>
-                </TabsContent>
-              </div>
-            </div>
-          </div>
-        </Tabs>
+        <div className="border rounded-lg p-4 prose prose-sm max-w-none h-[calc(100vh-100px)] overflow-auto">
+          <h1>{title}</h1>
+          <ReactMarkdown>{content}</ReactMarkdown>
+        </div>
       </div>
-    </>
+    </div>
   )
 }
