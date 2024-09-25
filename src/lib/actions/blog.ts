@@ -3,12 +3,20 @@
 import { z } from 'zod'
 
 const PostSchema = z.object({
+  id: z.number().optional(),
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
   isDraft: z.boolean()
 })
 
-type PostData = z.infer<typeof PostSchema>
+export type PostData = z.infer<typeof PostSchema>
+
+export interface Post {
+  id: number
+  title: string
+  content: string
+  isDraft: boolean
+}
 
 export async function savePost(data: PostData) {
   try {
@@ -35,4 +43,19 @@ export async function savePost(data: PostData) {
       message: 'An unexpected error occurred' 
     }
   }
+}
+
+export async function loadDraft(id: number): Promise<PostData | null> {
+
+  return {
+    id,
+    title: 'Title',
+    content: 'Sample content \n\n newline\n # Heading',
+    isDraft: true
+  }
+}
+
+export async function deletePost(id: number) {
+  console.log('Deleting post:', id)
+  return { success: true, message: 'Post deleted successfully' }
 }
