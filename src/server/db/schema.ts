@@ -17,20 +17,9 @@ export const blogs = pgTable('blogs', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 256 }).notNull(),
   content: text('content').notNull(),
-  visible: boolean('visible').default(false).notNull(),
+  isDraft: boolean('visible').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
-  tempId: varchar('tempId', { length: 256 }),
-})
-
-export const blogImages = pgTable('blogImages', {
-  id: serial('id').primaryKey(),
-  blogId: serial('blog_id').references(() => blogs.id),
-  imageId: varchar('imageId', { length: 256 }).notNull(),
-  fileName: varchar('fileName', { length: 256 }).notNull(),
-  fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
-  description: varchar('description', { length: 256 }),
-  uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),
 })
 
 export const about = pgTable('about', {

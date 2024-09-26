@@ -4,6 +4,7 @@ import { z } from 'zod'
 
 import { db } from '~/server/db'
 import { blogs } from '~/server/db/schema'
+import type { Post } from '~/lib/types/Post'
 
 const PostSchema = z.object({
   id: z.number().optional(),
@@ -13,8 +14,6 @@ const PostSchema = z.object({
 })
 
 export type PostData = z.infer<typeof PostSchema>
-
-import type { Post } from '~/lib/types/Post'
 
 export async function savePost(data: PostData) {
   try {
