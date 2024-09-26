@@ -14,13 +14,7 @@ const PostSchema = z.object({
 
 export type PostData = z.infer<typeof PostSchema>
 
-export interface Post {
-  id: number
-  title: string
-  content: string
-  isDraft: boolean
-  createdAt: Date
-}
+import type { Post } from '~/lib/types/Post'
 
 export async function savePost(data: PostData) {
   try {

@@ -34,13 +34,7 @@ import { MoreHorizontal } from 'lucide-react'
 import { DeletePostDialog } from '~/components/blog/blog-dialogs'
 import { deletePost, getPosts } from '~/lib/actions/blog'
 
-interface Post {
-  id: number
-  title: string
-  content: string
-  isDraft: boolean
-  createdAt: Date
-}
+import type { Post } from '~/lib/types/Post'
 
 function truncateText(text: string, maxLength: number) {
   if (text.length <= maxLength) return text
