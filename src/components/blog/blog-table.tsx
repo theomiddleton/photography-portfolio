@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import {
   Table,
   TableBody,
@@ -25,7 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu' 
+} from '~/components/ui/dropdown-menu'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { MoreHorizontal } from 'lucide-react'
@@ -40,30 +41,6 @@ interface Post {
   isDraft: boolean
   createdAt: Date
 }
-
-const posts = [
-  {
-    id: 1,
-    title: 'The quick brown fox jumps over the lazy dog',
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec turpis nec nunc tincidunt ultricies. Nullam nec turpis nec nunc tincidunt ultricies. Nullam nec turpis nec nunc tincidunt ultricies.',
-    draft: false,
-    createdAt: '2024-09-01T12:00:00Z',
-  },
-  {
-    id: 2,
-    title: 'The quick brown fox jumps over the lazy dog',
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec turpis nec nunc tincidunt ultricies. Nullam nec turpis nec nunc tincidunt ultricies. Nullam nec turpis nec nunc tincidunt ultricies.',
-    draft: true,
-    createdAt: '2024-09-01T12:00:00Z',
-  },
-  {
-    id: 3,
-    title: 'Text other than just the title',
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec turpis nec nunc tincidunt ultricies. Nullam nec turpis nec nunc tincidunt ultricies. Nullam nec turpis nec nunc tincidunt ultricies.',
-    draft: false,
-    createdAt: '2024-09-01T12:00:00Z',
-  }
-]
 
 function truncateText(text: string, maxLength: number) {
   if (text.length <= maxLength) return text
@@ -109,28 +86,43 @@ export function BlogsTable() {
           </TableHeader>
           <TableBody>
             {posts.map((post) => (
-              <TableRow key={post.id}>
-                <TableCell className="font-medium">{post.id}</TableCell>
-                <TableCell>{truncateText(post.title, 30)}</TableCell>
-                <TableCell>{truncateText(post.content, 50)}</TableCell>
-                <TableCell>
-                  <Badge variant={post.isDraft ? 'secondary' : 'outline'}>
-                    {post.isDraft ? 'Draft' : 'Published'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="hidden md:table-cell">
-                  {new Date(post.createdAt).toLocaleString('en-GB', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </TableCell>
+              <TableRow 
+                key={post.id}
+                className="group cursor-pointer hover:bg-muted/50 transition-colors"
+              >
+                <Link
+                  href={`/admin/blog/draft/${post.id}`}
+                  className="contents"
+                  aria-label={`Edit ${post.title}`}
+                >
+                  <TableCell className="font-medium">{post.id}</TableCell>
+                  <TableCell>{truncateText(post.title, 30)}</TableCell>
+                  <TableCell>{truncateText(post.content, 50)}</TableCell>
+                  <TableCell>
+                    <Badge variant={post.isDraft ? 'secondary' : 'outline'}>
+                      {post.isDraft ? 'Draft' : 'Published'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {new Date(post.createdAt).toLocaleString('en-GB', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </TableCell>
+                </Link>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
+                      <Button 
+                        aria-haspopup="true" 
+                        size="icon" 
+                        variant="ghost"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.preventDefault()}
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                         <span className="sr-only">Toggle menu</span>
                       </Button>
@@ -138,9 +130,9 @@ export function BlogsTable() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem asChild>
-                        <a href={`/admin/blog/draft/${post.id}`}>
+                        <Link href={`/admin/blog/draft/${post.id}`}>
                           Edit
-                        </a>
+                        </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setPostToDelete(post)}>
                         Delete post
@@ -148,7 +140,6 @@ export function BlogsTable() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
-                
               </TableRow>
             ))}
           </TableBody>
