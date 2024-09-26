@@ -16,6 +16,7 @@ export interface Post {
   title: string
   content: string
   isDraft: boolean
+  createdAt: Date
 }
 
 export async function savePost(data: PostData) {
@@ -58,4 +59,12 @@ export async function loadDraft(id: number): Promise<PostData | null> {
 export async function deletePost(id: number) {
   console.log('Deleting post:', id)
   return { success: true, message: 'Post deleted successfully' }
+}
+
+export async function getPosts(): Promise<Post[]> {
+  return [
+    { id: 1, title: 'Post 1', content: 'Content 1', isDraft: false, createdAt: new Date() },
+    { id: 2, title: 'Post 2', content: 'Content 2', isDraft: false, createdAt: new Date() },
+    { id: 3, title: 'Post 3', content: 'Content 3', isDraft: true, createdAt: new Date() },
+  ]
 }

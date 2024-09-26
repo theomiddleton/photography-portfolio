@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Table,
   TableBody,
@@ -31,13 +31,13 @@ import { Button } from '~/components/ui/button'
 import { MoreHorizontal } from 'lucide-react'
 
 import { DeletePostDialog } from '~/components/blog/blog-dialogs'
-import { deletePost } from '~/lib/actions/blog'
+import { deletePost, getPosts } from '~/lib/actions/blog'
 
 interface Post {
   id: number
   title: string
   content: string
-  draft: boolean
+  isDraft: boolean
   createdAt: Date
 }
 
@@ -74,9 +74,18 @@ export function BlogsTable() {
   const [posts, setPosts] = useState<Post[]>([])
   const [postToDelete, setPostToDelete] = useState<Post | null>(null)
   
+  useEffect(() => {
+    fetchPosts()
+  }, [])
+  
+  const fetchPosts = async () => {
+    const fetchedPosts = await getPosts()
+    setPosts(fetchedPosts)
+  }
+  
   const handleDeletePost = async (postId: number) => {
     await deletePost(postId)
-    // setPosts(prevPosts => prevPosts.filter(post => post.id !== post))
+    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId))
     setPostToDelete(null)
   }
   
@@ -105,8 +114,8 @@ export function BlogsTable() {
                 <TableCell>{truncateText(post.title, 30)}</TableCell>
                 <TableCell>{truncateText(post.content, 50)}</TableCell>
                 <TableCell>
-                  <Badge variant={post.draft ? 'secondary' : 'outline'}>
-                    {post.draft ? 'Draft' : 'Published'}
+                  <Badge variant={post.isDraft ? 'secondary' : 'outline'}>
+                    {post.isDraft ? 'Draft' : 'Published'}
                   </Badge>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
