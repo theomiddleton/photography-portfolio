@@ -17,9 +17,7 @@ const nextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: [
-        'https://verbose-memory-xp4jpw9q45v26xpv-3000.app.github.dev', 
-        '*.app.github.dev', 
-        'verbose-memory-xp4jpw9q45v26xpv-3000.app.github.dev',
+        '.app.github.dev', 
         'http://localhost:3000'
       ],
     },
