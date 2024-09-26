@@ -2,6 +2,7 @@
 
 import { z } from 'zod'
 
+
 const PostSchema = z.object({
   id: z.number().optional(),
   title: z.string().min(1, 'Title is required'),
@@ -11,13 +12,7 @@ const PostSchema = z.object({
 
 export type PostData = z.infer<typeof PostSchema>
 
-export interface Post {
-  id: number
-  title: string
-  content: string
-  isDraft: boolean
-  createdAt: Date
-}
+import type { Post } from '~/lib/types/Post'
 
 export async function savePost(data: PostData) {
   try {
