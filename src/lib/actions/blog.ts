@@ -2,6 +2,9 @@
 
 import { z } from 'zod'
 
+import { db } from '~/server/db'
+import { blogs } from '~/server/db/schema'
+
 const PostSchema = z.object({
   id: z.number().optional(),
   title: z.string().min(1, 'Title is required'),
@@ -62,9 +65,6 @@ export async function deletePost(id: number) {
 }
 
 export async function getPosts(): Promise<Post[]> {
-  return [
-    { id: 1, title: 'Post 1', content: 'Content 1', isDraft: false, createdAt: new Date() },
-    { id: 2, title: 'Post 2', content: 'Content 2', isDraft: false, createdAt: new Date() },
-    { id: 3, title: 'Post 3', content: 'Content 3', isDraft: true, createdAt: new Date() },
-  ]
+  const posts: Post[] = await db.select().from(blogs)
+  return posts
 }
