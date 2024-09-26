@@ -138,7 +138,7 @@ export function BlogsTable() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem asChild>
-                        <a href={`/admin/store/${post.id}`}>
+                        <a href={`/admin/blog/draft/${post.id}`}>
                           Edit
                         </a>
                       </DropdownMenuItem>
