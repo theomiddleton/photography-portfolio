@@ -2,7 +2,6 @@
 import React, { useState } from 'react'
 import { Icons } from '~/components/ui/icons'
 import { Button } from '~/components/ui/button'
-import { useRouter } from 'next/navigation' 
 
 import {
   Card,
@@ -19,26 +18,24 @@ interface UploadImgProps {
   bucket: 'image' | 'blog'
 }
 
-export function UploadImg({ bucket }: UploadImgProps) {
-  const router = useRouter()
+interface UploadedImage {
+  name: string
+  url: string
+}
 
+export function UploadImg({ bucket }: UploadImgProps) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
-  const [name, setName] = useState('') 
-  const [description, setDescription] = useState('') 
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
   const [tags, setTags] = useState('')
   const [isSale, setIsSale] = useState<boolean>(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
-  const [uploadedFileUrl, setUploadedFileUrl] = useState('')
-
-  const handleEditCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setIsSale(event.target.checked)
-  }
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
-      const currentFile = event.target.files[0]
-      setFile(currentFile)
+      setFile(event.target.files[0])
     }
   }
 
@@ -79,29 +76,28 @@ export function UploadImg({ bucket }: UploadImgProps) {
         },
         body: file,
       })
-    if (uploadResponse.ok) {
-      console.log('R2 Upload Success:', uploadResponse)
-      console.log('File Url', fileUrl)
-      setUploadSuccess(true)
-      setUploadedFileUrl(fileUrl)
-      router.refresh()
-    } else {
-      console.error('R2 Upload Error:', uploadResponse)
-      alert('Upload failed.')
-    }
+      if (uploadResponse.ok) {
+        setUploadedImages(prev => [...prev, { name, url: fileUrl }])
+        setUploadSuccess(true)
+        // Clear the form
+        setFile(null)
+        setName('')
+        setDescription('')
+        setTags('')
+        setIsSale(false)
+      } else {
+        console.error('R2 Upload Error:', uploadResponse)
+        alert('Upload failed.')
+      }
     } else {
       alert('Failed to get pre-signed URL.')
     }
     setUploading(false)
   }
 
-  if (uploadSuccess && bucket === 'image') {
-    console.log('This should copy to clipboard')
-  }
-  
-  const copyToClipboard = () => {
-    console.log('Copying to clipboard:', uploadedFileUrl)
-    const markdownText = `![${name}](${uploadedFileUrl})`
+  const copyToClipboard = (index: number) => {
+    const imageUrl = uploadedImages[index].url
+    const markdownText = `![${uploadedImages[index].name}](${imageUrl})`
     navigator.clipboard.writeText(markdownText).then(() => {
       alert('Copied to clipboard!')
     }, (err) => {
@@ -129,7 +125,7 @@ export function UploadImg({ bucket }: UploadImgProps) {
                 <span>Upload a file</span>
                 <input
                   type="file"
-                  accept={ 'image/jpeg, image/png' }
+                  accept={'image/jpeg, image/png'}
                   id="file-upload"
                   name="file-upload"
                   className="sr-only"
@@ -138,7 +134,7 @@ export function UploadImg({ bucket }: UploadImgProps) {
               </label>
             </div>
             <p className="text-xs leading-5 text-gray-600">
-              {file?.name ? file.name : 'JPEG or PNG up to 100MB' }
+              {file?.name ? file.name : 'JPEG or PNG up to 100MB'}
             </p>
           </div>
         </div>
@@ -165,7 +161,7 @@ export function UploadImg({ bucket }: UploadImgProps) {
                   type="checkbox" 
                   id="sale" 
                   checked={isSale} 
-                  onChange={handleEditCheckboxChange}
+                  onChange={(e) => setIsSale(e.target.checked)}
                 />
               </div>
             )}
@@ -173,21 +169,44 @@ export function UploadImg({ bucket }: UploadImgProps) {
         </form>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button variant="outline">Cancel</Button>
+        <Button variant="outline" onClick={() => {
+          setFile(null)
+          setName('')
+          setDescription('')
+          setTags('')
+          setIsSale(false)
+        }}>
+          Clear
+        </Button>
         <Button type="submit" onClick={handleUpload} disabled={uploading}>
           {uploading ? 'Uploading...' : 'Upload'}
         </Button>
       </CardFooter>      
       
       {uploadSuccess && (
-        <Alert className="mt-4">
-          <AlertDescription className="flex justify-between">
-            Upload successful! 
-            <Button onClick={copyToClipboard} className="ml-2">
-              Copy Markdown to Clipboard
-            </Button>
-          </AlertDescription>
-        </Alert>
+        <div className="px-6 pb-4">
+          <Alert>
+            <AlertDescription>
+              Upload successful! {uploadedImages.length} image(s) uploaded.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+      
+      {uploadedImages.length > 0 && (
+        <div className="mt-4 px-6 pb-4 border-t">
+          <h3 className="text-lg font-semibold mb-2 pt">Uploaded Images</h3>
+          <ul className="space-y-2">
+            {uploadedImages.map((img, index) => (
+              <li key={index} className="flex justify-between items-center">
+                <span>{img.name}</span>
+                <Button onClick={() => copyToClipboard(index)} size="sm">
+                  Copy Markdown
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </Card>
   )
