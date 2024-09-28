@@ -1,7 +1,4 @@
-import { DeleteObjectCommand } from '@aws-sdk/client-s3'
-import { r2 } from '~/lib/r2'
 
-import { eq } from 'drizzle-orm' 
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 

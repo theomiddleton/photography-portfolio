@@ -22,6 +22,19 @@ export const blogs = pgTable('blogs', {
   modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
 
+export const blogImgData = pgTable('blogImgData', {
+  id: serial('id').primaryKey(),
+  blogId: integer('blogId').references(() => blogs.id),
+  imageId: integer('imageId').references(() => imageData.id),
+  uuid: varchar('uuid', { length: 36 }).notNull(),
+  fileName: varchar('fileName', { length: 256 }).notNull(),
+  fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
+  name: varchar('name', { length: 256 }).notNull(),
+  description: varchar('description', { length: 256 }),
+  tags: varchar('tags', { length: 256 }),
+  uploadedAt: timestamp('uploadedAt').defaultNow(),
+})
+
 export const about = pgTable('about', {
   id: serial('id').primaryKey(),
   content: text('content').notNull(),

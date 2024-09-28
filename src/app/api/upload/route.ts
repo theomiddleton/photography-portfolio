@@ -6,8 +6,7 @@ import { siteConfig } from '~/config/site'
 
 import { eq, sql } from 'drizzle-orm' 
 import { db } from '~/server/db'
-import { imageData, storeImages } from '~/server/db/schema'
-
+import { imageData, storeImages, blogImgData } from '~/server/db/schema'
 import { NextResponse } from 'next/server'
 
 import { getSession } from '~/lib/auth/auth'
@@ -21,9 +20,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'User is not authenticated, or is not authorized.' }, { status: 401 })
   }
   
-  // Get the file name, name, description, tags, and isSale status from the request
-  const { filename, name, description, tags, isSale } = await request.json()
-  console.log(filename, ',', name, ',', description, ',', tags, ',', isSale)
+  const { filename, name, description, tags, isSale, bucket } = await request.json()
+  console.log(filename, ',', name, ',', description, ',', tags, ',', isSale, ',', bucket)
 
   try {
     // take the file extention from the filename
@@ -31,58 +29,64 @@ export async function POST(request: Request) {
     // create a unique key name for the image
     const keyName = uuidv4() 
     
-    // create a new PutObjectCommand with the bucket name and key name
+    // Determine which bucket to use based on the bucket prop
+    const bucketName = bucket === 'image' 
+      ? process.env.R2_IMAGE_BUCKET_NAME 
+      : process.env.R2_BLOG_BUCKET_NAME
+
     const command = new PutObjectCommand({
-      Bucket: process.env.R2_IMAGE_BUCKET_NAME,
+      Bucket: bucketName,
       Key: keyName + '.' + fileExtension,
     }) 
-    // get a signed URL for the PutObjectCommand
+
     const url = await getSignedUrl(r2, command, { expiresIn: 60 }) 
-    //console.log('server side url', url)
-    // get the new filename with the key name and file extension
+
     const newFileName = keyName + '.' + fileExtension
-    // create the file URL with the bucket URL and new file name
-    const fileUrl =`${siteConfig.bucketUrl}/${newFileName}`
-    console.log(fileUrl)
-    // insert the image data into the database
-    await db.insert(imageData).values({
-      uuid: keyName, 
-      fileName: newFileName, 
-      fileUrl: fileUrl,
-      name: name,
-      description: description,
-      tags: tags,
-    })
+    const fileUrl = `${bucket === 'image' ? siteConfig.imageBucketUrl : siteConfig.blogBucketUrl}/${newFileName}`
 
-    console.log('isSale status ', isSale)
-    
-    // fetch that image data from the database
-    const result = await db
-      .select({
-        id: imageData.id,
-        fileUrl: imageData.fileUrl,
+    if (bucket === 'image') {
+      await db.insert(imageData).values({
+        uuid: keyName, 
+        fileName: newFileName, 
+        fileUrl: fileUrl,
+        name: name,
+        description: description,
+        tags: tags,
       })
-      .from(imageData)
-      .where(eq(imageData.uuid, sql.placeholder('uuid')))
-      .execute({ uuid: keyName })
-    
-    // insert the store image data into the database
-    await db.insert(storeImages).values({
-      imageId: result[0].id,
-      imageUuid: keyName, 
-      fileUrl: fileUrl,
-      price: 100,
-      stock: 10,
-      visible: isSale,
-      //change to a componetnt within the image upload to set stock and price
-    })
+      
+      const result = await db
+        .select({
+          id: imageData.id,
+          fileUrl: imageData.fileUrl,
+        })
+        .from(imageData)
+        .where(eq(imageData.uuid, sql.placeholder('uuid')))
+        .execute({ uuid: keyName })
+      
+      if (isSale) {
+        await db.insert(storeImages).values({
+          imageId: result[0].id,
+          imageUuid: keyName, 
+          fileUrl: fileUrl,
+          price: 100,
+          stock: 10,
+          visible: true,
+        })
+      }
+    } else if (bucket === 'blog') {
+      await db.insert(blogImgData).values({
+        uuid: keyName,
+        fileName: newFileName,
+        fileUrl: fileUrl,
+        name: name,
+        description: description,
+        tags: tags,
+      })
+    }
 
-    // return the signedUrl to the client to upload the image
     return Response.json({ url })
   } catch (error) {
-    // otherwise, return an error message
     console.error(error) 
     return Response.json({ error: error.message })
   }
 }
-
