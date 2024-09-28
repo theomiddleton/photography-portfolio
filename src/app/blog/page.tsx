@@ -4,17 +4,15 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/componen
 import { db } from '~/server/db'
 import { blogs } from '~/server/db/schema'
 
-interface Post {
-  id: number
-  title: string
-  content: string
-  createdAt: Date
-}
+import type { Post } from '~/lib/types/Post'
 
 export default async function Blog() {
-  const posts: Post[] = await db.select().from(blogs)
+  const allPosts: Post[] = await db.select().from(blogs)
   
-  if (posts.length <= 0) {
+  // Filter out draft posts
+  const publishedPosts = allPosts.filter(post => !post.isDraft)
+  
+  if (publishedPosts.length <= 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Latest Blog Posts</h1>
@@ -40,7 +38,7 @@ export default async function Blog() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Latest Blog Posts</h1>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
+          {publishedPosts.map((post) => (
             <Card key={post.id} className="flex flex-col">
               <CardHeader>
                 <CardTitle className="text-xl">
