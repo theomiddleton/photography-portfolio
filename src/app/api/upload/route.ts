@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   }
   
   const { filename, name, description, tags, isSale, bucket } = await request.json()
-  console.log(filename, ',', name, ',', description, ',', tags, ',', isSale, ',', bucket)
+  console.log('Passed to API route:', filename, ',', name, ',', description, ',', tags, ',', isSale, ',', bucket)
 
   try {
     // take the file extention from the filename
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     // Determine which bucket to use based on the bucket prop
     const bucketName = bucket === 'image' 
       ? process.env.R2_IMAGE_BUCKET_NAME 
-      : process.env.R2_BLOG_BUCKET_NAME
+      : process.env.R2_BLOG_IMG_BUCKET_NAME
 
     const command = new PutObjectCommand({
       Bucket: bucketName,
@@ -43,6 +43,8 @@ export async function POST(request: Request) {
 
     const newFileName = keyName + '.' + fileExtension
     const fileUrl = `${bucket === 'image' ? siteConfig.imageBucketUrl : siteConfig.blogBucketUrl}/${newFileName}`
+    
+    console.log('fileUrl:', fileUrl)
 
     if (bucket === 'image') {
       await db.insert(imageData).values({
@@ -74,17 +76,18 @@ export async function POST(request: Request) {
         })
       }
     } else if (bucket === 'blog') {
-      await db.insert(blogImgData).values({
-        uuid: keyName,
-        fileName: newFileName,
-        fileUrl: fileUrl,
-        name: name,
-        description: description,
-        tags: tags,
-      })
+      console.log('Inserting blog image data')
+      // await db.insert(blogImgData).values({
+      //   uuid: keyName,
+      //   fileName: newFileName,
+      //   fileUrl: fileUrl,
+      //   name: name,
+      //   description: description,
+      //   tags: tags,
+      // })
     }
 
-    return Response.json({ url })
+    return Response.json({ url, fileUrl })
   } catch (error) {
     console.error(error) 
     return Response.json({ error: error.message })

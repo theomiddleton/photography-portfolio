@@ -26,6 +26,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
 }
 
 export default withVercelToolbar()(withAxiom(nextConfig))

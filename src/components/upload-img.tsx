@@ -13,6 +13,7 @@ import {
 } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
+import { Alert, AlertDescription } from '~/components/ui/alert'
 
 interface UploadImgProps {
   bucket: 'image' | 'blog'
@@ -27,6 +28,8 @@ export function UploadImg({ bucket }: UploadImgProps) {
   const [description, setDescription] = useState('') 
   const [tags, setTags] = useState('')
   const [isSale, setIsSale] = useState<boolean>(false)
+  const [uploadSuccess, setUploadSuccess] = useState(false)
+  const [uploadedFileUrl, setUploadedFileUrl] = useState('')
 
   const handleEditCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIsSale(event.target.checked)
@@ -67,7 +70,7 @@ export function UploadImg({ bucket }: UploadImgProps) {
     )
     
     if (response.ok) {
-      const { url } = await response.json()
+      const { url, fileUrl } = await response.json()
       console.log('Got pre-signed URL:', url)
       const uploadResponse = await fetch(url, {
         method: 'PUT',
@@ -77,7 +80,10 @@ export function UploadImg({ bucket }: UploadImgProps) {
         body: file,
       })
     if (uploadResponse.ok) {
-      alert('Upload successful!')
+      console.log('R2 Upload Success:', uploadResponse)
+      console.log('File Url', fileUrl)
+      setUploadSuccess(true)
+      setUploadedFileUrl(fileUrl)
       router.refresh()
     } else {
       console.error('R2 Upload Error:', uploadResponse)
@@ -89,10 +95,24 @@ export function UploadImg({ bucket }: UploadImgProps) {
     setUploading(false)
   }
 
+  if (uploadSuccess && bucket === 'image') {
+    console.log('This should copy to clipboard')
+  }
+  
+  const copyToClipboard = () => {
+    console.log('Copying to clipboard:', uploadedFileUrl)
+    const markdownText = `![${name}](${uploadedFileUrl})`
+    navigator.clipboard.writeText(markdownText).then(() => {
+      alert('Copied to clipboard!')
+    }, (err) => {
+      console.error('Could not copy text: ', err)
+    })
+  }
+
   return (
     <Card className="mt-2 justify-center w-full">
       <CardHeader>
-        <CardTitle>Upload {bucket === 'image' ? 'Image' : 'Blog Post'}</CardTitle>
+        <CardTitle>Upload {bucket === 'image' ? 'Image' : 'Blog Image'}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
@@ -157,7 +177,18 @@ export function UploadImg({ bucket }: UploadImgProps) {
         <Button type="submit" onClick={handleUpload} disabled={uploading}>
           {uploading ? 'Uploading...' : 'Upload'}
         </Button>
-      </CardFooter>
+      </CardFooter>      
+      
+      {uploadSuccess && (
+        <Alert className="mt-4">
+          <AlertDescription className="flex justify-between">
+            Upload successful! 
+            <Button onClick={copyToClipboard} className="ml-2">
+              Copy Markdown to Clipboard
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
     </Card>
   )
 }

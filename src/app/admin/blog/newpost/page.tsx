@@ -8,13 +8,14 @@ import { Button } from '~/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 
 import { savePost } from '~/lib/actions/blog'
+import { UploadImg } from '~/components/upload-img'
 
 interface FeedbackState {
   type: 'success' | 'error' | null
   message: string
 }
 
-export default function BlogAdmin() {
+export default function NewBlogPost() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -41,25 +42,12 @@ export default function BlogAdmin() {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 min-h-[150vh]">
       <h1 className="text-2xl font-bold mb-4">
         Blog Editor
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-4">
-          <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-              Post Content
-            </label>
-            <Textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write your post content in Markdown"
-              className="mt-1 h-[calc(100vh-400px)]"
-              aria-label="Post content"
-            />
-          </div>
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700">
               Post Title
@@ -71,6 +59,19 @@ export default function BlogAdmin() {
               placeholder="Enter your post title"
               className="mt-1"
               aria-label="Post title"
+            />
+          </div>
+          <div>
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+              Post Content
+            </label>
+            <Textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write your post content in Markdown"
+              className="mt-1 h-[calc(100vh-500px)]"
+              aria-label="Post content"
             />
           </div>
           <div className="flex space-x-2">
@@ -87,6 +88,11 @@ export default function BlogAdmin() {
               <AlertDescription>{feedback.message}</AlertDescription>
             </Alert>
           )}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Upload Blog Assets</h2>
+            <UploadImg bucket='blog' />
+            <span></span>
+          </div>
         </div>
         <div className="border rounded-lg p-4 prose prose-sm max-w-none h-[calc(100vh-100px)] overflow-auto">
           <h1>{title}</h1>
