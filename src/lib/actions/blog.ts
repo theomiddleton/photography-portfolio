@@ -3,14 +3,15 @@
 import { z } from 'zod'
 
 import { db } from '~/server/db'
-import { blogs } from '~/server/db/schema'
+import { blogs, blogImgData } from '~/server/db/schema'
 import type { Post } from '~/lib/types/Post'
 
 const PostSchema = z.object({
   id: z.number().optional(),
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
-  isDraft: z.boolean()
+  isDraft: z.boolean(),
+  tempId: z.string().optional()
 })
 
 export type PostData = z.infer<typeof PostSchema>
@@ -21,9 +22,16 @@ export async function savePost(data: PostData) {
     
     console.log('Saving post:', validatedData)
 
+    const [savedPost] = await db.insert(blogs).values({
+      title: validatedData.title,
+      content: validatedData.content,
+      isDraft: validatedData.isDraft
+    }).returning({ id: blogs.id })
+
     return { 
       success: true, 
-      message: validatedData.isDraft ? 'Draft saved successfully' : 'Post published successfully' 
+      message: validatedData.isDraft ? 'Draft saved successfully' : 'Post published successfully',
+      id: savedPost.id
     }
   } catch (error) {
     
@@ -42,18 +50,26 @@ export async function savePost(data: PostData) {
   }
 }
 
-export async function loadDraft(id: number): Promise<PostData | null> {
+export async function updateImageAssociations({ tempId, permanentId }: { tempId: string, permanentId: number }) {
+  try {
+    await db.update(blogImgData)
+      .set({ blogId: permanentId })
+      .where({ draftId: tempId })
 
-  return {
-    id,
-    title: 'Title',
-    content: 'Sample content \n\n newline\n # Heading',
-    isDraft: true
+    return { success: true, message: 'Image associations updated successfully' }
+  } catch (error) {
+    console.error('Failed to update image associations:', error)
+    return { success: false, message: 'Failed to update image associations' }
   }
 }
 
+export async function loadDraft(id: number): Promise<PostData | null> {
+  const draft = await db.select().from(blogs).where({ id, isDraft: true }).first()
+  return draft ? { ...draft, isDraft: true } : null
+}
+
 export async function deletePost(id: number) {
-  console.log('Deleting post:', id)
+  await db.delete(blogs).where({ id })
   return { success: true, message: 'Post deleted successfully' }
 }
 

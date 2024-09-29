@@ -15,11 +15,8 @@ import { Alert, AlertDescription } from '~/components/ui/alert'
 
 interface UploadImgProps {
   bucket: 'image' | 'blog'
-}
-
-interface UploadedImage {
-  name: string
-  url: string
+  draftId?: string
+  onImageUpload?: (image: { name: string, url: string }) => void
 }
 
 interface UploadedImage {
@@ -28,7 +25,7 @@ interface UploadedImage {
   copied: boolean
 }
 
-export function UploadImg({ bucket }: UploadImgProps) {
+export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [name, setName] = useState('')
@@ -66,7 +63,8 @@ export function UploadImg({ bucket }: UploadImgProps) {
           description: bucket === 'image' ? description : '', 
           tags: bucket === 'image' ? tags : '', 
           isSale: bucket === 'image' ? isSale : false,
-          bucket 
+          bucket,
+          draftId
         }),
       }
     )
@@ -81,8 +79,12 @@ export function UploadImg({ bucket }: UploadImgProps) {
         body: file,
       })
       if (uploadResponse.ok) {
-        setUploadedImages(prev => [...prev, { name, url: fileUrl, copied: false }])
+        const newImage = { name, url: fileUrl, copied: false }
+        setUploadedImages(prev => [...prev, newImage])
         setUploadSuccess(true)
+        if (onImageUpload) {
+          onImageUpload({ name, url: fileUrl })
+        }
         // Clear the form
         setFile(null)
         setName('')
