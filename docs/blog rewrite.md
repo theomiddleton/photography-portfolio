@@ -634,3 +634,126 @@ export async function getPosts(): Promise<Post[]> {
 ```
 
 After updating the schema and pushing the changes, I was able to see the blog posts on the public blog page, meaning the blog writing feature was now complete.
+
+# Blog Images
+
+An original goal of the blog feature was to allow users to upload images to their blog posts.
+Before the rewrite, the functionality for this was absolutely spaghetti code, needing around 4 API routes to handle the blog section. 
+
+I decided that for the rewrite of this functionality, I didn't want to create any new upload components or api routes, and instead wanted to use the existing image upload functionality that was already in place.
+This meant that I would have to use the existing image upload component, and the existing image upload API route.
+
+The problem with this was that the image upload component was designed to upload images to the `img-public` bucket, and any data to the `imageData` table, showing them on the main page.
+
+While flags could be used within the db and fetching, I instead opted to use a new bucket, `img-blog`, and a new table, `blogImgData`, to store the images that were uploaded to the blog posts.
+
+### Intital changes to the upload api route
+
+The image upload API route would need to be able to distinguish between images uploaded for the blog, and images uploaded for the main page.
+The route was already being passed the filename, name, description, tags, isSale, so I decided to add a new flag, `bucket`, to the request body, to specify which bucket the image should be uploaded to.
+
+```ts
+- const { filename, name, description, tags, isSale } = await request.json()
+
++ const { filename, name, description, tags, isSale, bucket } = await request.json()
+```
+
+The bucket prop would then be used to determine the environment variable that would be used to upload the image to the correct bucket.
+
+```ts
+// Determine which bucket to use based on the bucket prop
+const bucketName = bucket === 'image' 
+  ? process.env.R2_IMAGE_BUCKET_NAME 
+  : process.env.R2_BLOG_BUCKET_NAME
+```
+
+the command to create a presigned URL would then be updated to use the correct bucket.
+
+```ts
+const command = new PutObjectCommand({
+-  Bucket: process.env.R2_IMAGE_BUCKET_NAME,
++  Bucket: bucketName,
+  Key: keyName + '.' + fileExtension,
+}) 
+
+// get a signed URL for the PutObjectCommand
+const url = await getSignedUrl(r2, command, { expiresIn: 60 }) 
+```
+
+The logic for adding the fileUrl to the db also had to change. Simply creating the fileUrl changed from
+
+```ts
+const fileUrl =`${siteConfig.bucketUrl}/${newFileName}`
+```
+
+to
+
+```ts
+const fileUrl = `${bucket === 'image' ? siteConfig.imageBucketUrl : siteConfig.blogBucketUrl}/${newFileName}`
+```
+
+To insert it into the correct table, an if satatement was used.
+
+```ts
+if (bucket === 'image') {
+    // insert data into the imageData table
+    await db.insert(imageData).values({
+      uuid: keyName, 
+      fileName: newFileName, 
+      fileUrl: fileUrl,
+      name: name,
+      description: description,
+      tags: tags,
+    })
+    
+    // fetch what was just inserted
+    const result = await db
+      .select({
+        id: imageData.id,
+        fileUrl: imageData.fileUrl,
+      })
+      .from(imageData)
+      .where(eq(imageData.uuid, sql.placeholder('uuid')))
+      .execute({ uuid: keyName })
+    
+    // if the image is a sale image, insert it into the storeImages table
+    if (isSale) {
+      await db.insert(storeImages).values({
+        imageId: result[0].id,
+        imageUuid: keyName, 
+        fileUrl: fileUrl,
+        price: 100,
+        stock: 10,
+        visible: true,
+      })
+    }
+  
+  } else if (bucket === 'blog') {
+    // but if its a blog image, insert it into the blogImgData table
+    await db.insert(blogImgData).values({
+      uuid: keyName,
+      fileName: newFileName,
+      fileUrl: fileUrl,
+      name: name,
+      description: description,
+      tags: tags,
+    })
+  }
+```
+
+The Bucket was passed to the client component as a prop, and the request body was updated to include the bucket prop.
+The client component was updated to use the new prop, even showing a different ui, hiding elements and changing text based on the bucket prop.
+
+A type interface was created for either bucket, allowing the the bucket prop to be either 'image' or 'blog', and throwing an error if it was neither.
+
+```ts
+interface UploadImgProps {
+  bucket: 'image' | 'blog'
+}
+
+// the bucket prop is passed from the parent component
+export function UploadImg({ bucket }: UploadImgProps) {
+```
+
+https://github.com/theomiddleton/portfolio-project/commit/fb9baf0f65d5995aef681f1250a0cbd91adcf03b?diff=unified#diff-3eb0862682d38ce06d8e9d098e4c3b503f823852286b246da5f8d8961a323e86R120
+
