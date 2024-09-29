@@ -77,14 +77,12 @@ export async function POST(request: Request) {
       }
     } else if (bucket === 'blog') {
       console.log('Inserting blog image data')
-      // await db.insert(blogImgData).values({
-      //   uuid: keyName,
-      //   fileName: newFileName,
-      //   fileUrl: fileUrl,
-      //   name: name,
-      //   description: description,
-      //   tags: tags,
-      // })
+      await db.insert(blogImgData).values({
+        uuid: keyName,
+        fileName: newFileName,
+        fileUrl: fileUrl,
+        name: name,
+      })
     }
 
     return Response.json({ url, fileUrl })

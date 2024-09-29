@@ -2,7 +2,6 @@
 import React, { useState } from 'react'
 import { Icons } from '~/components/ui/icons'
 import { Button } from '~/components/ui/button'
-
 import {
   Card,
   CardContent,
@@ -21,6 +20,12 @@ interface UploadImgProps {
 interface UploadedImage {
   name: string
   url: string
+}
+
+interface UploadedImage {
+  name: string
+  url: string
+  copied: boolean
 }
 
 export function UploadImg({ bucket }: UploadImgProps) {
@@ -58,8 +63,8 @@ export function UploadImg({ bucket }: UploadImgProps) {
           filename: file.name, 
           contentType: file.type, 
           name, 
-          description, 
-          tags, 
+          description: bucket === 'image' ? description : '', 
+          tags: bucket === 'image' ? tags : '', 
           isSale: bucket === 'image' ? isSale : false,
           bucket 
         }),
@@ -68,7 +73,6 @@ export function UploadImg({ bucket }: UploadImgProps) {
     
     if (response.ok) {
       const { url, fileUrl } = await response.json()
-      console.log('Got pre-signed URL:', url)
       const uploadResponse = await fetch(url, {
         method: 'PUT',
         headers: {
@@ -77,7 +81,7 @@ export function UploadImg({ bucket }: UploadImgProps) {
         body: file,
       })
       if (uploadResponse.ok) {
-        setUploadedImages(prev => [...prev, { name, url: fileUrl }])
+        setUploadedImages(prev => [...prev, { name, url: fileUrl, copied: false }])
         setUploadSuccess(true)
         // Clear the form
         setFile(null)
@@ -99,7 +103,14 @@ export function UploadImg({ bucket }: UploadImgProps) {
     const imageUrl = uploadedImages[index].url
     const markdownText = `![${uploadedImages[index].name}](${imageUrl})`
     navigator.clipboard.writeText(markdownText).then(() => {
-      alert('Copied to clipboard!')
+      const newUploadedImages = [...uploadedImages]
+      newUploadedImages[index].copied = true
+      setUploadedImages(newUploadedImages)
+      setTimeout(() => {
+        const resetImages = [...newUploadedImages]
+        resetImages[index].copied = false
+        setUploadedImages(resetImages)
+      }, 2000)
     }, (err) => {
       console.error('Could not copy text: ', err)
     })
@@ -145,25 +156,27 @@ export function UploadImg({ bucket }: UploadImgProps) {
               <Label htmlFor="name">Name</Label>
               <Input id="name" placeholder='Name of the image' value={name} onChange={(e) => setName(e.target.value)} />
             </div>
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="description">Description</Label>
-              <Input id="description" placeholder='Description of the image' value={description} onChange={(e) => setDescription(e.target.value)} />  
-            </div>
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="tags">Tags</Label>
-              <Input id="tags" placeholder="Tags" value={tags} onChange={(e) => setTags(e.target.value)} />
-            </div>
             {bucket === 'image' && (
-              <div className="flex items-center space-x-2 space-y-1.5">
-                <Label htmlFor="sale">For Sale?</Label>
-                <input 
-                  className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                  type="checkbox" 
-                  id="sale" 
-                  checked={isSale} 
-                  onChange={(e) => setIsSale(e.target.checked)}
-                />
-              </div>
+              <>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="description">Description</Label>
+                  <Input id="description" placeholder='Description of the image' value={description} onChange={(e) => setDescription(e.target.value)} />  
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="tags">Tags</Label>
+                  <Input id="tags" placeholder="Tags" value={tags} onChange={(e) => setTags(e.target.value)} />
+                </div>
+                <div className="flex items-center space-x-2 space-y-1.5">
+                  <Label htmlFor="sale">For Sale?</Label>
+                  <input 
+                    className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                    type="checkbox" 
+                    id="sale" 
+                    checked={isSale} 
+                    onChange={(e) => setIsSale(e.target.checked)}
+                  />
+                </div>
+              </>
             )}
           </div>
         </form>
@@ -184,7 +197,7 @@ export function UploadImg({ bucket }: UploadImgProps) {
       </CardFooter>      
       
       {uploadSuccess && (
-        <div className="px-6 pb-4">
+        <div className="px-6 pb-2">
           <Alert>
             <AlertDescription>
               Upload successful! {uploadedImages.length} image(s) uploaded.
@@ -195,13 +208,13 @@ export function UploadImg({ bucket }: UploadImgProps) {
       
       {uploadedImages.length > 0 && (
         <div className="mt-4 px-6 pb-4 border-t">
-          <h3 className="text-lg font-semibold mb-2 pt">Uploaded Images</h3>
+          <h3 className="text-lg font-semibold mb-2 pt-2">Uploaded Images</h3>
           <ul className="space-y-2">
             {uploadedImages.map((img, index) => (
               <li key={index} className="flex justify-between items-center">
                 <span>{img.name}</span>
                 <Button onClick={() => copyToClipboard(index)} size="sm">
-                  Copy Markdown
+                  {img.copied ? 'Copied!' : 'Copy Markdown'}
                 </Button>
               </li>
             ))}
