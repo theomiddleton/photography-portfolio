@@ -18,6 +18,9 @@ export const env = createEnv({
     R2_BLOG_IMG_BUCKET_NAME: z.string(),
     R2_ACCOUNT_ID: z.string(),
     R2_REGION: z.string(),
+    EDGE_CONFIG: z.string().url(),
+    FLAGS_SECRET: z.string(),
+    JWT_SECRET: z.string()
   },
 
   /**
@@ -42,6 +45,9 @@ export const env = createEnv({
     R2_BLOG_IMG_BUCKET_NAME: process.env.R2_BLOG_IMG_BUCKET_NAME,
     R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
     R2_REGION: process.env.R2_ACCOUNT_ID,
+    EDGE_CONFIG: process.env.EDGE_CONFIG,
+    FLAGS_SECRET: process.env.FLAGS_SECRET,
+    JWT_SECRET: process.env.JWT_SECRET
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
