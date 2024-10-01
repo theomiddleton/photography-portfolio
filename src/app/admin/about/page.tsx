@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Remark } from 'react-remark'
+import ReactMarkdown from 'react-markdown'
 import { Icons } from '~/components/ui/icons'
 
 import { CounterClockwiseClockIcon } from '@radix-ui/react-icons'
@@ -74,7 +74,7 @@ export default function AboutGenerator() {
                       />
                       <div className="flex flex-2 flex-col space-y-2">
                         <div className="rounded-md border flex-1 lg:min-h-[580px] bg-muted prose">
-                          <Remark>{markdownSource}</Remark>
+                          <ReactMarkdown>{markdownSource}</ReactMarkdown>
                         </div>
                         <div className="flex flex-col space-y-2">
                           <Label htmlFor="title">Current</Label>
