@@ -10,7 +10,7 @@ import {
   AlertDialogTitle 
 } from '~/components/ui/alert-dialog'
 
-import type { Post } from '~/lib/actions/blog' 
+import type { Post } from '~/lib/types/Post' 
 
 interface DeletePostDialogProps {
   postToDelete: Post | null
