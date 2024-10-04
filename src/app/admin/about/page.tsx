@@ -1,103 +1,105 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Icons } from '~/components/ui/icons'
-
-import { CounterClockwiseClockIcon } from '@radix-ui/react-icons'
-
-import { Button } from '~/components/ui/button'
-import { Label } from '~/components/ui/label'
-import { Separator } from '~/components/ui/separator'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '~/components/ui/tabs'
 import { Textarea } from '~/components/ui/textarea'
+import { Button } from '~/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 
-import { read, write } from '~/lib/actions/about'
+import { UploadImg } from '~/components/upload-img'
+import { devWrite, devRead } from '~/lib/actions/about'
 
-export default function AboutGenerator() {
+interface FeedbackState {
+  type: 'success' | 'error' | null
+  message: string
+}
 
-  const [about, setAbout] = useState<string[]>([])
-  const [markdownSource, setMarkdownSource] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
+export default function AboutEditor() {
+  const [content, setContent] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [feedback, setFeedback] = useState<FeedbackState>({ type: null, message: '' })
+  const [uploadedImages, setUploadedImages] = useState<{ name: string, url: string }[]>([])
 
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await read()
-      setAbout(data.map(item => item.content))
-      setMarkdownSource(data.map(item => item.content).join('\n\n'))
-      setLoading(false)
-    }
-    fetchData()
+    fetchAbout()
   }, [])
 
-  if (loading) return <div className="h-screen flex items-center justify-center">Loading content...</div>
-  
+  const fetchAbout = async () => {
+    try {
+      const about = await devRead()
+      setContent(about.content)
+    } catch (error) {
+      setFeedback({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'An error occurred. Please try again.' 
+      })
+    }
+  }
+    
+  const handleSave = async (isDraft: boolean) => {
+    setIsLoading(true)
+    setFeedback({ type: null, message: '' })
+    console.log(content)
+    await devWrite(content)
+    setIsLoading(false)
+  }
+
+  const handleImageUpload = (image: { name: string, url: string }) => {
+    setUploadedImages(prev => [...prev, image])
+  }
+
   return (
-    <div className="">
-      <div className="hidden h-full flex-col md:flex">
-        <div className="container flex flex-col items-start justify-between space-y-2 py-4 sm:flex-row sm:items-center sm:space-y-0 md:h-16">
-          <h2 className="text-lg font-semibold">About</h2>
-          <div className="ml-auto flex w-full space-x-2 sm:justify-end">
+    <div className="container mx-auto p-4 min-h-[150vh]">
+      <h1 className="text-2xl font-bold mb-4">
+        About Editor
+      </h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+              About Me Contents
+            </label>
+            <Textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={content}
+              className="mt-1 h-[calc(100vh-500px)]"
+              aria-label="Post content"
+            />
           </div>
-        </div>
-        <Separator />
-        <Tabs defaultValue="edit" className="flex-1">
-          <div className="container h-full py-6">
-            <div className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_200px]">
-              <div className="hidden flex-col space-y-4 sm:flex md:order-2">
-                <div className="grid gap-2">
-                  <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Mode
-                  </span>
-                  <TabsList className="grid grid-cols-2">
-                    <TabsTrigger value="edit">
-                      <span className="sr-only">Edit</span>
-                      <Icons.edit />
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-              </div>
-              <div className="md:order-1">
-                <TabsContent value="edit" className="mt-0 border-0 p-0">
-                  <div className="flex flex-col space-y-4">
-                    <div className="grid h-full grid-rows-2 gap-6 lg:grid-cols-2 lg:grid-rows-1">
-                      <Textarea
-                        placeholder="Write your about me page here"
-                        className="h-full min-h-[300px] lg:min-h-[700px] xl:min-h-[700px]"
-                        value={markdownSource || ''}
-                        onChange={({ currentTarget }) => setMarkdownSource(currentTarget.value)}
-                      />
-                      <div className="flex flex-2 flex-col space-y-2">
-                        <div className="rounded-md border flex-1 lg:min-h-[580px] bg-muted prose">
-                          <ReactMarkdown>{markdownSource}</ReactMarkdown>
-                        </div>
-                        <div className="flex flex-col space-y-2">
-                          <Label htmlFor="title">Current</Label>
-                          <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"/>
-                          {about}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button onClick={async () => {
-                        await write(markdownSource || '')
-                      }}>Submit</Button>
-                      <Button variant="secondary">
-                        <span className="sr-only">Show history</span>
-                        <CounterClockwiseClockIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </TabsContent>
-              </div>
+          <div className="flex space-x-2">
+            <Button onClick={() => handleSave(true)} variant="outline" disabled={isLoading} className="flex-1">
+              {isLoading ? 'Saving...' : 'Save Draft'}
+            </Button>
+            <Button onClick={() => handleSave(false)} disabled={isLoading} className="flex-1">
+              {isLoading ? 'Publishing...' : 'Publish'}
+            </Button>
+          </div>
+          {feedback.type && (
+            <Alert variant={feedback.type === 'success' ? 'default' : 'destructive'}>
+              <AlertTitle>{feedback.type === 'success' ? 'Success' : 'Error'}</AlertTitle>
+              <AlertDescription>{feedback.message}</AlertDescription>
+            </Alert>
+          )}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Upload About Me Assets</h2>
+            <UploadImg bucket='blog' onImageUpload={handleImageUpload} />
+          </div>
+          {uploadedImages.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold mb-2">Uploaded Images</h3>
+              <ul className="space-y-2">
+                {uploadedImages.map((img, index) => (
+                  <li key={index}>{img.name}</li>
+                ))}
+              </ul>
             </div>
-          </div>
-        </Tabs>
+          )}
+        </div>
+        <div className="border rounded-lg p-4 prose prose-sm max-w-none h-[calc(100vh-100px)] overflow-auto">
+          <ReactMarkdown>{content}</ReactMarkdown>
+        </div>
       </div>
     </div>
   )

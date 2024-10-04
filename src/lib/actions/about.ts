@@ -25,3 +25,11 @@ export async function write(content: string) {
     current: true,
   })
 }
+
+export async function devRead() {
+  return { id: 1 , content: '# This is the about page \n \n lol' }
+}
+
+export async function devWrite(content: string) {
+  console.log('Write:', content)
+}
