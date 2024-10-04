@@ -6,7 +6,7 @@ import { siteConfig } from '~/config/site'
 
 import { eq, sql } from 'drizzle-orm' 
 import { db } from '~/server/db'
-import { imageData, storeImages, blogImgData } from '~/server/db/schema'
+import { imageData, storeImages, blogImgData, aboutImgData } from '~/server/db/schema'
 import { NextResponse } from 'next/server'
 
 import { getSession } from '~/lib/auth/auth'
@@ -44,7 +44,13 @@ export async function POST(request: Request) {
     const url = await getSignedUrl(r2, command, { expiresIn: 60 }) 
 
     const newFileName = keyName + '.' + fileExtension
-    const fileUrl = `${bucket === 'image' ? siteConfig.imageBucketUrl : siteConfig.blogBucketUrl}/${newFileName}`
+    const fileUrl = `${
+      bucket === 'image' 
+        ? siteConfig.imageBucketUrl 
+        : bucket === 'about'
+          ? siteConfig.aboutBucketUrl
+          : siteConfig.blogBucketUrl
+    }/${newFileName}`
     
     console.log('fileUrl:', fileUrl)
 
@@ -87,12 +93,12 @@ export async function POST(request: Request) {
       })
     } else if (bucket === 'about') {
       console.log('Inserting about image data')
-      // await db.insert(aboutImgData).values({
-      //   uuid: keyName,
-      //   fileName: newFileName,
-      //   fileUrl: fileUrl,
-      //   name: name,
-      // })
+      await db.insert(aboutImgData).values({
+        uuid: keyName,
+        fileName: newFileName,
+        fileUrl: fileUrl,
+        name: name,
+      })
     }
 
     return Response.json({ url, fileUrl })

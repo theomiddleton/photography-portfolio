@@ -121,7 +121,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   return (
     <Card className="mt-2 justify-center w-full">
       <CardHeader>
-        <CardTitle>Upload {bucket === 'image' ? 'Image' : bucket === 'blog' ? 'Blog Image' : 'About'}</CardTitle>
+        <CardTitle>Upload {bucket === 'image' ? 'Image' : bucket === 'blog' ? 'Blog Image' : 'About Image'}</CardTitle> 
       </CardHeader>
       <CardContent>
         <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">

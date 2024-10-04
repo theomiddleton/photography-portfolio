@@ -33,6 +33,15 @@ export const blogImgData = pgTable('blogImgData', {
   uploadedAt: timestamp('uploadedAt').defaultNow(),
 })
 
+export const aboutImgData = pgTable('aboutImgData', {
+  id: serial('id').primaryKey(),
+  uuid: varchar('uuid', { length: 36 }).notNull(),
+  fileName: varchar('fileName', { length: 256 }).notNull(),
+  fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
+  name: varchar('name', { length: 256 }).notNull(),
+  uploadedAt: timestamp('uploadedAt').defaultNow(),
+})
+
 export const about = pgTable('about', {
   id: serial('id').primaryKey(),
   content: text('content').notNull(),

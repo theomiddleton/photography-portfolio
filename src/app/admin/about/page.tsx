@@ -36,7 +36,7 @@ export default function AboutEditor() {
     }
   }
     
-  const handleSave = async (isDraft: boolean) => {
+  const handleSave = async () => {
     setIsLoading(true)
     setFeedback({ type: null, message: '' })
     console.log(content)
@@ -84,7 +84,7 @@ export default function AboutEditor() {
           )}
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Upload About Me Assets</h2>
-            <UploadImg bucket='blog' onImageUpload={handleImageUpload} />
+            <UploadImg bucket='about' onImageUpload={handleImageUpload} />
           </div>
           {uploadedImages.length > 0 && (
             <div className="mt-4">

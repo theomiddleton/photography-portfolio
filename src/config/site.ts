@@ -4,6 +4,7 @@ export const siteConfig = {
     description: 'Photography portfolio of Theo Middleton',
     imageBucketUrl: 'https://img.theomiddleton.me',
     blogBucketUrl: 'https://blog-img.theomiddleton.me',
+    aboutBucketUrl: 'https://about-img.theomiddleton.me',
     links: {
       github: 'https://github.com/theomiddleton/portfolio-project',
       website: 'https://theomiddleton.me'
