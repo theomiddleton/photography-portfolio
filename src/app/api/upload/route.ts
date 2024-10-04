@@ -32,7 +32,9 @@ export async function POST(request: Request) {
     // Determine which bucket to use based on the bucket prop
     const bucketName = bucket === 'image' 
       ? process.env.R2_IMAGE_BUCKET_NAME 
-      : process.env.R2_BLOG_IMG_BUCKET_NAME
+      : bucket === 'blog' 
+        ? process.env.R2_BLOG_IMG_BUCKET_NAME 
+        : process.env.R2_ABOUT_IMG_BUCKET_NAME
 
     const command = new PutObjectCommand({
       Bucket: bucketName,
@@ -83,6 +85,14 @@ export async function POST(request: Request) {
         fileUrl: fileUrl,
         name: name,
       })
+    } else if (bucket === 'about') {
+      console.log('Inserting about image data')
+      // await db.insert(aboutImgData).values({
+      //   uuid: keyName,
+      //   fileName: newFileName,
+      //   fileUrl: fileUrl,
+      //   name: name,
+      // })
     }
 
     return Response.json({ url, fileUrl })
