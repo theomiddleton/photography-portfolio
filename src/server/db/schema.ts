@@ -1,4 +1,5 @@
 import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean } from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm'
 
 export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
 
@@ -38,18 +39,25 @@ export const aboutImgData = pgTable('aboutImgData', {
   uuid: varchar('uuid', { length: 36 }).notNull(),
   fileName: varchar('fileName', { length: 256 }).notNull(),
   fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
-  name: varchar('name', { length: 256 }).notNull(),
+  name: varchar('name', { length: 256 }),
   uploadedAt: timestamp('uploadedAt').defaultNow(),
 })
 
 export const about = pgTable('about', {
   id: serial('id').primaryKey(),
+  title: varchar('title', { length: 256 }).notNull(),
   content: text('content').notNull(),
   current: boolean('current').default(false).notNull(),
-  imageBool: boolean('imageBool').default(false).notNull(),
-  imageUrl: varchar('imageUrl', { length: 256 }),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
+})
+
+export const aboutImages = pgTable('aboutImages', {
+  id: serial('id').primaryKey(),
+  aboutId: integer('about_id').notNull().references(() => about.id),
+  name: varchar('name', { length: 256 }).notNull(),
+  url: varchar('url', { length: 512 }).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
 })
 
 export const storeImages = pgTable('storeImages', {
@@ -88,3 +96,14 @@ export const users = pgTable('users', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
+
+export const aboutRelations = relations(about, ({ many }) => ({
+  images: many(aboutImages)
+}))
+
+export const aboutImagesRelations = relations(aboutImages, ({ one }) => ({
+  about: one(about, {
+    fields: [aboutImages.aboutId],
+    references: [about.id],
+  }),
+}))

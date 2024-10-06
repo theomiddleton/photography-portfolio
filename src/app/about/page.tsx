@@ -5,11 +5,11 @@ import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
 import { about } from '~/server/db/schema'
 
-import { devRead } from '~/lib/actions/about'
+import { readAbout } from '~/lib/actions/about'
 
 export default async function About() {
 
-  const result = await devRead()  
+  const result = await readAbout()  
   // const result = await db.select({
   //   id: about.id,
   //   content: about.content,
@@ -21,7 +21,7 @@ export default async function About() {
       <SiteHeader />
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
         <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-          About
+          {result.title}
         </h1> 
         <section className="flex min-h-screen flex-col items-center bg-white text-black">
           {/* classname 'prose' ensures that the markdown is rendered properly, removing identifiers such as # and rendering headings and such */}

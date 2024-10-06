@@ -757,3 +757,152 @@ export function UploadImg({ bucket }: UploadImgProps) {
 
 https://github.com/theomiddleton/portfolio-project/commit/fb9baf0f65d5995aef681f1250a0cbd91adcf03b?diff=unified#diff-3eb0862682d38ce06d8e9d098e4c3b503f823852286b246da5f8d8961a323e86R120
 
+## About 
+
+Since the about page was very similar to the blog page, I also needed to rewrite that.
+
+When doing so, I tried to implement new database writes when implementing the blog images. Instead of using an imageData table
+
+```ts 
+export const about = pgTable('about', {
+  id: serial('id').primaryKey(),
+  title: varchar('title', { length: 256 }).notNull(),
+  content: text('content').notNull(),
+  current: boolean('current').default(false).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  modifiedAt: timestamp('modifiedAt').defaultNow(),
+})
+
+export const aboutImages = pgTable('aboutImages', {
+  id: serial('id').primaryKey(),
+  aboutId: integer('about_id').notNull().references(() => about.id),
+  name: varchar('name', { length: 256 }).notNull(),
+  url: varchar('url', { length: 512 }).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+})
+
+export const aboutRelations = relations(about, ({ many }) => ({
+  images: many(aboutImages)
+}))
+
+export const aboutImagesRelations = relations(aboutImages, ({ one }) => ({
+  about: one(about, {
+    fields: [aboutImages.aboutId],
+    references: [about.id],
+  }),
+}))
+
+```
+
+It instead uses an aboutImages table, using database relations to link the images to the about page.
+
+This was implemented in save with
+
+```ts
+export async function saveAbout(data: AboutData) {
+  try {
+    const validatedData = AboutSchema.parse(data)
+    
+    console.log('Saving about:', validatedData)
+    
+    const savedAbout = await db.transaction(async (tx) => {
+
+      await tx.update(about)
+        .set({ current: false })
+        .where(eq(about.current, true))
+
+      const [newAbout] = await tx.insert(about).values({
+        title: validatedData.title,
+        content: validatedData.content,
+        current: true,
+      }).returning({ id: about.id })
+
+      if (validatedData.images && validatedData.images.length > 0) {
+        await tx.insert(aboutImages).values(
+          validatedData.images.map(image => ({
+            aboutId: newAbout.id,
+            name: image.name,
+            url: image.url,
+          }))
+        )
+      }
+
+      return newAbout
+    })
+    
+    console.log('title:', validatedData.title)
+    console.log('content:', validatedData.content)
+    console.log('images:', validatedData.images)
+    
+    return { 
+      success: true, 
+      message: 'About published successfully',
+      id: savedAbout.id
+    }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { 
+        success: false, 
+        message: 'Validation failed', 
+        errors: error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
+      }
+    }
+    
+    console.error('Error saving about:', error)
+    
+    return { 
+      success: false, 
+      message: 'An unexpected error occurred' 
+    }
+  }
+}
+```
+
+Following data was passed to the save function
+
+```ts
+const data = {
+  title,
+  content,
+  images: uploadedImages
+}
+const result = await saveAbout(data)
+```
+
+images is an array of objects, each object containing a name and url.
+
+however I got the error
+
+```
+Error saving about: Error: No transactions support in neon-http driver
+    at NeonHttpSession.transaction (webpack-internal:///(action-browser)/./node_modules/.pnpm/drizzle-orm@0.29.5_@neondatabase+serverless@0.9.5_@types+pg@8.11.6_@types+react@18.2.51_pg@8.12.0_react@18.3.1/node_modules/drizzle-orm/neon-http/session.js:108:11)
+    at NeonHttpDatabase.transaction (webpack-internal:///(action-browser)/./node_modules/.pnpm/drizzle-orm@0.29.5_@neondatabase+serverless@0.9.5_@types+pg@8.11.6_@types+react@18.2.51_pg@8.12.0_react@18.3.1/node_modules/drizzle-orm/pg-core/db.js:275:25)
+    at saveAbout (webpack-internal:///(action-browser)/./src/lib/actions/about.ts:49:77)
+    at endpoint (webpack-internal:///(action-browser)/./node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2FUsers%2Ftheo%2FDocuments%2Fcode%2Fportfolio-project%2Fsrc%2Flib%2Factions%2Fabout.ts%22%2C%5B%22saveAbout%22%2C%22devRead%22%5D%5D%5D&__client_imported__=true!:9:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:39:418
+    at async rk (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:38:7978)
+    at async r3 (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:41:1256)
+    at async doRender (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/base-server.js:1420:30)
+    at async cacheEntry.responseCache.get.routeKind (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/base-server.js:1581:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/base-server.js:1489:28)
+    at async DevServer.renderPageComponent (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/base-server.js:1913:24)
+    at async DevServer.renderToResponseImpl (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/base-server.js:1951:32)
+    at async DevServer.pipeImpl (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/base-server.js:917:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/base-server.js:813:17)
+    at async /Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/theo/Documents/code/portfolio-project/node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /admin/about 200 in 82ms
+````
+
+This error was caused by the database driver not having the ability to do transactions.
+
+## Solution
+
+ 

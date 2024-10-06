@@ -93,12 +93,12 @@ export async function POST(request: Request) {
       })
     } else if (bucket === 'about') {
       console.log('Inserting about image data')
-      await db.insert(aboutImgData).values({
-        uuid: keyName,
-        fileName: newFileName,
-        fileUrl: fileUrl,
-        name: name,
-      })
+      // await db.insert(aboutImgData).values({
+      //   uuid: keyName,
+      //   fileName: newFileName,
+      //   fileUrl: fileUrl,
+      //   name: name,
+      // })
     }
 
     return Response.json({ url, fileUrl })
