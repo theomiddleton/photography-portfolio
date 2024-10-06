@@ -45,7 +45,7 @@ export function ImageSelect({ images, onSelect }: ImageSelectProps) {
             onClick={() => toggleImageSelection(image.id)}
           >
             <Image
-              src={image.src}
+              src={image.url}
               alt={image.name}
               width={200}
               height={150}

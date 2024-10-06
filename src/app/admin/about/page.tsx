@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Textarea } from '~/components/ui/textarea'
 import { Button } from '~/components/ui/button'
@@ -27,7 +27,6 @@ export default function AboutEditor() {
   const [content, setContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [feedback, setFeedback] = useState<FeedbackState>({ type: null, message: '' })
-  const [uploadedImages, setUploadedImages] = useState<{ name: string, url: string }[]>([])
   const [images, setImages] = useState<ImageData[]>([])
   const [selectedImages, setSelectedImages] = useState<string[]>([])
 
@@ -86,26 +85,19 @@ export default function AboutEditor() {
     }
   }
 
-  const handleImageUpload = (image: { name: string, url: string }) => {
-    setUploadedImages(prev => [...prev, image])
-  }
+  const handleImageUpload = useCallback((image: { name: string, url: string }) => {
+    const newImage = {
+      id: Date.now().toString(),
+      name: image.name,
+      url: image.url
+    }
+    setImages(prev => [...prev, newImage])
+  }, [])
   
-  const handleImageSelect = (selected: string[]) => {
-    setSelectedImages(selected)
-    const newImages = images.map(img => {
-      if (selected.includes(img.id)) {
-        return {
-          ...img,
-          selected: true
-        }
-      }
-      return {
-        ...img,
-        selected: false
-      }
-    })
-    setImages(newImages)
-  }
+  const handleImageSelect = useCallback((selectedImageIds: string[]) => {
+    setSelectedImages(selectedImageIds)
+    console.log('Selected images:', selectedImageIds)
+  }, [])
 
   return (
     <div className="container mx-auto p-4 min-h-[150vh]">
@@ -155,16 +147,6 @@ export default function AboutEditor() {
             <h2 className="text-xl font-semibold mb-4">Upload About Me Assets</h2>
             <UploadImg bucket='about' onImageUpload={handleImageUpload} />
           </div>
-          {uploadedImages.length > 0 && (
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-2">Uploaded Images</h3>
-              <ul className="space-y-2">
-                {uploadedImages.map((img, index) => (
-                  <li key={index}>{img.name}</li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
         <div className="space-y-4">
           <div className="border rounded-lg p-4 prose prose-sm max-w-none h-[calc(100vh-400px)] overflow-auto">
@@ -174,7 +156,8 @@ export default function AboutEditor() {
             <h3 className="text-lg font-semibold mb-2">Select Images</h3>
             <ImageSelect 
               images={images} 
-              onSelect={handleImageSelect} 
+              onSelect={handleImageSelect}
+              selectedImages={selectedImages}
             />
           </div>
         </div>
