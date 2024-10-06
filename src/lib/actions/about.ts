@@ -11,6 +11,7 @@ const AboutSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
   images: z.array(z.object({
+    id: z.number(),
     name: z.string(),
     url: z.string()
   })).optional(),
@@ -34,6 +35,7 @@ export async function readAbout(): Promise<AboutData | null> {
 
   // Fetch associated images
   const images = await db.select({
+    id: aboutImages.id,
     name: aboutImages.name,
     url: aboutImages.url,
   })
