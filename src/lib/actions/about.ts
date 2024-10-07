@@ -50,6 +50,7 @@ export async function readAbout(): Promise<AboutData | null> {
 
 export async function saveAbout(data: AboutData) {
   try {
+    // parse and validate the incoming data
     const validatedData = AboutSchema.parse(data)
     
     console.log('Saving about:', validatedData)
@@ -76,17 +77,15 @@ export async function saveAbout(data: AboutData) {
         }))
       )
     }
-    
-    console.log('title:', validatedData.title)
-    console.log('content:', validatedData.content)
-    console.log('images:', validatedData.images)
-    
+
+    // give success message and return the id of the new about entry
     return { 
       success: true, 
       message: 'About published successfully',
       id: newAbout.id
     }
   } catch (error) {
+    // if zod catches an error, return the validation errors
     if (error instanceof z.ZodError) {
       return { 
         success: false, 
@@ -94,7 +93,7 @@ export async function saveAbout(data: AboutData) {
         errors: error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
       }
     }
-    
+    // else return a generic error message
     console.error('Error saving about:', error)
     
     return { 
