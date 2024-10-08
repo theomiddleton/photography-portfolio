@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Textarea } from '~/components/ui/textarea'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
-
 import { UploadImg } from '~/components/upload-img'
 import { readAbout, saveAbout } from '~/lib/actions/about'
 import { ImageSelect } from '~/components/image-select'
@@ -20,6 +19,7 @@ interface ImageData {
   id: string
   name: string
   url: string
+  selected?: boolean
 }
 
 export default function AboutEditor() {
@@ -29,13 +29,8 @@ export default function AboutEditor() {
   const [feedback, setFeedback] = useState<FeedbackState>({ type: null, message: '' })
   const [uploadedImages, setUploadedImages] = useState<{ name: string, url: string }[]>([])
   const [images, setImages] = useState<ImageData[]>([])
-  const [selectedImages, setSelectedImages] = useState<string[]>([])
 
-  useEffect(() => {
-    fetchAbout()
-  }, [])
-
-  const fetchAbout = async () => {
+  const fetchAbout = useCallback(async () => {
     try {
       const about = await readAbout()
       if (about) {
@@ -55,8 +50,12 @@ export default function AboutEditor() {
         message: error instanceof Error ? error.message : 'An error occurred. Please try again.' 
       })
     }
-  }
-    
+  }, [])
+
+  useEffect(() => {
+    fetchAbout()
+  }, [fetchAbout])
+
   const handleSave = async () => {
     setIsLoading(true)
     setFeedback({ type: null, message: '' })
@@ -64,7 +63,7 @@ export default function AboutEditor() {
       const data = {
         title,
         content,
-        images: images.map(img => ({
+        images: images.filter(img => img.selected).map(img => ({
           id: parseInt(img.id),
           name: img.name,
           url: img.url
@@ -90,22 +89,12 @@ export default function AboutEditor() {
     setUploadedImages(prev => [...prev, image])
   }
   
-  const handleImageSelect = (selected: string[]) => {
-    setSelectedImages(selected)
-    const newImages = images.map(img => {
-      if (selected.includes(img.id)) {
-        return {
-          ...img,
-          selected: true
-        }
-      }
-      return {
-        ...img,
-        selected: false
-      }
-    })
-    setImages(newImages)
-  }
+  const handleImageSelect = useCallback((selected: string[]) => {
+    setImages(prevImages => prevImages.map(img => ({
+      ...img,
+      selected: selected.includes(img.id)
+    })))
+  }, [])
 
   return (
     <div className="container mx-auto p-4 min-h-[150vh]">
