@@ -3,6 +3,7 @@
 import { z } from 'zod'
 
 import { db } from '~/server/db'
+import { eq, and } from 'drizzle-orm'
 import { blogs, blogImgData } from '~/server/db/schema'
 import type { Post } from '~/lib/types/Post'
 
@@ -54,7 +55,7 @@ export async function updateImageAssociations({ tempId, permanentId }: { tempId:
   try {
     await db.update(blogImgData)
       .set({ blogId: permanentId })
-      .where({ draftId: tempId })
+      .where(eq(blogImgData.draftId, tempId))
 
     return { success: true, message: 'Image associations updated successfully' }
   } catch (error) {
@@ -64,12 +65,20 @@ export async function updateImageAssociations({ tempId, permanentId }: { tempId:
 }
 
 export async function loadDraft(id: number): Promise<PostData | null> {
-  const draft = await db.select().from(blogs).where({ id, isDraft: true }).first()
+  const draft = await db.select()
+  .from(blogs)
+  .where(
+    and(
+      eq(blogs.id, id),
+      eq(blogs.isDraft, true)
+    )
+  )
+
   return draft ? { ...draft, isDraft: true } : null
 }
 
 export async function deletePost(id: number) {
-  await db.delete(blogs).where({ id })
+  await db.delete(blogs).where(eq(blogs.id, id))
   return { success: true, message: 'Post deleted successfully' }
 }
 

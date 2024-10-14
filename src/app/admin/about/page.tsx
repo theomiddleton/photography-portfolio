@@ -6,7 +6,6 @@ import { Textarea } from '~/components/ui/textarea'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
-
 import { UploadImg } from '~/components/upload-img'
 import { readAbout, saveAbout } from '~/lib/actions/about'
 import { ImageSelect } from '~/components/image-select'
@@ -20,6 +19,7 @@ interface ImageData {
   id: string
   name: string
   url: string
+  selected?: boolean
 }
 
 export default function AboutEditor() {
@@ -28,13 +28,8 @@ export default function AboutEditor() {
   const [isLoading, setIsLoading] = useState(false)
   const [feedback, setFeedback] = useState<FeedbackState>({ type: null, message: '' })
   const [images, setImages] = useState<ImageData[]>([])
-  const [selectedImages, setSelectedImages] = useState<string[]>([])
 
-  useEffect(() => {
-    fetchAbout()
-  }, [])
-
-  const fetchAbout = async () => {
+  const fetchAbout = useCallback(async () => {
     try {
       const about = await readAbout()
       if (about) {
@@ -54,8 +49,12 @@ export default function AboutEditor() {
         message: error instanceof Error ? error.message : 'An error occurred. Please try again.' 
       })
     }
-  }
-    
+  }, [])
+
+  useEffect(() => {
+    fetchAbout()
+  }, [fetchAbout])
+
   const handleSave = async () => {
     setIsLoading(true)
     setFeedback({ type: null, message: '' })
@@ -63,7 +62,7 @@ export default function AboutEditor() {
       const data = {
         title,
         content,
-        images: images.map(img => ({
+        images: images.filter(img => img.selected).map(img => ({
           id: parseInt(img.id),
           name: img.name,
           url: img.url
@@ -94,9 +93,11 @@ export default function AboutEditor() {
     setImages(prev => [...prev, newImage])
   }, [])
   
-  const handleImageSelect = useCallback((selectedImageIds: string[]) => {
-    setSelectedImages(selectedImageIds)
-    console.log('Selected images:', selectedImageIds)
+  const handleImageSelect = useCallback((selected: string[]) => {
+    setImages(prevImages => prevImages.map(img => ({
+      ...img,
+      selected: selected.includes(img.id)
+    })))
   }, [])
 
   return (

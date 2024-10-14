@@ -906,6 +906,189 @@ This error was caused by the database driver not having the ability to do transa
 ## Solution
 
 
+## Fetching about page for editing 
+
+The about page editor does not work like the blog one, you cannot select a post to edit and save it as a draft of such, there is only one current page contents, and this is loaded into the editor on page load
+
+This however causes some problems,
+The page needs to be a client page to have interativity, but needs to fetch data from the db, so a call to a  server function is made
+
+This is done with the useEffect hook, meaning when the page loads, the data is fetched from the server, and the editor is populated with the data.
+
+This can sometimes cause an error however,
+
+`Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.`
+
+This is caused by the useEffect hook calling the server function, which causes a re-render, which causes the useEffect hook to be called again, and so on.
+At the point of this error, the page was:
+
+```tsx
+export default function AboutEditor() {
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [feedback, setFeedback] = useState<FeedbackState>({ type: null, message: '' })
+  const [uploadedImages, setUploadedImages] = useState<{ name: string, url: string }[]>([])
+  const [images, setImages] = useState<ImageData[]>([])
+  const [selectedImages, setSelectedImages] = useState<string[]>([])
+
+  useEffect(() => {
+    fetchAbout()
+  }, [])
+
+  const fetchAbout = async () => {
+    try {
+      const about = await readAbout()
+      if (about) {
+        setTitle(about.title)
+        setContent(about.content)
+        if (about.images) {
+          setImages(about.images.map(img => ({
+            id: img.id.toString(),
+            name: img.name,
+            url: img.url
+          })))
+        }
+      }
+    } catch (error) {
+      setFeedback({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'An error occurred. Please try again.' 
+      })
+    }
+  }
+    
+  const handleSave = async () => {
+    setIsLoading(true)
+    setFeedback({ type: null, message: '' })
+    try {
+      const data = {
+        title,
+        content,
+        images: images.map(img => ({
+          id: parseInt(img.id),
+          name: img.name,
+          url: img.url
+        }))
+      }
+      const result = await saveAbout(data)
+      if (result.success) {
+        setFeedback({ type: 'success', message: result.message })
+      } else {
+        setFeedback({ type: 'error', message: result.message })
+      }
+    } catch (error) {
+      setFeedback({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'An error occurred. Please try again.' 
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleImageUpload = (image: { name: string, url: string }) => {
+    setUploadedImages(prev => [...prev, image])
+  }
+  
+  const handleImageSelect = (selected: string[]) => {
+    setSelectedImages(selected)
+    const newImages = images.map(img => {
+      if (selected.includes(img.id)) {
+        return {
+          ...img,
+          selected: true
+        }
+      }
+      return {
+        ...img,
+        selected: false
+      }
+    })
+    setImages(newImages)
+  }
+```
+
+By changing fetchAbout to a useCallback, the error was resolved
+I also changed handleImageUpload and handleImageSelect to useCallbacks
+
+```tsx
+export default function AboutEditor() {
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [feedback, setFeedback] = useState<FeedbackState>({ type: null, message: '' })
+  const [uploadedImages, setUploadedImages] = useState<{ name: string, url: string }[]>([])
+  const [images, setImages] = useState<ImageData[]>([])
+
+  const fetchAbout = useCallback(async () => {
+    try {
+      const about = await readAbout()
+      if (about) {
+        setTitle(about.title)
+        setContent(about.content)
+        if (about.images) {
+          setImages(about.images.map(img => ({
+            id: img.id.toString(),
+            name: img.name,
+            url: img.url
+          })))
+        }
+      }
+    } catch (error) {
+      setFeedback({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'An error occurred. Please try again.' 
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchAbout()
+  }, [fetchAbout])
+
+  const handleSave = async () => {
+    setIsLoading(true)
+    setFeedback({ type: null, message: '' })
+    try {
+      const data = {
+        title,
+        content,
+        images: images.filter(img => img.selected).map(img => ({
+          id: parseInt(img.id),
+          name: img.name,
+          url: img.url
+        }))
+      }
+      const result = await saveAbout(data)
+      if (result.success) {
+        setFeedback({ type: 'success', message: result.message })
+      } else {
+        setFeedback({ type: 'error', message: result.message })
+      }
+    } catch (error) {
+      setFeedback({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'An error occurred. Please try again.' 
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleImageUpload = useCallback((image: { name: string, url: string }) => {
+    setUploadedImages(prev => [...prev, image])
+  }, [])
+  
+  const handleImageSelect = useCallback((selected: string[]) => {
+    setImages(prevImages => prevImages.map(img => ({
+      ...img,
+      selected: selected.includes(img.id)
+    })))
+  }, [])
+```
+
+
 
 ## new error 
 this code:
