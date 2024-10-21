@@ -1,22 +1,19 @@
-import { eq } from 'drizzle-orm'
 import { SiteHeader } from '~/components/site-header'
 import { db } from '~/server/db'
 import { imageData, storeImages } from '~/server/db/schema'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
+import { eq } from 'drizzle-orm'
 
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import { AddToCartButton } from '~/components/store/add-cart'
 
-// revalidate page content every 60 seconds
-// ensures that the page is always up to date
 export const revalidate = 60
 export const dynamicParams = true
 
-export default async function Photo({ params }: { params: { id: number } }) {
-  // fetch the image data from the database
-  // and join it with the storeImages table to get the price of the image 
+async function fetchImageData(id: number) {
   const result = await db.select({
     id: imageData.id,
     fileUrl: imageData.fileUrl,
@@ -24,16 +21,19 @@ export default async function Photo({ params }: { params: { id: number } }) {
     price: storeImages.price,
     description: imageData.description,
     uploadedAt: imageData.uploadedAt
-  }).from(imageData).where(eq(imageData.id, params.id))
+  }).from(imageData).where(eq(imageData.id, id))
   .innerJoin(storeImages, eq(imageData.id, storeImages.imageId))
 
-  // if the data corresponding to the id is not found
-  // then return a 404 page
-  if (result.length === 0) {
+  return result[0] || null
+}
+
+export default async function Photo({ params }: { params: { id: number } }) {
+  // Fetch image data (server-side)
+  const image = await fetchImageData(params.id)
+
+  if (!image) {
     notFound()
   }
-  
-  const image = result[0]
 
   return (
     <main>
@@ -80,13 +80,7 @@ export default async function Photo({ params }: { params: { id: number } }) {
                 />
               </div>
             </div>
-            {/* <Button className="w-full md:w-auto px-8">Add To Cart</Button> */}
-            <form action={`/store/checkout`} method="GET" className="w-full md:w-auto">
-              <input type="hidden" name="id" value={params.id} />
-              <Button type="submit" className="w-full md:w-auto px-8">
-                Add To Cart
-              </Button>
-            </form>
+            <AddToCartButton image={image} />
           </div>
         </div>
       </div>
