@@ -1,4 +1,5 @@
 'use client'
+
 import React, { useState } from 'react'
 import { Icons } from '~/components/ui/icons'
 import { Button } from '~/components/ui/button'
@@ -12,6 +13,7 @@ import {
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Alert, AlertDescription } from '~/components/ui/alert'
+import { Progress } from '~/components/ui/progress'
 
 interface UploadImgProps {
   bucket: 'image' | 'blog' | 'about'
@@ -25,7 +27,7 @@ interface UploadedImage {
   copied: boolean
 }
 
-export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
+export default function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [name, setName] = useState('')
@@ -34,6 +36,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [isSale, setIsSale] = useState<boolean>(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -48,6 +51,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
       return
     }
     setUploading(true)
+    setUploadProgress(0)
       
     const response = await fetch(
       '/api/upload',
@@ -71,34 +75,52 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
     
     if (response.ok) {
       const { url, fileUrl } = await response.json()
-      const uploadResponse = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type,
-        },
-        body: file,
-      })
-      if (uploadResponse.ok) {
-        const newImage = { name, url: fileUrl, copied: false }
-        setUploadedImages(prev => [...prev, newImage])
-        setUploadSuccess(true)
-        if (onImageUpload) {
-          onImageUpload({ name, url: fileUrl })
+      
+      // Use XMLHttpRequest for upload to track progress
+      const xhr = new XMLHttpRequest()
+      xhr.open('PUT', url)
+      xhr.setRequestHeader('Content-Type', file.type)
+      
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100
+          setUploadProgress(percentComplete)
         }
-        // Clear the form
-        setFile(null)
-        setName('')
-        setDescription('')
-        setTags('')
-        setIsSale(false)
-      } else {
-        console.error('R2 Upload Error:', uploadResponse)
-        alert('Upload failed.')
       }
+      
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          const newImage = { name, url: fileUrl, copied: false }
+          setUploadedImages(prev => [...prev, newImage])
+          setUploadSuccess(true)
+          if (onImageUpload) {
+            onImageUpload({ name, url: fileUrl })
+          }
+          // Clear the form
+          setFile(null)
+          setName('')
+          setDescription('')
+          setTags('')
+          setIsSale(false)
+          setUploadProgress(0)
+        } else {
+          console.error('R2 Upload Error:', xhr.statusText)
+          alert('Upload failed.')
+        }
+        setUploading(false)
+      }
+      
+      xhr.onerror = () => {
+        console.error('XHR Error')
+        alert('Upload failed.')
+        setUploading(false)
+      }
+      
+      xhr.send(file)
     } else {
       alert('Failed to get pre-signed URL.')
+      setUploading(false)
     }
-    setUploading(false)
   }
 
   const copyToClipboard = (index: number) => {
@@ -182,6 +204,12 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
             )}
           </div>
         </form>
+        {uploading && (
+          <div className="mt-4">
+            <Label>Upload Progress</Label>
+            <Progress value={uploadProgress} className="w-full" />
+          </div>
+        )}
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={() => {
