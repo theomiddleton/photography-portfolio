@@ -97,6 +97,13 @@ export const users = pgTable('users', {
   modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
 
+export const logs = pgTable('logs', {
+  id: serial('id').primaryKey(),
+  scope: varchar('scope', { length: 256 }).notNull(),
+  log: text('log').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+})
+
 export const aboutRelations = relations(about, ({ many }) => ({
   images: many(aboutImages)
 }))

@@ -7,7 +7,6 @@ import { AxiomWebVitals } from 'next-axiom'
 import { VercelToolbar } from '@vercel/toolbar/next'
 import { FlagValues } from '@vercel/flags/react'
 import { get } from '@vercel/edge-config'
-import { Toaster } from '~/components/ui/toaster'
 
 import { Inter } from 'next/font/google' 
 
@@ -56,7 +55,6 @@ export default async function RootLayout({
         <SpeedInsights />
         {shouldInjectToolbar && <VercelToolbar />}
         <FlagValues values={flags} />
-        <Toaster />
       </body>
       <SiteFooter />
     </html>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useTransition } from 'react'
 import { Icons } from '~/components/ui/icons'
 import { Button } from '~/components/ui/button'
 import {
@@ -14,6 +14,7 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Progress } from '~/components/ui/progress'
+import { logAction } from '~/lib/logging'
 
 interface UploadImgProps {
   bucket: 'image' | 'blog' | 'about'
@@ -37,6 +38,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isPending, startTransition] = useTransition()
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -48,78 +50,102 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
     e.preventDefault()
     if (!file) {
       alert('Please select a file to upload.')
+      startTransition(() => {
+        logAction('Upload', 'Upload attempted without file selection')
+      })
       return
     }
     setUploading(true)
     setUploadProgress(0)
       
-    const response = await fetch(
-      '/api/upload',
-      {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          filename: file.name, 
-          contentType: file.type, 
-          name, 
-          description: bucket === 'image' ? description : '', 
-          tags: bucket === 'image' ? tags : '', 
-          isSale: bucket === 'image' ? isSale : false,
-          bucket,
-          draftId
-        }),
-      }
-    )
-    
-    if (response.ok) {
-      const { url, fileUrl } = await response.json()
-      
-      // Use XMLHttpRequest for upload to track progress
-      const xhr = new XMLHttpRequest()
-      xhr.open('PUT', url)
-      xhr.setRequestHeader('Content-Type', file.type)
-      
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100
-          setUploadProgress(percentComplete)
+    try {
+      const response = await fetch(
+        '/api/upload',
+        {
+          method: 'POST',
+          headers: {
+          'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            filename: file.name, 
+            contentType: file.type, 
+            name, 
+            description: bucket === 'image' ? description : '', 
+            tags: bucket === 'image' ? tags : '', 
+            isSale: bucket === 'image' ? isSale : false,
+            bucket,
+            draftId
+          }),
         }
-      }
+      )
       
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const newImage = { name, url: fileUrl, copied: false }
-          setUploadedImages(prev => [...prev, newImage])
-          setUploadSuccess(true)
-          if (onImageUpload) {
-            onImageUpload({ name, url: fileUrl })
+      if (response.ok) {
+        const { url, fileUrl } = await response.json()
+        
+        // Use XMLHttpRequest for upload to track progress
+        const xhr = new XMLHttpRequest()
+        xhr.open('PUT', url)
+        xhr.setRequestHeader('Content-Type', file.type)
+        
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100
+            setUploadProgress(percentComplete)
           }
-          // Clear the form
-          setFile(null)
-          setName('')
-          setDescription('')
-          setTags('')
-          setIsSale(false)
-          setUploadProgress(0)
-        } else {
-          console.error('R2 Upload Error:', xhr.statusText)
-          alert('Upload failed.')
         }
+        
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            const newImage = { name, url: fileUrl, copied: false }
+            setUploadedImages(prev => [...prev, newImage])
+            setUploadSuccess(true)
+            if (onImageUpload) {
+              onImageUpload({ name, url: fileUrl })
+            }
+            // Clear the form
+            setFile(null)
+            setName('')
+            setDescription('')
+            setTags('')
+            setIsSale(false)
+            setUploadProgress(0)
+            startTransition(() => {
+              logAction('Upload', `File uploaded successfully: ${name}`)
+            })
+          } else {
+            console.error('R2 Upload Error:', xhr.statusText)
+            alert('Upload failed.')
+            startTransition(() => {
+              logAction('Upload', `R2 Upload Error: ${xhr.statusText}`)
+            })
+          }
+          setUploading(false)
+        }
+        
+        xhr.onerror = () => {
+          console.error('XHR Error')
+          alert('Upload failed.')
+          setUploading(false)
+          startTransition(() => {
+            logAction('Upload', 'XHR Error during file upload')
+          })
+        }
+        
+        xhr.send(file)
+      } else {
+        alert('Failed to get pre-signed URL.')
         setUploading(false)
+        startTransition(() => {
+          logAction('Upload', 'Failed to get pre-signed URL for upload')
+        })
       }
-      
-      xhr.onerror = () => {
-        console.error('XHR Error')
-        alert('Upload failed.')
-        setUploading(false)
-      }
-      
-      xhr.send(file)
-    } else {
-      alert('Failed to get pre-signed URL.')
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Upload failed.')
       setUploading(false)
+      startTransition(() => {
+        logAction('Upload', `Upload error: ${error.message}`)
+      })
     }
   }
 
@@ -221,7 +247,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
         }}>
           Clear
         </Button>
-        <Button type="submit" onClick={handleUpload} disabled={uploading}>
+        <Button type="submit" onClick={handleUpload} disabled={uploading || isPending}>
           {uploading ? 'Uploading...' : 'Upload'}
         </Button>
       </CardFooter>      
