@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import { Separator } from '~/components/ui/separator'
 import PaymentMethodSelector from '~/components/store/checkout/payment'
 import { createOrder } from '~/lib/actions/store/createOrder'
-import { useToast } from '~/components/hooks/use-toast'
 import { useRouter } from 'next/navigation'
+import { logAction } from '~/lib/logging' 
 
 interface CartItem {
   id: number
@@ -23,7 +23,6 @@ interface CartItem {
 
 export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
-  const { toast } = useToast()
   const router = useRouter()
 
   useEffect(() => {
@@ -51,18 +50,10 @@ export default function CheckoutPage() {
 
     try {
       await createOrder(formData)
-      toast({
-        title: "Order placed successfully",
-        description: "Thank you for your purchase!",
-      })
-      localStorage.removeItem('cart')
       router.push('/order-confirmation')
     } catch (error) {
-      toast({
-        title: "Error placing order",
-        description: "Please try again later.",
-        variant: "destructive",
-      })
+      console.error(error)
+      logAction('checkout', `failed to create order: ${error.message}`)
     }
   }
 
