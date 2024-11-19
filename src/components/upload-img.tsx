@@ -27,7 +27,7 @@ interface UploadedImage {
   copied: boolean
 }
 
-export default function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
+export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [name, setName] = useState('')

@@ -8,7 +8,6 @@ import { eq } from 'drizzle-orm'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { AddToCartButton } from '~/components/store/add-cart'
 
 export const revalidate = 60
 export const dynamicParams = true
@@ -80,7 +79,12 @@ export default async function Photo({ params }: { params: { id: number } }) {
                 />
               </div>
             </div>
-            <AddToCartButton image={image} />
+            <form action={`/store/checkout`} method="GET" className="w-full md:w-auto">
+              <input type="hidden" name="id" value={params.id} />
+              <Button type="submit" className="w-full md:w-auto px-8">
+                Add To Cart
+              </Button>
+            </form>
           </div>
         </div>
       </div>

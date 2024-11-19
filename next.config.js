@@ -31,4 +31,4 @@ const nextConfig = {
   },
 }
 
-export default withVercelToolbar()(withAxiom(nextConfig))
+export default withAxiom(nextConfig)

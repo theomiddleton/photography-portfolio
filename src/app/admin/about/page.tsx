@@ -158,7 +158,6 @@ export default function AboutEditor() {
             <ImageSelect 
               images={images} 
               onSelect={handleImageSelect}
-              selectedImages={selectedImages}
             />
           </div>
         </div>

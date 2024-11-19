@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '~/server/db'
-import { storeOrders, storeOrderItems } from '~/server/db/schema'
+import { storeOrders } from '~/server/db/schema'
 
 export async function createOrder(formData: FormData) {
   if (formData === null || formData === undefined) {
@@ -9,6 +9,11 @@ export async function createOrder(formData: FormData) {
   }
 
   try {
+    const imageId = formData.get('imageId') as string
+    const storeImageId = parseInt(formData.get('storeImageId') as string, 10)
+    const itemId = formData.get('itemId') as string
+    const quantity = parseInt(formData.get('quantity') as string, 10)
+    const total = parseFloat(formData.get('total') as string)
     const firstName = formData.get('firstName') as string
     const lastName = formData.get('lastName') as string
     const address = formData.get('address') as string
@@ -16,38 +21,28 @@ export async function createOrder(formData: FormData) {
     const postCode = formData.get('postalCode') as string
     const country = formData.get('country') as string
     const paymentMethod = formData.get('paymentMethod') as string
-    const total = parseFloat(formData.get('total') as string)
 
     const orderData = {
       customerName: `${firstName} ${lastName}`,
+      imageId: Number(imageId),
+      storeImageId,
+      itemId,
       address,
       city,
       postCode,
       country,
       status: 'pending',
       paymentMethod,
+      quantity,
       total,
+      // orderDate: new Date(),
     }
 
     const result = await db.insert(storeOrders).values(orderData)
-    const orderId = result.insertId
 
-    // Process cart items
-    const items = []
-    let i = 0
-    while (formData.get(`items[${i}][id]`)) {
-      items.push({
-        orderId,
-        imageId: parseInt(formData.get(`items[${i}][id]`) as string),
-        quantity: parseInt(formData.get(`items[${i}][quantity]`) as string),
-        frame: formData.get(`items[${i}][frame]`) as string,
-      })
-      i++
-    }
+    console.log('Order created:', result)
 
-    await db.insert(storeOrderItems).values(items)
-
-    return { message: 'Order created successfully', orderId, status: 200 }
+    // return { message: 'Order created successfully', orderId: result.insertId, status: 200 }
   } catch (error) {
     console.error('Error creating order:', error)
     return { error: 'Failed to create order', status: 500 }
