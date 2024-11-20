@@ -18,7 +18,7 @@ export async function deleteImage({ uuid, fileName, keepStoreData = false }: Del
   try {
     
     await r2.send(new DeleteObjectCommand({
-      Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
+      Bucket: process.env.R2_IMAGE_BUCKET_NAME,
       Key: fileName
     }))
 

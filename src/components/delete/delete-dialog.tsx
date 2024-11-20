@@ -16,8 +16,14 @@ import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { XCircle, CheckCircle2 } from 'lucide-react'
 
 interface Image {
+  id: number
   uuid: string
   fileName: string
+  fileUrl: string
+  name: string
+  description: string
+  tags: string
+  uploadedAt: Date
 }
 
 interface DataTableProps {
