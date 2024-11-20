@@ -1,6 +1,7 @@
 import React from 'react' 
 import { SiteHeader } from '~/components/site-header' 
 import { db } from '~/server/db'
+import { eq } from 'drizzle-orm'
 import { imageData } from '~/server/db/schema'
 import { siteConfig } from '~/config/site'
 import Image from 'next/image'
@@ -12,12 +13,12 @@ export const revalidate = 60
 export const dynamicParams = true
 
 export default async function Home() {
-
-  // get the image data from the database
+  // Get only visible image data from the database
   const result = await db.select({
     id: imageData.id,
     fileUrl: imageData.fileUrl,
   }).from(imageData)
+  .where(eq(imageData.visible, true))
 
   // map the data to an array of objects with the id and url
   const imageUrls = result.map((item) => ({
@@ -41,8 +42,8 @@ export default async function Home() {
           {/* the component is a link to the photo page with the id as the param*/}
           {imageUrls.map((image) => (
             <div key={image.id} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
-              <a href={'/photo/' + image.id} target="_self" rel="noreferrer">
-                <Image src={image.url} alt="img" height={600} width={400} />
+              <a href={`/photo/${image.id}`} target="_self" rel="noreferrer">
+                <Image src={image.url} alt="Gallery image" height={600} width={400} />
               </a>
             </div>
           ))}

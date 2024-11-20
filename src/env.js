@@ -22,7 +22,7 @@ export const env = createEnv({
     EDGE_CONFIG: z.string().url(),
     FLAGS_SECRET: z.string(),
     JWT_SECRET: z.string(),
-    JWT_EXPIRATION_HOURS: z.number(),
+    // JWT_EXPIRATION_HOURS: z.number(),
   },
 
   /**
@@ -51,7 +51,7 @@ export const env = createEnv({
     EDGE_CONFIG: process.env.EDGE_CONFIG,
     FLAGS_SECRET: process.env.FLAGS_SECRET,
     JWT_SECRET: process.env.JWT_SECRET,
-    JWT_EXPIRATION_HOURS: process.env.JWT_EXPIRATION_HOURS,
+    // JWT_EXPIRATION_HOURS: process.env.JWT_EXPIRATION_HOURS,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -2,7 +2,9 @@ import Image from 'next/image'
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 import { deleteImage } from '~/lib/actions/delete'
+import { changeVisibility } from '~/lib/actions/visibility'
 import { DeleteDialog } from '~/components/delete/delete-dialog'
+import { VisibilityDialog } from '~/components/delete/visibility-dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 
@@ -19,7 +21,7 @@ export async function DeleteTable() {
       <CardHeader>
         <CardTitle>Image Management</CardTitle>
         <CardDescription>
-          View and delete images from your collection
+          View, delete, and change visibility of images in your collection
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -31,7 +33,8 @@ export async function DeleteTable() {
               </TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Action</TableHead>
+              <TableHead>Visibility</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -49,7 +52,14 @@ export async function DeleteTable() {
                 <TableCell className="font-medium">{image.name}</TableCell>
                 <TableCell className="font-medium">{image.description}</TableCell>
                 <TableCell>
-                  <DeleteDialog image={image} deleteImage={deleteImage} />
+                  <div className="flex space-x-2">
+                    <VisibilityDialog image={image} changeVisibility={changeVisibility} />
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <DeleteDialog image={image} deleteImage={deleteImage} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
