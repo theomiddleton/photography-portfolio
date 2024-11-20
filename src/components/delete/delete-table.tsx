@@ -1,91 +1,49 @@
-'use client'
+import Image from 'next/image'
+import { db } from '~/server/db'
+import { imageData } from '~/server/db/schema'
+import { deleteImage } from '~/lib/actions/delete'
+import { DeleteDialog } from '~/components/delete/delete-dialog'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 
-import { useState } from 'react'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '~/components/ui/table'
-import { Button } from '~/components/ui/button'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '~/components/ui/alert-dialog'
-import { logAction } from '~/lib/logging'
-
-interface Image {
-  uuid: string
-  fileName: string
+async function getImages() {
+  return await db.select().from(imageData)
 }
 
-interface DeleteTableProps {
-  images: Image[]
-  deleteImage: (params: { uuid: string; fileName: string }) => Promise<{ success: boolean; message: string }>
-}
-
-export function DeleteTable({ images, deleteImage }: DeleteTableProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [selectedImage, setSelectedImage] = useState<Image | null>(null)
-  
-  const handleDelete = () => {
-    console.log('delete')
-  }
+export async function DeleteTable() {
+  const images = await getImages()
 
   return (
-    <>
+    <div className="container mx-auto py-10">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>UUID</TableHead>
-            <TableHead>File Name</TableHead>
-            <TableHead>Action</TableHead>
+            <TableHead className="hidden w-[100px] sm:table-cell">
+              <span className="sr-only">Image</span>
+            </TableHead>
+            <TableHead className="hidden md:table-cell">File Name</TableHead>
+            <TableHead className="hidden md:table-cell">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {images.map((image) => (
             <TableRow key={image.uuid}>
-              <TableCell>{image.uuid}</TableCell>
+              <TableCell className="hidden sm:table-cell">
+                <Image
+                  alt="Product image"
+                  className="aspect-square rounded-md object-cover"
+                  height="64"
+                  src={image.fileUrl}
+                  width="64"
+                />
+              </TableCell>
               <TableCell>{image.fileName}</TableCell>
               <TableCell>
-                <Button
-                  variant='destructive'
-                  onClick={() => {
-                    setSelectedImage(image)
-                    setIsOpen(true)
-                  }}
-                >
-                  Delete
-                </Button>
+                <DeleteDialog image={image} deleteImage={deleteImage} />
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-
-      <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the image
-              {selectedImage && ` "${selectedImage.fileName}"`}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    </div>
   )
 }
