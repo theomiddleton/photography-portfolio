@@ -1,6 +1,5 @@
 import Image from 'next/image'
-import { db } from '~/server/db'
-import { imageData } from '~/server/db/schema'
+import type { ImageDataType } from '~/app/admin/delete/page'
 import { deleteImage } from '~/lib/actions/delete'
 import { changeVisibility } from '~/lib/actions/visibility'
 import { DeleteDialog } from '~/components/delete/delete-dialog'
@@ -8,12 +7,11 @@ import { VisibilityDialog } from '~/components/delete/visibility-dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 
-async function getImages() {
-  return await db.select().from(imageData)
+interface DeleteTableProps {
+  images: ImageDataType[]
 }
 
-export async function DeleteTable() {
-  const images = await getImages()
+export function DeleteTable({ images }: DeleteTableProps) {
   const totalImages = images.length
 
   return (
@@ -44,9 +42,9 @@ export async function DeleteTable() {
                   <Image
                     alt={`Preview of ${image.fileName}`}
                     className="aspect-square rounded-md object-cover"
-                    height="64"
+                    height={64}
                     src={image.fileUrl}
-                    width="64"
+                    width={64}
                   />
                 </TableCell>
                 <TableCell className="font-medium">{image.name}</TableCell>

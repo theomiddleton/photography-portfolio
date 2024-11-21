@@ -9,21 +9,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 import Image from 'next/image'
 import { Button } from '~/components/ui/button'
-
-interface Image {
-  id: string
-  src: string
-  alt: string
-  order: number
-}
+import type { ImageDataType } from '~/app/admin/delete/page'
 
 interface SortableItemProps {
   id: string
   src: string
   alt: string
+  description: string
 }
 
-function SortableItem({ id, src, alt }: SortableItemProps) {
+function SortableItem({ id, src, alt, description }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -45,16 +40,20 @@ function SortableItem({ id, src, alt }: SortableItemProps) {
           src={src}
           alt={alt}
           className="aspect-square rounded-md object-cover"
-          height="64"
-          width="64"
+          height={64}
+          width={64}
         />
       </TableCell>
-      <TableCell>{alt}</TableCell>
+      <TableCell>{description}</TableCell>
     </TableRow>
   )
 }
 
-export function ImageReorder({ images: initialImages }: { images: Image[] }) {
+interface ImageReorderProps {
+  images: ImageDataType[]
+}
+
+export function ImageReorder({ images: initialImages }: ImageReorderProps) {
   const [images, setImages] = useState(initialImages)
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -76,15 +75,14 @@ export function ImageReorder({ images: initialImages }: { images: Image[] }) {
   }
 
   return (
-  <Card className="w-full">
-    <CardHeader>
-      <CardTitle>Image Management</CardTitle>
-      <CardDescription>
-        View, delete, and change visibility of images in your collection
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <div className="container mx-auto p-4">
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Image Reordering</CardTitle>
+        <CardDescription>
+          Drag and drop images to reorder them
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -95,29 +93,28 @@ export function ImageReorder({ images: initialImages }: { images: Image[] }) {
               <TableRow>
                 <TableHead>ID</TableHead>
                 <TableHead>Image</TableHead>
-                <TableHead>Alt Text</TableHead>
+                <TableHead>Description</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <SortableContext items={images} strategy={verticalListSortingStrategy}>
+              <SortableContext items={images.map(img => img.uuid)} strategy={verticalListSortingStrategy}>
                 {images.map((image) => (
-                  <SortableItem key={image.id} id={image.id} src={image.src} alt={image.alt} />
+                  <SortableItem key={image.uuid} id={image.id} src={image.fileUrl} alt={image.fileName} description={image.description || ''} />
                 ))}
               </SortableContext>
             </TableBody>
           </Table>
         </DndContext>
         <div className="mt-4">
-          <Button>Confirm</Button>
+          <Button>Confirm Order</Button>
         </div>
-      </div>
-    </CardContent>
-    <CardFooter>
-      <div className="text-xs text-muted-foreground">
-        {/* Showing <strong>1-{totalImages}</strong> of <strong>{totalImages}</strong> images */}
-      </div>
-    </CardFooter>
-  </Card>
+      </CardContent>
+      <CardFooter>
+        <div className="text-xs text-muted-foreground">
+          Showing <strong>1-{images.length}</strong> of <strong>{images.length}</strong> images
+        </div>
+      </CardFooter>
+    </Card>
   )
 }
 

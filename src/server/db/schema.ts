@@ -12,6 +12,7 @@ export const imageData = pgTable('imageData', {
   description: varchar('description', { length: 256 }),
   tags: varchar('tags', { length: 256 }),
   visible: boolean('visible').default(true).notNull(),
+  // order: integer('order').default(0).notNull(),
   uploadedAt: timestamp('uploadedAt').defaultNow(),
 })
 
