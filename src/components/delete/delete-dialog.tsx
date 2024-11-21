@@ -37,12 +37,15 @@ export function DeleteDialog({ image, deleteImage }: DataTableProps) {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const handleDelete = () => {
+    // using the transition react api so even if the delete takes a long time, the ui isnt blocked
     startTransition(async () => {
       try {
+        // call the deleteImage server actio 
         const result = await deleteImage({
           uuid: image.uuid,
           fileName: image.fileName,
         })
+        // set result / error message
         if (result.success) {
           setMessage({ type: 'success', text: `Image ${image.fileName} deleted successfully` })
         } else {
@@ -52,6 +55,7 @@ export function DeleteDialog({ image, deleteImage }: DataTableProps) {
         console.error('Error deleting image:', error)
         setMessage({ type: 'error', text: 'An unexpected error occurred while deleting the image' })
       }
+      // close the dialog
       setIsOpen(false)
     })
   }

@@ -7,7 +7,7 @@ import { db } from '~/server/db'
 import { imageData, blogImgData, aboutImgData, storeImages, storeOrders } from '~/server/db/schema'
 import { logAction } from '~/lib/logging'
 
-
+// type definitions
 interface DeleteImageParams {
   uuid: string
   fileName: string
@@ -17,15 +17,19 @@ interface DeleteImageParams {
 export async function deleteImage({ uuid, fileName, keepStoreData = false }: DeleteImageParams) {
   try {
     
+    // delete from r2
     await r2.send(new DeleteObjectCommand({
       Bucket: process.env.R2_IMAGE_BUCKET_NAME,
       Key: fileName
     }))
-
+    
+    // delete image data from database
     await db.delete(imageData).where(eq(imageData.uuid, uuid))
     await db.delete(blogImgData).where(eq(blogImgData.uuid, uuid))
     await db.delete(aboutImgData).where(eq(aboutImgData.uuid, uuid))
 
+    // delete store image data from database
+    // if keepStoreData is false, delete store image data
     if (!keepStoreData) {
       const storeImage = await db.select().from(storeImages).where(eq(storeImages.imageUuid, uuid)).limit(1)
       
@@ -36,6 +40,8 @@ export async function deleteImage({ uuid, fileName, keepStoreData = false }: Del
       }
     }
 
+    // log it with custom logging implementation, storing the log in the db
+    // return either success message or error message
     logAction('Delete', `Image ${uuid} deleted successfully`)
     return { success: true, message: 'Image deleted successfully' }
   } catch (error) {

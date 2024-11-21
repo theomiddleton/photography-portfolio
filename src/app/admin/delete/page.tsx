@@ -9,7 +9,8 @@ export default async function Delete() {
 
   return (
     <div className='container mx-auto py-10'>
-      <DeleteTable images={images} deleteImage={deleteImage} />
+      {/* <DeleteTable images={images} deleteImage={deleteImage} /> */}
+      <DeleteTable />
     </div>
   )
 }
