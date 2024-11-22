@@ -10,9 +10,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '~/components/ui/button'
 import Image from 'next/image'
 import type { ImageDataType } from '~/app/admin/delete/page'
+import { updateImageOrder } from '~/lib/actions/updateImageOrder'
 
 interface SortableItemProps {
-  id: string
+  id: number
   src: string
   description: string
 }
@@ -45,7 +46,7 @@ function SortableItem({ id, src, description }: SortableItemProps) {
           className="aspect-square rounded-md object-cover"
           height={64}
           width={64}
-          />
+        />
       </TableCell>
       <TableCell>{description}</TableCell>
     </TableRow>
@@ -54,6 +55,8 @@ function SortableItem({ id, src, description }: SortableItemProps) {
 
 export function ImageReorder({ images: initialImages }: ImageReorderProps) {
   const [images, setImages] = useState(initialImages)
+  const [updateStatus, setUpdateStatus] = useState<string | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -71,6 +74,33 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
         return arrayMove(items, oldIndex, newIndex)
       })
     }
+  }
+
+  async function handleConfirmOrder() {
+    setIsUpdating(true)
+    setUpdateStatus('Updating order...')
+    const newOrder = images.map((image, index) => ({
+      id: image.id,
+      order: index,
+    }))
+
+    try {
+      const result = await updateImageOrder(newOrder)
+
+      if (result.success) {
+        setUpdateStatus('Order updated successfully')
+      } else {
+        setUpdateStatus('Failed to update order: ' + result.message)
+      }
+    } catch (error) {
+      console.error('Error updating order:', error)
+      setUpdateStatus('An error occurred while updating the order')
+    } finally {
+      setIsUpdating(false)
+    }
+
+    // Clear status message after 3 seconds
+    setTimeout(() => setUpdateStatus(null), 3000)
   }
 
   return (
@@ -96,7 +126,7 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <SortableContext items={images} strategy={verticalListSortingStrategy}>
+              <SortableContext items={images.map(img => img.id)} strategy={verticalListSortingStrategy}>
                 {images.map((image) => (
                   <SortableItem key={image.id} id={image.id} src={image.fileUrl} description={image.description || ''} />
                 ))}
@@ -104,8 +134,15 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
             </TableBody>
           </Table>
         </DndContext>
-        <div className="mt-4">
-          <Button>Confirm Order</Button>
+        <div className="mt-4 flex items-center space-x-4">
+          <Button onClick={handleConfirmOrder} disabled={isUpdating}>
+            {isUpdating ? 'Updating...' : 'Confirm Order'}
+          </Button>
+          {updateStatus && (
+            <p className={`text-sm ${updateStatus.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+              {updateStatus}
+            </p>
+          )}
         </div>
       </CardContent>
       <CardFooter>
