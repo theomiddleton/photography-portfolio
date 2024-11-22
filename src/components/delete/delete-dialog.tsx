@@ -83,7 +83,7 @@ export function DeleteDialog({ image, deleteImage }: DataTableProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the image "{image.fileName}".
+              This action cannot be undone. This will permanently delete the image `{image.fileName}`.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -81,7 +81,7 @@ export function VisibilityDialog({ image, changeVisibility }: VisibilityDialogPr
           <AlertDialogHeader>
             <AlertDialogTitle>Change Visibility</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to {image.visible ? 'hide' : 'show'} the image "{image.fileName}"?
+              Are you sure you want to {image.visible ? 'hide' : 'show'} the image `{image.fileName}`?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
