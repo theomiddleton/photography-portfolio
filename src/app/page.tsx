@@ -16,13 +16,14 @@ export default async function Home() {
   // Get only visible image data from the database
   const result = await db.select({
     id: imageData.id,
+    order: imageData.order,
     fileUrl: imageData.fileUrl,
   }).from(imageData)
   .where(eq(imageData.visible, true))
 
   // map the data to an array of objects with the id and url
   const imageUrls = result.map((item) => ({
-    id: item.id,
+    id: item.order,
     url: item.fileUrl
   }))
 

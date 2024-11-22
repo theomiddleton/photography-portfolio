@@ -8,28 +8,32 @@ import { CSS } from '@dnd-kit/utilities'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
+import { Checkbox } from '~/components/ui/checkbox'
+import { Label } from '~/components/ui/label'
 import Image from 'next/image'
 import type { ImageDataType } from '~/app/admin/delete/page'
 import { updateImageOrder } from '~/lib/actions/updateImageOrder'
 
 interface SortableItemProps {
   id: number
+  order: number
   src: string
   description: string
+  showId: boolean
 }
 
 interface ImageReorderProps {
   images: ImageDataType[]
 }
 
-function SortableItem({ id, src, description }: SortableItemProps) {
+function SortableItem({ id, order, src, description, showId }: SortableItemProps) {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id })
+  } = useSortable({ id: order })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -38,7 +42,8 @@ function SortableItem({ id, src, description }: SortableItemProps) {
 
   return (
     <TableRow ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TableCell className="font-medium">{id}</TableCell>
+      {showId && <TableCell className="font-medium">{id}</TableCell>}
+      <TableCell className="font-medium">{order + 1}</TableCell>
       <TableCell>
         <Image
           src={src}
@@ -54,9 +59,10 @@ function SortableItem({ id, src, description }: SortableItemProps) {
 }
 
 export function ImageReorder({ images: initialImages }: ImageReorderProps) {
-  const [images, setImages] = useState(initialImages)
+  const [images, setImages] = useState(initialImages.sort((a, b) => a.order - b.order))
   const [updateStatus, setUpdateStatus] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [showId, setShowId] = useState(false)
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -69,9 +75,9 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
 
     if (active.id !== over.id) {
       setImages((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id)
-        const newIndex = items.findIndex((item) => item.id === over.id)
-        return arrayMove(items, oldIndex, newIndex)
+        const oldIndex = items.findIndex((item) => item.order === active.id)
+        const newIndex = items.findIndex((item) => item.order === over.id)
+        return arrayMove(items, oldIndex, newIndex).map((item, index) => ({ ...item, order: index }))
       })
     }
   }
@@ -120,29 +126,49 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
+                {showId && <TableHead>ID</TableHead>}
+                <TableHead>Order</TableHead>
                 <TableHead>Image</TableHead>
                 <TableHead>Description</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <SortableContext items={images.map(img => img.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext items={images.map(img => img.order)} strategy={verticalListSortingStrategy}>
                 {images.map((image) => (
-                  <SortableItem key={image.id} id={image.id} src={image.fileUrl} description={image.description || ''} />
+                  <SortableItem 
+                    key={image.id} 
+                    id={image.id} 
+                    order={image.order} 
+                    src={image.fileUrl} 
+                    description={image.description || ''} 
+                    showId={showId}
+                  />
                 ))}
               </SortableContext>
             </TableBody>
           </Table>
         </DndContext>
-        <div className="mt-4 flex items-center space-x-4">
-          <Button onClick={handleConfirmOrder} disabled={isUpdating}>
-            {isUpdating ? 'Updating...' : 'Confirm Order'}
-          </Button>
-          {updateStatus && (
-            <p className={`text-sm ${updateStatus.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
-              {updateStatus}
-            </p>
-          )}
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <Button onClick={handleConfirmOrder} disabled={isUpdating}>
+              {isUpdating ? 'Updating...' : 'Confirm Order'}
+            </Button>
+            {updateStatus && (
+              <p className={`text-sm ${updateStatus.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+                {updateStatus}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox 
+              id="show-id" 
+              checked={showId} 
+              onCheckedChange={(checked) => setShowId(checked as boolean)} 
+            />
+            <Label htmlFor="show-id" className="text-sm text-muted-foreground">
+              Show ID
+            </Label>
+          </div>
         </div>
       </CardContent>
       <CardFooter>
