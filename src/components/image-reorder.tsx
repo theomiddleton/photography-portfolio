@@ -114,7 +114,8 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
       <CardHeader>
         <CardTitle>Image Reordering</CardTitle>
         <CardDescription>
-          Drag and drop images to reorder them
+          Drag and drop images to reorder them as needed.
+          Warning: Due to being a masonry layout, the order may not be be what you expect
         </CardDescription>
       </CardHeader>
       <CardContent>
