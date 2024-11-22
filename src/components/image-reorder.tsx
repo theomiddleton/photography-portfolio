@@ -7,18 +7,21 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
-import Image from 'next/image'
 import { Button } from '~/components/ui/button'
+import Image from 'next/image'
 import type { ImageDataType } from '~/app/admin/delete/page'
 
 interface SortableItemProps {
   id: string
   src: string
-  alt: string
   description: string
 }
 
-function SortableItem({ id, src, alt, description }: SortableItemProps) {
+interface ImageReorderProps {
+  images: ImageDataType[]
+}
+
+function SortableItem({ id, src, description }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -38,19 +41,15 @@ function SortableItem({ id, src, alt, description }: SortableItemProps) {
       <TableCell>
         <Image
           src={src}
-          alt={alt}
+          alt={description}
           className="aspect-square rounded-md object-cover"
           height={64}
           width={64}
-        />
+          />
       </TableCell>
       <TableCell>{description}</TableCell>
     </TableRow>
   )
-}
-
-interface ImageReorderProps {
-  images: ImageDataType[]
 }
 
 export function ImageReorder({ images: initialImages }: ImageReorderProps) {
@@ -97,9 +96,9 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <SortableContext items={images.map(img => img.uuid)} strategy={verticalListSortingStrategy}>
+              <SortableContext items={images} strategy={verticalListSortingStrategy}>
                 {images.map((image) => (
-                  <SortableItem key={image.uuid} id={image.id} src={image.fileUrl} alt={image.fileName} description={image.description || ''} />
+                  <SortableItem key={image.id} id={image.id} src={image.fileUrl} description={image.description || ''} />
                 ))}
               </SortableContext>
             </TableBody>
