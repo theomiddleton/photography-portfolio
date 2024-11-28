@@ -23,7 +23,7 @@
 
 - [ ] Main page
   - [x] Image Gallery
-    - [ ] Gallery order - within admin
+    - [x] Gallery order - within admin
       - [ ] Colour based order (adv)
     - [x] Image page
       - [x] revisit for responsiveness on smaller screens
