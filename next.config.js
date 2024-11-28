@@ -17,17 +17,18 @@ const nextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: [
-        'https://verbose-memory-xp4jpw9q45v26xpv-3000.app.github.dev', 
-        '*.app.github.dev', 
-        'verbose-memory-xp4jpw9q45v26xpv-3000.app.github.dev',
+        '.app.github.dev', 
         'http://localhost:3000'
       ],
     },
     serverComponentsExternalPackages: ['@aws/sdk/client-s3', '@aws-sdk/s3-request-presigner'],
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
 }
 
-export default withVercelToolbar()(withAxiom(nextConfig))
+export default withAxiom(nextConfig)

@@ -10,7 +10,7 @@ import {
   AlertDialogTitle 
 } from '~/components/ui/alert-dialog'
 
-import { User } from '~/lib/auth/userActions' 
+import type { User } from '~/lib/auth/userActions' 
 
 interface DeleteUserDialogProps {
   userToDelete: User | null

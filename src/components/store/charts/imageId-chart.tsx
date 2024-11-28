@@ -6,12 +6,11 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import type { ChartConfig } from '~/components/ui/chart'
 import {
-  ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
@@ -19,14 +18,14 @@ import {
   ChartTooltipContent,
 } from '~/components/ui/chart'
 
-type ChartData = {
+interface ChartData {
   imageId: number
   price: number
   total: number
   createdAt: string
 }
 
-type AggregatedData = {
+interface AggregatedData {
   imageId: number
   price: number
   total: number

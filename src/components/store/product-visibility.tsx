@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/select'
 
 import { db } from '~/server/db'
-import { storeImages, imageData } from '~/server/db/schema'
+import { storeImages } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { Suspense } from 'react'
 

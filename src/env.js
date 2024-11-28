@@ -1,5 +1,5 @@
-import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { createEnv } from '@t3-oss/env-nextjs'
+import { z } from 'zod'
 
 export const env = createEnv({
   /**
@@ -10,14 +10,19 @@ export const env = createEnv({
     DATABASE_URL: z
       .string().url(),
     NODE_ENV: z
-      .enum(["development", "test", "production"])
-      .default("development"),
-    KINDE_CLIENT_ID: z.string(),
-    KINDE_CLIENT_SECRET: z.string(),
-    KINDE_ISSUER_URL: z.string(),
-    KINDE_SITE_URL: z.string(),
-    KINDE_POST_LOGOUT_REDIRECT_URL: z.string(),
-    KINDE_POST_LOGIN_REDIRECT_URL: z.string(),
+      .enum(['development', 'test', 'production'])
+      .default('development'),
+    R2_ACCESS_KEY_ID: z.string(),
+    R2_SECRET_ACCESS_KEY: z.string(),
+    R2_IMAGE_BUCKET_NAME: z.string(),
+    R2_BLOG_IMG_BUCKET_NAME: z.string(),
+    R2_ABOUT_IMG_BUCKET_NAME: z.string(),
+    R2_ACCOUNT_ID: z.string(),
+    R2_REGION: z.string(),
+    EDGE_CONFIG: z.string().url(),
+    FLAGS_SECRET: z.string(),
+    JWT_SECRET: z.string(),
+    // JWT_EXPIRATION_HOURS: z.number(),
   },
 
   /**
@@ -27,12 +32,6 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
-    NEXT_PUBLIC_R2_ACCESS_KEY_ID: z.string(),
-    NEXT_PUBLIC_R2_SECRET_ACCESS_KEY: z.string(),
-    NEXT_PUBLIC_R2_IMAGE_BUCKET_NAME: z.string(),
-    NEXT_PUBLIC_R2_BLOG_IMAGE_BUCKET_NAME: z.string(),
-    NEXT_PUBLIC_R2_ACCOUNT_ID: z.string(),
-    NEXT_PUBLIC_R2_REGION: z.string(),
   },
 
   /**
@@ -42,18 +41,17 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    NEXT_PUBLIC_R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
-    NEXT_PUBLIC_R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
-    NEXT_PUBLIC_R2_IMAGE_BUCKET_NAME: process.env.R2_IMAGE_BUCKET_NAME,
-    NEXT_PUBLIC_R2_BLOG_IMAGE_BUCKET_NAME: process.env.R2_BLOG_IMAGE_BUCKET_NAME,
-    NEXT_PUBLIC_R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
-    NEXT_PUBLIC_R2_REGION: process.env.R2_ACCOUNT_ID,
-    KINDE_CLIENT_ID: process.env.KINDE_CLIENT_ID,
-    KINDE_CLIENT_SECRET: process.env.KINDE_CLIENT_SECRET,
-    KINDE_ISSUER_URL: process.env.KINDE_ISSUER_URL,
-    KINDE_SITE_URL: process.env.KINDE_SITE_URL,
-    KINDE_POST_LOGOUT_REDIRECT_URL: process.env.KINDE_POST_LOGOUT_REDIRECT_URL,
-    KINDE_POST_LOGIN_REDIRECT_URL: process.env.KINDE_POST_LOGIN_REDIRECT_URL,
+    R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
+    R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
+    R2_IMAGE_BUCKET_NAME: process.env.R2_IMAGE_BUCKET_NAME,
+    R2_BLOG_IMG_BUCKET_NAME: process.env.R2_BLOG_IMG_BUCKET_NAME,
+    R2_ABOUT_IMG_BUCKET_NAME: process.env.R2_ABOUT_IMG_BUCKET_NAME,
+    R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
+    R2_REGION: process.env.R2_ACCOUNT_ID,
+    EDGE_CONFIG: process.env.EDGE_CONFIG,
+    FLAGS_SECRET: process.env.FLAGS_SECRET,
+    JWT_SECRET: process.env.JWT_SECRET,
+    // JWT_EXPIRATION_HOURS: process.env.JWT_EXPIRATION_HOURS,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
@@ -65,4 +63,4 @@ export const env = createEnv({
    * `SOME_VAR=''` will throw an error.
    */
   emptyStringAsUndefined: true,
-});
+})

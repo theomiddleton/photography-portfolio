@@ -1,60 +1,63 @@
-import { db } from '~/server/db'
-import { blogs, blogImages } from '~/server/db/schema'
-import { Suspense } from 'react'
+import Link from 'next/link'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 
-import { SiteHeader } from '~/components/site-header'
+import { db } from '~/server/db'
+import { blogs } from '~/server/db/schema'
+
+import type { Post } from '~/lib/types/Post'
 
 export default async function Blog() {
-
-    const blogPosts = await db.select({
-        id: blogs.id,
-        title: blogs.title,
-        content: blogs.content,
-        visible: blogs.visible,
-    }).from(blogs)
-
-    const posts = blogPosts.map((post) => ({
-        slug: post.id,
-        title: post.title,
-        visible: post.visible,
-    }))
-
-    const images = await db.select({
-        id: blogImages.id,
-        blogId: blogImages.blogId,
-        fileUrl: blogImages.fileUrl,
-        description: blogImages.description,
-    }).from(blogImages)
-
-    const postsWithImages = posts.map(post => {
-        const image = images.find(image => image.blogId === post.slug);
-        return {
-            ...post,
-            imageUrl: image ? image.fileUrl : null
-        }
-    })
-
+  const allPosts: Post[] = await db.select().from(blogs)
+  
+  // Filter out draft posts
+  const publishedPosts = allPosts.filter(post => !post.isDraft)
+  
+  if (publishedPosts.length <= 0) {
     return (
-        <main>
-        <SiteHeader />
-        <main className="flex min-h-screen flex-col items-center bg-white text-black">
-            <div>
-                <h1 className='text-2xl'></h1>
-                <span></span>
-                <section className="sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4 max-h-5xl mx-auto space-y-4">
-                    <Suspense fallback={<p>Loading Blog Posts...</p>}>
-                        {postsWithImages.filter(post => post.visible).map((post) => (
-                            <div key={post.slug} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
-                                <a href={'/blog/' + post.slug} target="_self" rel="noreferrer">
-                                    {post.imageUrl && <img src={post.imageUrl} alt={post.title} />}
-                                    <h3 className='mt-10 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0'>{post.title}</h3>
-                                </a>
-                            </div>
-                        ))}
-                    </Suspense>
-                </section>
-            </div>
-        </main>
-        </main>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8">Latest Blog Posts</h1>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <p>No posts found.</p>
+        </div>
+      </div>
     )
+  }
+
+  const formatDate = (date: Date): string => {
+    return date.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+  }
+  
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Latest Blog Posts</h1>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {publishedPosts.map((post) => (
+            <Card key={post.id} className="flex flex-col">
+              <CardHeader>
+                <CardTitle className="text-xl">
+                  <Link href={`/blog/${post.id}`} className="hover:underline">
+                    {post.title}
+                  </Link>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-muted-foreground line-clamp-3">{post.content}</p>
+              </CardContent>
+              <CardFooter className="flex justify-between items-center">
+                <div className="text-sm text-muted-foreground">
+                  {formatDate(post.createdAt)}
+                </div>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+    </div>
+  )
 }

@@ -492,3 +492,47 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
 ```
 This file contains the functions for logging in and registering users, still allowing the end to end type safety, and the ability to hash passwords and verify them, but imports the `createSession` function from `authHelpers.ts` instead of having it in the same file.
 
+## Production errors
+Within the authHelpers file, json web tokens are signed with a secret key. This key is stored in the enviroment variables, therfore not stored in the codebase. 
+On the production build, after signing into an admin account, It would not autorize me onto the admin routes. When looking through the prod logs, the folowing error message was shown:
+
+```js
+Failed to verify session:  DataError: Imported HMAC key length (0) must be a non-zero value up to 7 bits less than, and no greater than, the bit length of the raw key data (0).
+    at (node_modules/.pnpm/jose@5.8.0/node_modules/jose/dist/browser/runtime/get_sign_verify_key.js?b0c4:21:21)
+    at (node_modules/.pnpm/jose@5.8.0/node_modules/jose/dist/browser/runtime/verify.js?e3f7:6:0)
+    at (node_modules/.pnpm/jose@5.8.0/node_modules/jose/dist/browser/jws/flattened/verify.js?196b:84:0)
+    at (node_modules/.pnpm/jose@5.8.0/node_modules/jose/dist/browser/jws/compact/verify.js?6c5f:15:0)
+    at (node_modules/.pnpm/jose@5.8.0/node_modules/jose/dist/browser/jwt/verify.js?1864:5:0)
+    at (src/lib/auth/auth.ts:12:24)
+    at (src/middleware.ts:8:20)
+    at (node_modules/.pnpm/next@14.2.8_@babel+core@7.24.9_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/esm/server/web/adapter.js?09c7:156:0) {
+  code: 0,
+  name: 'DataError',
+  message: 'Imported HMAC key length (0) must be a non-zero value up to 7 bits less than, and no greater than, the bit length of the raw key data (0).',
+  stack: [Getter/Setter]
+}
+```
+
+This error was caused, as the secret key was not set in the production enviroment variables, and was therefore not being used to sign the jwt tokens. This was fixed by setting the secret key in the production enviroment variables.
+This error could have been avoided if I had remembered to set the jwt key in tht ~/env.js. This file is the T3 env package and is used to validate enviroment variables, and when set, will throw a build error when not set.
+env.js uses zod to verify the variables, ensuring strings aren't left empty and urls are valid urls.
+After adding all currently used enviroment variables, the section of the code used to validate the schema of the enviroment variables looks like such:
+
+```js
+server: {
+  DATABASE_URL: z
+    .string().url(),
+  NODE_ENV: z
+    .enum(['development', 'test', 'production'])
+    .default('development'),
+  R2_ACCESS_KEY_ID: z.string(),
+  R2_SECRET_ACCESS_KEY: z.string(),
+  R2_IMAGE_BUCKET_NAME: z.string(),
+  R2_BLOG_IMG_BUCKET_NAME: z.string(),
+  R2_ACCOUNT_ID: z.string(),
+  R2_REGION: z.string(),
+  EDGE_CONFIG: z.string().url(),
+  FLAGS_SECRET: z.string(),
+  JWT_SECRET: z.string()
+},
+```

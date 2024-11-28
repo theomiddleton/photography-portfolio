@@ -2,13 +2,12 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
 
 import { db } from '~/server/db'
-import { storeImages, imageData, storeOrders } from '~/server/db/schema'
+import { storeImages, storeOrders } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { ImageIdChart } from '~/components/store/charts/imageId-chart'
 import { Revenue } from '~/components/store/charts/revenue'
@@ -51,7 +50,7 @@ export function Analytics() {
       <CardHeader>
         <CardTitle>Analytics</CardTitle>
         <CardDescription>
-          View your store's analytics
+          View your store&apos;s analytics
         </CardDescription>
       </CardHeader>
       <CardContent>

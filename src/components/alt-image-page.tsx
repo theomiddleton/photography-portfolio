@@ -27,4 +27,3 @@ export async function AltImagePage(data: any) {
   )
 }
 
-export const runtime = 'edge'

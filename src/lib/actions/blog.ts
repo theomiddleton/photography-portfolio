@@ -1,127 +1,88 @@
 'use server'
-import { eq, sql } from 'drizzle-orm'
+
+import { z } from 'zod'
+
 import { db } from '~/server/db'
-import { blogs, blogImages } from '~/server/db/schema'
+import { eq, and } from 'drizzle-orm'
+import { blogs, blogImgData } from '~/server/db/schema'
+import type { Post } from '~/lib/types/Post'
 
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import { PutObjectCommand } from '@aws-sdk/client-s3'
-import { v4 as uuidv4 } from 'uuid'
-import { r2 } from '~/lib/r2'
-import { siteConfig } from '~/config/site'
+const PostSchema = z.object({
+  id: z.number().optional(),
+  title: z.string().min(1, 'Title is required'),
+  content: z.string().min(1, 'Content is required'),
+  isDraft: z.boolean(),
+  tempId: z.string().optional()
+})
 
-export async function blogWrite(content: string, title: string, visible: boolean) {
+export type PostData = z.infer<typeof PostSchema>
 
-    await db.insert(blogs).values({
-        title: title,
-        content: content,
-        visible: visible,
-    })
+export async function savePost(data: PostData) {
+  try {
+    const validatedData = PostSchema.parse(data)
+    
+    console.log('Saving post:', validatedData)
 
-    //we need the blog to update, currently it is just creating a new row in the database every time
-    //it needs to update the existing row, so we can fetch the id and pass it to the blogImages table
+    const [savedPost] = await db.insert(blogs).values({
+      title: validatedData.title,
+      content: validatedData.content,
+      isDraft: validatedData.isDraft
+    }).returning({ id: blogs.id })
 
-    return new Response('Blog post created', { status: 200 })
+    return { 
+      success: true, 
+      message: validatedData.isDraft ? 'Draft saved successfully' : 'Post published successfully',
+      id: savedPost.id
+    }
+  } catch (error) {
+    
+    if (error instanceof z.ZodError) {
+      return { 
+        success: false, 
+        message: 'Validation failed', 
+        errors: error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
+      }
+    }
+    
+    return { 
+      success: false, 
+      message: 'An unexpected error occurred' 
+    }
+  }
 }
 
-export async function blogFetch() {
-    try {
-        const result = await db.select({
-            id: blogs.id,
-            title: blogs.title,
-            content: blogs.content,
-            visible: blogs.visible,
-        }).from(blogs)
-        
-        return result
-    } catch (error) {
-        return new Response('Error fetching image URL from the database', { status: 500 })
-    }
+export async function updateImageAssociations({ tempId, permanentId }: { tempId: string, permanentId: number }) {
+  try {
+    await db.update(blogImgData)
+      .set({ blogId: permanentId })
+      .where(eq(blogImgData.draftId, tempId))
+
+    return { success: true, message: 'Image associations updated successfully' }
+  } catch (error) {
+    console.error('Failed to update image associations:', error)
+    return { success: false, message: 'Failed to update image associations' }
+  }
 }
 
-export async function blogEditFetch(id: number): Promise<{ id: number; title: string; content: string; visible: boolean }> {
-    try {
-        const result = await db.select({
-            id: blogs.id,
-            title: blogs.title,
-            content: blogs.content,
-            visible: blogs.visible,
-        }).from(blogs).where(eq(blogs.id, Number(id)))
-        
-        if (result.length === 0) {
-            throw new Error('Blog post not found')
-        }
-        return { ...result[0] }
-    } catch (error) {
-        throw new Error('Error fetching blog post from the database')
-    }
+export async function loadDraft(id: number): Promise<PostData | null> {
+  const draft = await db.select()
+  .from(blogs)
+  .where(
+    and(
+      eq(blogs.id, id),
+      eq(blogs.isDraft, true)
+    )
+  )
+
+  return draft ? { ...draft, isDraft: true } : null
 }
 
-export async function blogEdit(id: number, content: string, title: string, visible: boolean) {
-    try {
-        await db.update(blogs).set({
-            title: title,
-            content: content,
-            visible: visible,
-        }).where(eq(blogs.id, Number(id)))
-
-        return new Response('Blog post updated', { status: 200 })
-    } catch (error) {
-        return new Response('Error fetching image URL from the database', { status: 500 })
-    }
+export async function deletePost(id: number) {
+  await db.delete(blogs).where(eq(blogs.id, id))
+  return { success: true, message: 'Post deleted successfully' }
 }
 
-export async function writeImgDb(request: Request) {
-    const { filename, name, description, tags } = await request.json()
-
-    try {
-        const fileExtension = filename.split('.').pop()
-        const keyName = uuidv4() 
-        const command = new PutObjectCommand({
-            Bucket: process.env.R2_IMAGE_BUCKET_NAME,
-            Key: keyName + '.' + fileExtension,
-        }) 
-        const url = await getSignedUrl(r2, command, { expiresIn: 60 }) 
-        console.log('server side url', url)
-        const newFileName = keyName + '.' + fileExtension
-        const fileUrl =`${siteConfig.bucketUrl}/${newFileName}`
-        console.log('fileUrl', fileUrl)
-
-        await db.insert(blogImages).values({
-            imageId: keyName, 
-            fileName: newFileName, 
-            fileUrl: fileUrl,
-            description: description,
-        })
-
-        const result = await db
-            .select({
-                fileUrl: blogImages.fileUrl,
-            })
-            .from(blogImages)
-            .where(eq(blogImages.imageId, sql.placeholder('uuid')))
-            .execute({ uuid: keyName }) 
-
-        console.log('Inserted data:', result)
-        return url
-        // return Response.json({ url })
-    } catch (error) {
-        console.error(error) 
-        return new Response('Error fetching image URL from the database', { status: 500 })
-    }
-}
-
-export async function fetchBlogImg() {
-    try {
-        const result = await db.select({
-            id: blogImages.id,
-            fileUrl: blogImages.fileUrl,
-            description: blogImages.description,
-        }).from(blogImages)
-
-        //console.log('Server side Fetched data:', result)
-        
-        return result
-    } catch (error) {
-        return new Response('Error fetching image URL from the database', { status: 500 })
-    }
+export async function getPosts(): Promise<Post[]> {
+  const posts: Post[] = await db.select().from(blogs)
+  return posts
 }

@@ -1,4 +1,5 @@
 import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean } from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm'
 
 export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
 
@@ -10,6 +11,8 @@ export const imageData = pgTable('imageData', {
   name: varchar('name', { length: 256 }).notNull(),
   description: varchar('description', { length: 256 }),
   tags: varchar('tags', { length: 256 }),
+  visible: boolean('visible').default(true).notNull(),
+  order: integer('order').default(0).notNull(),
   uploadedAt: timestamp('uploadedAt').defaultNow(),
 })
 
@@ -17,30 +20,46 @@ export const blogs = pgTable('blogs', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 256 }).notNull(),
   content: text('content').notNull(),
-  visible: boolean('visible').default(false).notNull(),
+  isDraft: boolean('draft').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
-  tempId: varchar('tempId', { length: 256 }),
 })
 
-export const blogImages = pgTable('blogImages', {
+export const blogImgData = pgTable('blogImgData', {
   id: serial('id').primaryKey(),
-  blogId: serial('blog_id').references(() => blogs.id),
-  imageId: varchar('imageId', { length: 256 }).notNull(),
+  blogId: integer('blogId').references(() => blogs.id),
+  draftId: varchar('draftId', { length: 36 }),
+  uuid: varchar('uuid', { length: 36 }).notNull(),
   fileName: varchar('fileName', { length: 256 }).notNull(),
   fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
-  description: varchar('description', { length: 256 }),
-  uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),
+  name: varchar('name', { length: 256 }).notNull(),
+  uploadedAt: timestamp('uploadedAt').defaultNow(),
+})
+
+export const aboutImgData = pgTable('aboutImgData', {
+  id: serial('id').primaryKey(),
+  uuid: varchar('uuid', { length: 36 }).notNull(),
+  fileName: varchar('fileName', { length: 256 }).notNull(),
+  fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
+  name: varchar('name', { length: 256 }),
+  uploadedAt: timestamp('uploadedAt').defaultNow(),
 })
 
 export const about = pgTable('about', {
   id: serial('id').primaryKey(),
+  title: varchar('title', { length: 256 }).notNull(),
   content: text('content').notNull(),
   current: boolean('current').default(false).notNull(),
-  imageBool: boolean('imageBool').default(false).notNull(),
-  imageUrl: varchar('imageUrl', { length: 256 }),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
+})
+
+export const aboutImages = pgTable('aboutImages', {
+  id: serial('id').primaryKey(),
+  aboutId: integer('about_id').notNull().references(() => about.id),
+  name: varchar('name', { length: 256 }).notNull(),
+  url: varchar('url', { length: 512 }).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
 })
 
 export const storeImages = pgTable('storeImages', {
@@ -79,3 +98,21 @@ export const users = pgTable('users', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
+
+export const logs = pgTable('logs', {
+  id: serial('id').primaryKey(),
+  scope: varchar('scope', { length: 256 }).notNull(),
+  log: text('log').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+})
+
+export const aboutRelations = relations(about, ({ many }) => ({
+  images: many(aboutImages)
+}))
+
+export const aboutImagesRelations = relations(aboutImages, ({ one }) => ({
+  about: one(about, {
+    fields: [aboutImages.aboutId],
+    references: [about.id],
+  }),
+}))

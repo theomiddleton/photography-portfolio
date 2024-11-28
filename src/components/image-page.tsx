@@ -46,4 +46,3 @@ export function ImagePage(data: any) {
   )
 }
 
-export const runtime = 'edge'

@@ -1,9 +1,13 @@
 import { jwtVerify, SignJWT } from 'jose'
 import { cookies } from 'next/headers'
-import { NextRequest, NextResponse } from 'next/server'
+
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 
 const secret = process.env.JWT_SECRET!
 const key = new TextEncoder().encode(secret)
+
+const JWT_EXPIRATION_MS = parseInt(process.env.JWT_EXPIRATION_HOURS) * 60 * 60 * 1000 
 
 export async function getSession(): Promise<any | null> {
   const session = cookies().get('session')?.value
@@ -23,7 +27,7 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
   try {
     const { payload } = await jwtVerify(session, key, { algorithms: ['HS256'] })
-    payload.expires = new Date(Date.now() + 2 * 60 * 60 * 1000) // 2 hours
+    payload.expires = new Date(Date.now() + JWT_EXPIRATION_MS)
     const newSession = await new SignJWT(payload)
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
@@ -37,7 +41,7 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      expires: new Date(Date.now() + 2 * 60 * 60 * 1000)
+      expires: new Date(Date.now() + JWT_EXPIRATION_MS)
     })
     return response
   } catch (error) {

@@ -10,14 +10,16 @@ import { verifyPassword, hashPassword, createSession } from '~/lib/auth/authHelp
 import { loginSchema } from '~/lib/types/loginSchema'
 import { registerSchema } from '~/lib/types/registerSchema'
 
+const JWT_EXPIRATION_MS = parseInt(process.env.JWT_EXPIRATION_HOURS) * 60 * 60 * 1000
+
 // FormData type
-export type FormState = {
+export interface FormState {
   message: string
   fields?: Record<string, string>
   issues?: string[]
 }
 
-type LogoutState = {
+interface LogoutState {
   success: boolean
   message: string
   issues: string[] | null
@@ -45,7 +47,7 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
       fields[key] = formData[key].toString()
     }
     return {
-      message: "Invalid form data",
+      message: 'Invalid form data',
       fields,
       issues: parsed.error.issues.map((issue) => issue.message),
     }
@@ -61,7 +63,7 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
   
   // if the user isnt found, return a message
   if (!user) {
-    return { message: "User not found" }
+    return { message: 'User not found' }
   }
   
   // check if the password is valid, boolean
@@ -69,7 +71,7 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
   
   // if the password is invalid, return a message
   if (!isPasswordValid) {
-    return { message: "Invalid password" }
+    return { message: 'Invalid password' }
   }
   
   const session = await createSession({ email: user.email, role: user.role })
@@ -78,11 +80,11 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    expires: new Date(Date.now() + 2 * 60 * 60 * 1000) // 2 hours
+    expires: new Date(Date.now() + JWT_EXPIRATION_MS)
   })
   
   // if the user is found and the password is valid, return a message
-  return { message: "User logged in" }
+  return { message: 'User logged in' }
 }
 
 export async function register(prevState: FormState, data: FormData): Promise<FormState> {
@@ -97,7 +99,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
       fields[key] = formData[key].toString()
     }
     return {
-      message: "Invalid form data",
+      message: 'Invalid form data',
       fields,
       issues: parsed.error.issues.map((issue) => issue.message),
     }
@@ -114,7 +116,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
   // but checks on the server side as well, due to the schema being in a seperate file
   if (password !== retypedPass) {
     return {
-      message: "Passwords do not match",
+      message: 'Passwords do not match',
     }
   }
   
@@ -131,7 +133,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
   // return a message if the user already exists
   if (user.length > 0) {
     return {
-      message: "User already exists, try logging in instead.",
+      message: 'User already exists, try logging in instead.',
     }
   }
   
@@ -141,7 +143,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    expires: new Date(Date.now() + 2 * 60 * 60 * 1000) // 2 hours
+    expires: new Date(Date.now() + JWT_EXPIRATION_MS)
   })
   
   // Create the user
@@ -155,21 +157,21 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     const newUser: NewUser = { name: name, email: email, password: hashedPassword, role: role }
     await insertUser(newUser)
     
-    return { message: "User created" }
+    return { message: 'User created' }
   } catch (error) {
-    console.error("Error creating user", error)
-    return { message: "Error creating user" }
+    console.error('Error creating user', error)
+    return { message: 'Error creating user' }
   }
 }
 
-export async function logout(_prevState: LogoutState, formData: FormData): Promise<LogoutState> {
+export async function logout(_prevState: LogoutState): Promise<LogoutState> {
   const sessionCookie = cookies().get('session')
 
   if (!sessionCookie) {
     return { 
       success: false,
-      message: "No active session found", 
-      issues: ["You are not currently logged in"] 
+      message: 'No active session found', 
+      issues: ['You are not currently logged in'] 
     }
   }
 
@@ -177,15 +179,15 @@ export async function logout(_prevState: LogoutState, formData: FormData): Promi
     cookies().set('session', '', { expires: new Date(0) })
     return {
       success: true,
-      message: "Logged out successfully, wait to be redirected.",
+      message: 'Logged out successfully, wait to be redirected.',
       issues: null
     }
   } catch (error) {
-    console.error("Error logging out", error)
+    console.error('Error logging out', error)
     return { 
       success: false,
-      message: "Error logging out", 
-      issues: ["An unexpected error occurred. Please try again."]
+      message: 'Error logging out', 
+      issues: ['An unexpected error occurred. Please try again.']
     }
   }
 }

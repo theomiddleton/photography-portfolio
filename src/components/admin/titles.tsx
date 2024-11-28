@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription } from '~/components/ui/card'
-import { LucideIcon } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 interface AdminTitleProps {
   title: string
@@ -12,7 +12,7 @@ interface AdminTitleProps {
 export function AdminTitle({ title, description, icon: Icon, href }: AdminTitleProps) {
   return (
     <Card className="hover:bg-muted/50 transition-colors">
-      <Link href={href} className="block h-full">
+      <Link href={href} prefetch={true} className="block h-full">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">{title}</CardTitle>

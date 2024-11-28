@@ -1,5 +1,4 @@
 'use client'
-import React from 'react'
 
 import { UploadImg } from '~/components/upload-img' 
 
@@ -10,7 +9,7 @@ export default function Admin() {
           <h2 className="text-base font-semibold leading-7 text-black">
             Admin Panel
           </h2>
-          <UploadImg/>
+          <UploadImg bucket='image'/>
         </div>
       </div>
   )

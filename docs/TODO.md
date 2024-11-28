@@ -4,17 +4,20 @@
 
 - [x] Main image gallery
 - [x] Main image gallery
-  - [ ] Decide what tech to do this with - tRPC, etc
-- [ ] Print store
-- [ ] Admin page
+- [x] Admin page
+- [x] Print store
   - [ ] Analytics
 - [x] Metadata store
 - [x] Blob store
 - [x] Metadata store
 - [x] Blob store
-- [ ] Blog
+- [x] Blog
 - [ ] Infinte scroll
-- [ ] rethink auth
+- [x] rethink auth
+
+## Security
+
+- [] audit security <https://youtu.be/yUm-ET8w_28>
 
 ## Security
 
@@ -24,13 +27,13 @@
 
 - [ ] Main page
   - [x] Image Gallery
-    - [ ] Gallery order - within admin
+    - [x] Gallery order - within admin
       - [ ] Colour based order (adv)
     - [x] Image page
       - [x] revisit for responsiveness on smaller screens
   - [ ] Infinite scroll  
-  - [ ] Auto update
-  - [ ] Image Select
+  - [x] Auto update
+  - [x] Image Select
     - [ ] Metadata
     - [x] Title
     - [ ] Location?
@@ -89,5 +92,5 @@
 
 ## Auth / purchase
 
-- [ ] Rework auth
+- [x] Rework auth
 - [ ] Revisit store

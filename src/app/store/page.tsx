@@ -1,5 +1,6 @@
 import { SiteHeader } from '~/components/site-header'
 import Link from 'next/link'
+import Image from 'next/image'
 import { db } from '~/server/db'
 import { storeImages, imageData } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
@@ -47,7 +48,7 @@ export default async function Store() {
               <Link href={"store/" + result.storeImageId} className="absolute inset-0 z-10" prefetch={false}>
                 <span className="sr-only">View Print</span>
               </Link>
-              <img
+              <Image
                 src={result.fileUrl}
                 width={400}
                 height={400}

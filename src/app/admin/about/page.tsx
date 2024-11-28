@@ -1,116 +1,167 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { Remark } from 'react-remark'
-import { Icons } from '~/components/ui/icons'
-
-import { CounterClockwiseClockIcon } from '@radix-ui/react-icons'
-
-import { Input } from '~/components/ui/input'
-import { Button } from '~/components/ui/button'
-import { Label } from '~/components/ui/label'
-import { Separator } from '~/components/ui/separator'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '~/components/ui/tabs'
+import { useState, useEffect, useCallback } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { Textarea } from '~/components/ui/textarea'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
+import { UploadImg } from '~/components/upload-img'
+import { readAbout, saveAbout } from '~/lib/actions/about'
+import { ImageSelect } from '~/components/image-select'
 
-import { UploadDropzone } from '~/components/upload-dropzone'
+interface FeedbackState {
+  type: 'success' | 'error' | null
+  message: string
+}
 
+interface ImageData {
+  id: string
+  name: string
+  url: string
+  selected?: boolean
+}
 
-import AdminLayout from '~/app/admin/layout'
+export default function AboutEditor() {
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [feedback, setFeedback] = useState<FeedbackState>({ type: null, message: '' })
+  const [images, setImages] = useState<ImageData[]>([])
 
-import { read, write } from '~/lib/actions/about'
-
-export default function AboutGenerator() {
-
-  const [about, setAbout] = useState<string[]>([])
-  const [markdownSource, setMarkdownSource] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await read()
-      setAbout(data.map(item => item.content))
-      setMarkdownSource(data.map(item => item.content).join('\n\n'))
-      setLoading(false)
+  const fetchAbout = useCallback(async () => {
+    try {
+      const about = await readAbout()
+      if (about) {
+        setTitle(about.title)
+        setContent(about.content)
+        if (about.images) {
+          setImages(about.images.map(img => ({
+            id: img.id.toString(),
+            name: img.name,
+            url: img.url
+          })))
+        }
+      }
+    } catch (error) {
+      setFeedback({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'An error occurred. Please try again.' 
+      })
     }
-    fetchData()
   }, [])
 
-  const upload = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    // Implement the upload functionality
+  useEffect(() => {
+    fetchAbout()
+  }, [fetchAbout])
+
+  const handleSave = async () => {
+    setIsLoading(true)
+    setFeedback({ type: null, message: '' })
+    try {
+      const data = {
+        title,
+        content,
+        images: images.filter(img => img.selected).map(img => ({
+          id: parseInt(img.id),
+          name: img.name,
+          url: img.url
+        }))
+      }
+      const result = await saveAbout(data)
+      if (result.success) {
+        setFeedback({ type: 'success', message: result.message })
+      } else {
+        setFeedback({ type: 'error', message: result.message })
+      }
+    } catch (error) {
+      setFeedback({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'An error occurred. Please try again.' 
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  if (loading) return <div className="h-screen flex items-center justify-center">Loading content...</div>
-
+  const handleImageUpload = useCallback((image: { name: string, url: string }) => {
+    const newImage = {
+      id: Date.now().toString(),
+      name: image.name,
+      url: image.url
+    }
+    setImages(prev => [...prev, newImage])
+  }, [])
+  
+  const handleImageSelect = useCallback((selected: string[]) => {
+    setImages(prevImages => prevImages.map(img => ({
+      ...img,
+      selected: selected.includes(img.id)
+    })))
+  }, [])
 
   return (
-    <div className="">
-      <div className="hidden h-full flex-col md:flex">
-        <div className="container flex flex-col items-start justify-between space-y-2 py-4 sm:flex-row sm:items-center sm:space-y-0 md:h-16">
-          <h2 className="text-lg font-semibold">About</h2>
-          <div className="ml-auto flex w-full space-x-2 sm:justify-end">
+    <div className="container mx-auto p-4 min-h-[150vh]">
+      <h1 className="text-2xl font-bold mb-4">
+        About Editor
+      </h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+              About Title
+            </label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Loading title..."
+              className="mt-1"
+              aria-label="About title"
+            />
+          </div>
+          <div>
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+              About Me Contents
+            </label>
+            <Textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Loading content..."
+              className="mt-1 h-[calc(100vh-500px)]"
+              aria-label="About content"
+            />
+          </div>
+          <div className="flex space-x-2">
+            <Button onClick={handleSave} disabled={isLoading} className="flex-1">
+              {isLoading ? 'Publishing...' : 'Publish'}
+            </Button>
+          </div>
+          {feedback.type && (
+            <Alert variant={feedback.type === 'success' ? 'default' : 'destructive'}>
+              <AlertTitle>{feedback.type === 'success' ? 'Success' : 'Error'}</AlertTitle>
+              <AlertDescription>{feedback.message}</AlertDescription>
+            </Alert>
+          )}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Upload About Me Assets</h2>
+            <UploadImg bucket='about' onImageUpload={handleImageUpload} />
           </div>
         </div>
-        <Separator />
-        <Tabs defaultValue="edit" className="flex-1">
-          <div className="container h-full py-6">
-            <div className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_200px]">
-              <div className="hidden flex-col space-y-4 sm:flex md:order-2">
-                <div className="grid gap-2">
-                  <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Mode
-                  </span>
-                  <TabsList className="grid grid-cols-2">
-                    <TabsTrigger value="edit">
-                      <span className="sr-only">Edit</span>
-                      <Icons.edit />
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-              </div>
-              <div className="md:order-1">
-                <TabsContent value="edit" className="mt-0 border-0 p-0">
-                  <div className="flex flex-col space-y-4">
-                    <div className="grid h-full grid-rows-2 gap-6 lg:grid-cols-2 lg:grid-rows-1">
-                      <Textarea
-                        placeholder="Write your about me page here"
-                        className="h-full min-h-[300px] lg:min-h-[700px] xl:min-h-[700px]"
-                        value={markdownSource || ''}
-                        onChange={({ currentTarget }) => setMarkdownSource(currentTarget.value)}
-                      />
-                      <div className="flex flex-2 flex-col space-y-2">
-                        <div className="rounded-md border flex-1 lg:min-h-[580px] bg-muted prose">
-                          <Remark>{markdownSource}</Remark>
-                        </div>
-                        <div className="flex flex-col space-y-2">
-                          <Label htmlFor="title">Current</Label>
-                          <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"/>
-                          {about}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button onClick={async () => {
-                        await write(markdownSource || '')
-                      }}>Submit</Button>
-                      <Button variant="secondary">
-                        <span className="sr-only">Show history</span>
-                        <CounterClockwiseClockIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </TabsContent>
-              </div>
-            </div>
+        <div className="space-y-4">
+          <div className="border rounded-lg p-4 prose prose-sm max-w-none h-[calc(100vh-400px)] overflow-auto">
+            <ReactMarkdown>{content}</ReactMarkdown>
           </div>
-        </Tabs>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Select Images</h3>
+            <ImageSelect 
+              images={images} 
+              onSelect={handleImageSelect}
+            />
+          </div>
+        </div>
       </div>
-      <UploadDropzone/>
     </div>
   )
 }
