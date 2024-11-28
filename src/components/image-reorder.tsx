@@ -11,7 +11,7 @@ import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Label } from '~/components/ui/label'
 import Image from 'next/image'
-import type { ImageDataType } from '~/app/admin/delete/page'
+import type { ImageDataType } from '~/app/admin/manage/page'
 import { updateImageOrder } from '~/lib/actions/updateImageOrder'
 import { ImageLayoutPreview } from '~/components/image-layout'
 
@@ -64,7 +64,7 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
   const [updateStatus, setUpdateStatus] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const [showId, setShowId] = useState(false)
-  const [showPreview, setShowPreview] = useState(false)
+  const [showPreview, setShowPreview] = useState(true)
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {

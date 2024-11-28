@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import type { ImageDataType } from '~/app/admin/delete/page'
+import type { ImageDataType } from '~/app/admin/manage/page'
 
 interface ImagePreviewProps {
   images: ImageDataType[]
