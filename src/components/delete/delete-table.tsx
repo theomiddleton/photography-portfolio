@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import type { ImageDataType } from '~/app/admin/delete/page'
+import type { ImageDataType } from '~/app/admin/manage/page'
 import { deleteImage } from '~/lib/actions/delete'
 import { changeVisibility } from '~/lib/actions/visibility'
 import { DeleteDialog } from '~/components/delete/delete-dialog'

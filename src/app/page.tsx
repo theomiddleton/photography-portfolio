@@ -21,9 +21,10 @@ export default async function Home() {
   }).from(imageData)
   .where(eq(imageData.visible, true))
 
-  // map the data to an array of objects with the id and url
+  // map the data to an array of objects with the id, order, and url
   const imageUrls = result.map((item) => ({
-    id: item.order,
+    id: item.id,
+    order: item.order,
     url: item.fileUrl
   }))
 
@@ -42,7 +43,7 @@ export default async function Home() {
           {/* reads the array of objects and maps it to a component */}
           {/* the component is a link to the photo page with the id as the param*/}
           {imageUrls.map((image) => (
-            <div key={image.id} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
+            <div key={image.order} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
               <a href={`/photo/${image.id}`} target="_self" rel="noreferrer">
                 <Image src={image.url} alt="Gallery image" height={600} width={400} />
               </a>

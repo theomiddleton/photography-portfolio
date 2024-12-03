@@ -47,9 +47,9 @@ export function DeleteDialog({ image, deleteImage }: DataTableProps) {
         })
         // set result / error message
         if (result.success) {
-          setMessage({ type: 'success', text: `Image ${image.fileName} deleted successfully` })
+          setMessage({ type: 'success', text: `Image deleted successfully` })
         } else {
-          setMessage({ type: 'error', text: `Failed to delete image ${image.fileName}: ${result.message}` })
+          setMessage({ type: 'error', text: `Failed to delete image: ${result.message}` })
         }
       } catch (error) {
         console.error('Error deleting image:', error)

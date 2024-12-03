@@ -11,8 +11,9 @@ import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Label } from '~/components/ui/label'
 import Image from 'next/image'
-import type { ImageDataType } from '~/app/admin/delete/page'
+import type { ImageDataType } from '~/app/admin/manage/page'
 import { updateImageOrder } from '~/lib/actions/updateImageOrder'
+import { ImageLayoutPreview } from '~/components/image-layout'
 
 interface SortableItemProps {
   id: number
@@ -63,6 +64,7 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
   const [updateStatus, setUpdateStatus] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const [showId, setShowId] = useState(false)
+  const [showPreview, setShowPreview] = useState(true)
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -160,22 +162,40 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <Checkbox 
-              id="show-id" 
-              checked={showId} 
-              onCheckedChange={(checked) => setShowId(checked as boolean)} 
-            />
-            <Label htmlFor="show-id" className="text-sm text-muted-foreground">
-              Show ID
-            </Label>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Checkbox 
+                id="show-id" 
+                checked={showId} 
+                onCheckedChange={(checked) => setShowId(checked as boolean)} 
+              />
+              <Label htmlFor="show-id" className="text-sm text-muted-foreground">
+                Show ID
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox 
+                id="show-preview" 
+                checked={showPreview} 
+                onCheckedChange={(checked) => setShowPreview(checked as boolean)} 
+              />
+              <Label htmlFor="show-preview" className="text-sm text-muted-foreground">
+                Show Preview
+              </Label>
+            </div>
           </div>
         </div>
       </CardContent>
-      <CardFooter>
-        <div className="text-xs text-muted-foreground">
+      <CardFooter className="flex flex-col items-start">
+        <div className="text-xs text-muted-foreground mb-4">
           Showing <strong>1-{images.length}</strong> of <strong>{images.length}</strong> images
         </div>
+        {showPreview && (
+          <div className="w-full mt-4">
+            <h3 className="text-lg font-semibold mb-2">Preview</h3>
+            <ImageLayoutPreview images={images} />
+          </div>
+        )}
       </CardFooter>
     </Card>
   )
