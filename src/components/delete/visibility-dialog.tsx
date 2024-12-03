@@ -45,7 +45,7 @@ export function VisibilityDialog({ image, changeVisibility }: VisibilityDialogPr
           visible: !image.visible,
         })
         if (result.success) {
-          setMessage({ type: 'success', text: `Image ${image.fileName} visibility changed successfully` })
+          setMessage({ type: 'success', text: `Image visibility changed successfully` })
         } else {
           setMessage({ type: 'error', text: `Failed to change visibility for image ${image.fileName}: ${result.message}` })
         }
