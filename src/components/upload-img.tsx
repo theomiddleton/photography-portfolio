@@ -46,10 +46,21 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
 
   const handleUpload = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
+    if (!file && !name) {
+      alert('Please provide both a file to upload and a name.')
+      return
+    }
+    
     if (!file) {
       alert('Please select a file to upload.')
       return
     }
+    
+    if (!name) {
+      alert('Please provide a name.')
+      return
+    }
+
     setUploading(true)
     setUploadProgress(0)
       

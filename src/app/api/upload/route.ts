@@ -4,11 +4,12 @@ import { v4 as uuidv4 } from 'uuid'
 import { r2 } from '~/lib/r2'
 import { siteConfig } from '~/config/site'
 
-import { eq, sql } from 'drizzle-orm' 
+import { eq, sql, max } from 'drizzle-orm' 
 import { db } from '~/server/db'
 import { imageData, storeImages, blogImgData, aboutImgData } from '~/server/db/schema'
 import { NextResponse } from 'next/server'
 
+import { logAction } from '~/lib/logging'
 import { getSession } from '~/lib/auth/auth'
 
 export async function POST(request: Request) {
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
   
   const { filename, name, description, tags, isSale, bucket } = await request.json()
   console.log('Passed to API route:', filename, ',', name, ',', description, ',', tags, ',', isSale, ',', bucket)
+  logAction('upload', `Uploading image: ${filename}, name: ${name}, description: ${description}, tags: ${tags}, isSale: ${isSale}, bucket: ${bucket}`)
 
   try {
     // take the file extention from the filename
@@ -55,6 +57,16 @@ export async function POST(request: Request) {
     console.log('fileUrl:', fileUrl)
 
     if (bucket === 'image') {
+      // Get the current maximum order
+      const maxOrderResult = await db
+        .select({
+          maxOrder: sql<number>`COALESCE(MAX(${imageData.order}), 0)`,
+        })
+        .from(imageData)
+        .execute()
+
+      const newOrder = maxOrderResult[0].maxOrder + 1
+
       await db.insert(imageData).values({
         uuid: keyName, 
         fileName: newFileName, 
@@ -62,6 +74,7 @@ export async function POST(request: Request) {
         name: name,
         description: description,
         tags: tags,
+        order: newOrder,
       })
       
       const result = await db
@@ -85,6 +98,7 @@ export async function POST(request: Request) {
       }
     } else if (bucket === 'blog') {
       console.log('Inserting blog image data')
+      logAction('upload', 'Inserting blog image data')
       await db.insert(blogImgData).values({
         uuid: keyName,
         fileName: newFileName,
@@ -93,6 +107,7 @@ export async function POST(request: Request) {
       })
     } else if (bucket === 'about') {
       console.log('Inserting about image data')
+      logAction('upload', 'Inserting about image data')
       // await db.insert(aboutImgData).values({
       //   uuid: keyName,
       //   fileName: newFileName,

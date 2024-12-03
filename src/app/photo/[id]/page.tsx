@@ -32,5 +32,6 @@ export default async function Photo({ params }: { params: { id: number } }) {
   
   // shows different page based on the flag, altImagePage is a cleaner look, whereas ImagePage shows tags and title ect
   const image = result[0]
-  return showAltImagePage ? <AltImagePage data={image} /> : <ImagePage data={image} />
+  // return showAltImagePage ? <AltImagePage data={image} /> : <ImagePage data={image} />
+  return <AltImagePage data={image} />
 }
