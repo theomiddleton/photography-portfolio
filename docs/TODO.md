@@ -15,6 +15,10 @@
 - [ ] Infinte scroll
 - [x] rethink auth
 
+When uploading in batches check order id works properly, is currently broken when rearagning ui
+Also fix that linking is broken - it uses the order id rather than the image id
+Make hide buttons show when hidden, change message so fits in the row
+
 ## Security
 
 - [] audit security <https://youtu.be/yUm-ET8w_28>
@@ -57,7 +61,7 @@
         - [x] upload file info to database
           - [x] change database
           - [x] full delete
-            - [ ] within admin ui
+            - [x] within admin ui
         - [x] Presigned urls
           - [ ] revisit
       - [x] download
