@@ -39,14 +39,18 @@ async function getAverageColour(imageUrl: string): Promise<RGBColour> {
 }
 
 export async function sortImagesByColour(images: ImageDataType[]) {
+  console.log('Sorting images by colour...')
   // Process all images to get their colours
   const imagesWithColour: ImageWithColour[] = await Promise.all(
     images.map(async (image) => {
       const rgbColour = await getAverageColour(image.fileUrl)
+      console.log('Image proccessed ', image.id, rgbColour)
       const hslColour = rgbToHsl(rgbColour)
+      console.log('Image processed:', image.id, hslColour)
       return { ...image, colour: hslColour }
     })
   )
+  console.log('Images processed:', imagesWithColour.length)
 
   // Sort images by hue, then saturation, then lightness
   const sortedImages = imagesWithColour.sort((a, b) => {
@@ -61,7 +65,10 @@ export async function sortImagesByColour(images: ImageDataType[]) {
     // Tertiary sort by lightness
     return b.colour.l - a.colour.l
   })
+  console.log('Images sorted', sortedImages.length)
+  console.log('Sorted images:', sortedImages)
 
+  console.log('Images sorted & returned', sortedImages.length)
   // Return sorted images with new order values
   return sortedImages.map((image, index) => ({
     id: image.id,

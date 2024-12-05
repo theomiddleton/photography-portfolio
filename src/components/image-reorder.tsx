@@ -120,6 +120,7 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
 
     try {
       const sortedImages = await sortImagesByColour(images)
+      console.log('sorted', sortedImages)
       setImages(sortedImages)
       setUpdateStatus('Images sorted by colour successfully')
     } catch (error) {
@@ -127,7 +128,7 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
       setUpdateStatus('Failed to sort images by colour')
     } finally {
       setIsUpdating(false)
-      setTimeout(() => setUpdateStatus(null), 3000)
+      setTimeout(() => setUpdateStatus(null), 30000000)
     }
   }
 
@@ -141,19 +142,6 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 flex gap-4">
-          <Button onClick={handleColourSort} disabled={isUpdating} variant="secondary">
-            Sort by Colour
-          </Button>
-          <Button onClick={handleConfirmOrder} disabled={isUpdating}>
-            {isUpdating ? 'Updating...' : 'Confirm Order'}
-          </Button>
-          {updateStatus && (
-            <p className={`text-sm ${updateStatus.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
-              {updateStatus}
-            </p>
-          )}
-        </div>
 
         <DndContext
           sensors={sensors}
@@ -187,6 +175,19 @@ export function ImageReorder({ images: initialImages }: ImageReorderProps) {
             </TableBody>
           </Table>
         </DndContext>
+        <div className="mb-4 flex gap-4">
+          <Button onClick={handleColourSort} disabled={isUpdating} variant="secondary">
+            Sort by Colour
+          </Button>
+          <Button onClick={handleConfirmOrder} disabled={isUpdating}>
+            {isUpdating ? 'Updating...' : 'Confirm Order'}
+          </Button>
+          {updateStatus && (
+            <p className={`text-sm ${updateStatus.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+              {updateStatus}
+            </p>
+          )}
+        </div>
         
         <div className="mt-4 flex items-center justify-end gap-4">
           <div className="flex items-center gap-2">
