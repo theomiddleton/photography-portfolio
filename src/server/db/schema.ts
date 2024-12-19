@@ -108,14 +108,14 @@ export const logs = pgTable('logs', {
 
 export const videos = pgTable('videos', {
   id: text('id').primaryKey(),
+  slug: text('slug').notNull().unique(),
   title: text('title').notNull(),
   description: text('description'),
   hlsUrl: text('hlsUrl').notNull(),
   thumbnail: text('thumbnailUrl'),
   duration: text('duration'),
   views: text('views').default('0'),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  modifiedAt: timestamp('modifiedAt').defaultNow(),
+  isVisible: boolean('isVisible').default(true)
 })
 
 export const aboutRelations = relations(about, ({ many }) => ({

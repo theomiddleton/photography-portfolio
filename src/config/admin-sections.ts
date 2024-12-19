@@ -1,4 +1,4 @@
-import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon, HomeIcon, LogOutIcon, BookOpenText, TrashIcon, ImagesIcon } from 'lucide-react'
+import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon, HomeIcon, LogOutIcon, BookOpenText, ImagesIcon, FilmIcon, FileVideoIcon } from 'lucide-react'
 
 export const adminSections = [
   { title: 'Image Upload', description: 'Manage and upload images', icon: ImageIcon, href: '/admin/upload' },
@@ -8,6 +8,8 @@ export const adminSections = [
   { title: 'About', description: 'Edit about page content', icon: InfoIcon, href: '/admin/about' },
   { title: 'Store', description: 'Manage store items and inventory', icon: StoreIcon, href: '/admin/store' },
   { title: 'Users', description: 'Manage user accounts and permissions', icon: UserIcon, href: '/admin/users'},
+  { title: 'Videos', description: 'Manage HLS videos', icon: FilmIcon, href: '/admin/videos'  },
+  { title: 'Video Upload', description: 'Upload a new Video', icon: FileVideoIcon, href: '/admin/videos/new'  }, 
   { title: 'Return to Home', description: 'Return to home page', icon: HomeIcon, href: '/' },
   { title: 'Logout', description: 'Sign out of admin panel', icon: LogOutIcon, href: '/logout' },
 ]
