@@ -1,6 +1,7 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
+import { useEffect } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '~/components/ui/button'
@@ -18,6 +19,15 @@ import { Textarea } from '~/components/ui/textarea'
 import { videos } from '~/server/db/schema'
 
 type Video = typeof videos.$inferSelect
+
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove non-word chars
+    .replace(/[\s_-]+/g, '-') // Replace spaces and _ with -
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing -
+}
 
 const videoSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -41,6 +51,19 @@ export function VideoForm({ video, onSubmit }: VideoFormProps) {
       isVisible: true
     }
   })
+
+  const title = useWatch({
+    control: form.control,
+    name: 'title'
+  })
+
+  useEffect(() => {
+    if (title && !video) { 
+      form.setValue('slug', slugify(title), {
+        shouldValidate: true
+      })
+    }
+  }, [title, form, video])
 
   return (
     <Form {...form}>
