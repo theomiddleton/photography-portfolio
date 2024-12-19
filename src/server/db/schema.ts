@@ -106,6 +106,18 @@ export const logs = pgTable('logs', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 })
 
+export const videos = pgTable('videos', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  description: text('description'),
+  hlsUrl: text('hlsUrl').notNull(),
+  thumbnail: text('thumbnailUrl'),
+  duration: text('duration'),
+  views: text('views').default('0'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  modifiedAt: timestamp('modifiedAt').defaultNow(),
+})
+
 export const aboutRelations = relations(about, ({ many }) => ({
   images: many(aboutImages)
 }))

@@ -125,6 +125,9 @@ importers:
       eslint:
         specifier: ^8.57.0
         version: 8.57.0
+      hls.js:
+        specifier: ^1.5.18
+        version: 1.5.18
       jose:
         specifier: ^5.8.0
         version: 5.8.0
@@ -2967,6 +2970,9 @@ packages:
 
   heap@0.2.7:
     resolution: {integrity: sha512-2bsegYkkHO+h/9MGbn6KWcE45cHZgPANo5LXF7EvWdT0yT2EguSVO1nDgU5c8+ZOPwp2vMNa7YFsJhVcDR9Sdg==}
+
+  hls.js@1.5.18:
+    resolution: {integrity: sha512-znxR+2jecWluu/0KOBqUcvVyAB5tLff10vjMGrpAlz1eFY+ZhF1bY3r82V+Bk7WJdk03iTjtja9KFFz5BrqjSA==}
 
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
@@ -7689,6 +7695,8 @@ snapshots:
       '@types/hast': 3.0.4
 
   heap@0.2.7: {}
+
+  hls.js@1.5.18: {}
 
   html-escaper@2.0.2: {}
 
