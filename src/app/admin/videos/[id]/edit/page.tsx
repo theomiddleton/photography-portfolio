@@ -8,32 +8,23 @@ import { z } from 'zod'
 
 export const revalidate = 3600
 
-const videoSchema = z.object({
-  title: z.string().min(1),
-  slug: z.string().min(1),
-  description: z.string().optional(),
-  hlsUrl: z.string().url(),
-  thumbnail: z.string().url().optional(),
-  duration: z.string().optional(),
-  isVisible: z.boolean().default(true)
+const updateVideoSchema = z.object({
+  title: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  hlsUrl: z.string(),
+  thumbnail: z.string().nullable(),
+  duration: z.string().nullable(),
+  isVisible: z.boolean(),
 })
+type UpdateVideoData = z.infer<typeof updateVideoSchema>
 
-type VideoFormData = z.infer<typeof videoSchema>
 
-async function updateVideo(id: string, data: VideoFormData) {
+async function updateVideo(id: string, data: UpdateVideoData) {
   'use server'
   
-  await db
-    .update(videos)
-    .set({
-      title: data.title,
-      slug: data.slug,
-      description: data.description,
-      hlsUrl: data.hlsUrl,
-      thumbnail: data.thumbnail,
-      duration: data.duration,
-      isVisible: data.isVisible
-    })
+  await db.update(videos)
+    .set(data)
     .where(eq(videos.id, id))
 
   redirect('/admin/videos')
@@ -62,8 +53,8 @@ export default async function EditVideoPage({
         <CardContent>
           <VideoForm 
             video={video} 
-            onSubmit={async (data) => {
-              await updateVideo(video.id, data)
+            action={async (formData) => {
+                await updateVideo(video.id, formData)
             }} 
           />
         </CardContent>
@@ -71,4 +62,3 @@ export default async function EditVideoPage({
     </div>
   )
 }
-

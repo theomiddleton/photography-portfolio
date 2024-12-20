@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -17,6 +16,9 @@ import {
 import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import type { videos } from '~/server/db/schema'
+import { useEffect, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+
 
 type Video = typeof videos.$inferSelect
 
@@ -39,35 +41,55 @@ const videoSchema = z.object({
   isVisible: z.boolean().default(true)
 })
 
-interface VideoFormProps {
-  video?: Video
-  onSubmit: (data: z.infer<typeof videoSchema>) => Promise<void>
+export type VideoFormData = z.infer<typeof videoSchema>
+
+type VideoFormProps = {
+  video?: Video,
+    action: (data: VideoFormData) => Promise<void>
 }
 
-export function VideoForm({ video, onSubmit }: VideoFormProps) {
-  const form = useForm<z.infer<typeof videoSchema>>({
+export function VideoForm({ video, action }: VideoFormProps) {
+  const [isPending, startTransition] = useTransition()
+    const router = useRouter()
+  const form = useForm<VideoFormData>({
     resolver: zodResolver(videoSchema),
-    defaultValues: video || {
-      isVisible: true
+    defaultValues: {
+      title: video?.title ?? '',
+      slug: video?.slug ?? '',
+      description: video?.description ?? '',
+      hlsUrl: video?.hlsUrl ?? '',
+      thumbnail: video?.thumbnail ?? '',
+      duration: video?.duration ?? '',
+      isVisible: video?.isVisible ?? true
     }
   })
 
+  // Watch the title field
   const title = useWatch({
     control: form.control,
     name: 'title'
   })
 
+  // Update slug when title changes
   useEffect(() => {
-    if (title && !video) { 
+    if (title && !video) { // Only auto-update if it's a new video
       form.setValue('slug', slugify(title), {
         shouldValidate: true
       })
     }
   }, [title, form, video])
 
+
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form action={ async (formData: FormData) => {
+            const data = form.getValues()
+            startTransition(async () => {
+                await action(data)
+                router.refresh()
+            })
+        }} className="space-y-8">
         <FormField
           control={form.control}
           name="title"
@@ -146,17 +168,16 @@ export function VideoForm({ video, onSubmit }: VideoFormProps) {
                 <Input {...field} />
               </FormControl>
               <FormDescription>
-                Example: &quot;1:30:00&quot; for 1 hour 30 minutes
+                Example: "1:30:00" for 1 hour 30 minutes
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit">
-          {video ? 'Update Video' : 'Create Video'}
-        </Button>
+          <Button type="submit" disabled={isPending}>
+              {isPending ? 'Loading...' : video ? 'Update Video' : 'Create Video'}
+          </Button>
       </form>
     </Form>
   )
 }
-
