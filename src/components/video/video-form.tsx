@@ -16,7 +16,7 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
-import { videos } from '~/server/db/schema'
+import type { videos } from '~/server/db/schema'
 
 type Video = typeof videos.$inferSelect
 
@@ -39,7 +39,7 @@ const videoSchema = z.object({
   isVisible: z.boolean().default(true)
 })
 
-type VideoFormProps = {
+interface VideoFormProps {
   video?: Video
   onSubmit: (data: z.infer<typeof videoSchema>) => Promise<void>
 }
@@ -146,7 +146,7 @@ export function VideoForm({ video, onSubmit }: VideoFormProps) {
                 <Input {...field} />
               </FormControl>
               <FormDescription>
-                Example: "1:30:00" for 1 hour 30 minutes
+                Example: &quot;1:30:00&quot; for 1 hour 30 minutes
               </FormDescription>
               <FormMessage />
             </FormItem>

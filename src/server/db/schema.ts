@@ -115,7 +115,9 @@ export const videos = pgTable('videos', {
   thumbnail: text('thumbnailUrl'),
   duration: text('duration'),
   views: text('views').default('0'),
-  isVisible: boolean('isVisible').default(true)
+  isVisible: boolean('isVisible').default(true),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
 
 export const aboutRelations = relations(about, ({ many }) => ({

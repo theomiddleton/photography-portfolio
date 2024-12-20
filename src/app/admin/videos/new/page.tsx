@@ -3,21 +3,34 @@ import { db } from '~/server/db'
 import { videos } from '~/server/db/schema'
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
+import { z } from 'zod'
 
-async function createVideo(data: FormData) {
+const videoSchema = z.object({
+  title: z.string().min(1),
+  slug: z.string().min(1),
+  description: z.string().optional(),
+  hlsUrl: z.string().url(),
+  thumbnail: z.string().url().optional(),
+  duration: z.string().optional(),
+  isVisible: z.boolean().default(true)
+})
+
+type VideoFormData = z.infer<typeof videoSchema>
+
+async function createVideo(data: VideoFormData) {
   'use server'
 
   const id = crypto.randomUUID()
   
   await db.insert(videos).values({
     id,
-    title: data.get('title') as string,
-    slug: data.get('slug') as string,
-    description: data.get('description') as string,
-    hlsUrl: data.get('hlsUrl') as string,
-    thumbnail: data.get('thumbnail') as string,
-    duration: data.get('duration') as string,
-    isVisible: true
+    title: data.title,
+    slug: data.slug,
+    description: data.description,
+    hlsUrl: data.hlsUrl,
+    thumbnail: data.thumbnail,
+    duration: data.duration,
+    isVisible: data.isVisible
   })
 
   redirect('/admin/videos')

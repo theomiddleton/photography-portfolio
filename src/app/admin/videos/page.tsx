@@ -1,4 +1,5 @@
 import { db } from '~/server/db'
+import { eq } from 'drizzle-orm'
 import { videos } from '~/server/db/schema'
 import { VideoTable } from '~/components/video/video-table'
 import { Button } from '~/components/ui/button'

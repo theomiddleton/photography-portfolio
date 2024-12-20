@@ -13,7 +13,7 @@ import { Switch } from '~/components/ui/switch'
 import { Button } from '~/components/ui/button'
 import { Pencil } from 'lucide-react'
 import Link from 'next/link'
-import { videos } from '~/server/db/schema'
+import type { videos } from '~/server/db/schema'
 import { formatDistanceToNow } from 'date-fns'
 
 type Video = typeof videos.$inferSelect
