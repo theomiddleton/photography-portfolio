@@ -168,7 +168,7 @@ export function VideoForm({ video, action }: VideoFormProps) {
                 <Input {...field} />
               </FormControl>
               <FormDescription>
-                Example: "1:30:00" for 1 hour 30 minutes
+                Example: &quot;1:30:00&quot; for 1 hour 30 minutes
               </FormDescription>
               <FormMessage />
             </FormItem>
