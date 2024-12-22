@@ -14,6 +14,7 @@ export const imageData = pgTable('imageData', {
   visible: boolean('visible').default(true).notNull(),
   order: integer('order').default(0).notNull(),
   uploadedAt: timestamp('uploadedAt').defaultNow(),
+  modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
 
 export const blogs = pgTable('blogs', {

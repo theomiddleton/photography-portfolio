@@ -16,20 +16,19 @@ export default async function Home() {
   // Get only visible image data from the database
   const result = await db.select({
     id: imageData.id,
+    description: imageData.description,
     order: imageData.order,
     fileUrl: imageData.fileUrl,
   }).from(imageData)
   .where(eq(imageData.visible, true))
 
-  // map the data to an array of objects with the id, order, and url
   const imageUrls = result.map((item) => ({
     id: item.id,
+    description: item.description,
     order: item.order,
-    url: item.fileUrl
+    url: item.fileUrl,
   }))
 
-  console.log('refresh')
-  
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
       <SiteHeader />
@@ -38,19 +37,23 @@ export default async function Home() {
           {siteConfig.headers.main && (
             <div>{siteConfig.headers.main}</div>
           )}
-        </h1> {/*The following tailwind class is the responsive columns*/}
+        </h1>
         <section className="sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4 max-h-5xl mx-auto space-y-4">
-          {/* reads the array of objects and maps it to a component */}
-          {/* the component is a link to the photo page with the id as the param*/}
           {imageUrls.map((image) => (
             <div key={image.order} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
               <a href={`/photo/${image.id}`} target="_self" rel="noreferrer">
-                <Image src={image.url} alt="Gallery image" height={600} width={400} />
+                <Image
+                 src={image.url}
+                 alt={image.description || 'Gallery Image'}
+                 height={600}
+                 width={400}
+                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
               </a>
             </div>
           ))}
         </section>
       </div>
     </main>
-  ) 
+  )
 }

@@ -15,6 +15,7 @@ type ImageWithColour = {
   tags: string
   visible: boolean
   uploadedAt: Date
+  modifiedAt?: Date
   colour: HSLColour
 }
 
@@ -81,6 +82,7 @@ export async function sortImagesByColour(images: ImageDataType[]) {
     tags: image.tags,
     visible: image.visible,
     uploadedAt: image.uploadedAt,
+    modifiedAt: image.modifiedAt,
   }))
 }
 
