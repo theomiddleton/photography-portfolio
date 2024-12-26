@@ -1,4 +1,4 @@
-// import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 import { videos } from '~/server/db/schema'
 
 type Video = typeof videos.$inferSelect
@@ -11,7 +11,7 @@ export function VideoCard({ video }: { video: Video }) {
         <div className="flex items-center gap-4 text-sm text-gray-600">
           <p>{video.views} views</p>
           <p>
-            {/* {formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })} */}
+            {formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}
           </p>
           <p>{video.duration}</p>
         </div>

@@ -1,4 +1,5 @@
 import { Button } from '~/components/ui/button'
+import { HLSPlayer } from '~/components/video/hls-player'
 import Image from 'next/image'
 
 export const components = {
@@ -21,6 +22,15 @@ export const components = {
         height={height || 600}
         width={width || 400}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      />
+    </div>
+  ),
+  HLSPlayer: ({ src, poster, autoplay }: { src: string, poster: string, autoplay: boolean }) => (
+    <div className="rounded-md overflow-hidden">
+      <HLSPlayer
+        src={src}
+        poster={poster}
+        autoPlay={autoplay}
       />
     </div>
   ),
