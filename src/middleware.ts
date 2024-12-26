@@ -8,9 +8,9 @@ export async function middleware(request: NextRequest) {
     const session = await getSession()
 
     // If there's no session or the user is not an admin, redirect to the home page
-    // if (!session || session.role !== 'admin') {
-    //   return NextResponse.redirect(new URL('/', request.url))
-    // }
+    if (!session || session.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
   }
   // For non-admin routes or if the user is an admin, continue with the request
   return NextResponse.next()
