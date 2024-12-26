@@ -1,10 +1,11 @@
-import React from 'react' 
-import ReactMarkdown from 'react-markdown'
+import React from 'react'
+import { MDXRemote } from 'next-mdx-remote/rsc'
 import { SiteHeader } from '~/components/site-header'
 import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
 import { about } from '~/server/db/schema'
 import { notFound } from 'next/navigation'
+import { components } from '~/components/mdx-components'
 
 export const revalidate = 60 // Revalidate every 60 seconds
 
@@ -35,7 +36,10 @@ export default async function About() {
         </h1>
         <section className="flex min-h-screen flex-col items-center bg-white text-black">
           <div className="prose max-w-none overflow-auto">
-            <ReactMarkdown>{aboutData.content}</ReactMarkdown>
+            <MDXRemote 
+              source={aboutData.content}
+              components={components}
+            />
           </div>
         </section>
       </div>
