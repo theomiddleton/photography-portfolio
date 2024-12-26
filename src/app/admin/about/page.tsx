@@ -1,7 +1,9 @@
 'use client'
-
+import React from 'react'
 import { useState, useEffect, useCallback } from 'react'
-import ReactMarkdown from 'react-markdown'
+import { compile, evaluate } from '@mdx-js/mdx'
+import * as runtime from 'react/jsx-runtime'
+import { MDXProvider } from '@mdx-js/react'
 import { Textarea } from '~/components/ui/textarea'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -9,6 +11,22 @@ import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { UploadImg } from '~/components/upload-img'
 import { readAbout, saveAbout } from '~/lib/actions/about'
 import { ImageSelect } from '~/components/image-select'
+
+
+const components = {
+  CustomButton: (props) => (
+    <Button {...props} className="my-2">
+      {props.children}
+    </Button>
+  ),
+  InfoBox: ({ title, children }) => (
+    <div className="p-4 bg-blue-50 rounded-lg my-2">
+      <h4 className="font-bold">{title}</h4>
+      {children}
+    </div>
+  ),
+
+}
 
 interface FeedbackState {
   type: 'success' | 'error' | null
@@ -25,9 +43,53 @@ interface ImageData {
 export default function AboutEditor() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [compiledContent, setCompiledContent] = useState<React.ComponentType | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [feedback, setFeedback] = useState<FeedbackState>({ type: null, message: '' })
   const [images, setImages] = useState<ImageData[]>([])
+
+  // const notcompileMdx = useCallback(async (mdxContent: string) => {
+  //   try {
+  //     const code = String(await compile(mdxContent, { outputFormat: 'function-body' }))
+  //     const { default: Content } = await evaluate(code, {
+  //       ...Object(runtime),
+  //       baseUrl: import.meta.url,
+  //     })
+  //     setCompiledContent(() => Content)
+  //   } catch (error) {
+  //     setFeedback({
+  //       type: 'error',
+  //       message: error instanceof Error ? error.message : 'MDX compilation failed'
+  //     })
+  //   }
+  // }, [])
+
+  const compileMdx = useCallback(async (mdxContent: string) => {
+    try {
+      const code = String(await compile(mdxContent, {
+        outputFormat: 'function-body',
+        development: false,
+        jsx: true
+      }))
+      const { default: Content } = await evaluate(code, {
+        ...Object(runtime),
+        baseUrl: import.meta.url,
+        development: false
+      })
+      setCompiledContent(() => Content)
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'MDX compilation failed'
+      })
+    }
+  }, [])
+  
+  useEffect(() => {
+    if (content) {
+      compileMdx(content)
+    }
+  }, [content, compileMdx])
 
   const fetchAbout = useCallback(async () => {
     try {
@@ -122,13 +184,13 @@ export default function AboutEditor() {
           </div>
           <div>
             <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-              About Me Contents
+              About Me Contents (MDX)
             </label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Loading content..."
+              placeholder="Write your MDX content here..."
               className="mt-1 h-[calc(100vh-500px)]"
               aria-label="About content"
             />
@@ -151,7 +213,11 @@ export default function AboutEditor() {
         </div>
         <div className="space-y-4">
           <div className="border rounded-lg p-4 prose prose-sm max-w-none h-[calc(100vh-400px)] overflow-auto">
-            <ReactMarkdown>{content}</ReactMarkdown>
+            {compiledContent && (
+              <MDXProvider components={components}>
+                {React.createElement(compiledContent)}
+              </MDXProvider>
+            )}
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-2">Select Images</h3>
