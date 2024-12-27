@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { AxiomWebVitals } from 'next-axiom'
 import { VercelToolbar } from '@vercel/toolbar/next'
+
 import { FlagValues } from '@vercel/flags/react'
 import { get } from '@vercel/edge-config'
 
@@ -16,33 +17,33 @@ const inter = Inter({
 })
 
 export const metadata = {
-    title: {
-      default: siteConfig.title,
-      template: `%s | ${siteConfig.title}`,
-    },
+  title: {
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.title}`,
+  },
+  description: siteConfig.description,
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
+  openGraph: {
+    title: siteConfig.title,
     description: siteConfig.description,
-    viewport: {
-      width: 'device-width',
-      initialScale: 1,
-      maximumScale: 1,
-    },
-    openGraph: {
-      title: siteConfig.title,
-      description: siteConfig.description,
-      url: siteConfig.url,
-      siteName: siteConfig.title,
-      locale: 'en_US',
-      type: 'website',
-    },
-    robots: {
+    url: siteConfig.url,
+    siteName: siteConfig.title,
+    locale: 'en_US',
+    type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
       index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true
-      }
-    },
-    icons: [{ rel: 'icon', url: '/favicon.ico' }],
+      follow: true
+    }
+  },
+  icons: [{ rel: 'icon', url: '/favicon.ico' }],
 }
 
 export default async function RootLayout({
@@ -54,16 +55,16 @@ export default async function RootLayout({
   // checks if the toolbar should be injected, this is only done in development
   const shouldInjectToolbar = process.env.NODE_ENV === 'development'
   // reads the edgeConfif for feature flags
-  const edgeConfigFlags = await get('featureFlags')
+  // const edgeConfigFlags = await get('featureFlags')
 
-  const flags: Record<string, boolean> = typeof edgeConfigFlags === 'object' && edgeConfigFlags !== null
-    ? Object.entries(edgeConfigFlags).reduce((acc, [key, value]) => {
-        if (typeof value === 'boolean') {
-          acc[key] = value;
-        }
-        return acc;
-      }, {} as Record<string, boolean>)
-    : {}
+  // const flags: Record<string, boolean> = typeof edgeConfigFlags === 'object' && edgeConfigFlags !== null
+  //   ? Object.entries(edgeConfigFlags).reduce((acc, [key, value]) => {
+  //       if (typeof value === 'boolean') {
+  //         acc[key] = value;
+  //       }
+  //       return acc;
+  //     }, {} as Record<string, boolean>)
+  //   : {}
 
 
   return (
@@ -76,7 +77,7 @@ export default async function RootLayout({
         <AxiomWebVitals />
         <SpeedInsights />
         {shouldInjectToolbar && <VercelToolbar />}
-        <FlagValues values={flags} />
+        {/* <FlagValues values={flags} /> */}
       </body>
       <SiteFooter />
     </html>

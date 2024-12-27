@@ -121,6 +121,16 @@ export const videos = pgTable('videos', {
   modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
 
+export const customPages = pgTable('customPages', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  slug: text('slug').notNull().unique(),
+  isPublished: boolean('isPublished').default(false).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
 export const aboutRelations = relations(about, ({ many }) => ({
   images: many(aboutImages)
 }))
