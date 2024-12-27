@@ -12,6 +12,7 @@ import type { customPages } from '~/server/db/schema'
 import { MDXPreview } from '~/components/pages/mdx-preview'
 import { UploadImg } from '~/components/upload-img'
 import { ImageSelect } from '~/components/image-select'
+import { slugify } from '~/lib/slugify'
 
 export type CustomPage = typeof customPages.$inferSelect
 
@@ -29,11 +30,12 @@ interface ImageData {
 
 export function PageForm({ page, action }: PageFormProps) {
   const router = useRouter()
-  const [content, setContent] = useState('')
-  // const [content, setContent] = useState(page?.content ?? '')
+  const [content, setContent] = useState(page?.content ?? '')
   const [images, setImages] = useState<ImageData[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [title, setTitle] = useState(page?.title ?? '')
+  const [slug, setSlug] = useState(page?.slug ?? '')
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -43,6 +45,8 @@ export function PageForm({ page, action }: PageFormProps) {
     try {
       const formData = new FormData(e.currentTarget)
       formData.set('content', content)
+      formData.set('title', title)
+      formData.set('slug', slug)
       formData.set('images', JSON.stringify(images.filter(img => img.selected)))
       await action(formData)
     } catch (err) {
@@ -69,14 +73,20 @@ export function PageForm({ page, action }: PageFormProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-24">
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="space-y-2">
           <Label htmlFor="title">Title</Label>
           <Input
             id="title"
             name="title"
-            defaultValue={page?.title}
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value)
+              if (!page?.slug) { 
+                setSlug(slugify(e.target.value))
+              }
+            }}
             required
           />
         </div>
@@ -86,7 +96,8 @@ export function PageForm({ page, action }: PageFormProps) {
           <Input
             id="slug"
             name="slug"
-            defaultValue={page?.slug}
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
             required
             pattern="[a-zA-Z0-9-]+"
           />

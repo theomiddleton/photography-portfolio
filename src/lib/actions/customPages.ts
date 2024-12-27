@@ -21,12 +21,15 @@ export async function createCustomPage(formData: FormData) {
     slug: formData.get('slug'),
     isPublished: formData.get('isPublished') === 'true',
   })
-  
+
   console.log('inserting to db: ', validatedFields)
 
-  // await db.insert(customPages).values({
-  //   ...validatedFields,
-  // })
+  await db.insert(customPages).values({
+    title: validatedFields.title,
+    content: validatedFields.content,
+    slug: validatedFields.slug,
+    isPublished: validatedFields.isPublished,
+  })
 
   revalidatePath('/admin/pages')
   redirect('/admin/pages')
