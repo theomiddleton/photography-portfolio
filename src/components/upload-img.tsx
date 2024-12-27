@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Progress } from '~/components/ui/progress'
 
 interface UploadImgProps {
-  bucket: 'image' | 'blog' | 'about'
+  bucket: 'image' | 'blog' | 'about' | 'custom'
   draftId?: string
   onImageUpload?: (image: { name: string, url: string }) => void
 }
@@ -156,7 +156,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   return (
     <Card className="mt-2 justify-center w-full">
       <CardHeader>
-        <CardTitle>Upload {bucket === 'image' ? 'Image' : bucket === 'blog' ? 'Blog Image' : 'About Image'}</CardTitle> 
+        <CardTitle>Upload {bucket === 'image' ? 'Image' : bucket === 'blog' ? 'Blog Image' : bucket === 'about' ? 'About Image' : 'Custom Page Images'}</CardTitle> 
       </CardHeader>
       <CardContent>
         <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
