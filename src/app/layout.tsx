@@ -12,9 +12,15 @@ import { get } from '@vercel/edge-config'
 import { Inter } from 'next/font/google'
 
 const inter = Inter({
-    subsets: ['latin'],
-    variable: '--font-sans',
+  subsets: ['latin'],
+  variable: '--font-sans',
 })
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 export const metadata = {
   title: {
@@ -22,11 +28,6 @@ export const metadata = {
     template: `%s | ${siteConfig.title}`,
   },
   description: siteConfig.description,
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
   openGraph: {
     title: siteConfig.title,
     description: siteConfig.description,
