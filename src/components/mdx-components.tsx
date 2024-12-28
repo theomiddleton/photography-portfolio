@@ -9,7 +9,6 @@ import {
 } from '~/components/ui/card'
 import { cn } from '~/lib/utils'
 import { HLSPlayer } from '~/components/video/hls-player'
-import { ImageLayoutPreview } from '~/components/image-layout'
 import Image from 'next/image'
 
 export const components = {
@@ -54,7 +53,7 @@ export const components = {
       <div className="w-full overflow-hidden">
         <div className="sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4">
           {images.map((image, i) => (
-            <div key={i} className="mb-4 break-inside-avoid">
+            <div key={i} className="break-inside-avoid mb-4">
               <Image
                 src={image}
                 alt={''}
@@ -68,8 +67,6 @@ export const components = {
       </div>
     )
   },
-
-  
   Card: ({ className, children }: React.ComponentProps<typeof Card>) => (
     <Card className={cn('my-4', className)}>
       {children}
@@ -89,5 +86,13 @@ export const components = {
   ),
   CardContent: ({ className, children }: React.ComponentProps<typeof CardContent>) => (
     <CardContent className={className}>{children}</CardContent>
+  ),
+  CodeBlock: ({ children, language }: { children: React.ReactNode, language: string }) => (
+    <div className="relative my-4">
+      <div className="absolute top-3 right-3 text-xs text-gray-200">{language}</div>
+      <pre className="p-4 bg-slate-800 rounded-lg overflow-x-auto">
+        <code className={cn('language-' + language)}>{children}</code>
+      </pre>
+    </div>
   ),
 }
