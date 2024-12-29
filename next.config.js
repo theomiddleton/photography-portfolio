@@ -26,9 +26,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
+  // compiler: {
+  //   removeConsole: process.env.NODE_ENV === 'production',
+  // },
 }
 
 export default withAxiom(nextConfig)
