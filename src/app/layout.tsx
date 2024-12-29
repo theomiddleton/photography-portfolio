@@ -7,6 +7,7 @@ import { AxiomWebVitals } from 'next-axiom'
 import { VercelToolbar } from '@vercel/toolbar/next'
 import { FlagValues } from '@vercel/flags/react'
 import { get } from '@vercel/edge-config'
+import type { Metadata } from 'next/types'
 
 import { Inter } from 'next/font/google'
 
@@ -15,34 +16,40 @@ const inter = Inter({
     variable: '--font-sans',
 })
 
-export const metadata = {
-    title: {
-      default: siteConfig.title,
-      template: `%s | ${siteConfig.title}`,
-    },
+export const metadata: Metadata = {
+  title: {
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.title}`,
+  },
+  description: siteConfig.description,
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
+  openGraph: {
+    ...siteConfig.seo.openGraph,
+    title: siteConfig.title,
     description: siteConfig.description,
-    viewport: {
-      width: 'device-width',
-      initialScale: 1,
-      maximumScale: 1,
-    },
-    openGraph: {
+    url: siteConfig.url,
+    siteName: siteConfig.title,
+  },
+    twitter: {
+      card: 'summary_large_image',
       title: siteConfig.title,
       description: siteConfig.description,
-      url: siteConfig.url,
-      siteName: siteConfig.title,
-      locale: 'en_US',
-      type: 'website',
-    },
-    robots: {
+      // url: siteConfig.url,
+      images: siteConfig.seo.openGraph.images,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
       index: true,
       follow: true,
-      googleBot: {
-        index: true,
-        follow: true
-      }
     },
-    icons: [{ rel: 'icon', url: '/favicon.ico' }],
+  },
+  icons: [{ rel: 'icon', url: '/favicon.ico' }],
 }
 
 export default async function RootLayout({

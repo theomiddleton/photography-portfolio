@@ -12,7 +12,23 @@ export const siteConfig = {
   },
   headers: {
     main: '',
-  }
+  },
+  seo: {
+    openGraph: {
+      type: 'website',
+      locale: 'en_US',
+      siteName: 'Portfolio Project',
+      images: [
+        {
+          url: 'https://files.theomiddleton.me/og-images/2-boats.jpg',
+          width: 1200,
+          height: 630,
+          alt: 'Open Graph Image',
+        },
+      ],
+    },  
+  },
 }
+
 
 export type SiteConfig = typeof siteConfig

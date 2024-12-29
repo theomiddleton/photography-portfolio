@@ -4,11 +4,11 @@ import { getSession } from '~/lib/auth/auth'
 
 export async function middleware(request: NextRequest) {
   // Check if the request is for an admin route
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  if (config.matcher.some(path => request.nextUrl.pathname.startsWith(path.split(':')[0]))) {
     const session = await getSession()
 
     // If there's no session or the user is not an admin, redirect to the home page
-    if (!session || session.role !== 'admin') {
+    if (!session?.user?.role || session.user.role !== 'admin') {
       return NextResponse.redirect(new URL('/', request.url))
     }
   }
@@ -17,6 +17,9 @@ export async function middleware(request: NextRequest) {
 }
 
 // Specify which routes this middleware should run on
-// export const config = {
-//   matcher: ['/admin/:path*']
-// }
+export const config = {
+  matcher: [
+    '/admin/:path*',
+    '/store/:path*'
+  ]
+}
