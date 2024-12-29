@@ -23,27 +23,33 @@ export const viewport = {
   maximumScale: 1,
 }
 
-export const metadata = {
+export const metadata: Metadata = {
   title: {
     default: siteConfig.title,
     template: `%s | ${siteConfig.title}`,
   },
   description: siteConfig.description,
   openGraph: {
+    ...siteConfig.seo.openGraph,
     title: siteConfig.title,
     description: siteConfig.description,
     url: siteConfig.url,
     siteName: siteConfig.title,
-    locale: 'en_US',
-    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteConfig.title,
+    description: siteConfig.description,
+    // url: siteConfig.url,
+    images: siteConfig.seo.openGraph.images,
   },
   robots: {
     index: true,
     follow: true,
     googleBot: {
       index: true,
-      follow: true
-    }
+      follow: true,
+    },
   },
   icons: [{ rel: 'icon', url: '/favicon.ico' }],
 }
@@ -62,9 +68,9 @@ export default async function RootLayout({
   // const flags: Record<string, boolean> = typeof edgeConfigFlags === 'object' && edgeConfigFlags !== null
   //   ? Object.entries(edgeConfigFlags).reduce((acc, [key, value]) => {
   //       if (typeof value === 'boolean') {
-  //         acc[key] = value;
+  //         acc[key] = value
   //       }
-  //       return acc;
+  //       return acc
   //     }, {} as Record<string, boolean>)
   //   : {}
 
