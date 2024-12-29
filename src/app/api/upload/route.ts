@@ -32,12 +32,20 @@ export async function POST(request: Request) {
     const keyName = uuidv4() 
     
     // Determine which bucket to use based on the bucket prop
-    const bucketName = bucket === 'image' 
-      ? process.env.R2_IMAGE_BUCKET_NAME 
-      : bucket === 'blog' 
-        ? process.env.R2_BLOG_IMG_BUCKET_NAME 
-        : process.env.R2_ABOUT_IMG_BUCKET_NAME
-
+    const bucketName = bucket === 'image'
+      ? process.env.R2_IMAGE_BUCKET_NAME
+      : bucket === 'blog'
+        ? process.env.R2_BLOG_IMG_BUCKET_NAME
+        : bucket === 'about'
+          ? process.env.R2_ABOUT_IMG_BUCKET_NAME
+          : bucket === 'custom'
+            ? process.env.R2_CUSTOM_BUCKET_NAME
+            : null
+    
+    if (!bucketName) {
+      throw new Error(`Invalid bucket type: ${bucket}`)
+    }
+    
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: keyName + '.' + fileExtension,
@@ -47,12 +55,17 @@ export async function POST(request: Request) {
 
     const newFileName = keyName + '.' + fileExtension
     const fileUrl = `${
-      bucket === 'image' 
-        ? siteConfig.imageBucketUrl 
+      bucket === 'image'
+        ? siteConfig.imageBucketUrl
         : bucket === 'about'
           ? siteConfig.aboutBucketUrl
-          : siteConfig.blogBucketUrl
+          : bucket === 'blog'
+            ? siteConfig.blogBucketUrl
+            : bucket === 'custom'
+              ? siteConfig.customBucketUrl
+              : ''
     }/${newFileName}`
+
     
     console.log('fileUrl:', fileUrl)
 
@@ -68,8 +81,8 @@ export async function POST(request: Request) {
       const newOrder = maxOrderResult[0].maxOrder + 1
 
       await db.insert(imageData).values({
-        uuid: keyName, 
-        fileName: newFileName, 
+        uuid: keyName,
+        fileName: newFileName,
         fileUrl: fileUrl,
         name: name,
         description: description,
@@ -89,7 +102,7 @@ export async function POST(request: Request) {
       if (isSale) {
         await db.insert(storeImages).values({
           imageId: result[0].id,
-          imageUuid: keyName, 
+          imageUuid: keyName,
           fileUrl: fileUrl,
           price: 100,
           stock: 10,
@@ -108,7 +121,16 @@ export async function POST(request: Request) {
     } else if (bucket === 'about') {
       console.log('Inserting about image data')
       logAction('upload', 'Inserting about image data')
-      // await db.insert(aboutImgData).values({
+      await db.insert(aboutImgData).values({
+        uuid: keyName,
+        fileName: newFileName,
+        fileUrl: fileUrl,
+        name: name,
+      })
+    } else if (bucket === 'custom') {
+      console.log('Inserting custom image data')
+      logAction('upload', 'Inserting custom image data')
+      // await db.insert(customImgData).values({
       //   uuid: keyName,
       //   fileName: newFileName,
       //   fileUrl: fileUrl,

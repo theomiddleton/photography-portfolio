@@ -18,18 +18,9 @@ import { Textarea } from '~/components/ui/textarea'
 import type { videos } from '~/server/db/schema'
 import { useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-
+import { slugify } from '~/lib/slugify'
 
 type Video = typeof videos.$inferSelect
-
-function slugify(text: string) {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '') // Remove non-word chars
-    .replace(/[\s_-]+/g, '-') // Replace spaces and _ with -
-    .replace(/^-+|-+$/g, '') // Remove leading/trailing -
-}
 
 const videoSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -50,7 +41,7 @@ type VideoFormProps = {
 
 export function VideoForm({ video, action }: VideoFormProps) {
   const [isPending, startTransition] = useTransition()
-    const router = useRouter()
+  const router = useRouter()
   const form = useForm<VideoFormData>({
     resolver: zodResolver(videoSchema),
     defaultValues: {
