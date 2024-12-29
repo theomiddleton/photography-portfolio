@@ -10,7 +10,8 @@ import { verifyPassword, hashPassword, createSession } from '~/lib/auth/authHelp
 import { loginSchema } from '~/lib/types/loginSchema'
 import { registerSchema } from '~/lib/types/registerSchema'
 
-const JWT_EXPIRATION_MS = parseInt(process.env.JWT_EXPIRATION_HOURS) * 60 * 60 * 1000
+const JWT_EXPIRATION_HOURS = parseInt(process.env.JWT_EXPIRATION_HOURS || '720')
+const JWT_EXPIRATION_MS = JWT_EXPIRATION_HOURS * 60 * 60 * 1000
 
 // FormData type
 export interface FormState {
