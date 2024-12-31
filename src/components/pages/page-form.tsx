@@ -36,6 +36,7 @@ export function PageForm({ page, action }: PageFormProps) {
   const [error, setError] = useState('')
   const [title, setTitle] = useState(page?.title ?? '')
   const [slug, setSlug] = useState(page?.slug ?? '')
+  const [isPublished, setIsPublished] = useState(page?.isPublished ?? false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -47,6 +48,7 @@ export function PageForm({ page, action }: PageFormProps) {
       formData.set('content', content)
       formData.set('title', title)
       formData.set('slug', slug)
+      formData.set('isPublished', isPublished.toString())
       formData.set('images', JSON.stringify(images.filter(img => img.selected)))
       await action(formData)
     } catch (err) {
@@ -118,7 +120,8 @@ export function PageForm({ page, action }: PageFormProps) {
           <Switch
             id="isPublished"
             name="isPublished"
-            defaultChecked={page?.isPublished}
+            checked={isPublished}
+            onCheckedChange={setIsPublished}
           />
           <Label htmlFor="isPublished">Published</Label>
         </div>
@@ -164,4 +167,3 @@ export function PageForm({ page, action }: PageFormProps) {
     </div>
   )
 }
-
