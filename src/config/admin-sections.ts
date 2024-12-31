@@ -10,8 +10,8 @@ export const adminSections = [
   { title: 'Users', description: 'Manage user accounts and permissions', icon: UserIcon, href: '/admin/users'},
   { title: 'Videos', description: 'Manage HLS videos', icon: FilmIcon, href: '/admin/videos'  },
   { title: 'Video Upload', description: 'Upload a new Video', icon: FileVideoIcon, href: '/admin/videos/new'  }, 
-  { title: 'Custom Pages', description: 'View and manage custom pages', icon: BookOpenIcon, href: '/admin/pages' },
-  { title: 'New Custom Page', description: 'Create a new custom page', icon: BookOpenTextIcon, href: '/admin/pages/new' },
+  { title: 'Custom Pages', description: 'View and manage custom pages', icon: BookOpenTextIcon, href: '/admin/pages' },
+  { title: 'New Custom Page', description: 'Create a new custom page', icon: BookOpenIcon, href: '/admin/pages/new' },
   { title: 'Return to Home', description: 'Return to home page', icon: HomeIcon, href: '/' },
   { title: 'Logout', description: 'Sign out of admin panel', icon: LogOutIcon, href: '/logout' },
 ]
