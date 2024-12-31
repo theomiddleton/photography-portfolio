@@ -136,16 +136,17 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
     setUploading(false)
   }
 
-  const copyToClipboard = (index: number) => {
-    const imageUrl = uploadedImages[index].url
-    const markdownText = `![${uploadedImages[index].name}](${imageUrl})`
+  const copyToClipboard = (index: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    const currentImage = uploadedImages[index]
+    const markdownText = `![${currentImage.name}](${currentImage.url})`
     navigator.clipboard.writeText(markdownText).then(() => {
       const newUploadedImages = [...uploadedImages]
-      newUploadedImages[index].copied = true
+      newUploadedImages[index] = { ...currentImage, copied: true }
       setUploadedImages(newUploadedImages)
       setTimeout(() => {
         const resetImages = [...newUploadedImages]
-        resetImages[index].copied = false
+        resetImages[index] = { ...currentImage, copied: false }
         setUploadedImages(resetImages)
       }, 2000)
     }, (err) => {
@@ -153,16 +154,17 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
     })
   }
   
-  const copyToClipboardAlt = (index: number) => {
-    const imageUrl = uploadedImages[index].url
-    const componentText = `<Image src="${imageUrl}" alt="${uploadedImages[index].name}" width={800} height={400} />`
+  const copyToClipboardAlt = (index: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    const currentImage = uploadedImages[index]
+    const componentText = `<Image src="${currentImage.url}" alt="${currentImage.name}" width={800} height={400} />`
     navigator.clipboard.writeText(componentText).then(() => {
       const newUploadedImages = [...uploadedImages]
-      newUploadedImages[index].copied = true
+      newUploadedImages[index] = { ...currentImage, copied: true }
       setUploadedImages(newUploadedImages)
       setTimeout(() => {
         const resetImages = [...newUploadedImages]
-        resetImages[index].copied = false
+        resetImages[index] = { ...currentImage, copied: false }
         setUploadedImages(resetImages)
       }, 2000)
     }, (err) => {
@@ -275,14 +277,14 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
                 <span className="flex-1">{img.name}</span>
                 <div className="flex items-center gap-2">
                   <Button 
-                    onClick={() => copyToClipboardAlt(index)} 
+                    onClick={(e) => copyToClipboardAlt(index, e)} 
                     size="sm"
                     variant="outline"
                   >
                     {img.copied ? 'Copied!' : 'Copy Image Component'}
                   </Button>
                   <Button 
-                    onClick={() => copyToClipboard(index)} 
+                    onClick={(e) => copyToClipboard(index, e)} 
                     size="sm"
                   >
                     {img.copied ? 'Copied!' : 'Copy Markdown'}

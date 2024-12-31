@@ -61,7 +61,7 @@ export default async function RootLayout({
 }) {
 
   // checks if the toolbar should be injected, this is only done in development
-  const shouldInjectToolbar = process.env.NODE_ENV === 'development'
+  // const shouldInjectToolbar = process.env.NODE_ENV === 'development'
   // reads the edgeConfif for feature flags
   // const edgeConfigFlags = await get('featureFlags')
 
@@ -84,7 +84,7 @@ export default async function RootLayout({
         <Analytics />
         <AxiomWebVitals />
         <SpeedInsights />
-        {shouldInjectToolbar && <VercelToolbar />}
+        {/* {shouldInjectToolbar && <VercelToolbar />} */}
         {/* <FlagValues values={flags} /> */}
       </body>
       <SiteFooter />
