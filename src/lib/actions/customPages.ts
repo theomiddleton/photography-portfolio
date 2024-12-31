@@ -19,7 +19,7 @@ export async function createCustomPage(formData: FormData) {
     title: formData.get('title'),
     content: formData.get('content'),
     slug: formData.get('slug'),
-    isPublished: formData.get('isPublished') === 'true',
+    isPublished: formData.get('isPublished'),
   })
 
   console.log('inserting to db: ', validatedFields)

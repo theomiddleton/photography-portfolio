@@ -131,6 +131,15 @@ export const customPages = pgTable('customPages', {
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 })
 
+export const customImgData = pgTable('customImgData', {
+  id: serial('id').primaryKey(),
+  uuid: varchar('uuid', { length: 36 }).notNull(),
+  fileName: varchar('fileName', { length: 256 }).notNull(),
+  fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
+  name: varchar('name', { length: 256 }),
+  uploadedAt: timestamp('uploadedAt').defaultNow(),
+})
+
 export const aboutRelations = relations(about, ({ many }) => ({
   images: many(aboutImages)
 }))

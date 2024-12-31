@@ -6,7 +6,7 @@ import { siteConfig } from '~/config/site'
 
 import { eq, sql, max } from 'drizzle-orm' 
 import { db } from '~/server/db'
-import { imageData, storeImages, blogImgData, aboutImgData } from '~/server/db/schema'
+import { imageData, storeImages, blogImgData, aboutImgData, customImgData } from '~/server/db/schema'
 import { NextResponse } from 'next/server'
 
 import { logAction } from '~/lib/logging'
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
         : bucket === 'about'
           ? process.env.R2_ABOUT_IMG_BUCKET_NAME
           : bucket === 'custom'
-            ? process.env.R2_CUSTOM_BUCKET_NAME
+            ? process.env.R2_CUSTOM_IMG_BUCKET_NAME
             : null
     
     if (!bucketName) {
@@ -130,12 +130,12 @@ export async function POST(request: Request) {
     } else if (bucket === 'custom') {
       console.log('Inserting custom image data')
       logAction('upload', 'Inserting custom image data')
-      // await db.insert(customImgData).values({
-      //   uuid: keyName,
-      //   fileName: newFileName,
-      //   fileUrl: fileUrl,
-      //   name: name,
-      // })
+      await db.insert(customImgData).values({
+        uuid: keyName,
+        fileName: newFileName,
+        fileUrl: fileUrl,
+        name: name,
+      })
     }
 
     return Response.json({ url, fileUrl })

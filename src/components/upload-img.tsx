@@ -152,6 +152,23 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
       console.error('Could not copy text: ', err)
     })
   }
+  
+  const copyToClipboardAlt = (index: number) => {
+    const imageUrl = uploadedImages[index].url
+    const componentText = `<Image src="${imageUrl}" alt="${uploadedImages[index].name}" width={800} height={400} />`
+    navigator.clipboard.writeText(componentText).then(() => {
+      const newUploadedImages = [...uploadedImages]
+      newUploadedImages[index].copied = true
+      setUploadedImages(newUploadedImages)
+      setTimeout(() => {
+        const resetImages = [...newUploadedImages]
+        resetImages[index].copied = false
+        setUploadedImages(resetImages)
+      }, 2000)
+    }, (err) => {
+      console.error('Could not copy text: ', err)
+    })
+  }
 
   return (
     <Card className="mt-2 justify-center w-full">
@@ -249,16 +266,28 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
         </div>
       )}
       
-      {uploadedImages.length > 0 && (
+      {bucket !== 'image' && uploadedImages.length > 0 && (
         <div className="mt-4 px-6 pb-4 border-t">
           <h3 className="text-lg font-semibold mb-2 pt-2">Uploaded Images</h3>
           <ul className="space-y-2">
             {uploadedImages.map((img, index) => (
-              <li key={index} className="flex justify-between items-center">
-                <span>{img.name}</span>
-                <Button onClick={() => copyToClipboard(index)} size="sm">
-                  {img.copied ? 'Copied!' : 'Copy Markdown'}
-                </Button>
+              <li key={index} className="flex items-center">
+                <span className="flex-1">{img.name}</span>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    onClick={() => copyToClipboardAlt(index)} 
+                    size="sm"
+                    variant="outline"
+                  >
+                    {img.copied ? 'Copied!' : 'Copy Image Component'}
+                  </Button>
+                  <Button 
+                    onClick={() => copyToClipboard(index)} 
+                    size="sm"
+                  >
+                    {img.copied ? 'Copied!' : 'Copy Markdown'}
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
