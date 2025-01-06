@@ -44,30 +44,53 @@ export const components = {
       />
     </div>
   ),
-  ImageGallery: ({ images }: { images: (string | { src: string, alt?: string, width?: number, height?: number })[] }) => {
+  ImageGallery: ({ images }: { images: string[] }) => {
     if (!Array.isArray(images)) {
       console.warn('ImageGallery: images prop must be an array')
       return null
     }
+    return (
+      <div className="w-full overflow-hidden">
+        <div className="sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4">
+          {images.map((image, i) => (
+            <div key={i} className="break-inside-avoid mb-4">
+              <Image
+                src={image}
+                alt={''}
+                className="w-full h-auto rounded-md"
+                width={400}
+                height={600}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  },
+  ImageViewer: ({ images }: { images: (string | { src: string, alt?: string, width?: number, height?: number })[] }) => {
+    if (!Array.isArray(images)) {
+      console.warn('ImageViewer: images prop must be an array')
+      return null
+    }
 
-    const galleryImages = images.map(image => {
+    const viewerImages = images.map(image => {
       if (typeof image === 'string') {
         return {
           src: image,
-          alt: 'Gallery image',
+          alt: 'Image Viewer Image',
           width: 400,
           height: 600
         }
       }
       return {
         src: image.src,
-        alt: image.alt || 'Gallery image',
+        alt: image.alt || 'Image Viewer Image',
         width: image.width || 400,
         height: image.height || 600
       }
     })
 
-    return <ImageGallery images={galleryImages} className="my-4" />
+    return <ImageGallery images={viewerImages} className="my-4" />
   },
   Card: ({ className, children }: React.ComponentProps<typeof Card>) => (
     <Card className={cn('my-4', className)}>
