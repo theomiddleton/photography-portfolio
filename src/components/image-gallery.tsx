@@ -115,14 +115,14 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
       </div>
 
       {/* Thumbnails */}
-      <div className="relative mt-4 py-4">
+      <div className="relative py-4 not-prose">
         <div className="overflow-hidden">
           <div className="flex justify-center gap-2">
             {visibleIndices.map((index, i) => (
               <div 
                 key={`${images[index].src}-${index}-${i}`}
                 className={cn(
-                  "relative mx-1",
+                  "relative mx-1 flex-none",
                   i === Math.floor(visibleIndices.length / 2) ? "z-10" : "z-0"
                 )}
                 style={{
@@ -133,7 +133,7 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
                 <button
                   onClick={() => handleThumbnailClick(index)}
                   className={cn(
-                    "relative block h-24 w-36 overflow-hidden rounded-lg transition-all duration-300",
+                    "relative block h-24 w-36 rounded-lg transition-all duration-300",
                     i === Math.floor(visibleIndices.length / 2) && "ring-2 ring-black ring-offset-4"
                   )}
                   aria-label={`View ${images[index].alt}`}
@@ -142,9 +142,10 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
                   <Image
                     src={images[index].src}
                     alt={images[index].alt}
-                    className="object-cover"
+                    className="object-cover rounded-lg"
                     fill
                     sizes="144px"
+                    priority={i === Math.floor(visibleIndices.length / 2)}
                   />
                 </button>
               </div>
