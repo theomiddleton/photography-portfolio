@@ -4,6 +4,9 @@ import { eq } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { PageForm } from '~/components/pages/page-form'
 import { updateCustomPage } from '~/lib/actions/customPages'
+import { revalidatePath } from 'next/cache'
+
+export const dynamic = 'force-dynamic'
 
 export default async function EditCustomPage({ params }: { params: { id: number } }) {
   const page = await db
@@ -20,6 +23,7 @@ export default async function EditCustomPage({ params }: { params: { id: number 
   const updatePageWithId = async (formData: FormData) => {
     'use server'
     await updateCustomPage(params.id, formData)
+    revalidatePath(`/pages/${params.id}/edit`)
   }
 
   return (
