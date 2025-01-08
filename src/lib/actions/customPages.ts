@@ -52,7 +52,9 @@ export async function updateCustomPage(id: number, formData: FormData) {
     .where(eq(customPages.id, id))
 
   revalidatePath('/admin/pages')
+  revalidatePath(`/admin/pages/${id}/edit`)
   revalidatePath(`/p/${validatedFields.slug}`)
+  
   redirect('/admin/pages')
 }
 
