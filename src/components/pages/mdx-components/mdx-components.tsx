@@ -10,8 +10,9 @@ import {
 import { cn } from '~/lib/utils'
 import { HLSPlayer } from '~/components/video/hls-player'
 import Image from 'next/image'
-import { ImageGallery } from '~/components/image-gallery' 
-import { Banner } from '~/components/pages/banner'
+import { ImageGallery } from '~/components/pages/mdx-components/image-gallery' 
+import { Banner } from '~/components/pages/mdx-components/banner'
+import { ImageCompare } from '~/components/pages/mdx-components/image-compare'
 
 export const components = {
   Button: (props) => (
@@ -93,6 +94,9 @@ export const components = {
 
     return <ImageGallery images={viewerImages} className="my-4" />
   },
+  ImageCompare: (props: React.ComponentProps<typeof ImageCompare>) => (
+    <ImageCompare {...props} />
+  ),
   Card: ({ className, children }: React.ComponentProps<typeof Card>) => (
     <Card className={cn('my-4', className)}>
       {children}
@@ -127,3 +131,4 @@ export const components = {
     </Banner>
   ),
 }
+

@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { UploadImg } from '~/components/upload-img'
 import { readAbout, saveAbout } from '~/lib/actions/about'
 import { ImageSelect } from '~/components/image-select'
-import { components } from '~/components/mdx-components'
+import { components } from '~/components/pages/mdx-components/mdx-components'
 
 interface FeedbackState {
   type: 'success' | 'error' | null
