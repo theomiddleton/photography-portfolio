@@ -7,6 +7,9 @@ interface ImageCompareProps {
   leftAlt?: string
   rightAlt?: string
   className?: string
+  /**
+   * If height isnt passed aspect ratio will be preserved
+   */
   height?: number
   gap?: number
   leftCaption?: string
@@ -19,46 +22,51 @@ export function ImageCompare({
   leftAlt = 'Left image',
   rightAlt = 'Right image',
   className,
-  height = 400,
+  height,
   gap = 16,
   leftCaption,
   rightCaption
 }: ImageCompareProps) {
   return (
-    <figure className={cn("my-8 w-full", className)}>
+    <div className={cn("my-8 w-full", className)}>
       <div 
-        className="grid grid-cols-2 gap-4" 
+        className="grid grid-cols-2" 
         style={{ gap }}
       >
-        <div className="relative w-full" style={{ height }}>
-          <Image
-            src={leftImage}
-            alt={leftAlt}
-            fill
-            className="rounded-lg object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
+        <figure>
+          <div className="relative w-full rounded-lg overflow-hidden" style={height ? { height } : { paddingBottom: '66.66%' }}>
+            <Image
+              src={leftImage}
+              alt={leftAlt}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+          </div>
           {leftCaption && (
-            <figcaption className="mt-2 text-sm text-muted-foreground">
+            <figcaption className="mt-2 text-sm text-center text-muted-foreground">
               {leftCaption}
             </figcaption>
           )}
-        </div>
-        <div className="relative w-full" style={{ height }}>
-          <Image
-            src={rightImage}
-            alt={rightAlt}
-            fill
-            className="rounded-lg object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
+        </figure>
+        <figure>
+          <div className="relative w-full rounded-lg overflow-hidden" style={height ? { height } : { paddingBottom: '66.66%' }}>
+            <Image
+              src={rightImage}
+              alt={rightAlt}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+          </div>
           {rightCaption && (
-            <figcaption className="mt-2 text-sm text-muted-foreground">
+            <figcaption className="mt-2 text-sm text-center text-muted-foreground">
               {rightCaption}
             </figcaption>
           )}
-        </div>
+        </figure>
       </div>
-    </figure>
+    </div>
   )
 }
+
