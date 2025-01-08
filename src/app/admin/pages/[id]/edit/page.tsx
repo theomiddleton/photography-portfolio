@@ -1,3 +1,4 @@
+// ~/app/admin/pages/[id]/edit/page.tsx
 import { db } from '~/server/db'
 import { customPages } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
@@ -9,14 +10,18 @@ import { Logger } from 'next-axiom'
 
 export const dynamic = 'force-dynamic'
 
+async function getPageData(id: number) {
+    return await db
+        .select()
+        .from(customPages)
+        .where(eq(customPages.id, id))
+        .limit(1)
+        .then(res => res[0])
+}
+
 export default async function EditCustomPage({ params }: { params: { id: number } }) {
-  const page = await db
-    .select()
-    .from(customPages)
-    .where(eq(customPages.id, params.id))
-    .limit(1)
-    .then(res => res[0])
-  
+  const page = await getPageData(params.id)
+
   console.log('page: ', page)
   const log = new Logger()
   log.info('new page request: page: ', page)
