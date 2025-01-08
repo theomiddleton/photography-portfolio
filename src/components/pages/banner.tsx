@@ -9,18 +9,28 @@ import { Button } from '~/components/ui/button'
 interface BannerProps extends React.HTMLAttributes<HTMLDivElement> {
   id: string
   variant?: 'default' | 'destructive'
+  dismissable?: boolean
 }
 
-export function Banner({ id, variant = 'default', children, className, ...props }: BannerProps) {
+export function Banner({ 
+  id, 
+  variant = 'default', 
+  dismissable = true,
+  children, 
+  className, 
+  ...props 
+}: BannerProps) {
   const [isVisible, setIsVisible] = useState(true)
   const storageKey = `banner-${id}`
 
   useEffect(() => {
-    const isDismissed = localStorage.getItem(storageKey)
-    if (isDismissed) {
-      setIsVisible(false)
+    if (dismissable) {
+      const isDismissed = localStorage.getItem(storageKey)
+      if (isDismissed) {
+        setIsVisible(false)
+      }
     }
-  }, [storageKey])
+  }, [storageKey, dismissable])
 
   const dismiss = () => {
     localStorage.setItem(storageKey, 'true')
@@ -36,15 +46,16 @@ export function Banner({ id, variant = 'default', children, className, ...props 
       {...props}
     >
       <AlertDescription>{children}</AlertDescription>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute right-2 top-2 h-6 w-6"
-        onClick={dismiss}
-      >
-        <X className="h-4 w-4" />
-      </Button>
+      {dismissable && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-2 top-2 h-6 w-6"
+          onClick={dismiss}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      )}
     </Alert>
   )
 }
-
