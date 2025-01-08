@@ -2,7 +2,7 @@ import { SiteHeader } from '~/components/site-header'
 import { getCustomPage } from '~/lib/actions/customPages'
 import { notFound } from 'next/navigation'
 import { MDXRemote } from 'next-mdx-remote/rsc'
-import { components } from '~/components/mdx-components'
+import { components } from '~/components/pages/mdx-components/mdx-components'
 
 export const revalidate = 3600
 

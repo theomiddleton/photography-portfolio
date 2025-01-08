@@ -2,7 +2,7 @@
 
 import { serialize } from 'next-mdx-remote/serialize'
 import { MDXRemote } from 'next-mdx-remote'
-import { components } from '~/components/mdx-components'
+import { components } from '~/components/pages/mdx-components/mdx-components'
 import { useEffect, useState } from 'react'
 
 interface MDXPreviewProps {

@@ -5,7 +5,7 @@ import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
 import { about } from '~/server/db/schema'
 import { notFound } from 'next/navigation'
-import { components } from '~/components/mdx-components'
+import { components } from '~/components/pages/mdx-components/mdx-components'
 
 export const revalidate = 60 // Revalidate every 60 seconds
 
