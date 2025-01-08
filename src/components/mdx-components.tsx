@@ -11,6 +11,7 @@ import { cn } from '~/lib/utils'
 import { HLSPlayer } from '~/components/video/hls-player'
 import Image from 'next/image'
 import { ImageGallery } from '~/components/image-gallery' 
+import { Banner } from '~/components/pages/banner'
 
 export const components = {
   Button: (props) => (
@@ -119,5 +120,10 @@ export const components = {
         <code className={cn('language-' + language)}>{children}</code>
       </pre>
     </div>
+  ),
+  Banner: (props) => (
+    <Banner {...props}>
+      {props.children}
+    </Banner>
   ),
 }
