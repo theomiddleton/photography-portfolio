@@ -37,6 +37,8 @@ export function PageForm({ page, action }: PageFormProps) {
   const [title, setTitle] = useState(page?.title ?? '')
   const [slug, setSlug] = useState(page?.slug ?? '')
   const [isPublished, setIsPublished] = useState(page?.isPublished ?? false)
+  
+  console.log('page: ', page)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

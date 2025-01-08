@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { PageForm } from '~/components/pages/page-form'
 import { updateCustomPage } from '~/lib/actions/customPages'
 import { revalidatePath } from 'next/cache'
+import { Logger } from 'next-axiom'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,6 +16,10 @@ export default async function EditCustomPage({ params }: { params: { id: number 
     .where(eq(customPages.id, params.id))
     .limit(1)
     .then(res => res[0])
+  
+  console.log('page: ', page)
+  const log = new Logger()
+  log.info('new page request: page: ', page)
 
   if (!page) {
     notFound()
