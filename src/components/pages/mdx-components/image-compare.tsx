@@ -28,13 +28,16 @@ export function ImageCompare({
   rightCaption
 }: ImageCompareProps) {
   return (
-    <div className={cn("my-8 w-full", className)}>
+    <div className={cn("my-8 not-prose mx-auto max-w-4xl", className)}>
       <div 
-        className="grid grid-cols-2" 
+        className="grid grid-cols-1 md:grid-cols-2 mx-auto w-full" 
         style={{ gap }}
       >
-        <figure>
-          <div className="relative w-full rounded-lg overflow-hidden" style={height ? { height } : { paddingBottom: '66.66%' }}>
+        <figure className="flex flex-col items-center">
+          <div 
+            className="relative w-full overflow-hidden rounded-lg" 
+            style={height ? { height } : { paddingBottom: '66.66%' }}
+          >
             <Image
               src={leftImage}
               alt={leftAlt}
@@ -49,8 +52,11 @@ export function ImageCompare({
             </figcaption>
           )}
         </figure>
-        <figure>
-          <div className="relative w-full rounded-lg overflow-hidden" style={height ? { height } : { paddingBottom: '66.66%' }}>
+        <figure className="flex flex-col items-center">
+          <div 
+            className="relative w-full overflow-hidden rounded-lg" 
+            style={height ? { height } : { paddingBottom: '66.66%' }}
+          >
             <Image
               src={rightImage}
               alt={rightAlt}
