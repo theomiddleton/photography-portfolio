@@ -1,12 +1,12 @@
 'use client'
 
-import * as React from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import * as React from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
-import { cn } from "~/lib/utils"
-import { siteConfig } from "~/config/site"
-import { Icons } from "./ui/icons"
+import { cn } from '~/lib/utils'
+import { siteConfig } from '~/config/site'
+import { Icons } from '~/components/ui/icons'
 
 export function MainNav() {
   const pathname = usePathname()

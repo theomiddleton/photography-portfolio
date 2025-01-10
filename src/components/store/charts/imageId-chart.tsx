@@ -33,12 +33,12 @@ interface AggregatedData {
 
 const chartConfig = {
   price: {
-    label: "Price",
-    color: "hsl(var(--chart-1))",
+    label: 'Price',
+    color: 'hsl(var(--chart-1))',
   },
   total: {
-    label: "Total",
-    color: "hsl(var(--chart-2))",
+    label: 'Total',
+    color: 'hsl(var(--chart-2))',
   },
 } satisfies ChartConfig
 

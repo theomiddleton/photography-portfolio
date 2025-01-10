@@ -1,8 +1,8 @@
-import { siteConfig } from "~/config/site"
-import { cn } from "~/lib/utils"
-import { Icons } from "~/components/ui/icons"
-import { buttonVariants } from "~/components/ui/button"
-import Link from "next/link"
+import { siteConfig } from '~/config/site'
+import { cn } from '~/lib/utils'
+import { Icons } from '~/components/ui/icons'
+import { buttonVariants } from '~/components/ui/button'
+import Link from 'next/link'
 
 export function SiteFooter() {
   return (
