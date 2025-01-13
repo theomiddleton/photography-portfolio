@@ -5,15 +5,15 @@ import { Suspense } from 'react'
 // Define the props to the component
 interface AltImagePageProps {
   data: {
-    id: number;
-    fileUrl: string;
-    name: string;
-    description: string;
-    tags: string;
-    uploadedAt: Date;
-  };
+    id: number
+    fileUrl: string
+    name: string
+    description: string
+    tags: string
+    uploadedAt: Date
+  }
 }
-export const revalidate = 60
+export const revalidate = 3600
 export const dynamicParams = true
 
 export async function AltImagePage({ data }: AltImagePageProps) {
@@ -27,8 +27,10 @@ export async function AltImagePage({ data }: AltImagePageProps) {
               src={data.fileUrl}
               alt={data.description}
               layout="fill"
+              fill
               objectFit="contain"
               priority
+              quality={100}
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           </Suspense>

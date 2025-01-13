@@ -8,7 +8,7 @@ import { blogs } from '~/server/db/schema'
 import type { Post } from '~/lib/types/Post'
 
 const temp = await db.select().from(blogs)
-const result = await db.query.blogs.findMany()
+// const result = await db.query.blogs.findMany()
 console.log('Temp: ', temp)
 console.log('Res: ', temp)
 

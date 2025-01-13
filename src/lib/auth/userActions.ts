@@ -18,6 +18,7 @@ export interface FormState {
   message: string
   fields?: Record<string, string>
   issues?: string[]
+  redirect?: string
 }
 
 interface LogoutState {
@@ -84,8 +85,12 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
     expires: new Date(Date.now() + JWT_EXPIRATION_MS)
   })
   
-  // if the user is found and the password is valid, return a message
-  return { message: 'User logged in' }
+  // Return redirect path based on role
+  const redirectPath = user.role === 'admin' ? '/admin' : '/'
+  return { 
+    message: 'User logged in',
+    redirect: redirectPath
+  }
 }
 
 export async function register(prevState: FormState, data: FormData): Promise<FormState> {

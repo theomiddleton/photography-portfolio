@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useEffect} from 'react'
 import { useFormState } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -17,14 +17,17 @@ import {
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation' 
 
 import { loginSchema } from '~/lib/types/loginSchema'
 
 import { login } from '~/lib/auth/userActions'
 
 export default function Signin() {
+  const router = useRouter()
   const [state, formAction] = useFormState(login, {
     message: '',
+    redirect: null,
   })
   const form = useForm<z.output<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -34,6 +37,12 @@ export default function Signin() {
       ...(state?.fields ?? {}),
     },
   })
+  
+  useEffect(() => {
+    if (state.redirect) {
+      router.push(state.redirect)
+    }
+  }, [state.redirect, router])
 
   const formRef = useRef<HTMLFormElement>(null)
 
