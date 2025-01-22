@@ -1,5 +1,5 @@
-import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean } from 'drizzle-orm/pg-core'
-import { relations } from 'drizzle-orm'
+import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean, uuid } from 'drizzle-orm/pg-core'
+import { relations, sql } from 'drizzle-orm'
 
 export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
 
@@ -63,33 +63,6 @@ export const aboutImages = pgTable('aboutImages', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 })
 
-export const storeImages = pgTable('storeImages', {
-  id: serial('id').primaryKey(),
-  imageId: integer('imageId'),
-  imageUuid: varchar('uuid', { length: 36 }),
-  fileUrl: varchar('fileUrl', { length: 256 }),
-  price: integer('price').notNull(),
-  stock: integer('stock').notNull(),
-  visible: boolean('visible').default(false).notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-})
-
-export const storeOrders = pgTable('storeOrders', {
-  id: serial('id').primaryKey(),
-  customerName: varchar('customerName', { length: 256 }).notNull(),
-  imageId: integer('imageId').references(() => imageData.id).notNull(),
-  storeImageId: integer('storeImageId').references(() => storeImages.id).notNull(),
-  address: varchar('address', { length: 256 }).notNull(),
-  city: varchar('city', { length: 256 }).notNull(),
-  postCode: varchar('postCode', { length: 256 }).notNull(),
-  country: varchar('country', { length: 2 }).notNull(),
-  status: varchar('status', { length: 256 }).notNull(),
-  paymentMethod: varchar('paymentMethod', { length: 256 }).notNull(),
-  quantity: integer('quantity').notNull(),
-  total: integer('total').notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-})
-
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   email: varchar('email', { length: 256 }).notNull(),
@@ -139,6 +112,32 @@ export const customImgData = pgTable('customImgData', {
   name: varchar('name', { length: 256 }),
   uploadedAt: timestamp('uploadedAt').defaultNow(),
 })
+
+export const products = pgTable('products', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  price: integer('price').notNull(), // stored in pennies
+  imageUrl: text('imageUrl').notNull(),
+  stripeProductId: text('stripeProductId').notNull(),
+  stripePriceId: text('stripePriceId').notNull(),
+  active: boolean('active').default(true),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
+export const orders = pgTable('orders', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  productId: uuid('productId').references(() => products.id),
+  stripeSessionId: text('stripeSessionId').notNull(),
+  status: text('status').notNull(),
+  email: text('email').notNull(),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
+export type Product = typeof products.$inferSelect
+export type Order = typeof orders.$inferSelect
 
 export const aboutRelations = relations(about, ({ many }) => ({
   images: many(aboutImages)
