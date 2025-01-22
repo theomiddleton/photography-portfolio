@@ -1,5 +1,5 @@
 import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean, uuid } from 'drizzle-orm/pg-core'
-import { relations, sql } from 'drizzle-orm'
+import { relations } from 'drizzle-orm'
 
 export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
 
@@ -115,10 +115,22 @@ export const customImgData = pgTable('customImgData', {
 
 export const products = pgTable('products', {
   id: uuid('id').defaultRandom().primaryKey(),
+  slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
   description: text('description').notNull(),
-  price: integer('price').notNull(), // stored in pennies
   imageUrl: text('imageUrl').notNull(),
+  active: boolean('active').default(true),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
+export const productSizes = pgTable('productSizes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  productId: uuid('productId').references(() => products.id),
+  name: text('name').notNull(), // e.g., '8x10', '11x14'
+  width: integer('width').notNull(), // in inches
+  height: integer('height').notNull(), // in inches
+  basePrice: integer('basePrice').notNull(), // in pennies
   stripeProductId: text('stripeProductId').notNull(),
   stripePriceId: text('stripePriceId').notNull(),
   active: boolean('active').default(true),
@@ -129,6 +141,7 @@ export const products = pgTable('products', {
 export const orders = pgTable('orders', {
   id: uuid('id').defaultRandom().primaryKey(),
   productId: uuid('productId').references(() => products.id),
+  sizeId: uuid('sizeId').references(() => productSizes.id),
   stripeSessionId: text('stripeSessionId').notNull(),
   status: text('status').notNull(),
   email: text('email').notNull(),
@@ -136,8 +149,21 @@ export const orders = pgTable('orders', {
   updatedAt: timestamp('updatedAt').defaultNow(),
 })
 
+export const basePrintSizes = pgTable('basePrintSizes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  width: integer('width').notNull(),
+  height: integer('height').notNull(),
+  basePrice: integer('basePrice').notNull(),
+  active: boolean('active').default(true),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
 export type Product = typeof products.$inferSelect
+export type ProductSize = typeof productSizes.$inferSelect
 export type Order = typeof orders.$inferSelect
+export type BasePrintSize = typeof basePrintSizes.$inferSelect
 
 export const aboutRelations = relations(about, ({ many }) => ({
   images: many(aboutImages)

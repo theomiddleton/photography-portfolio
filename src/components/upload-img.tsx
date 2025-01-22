@@ -27,6 +27,13 @@ interface UploadedImage {
   copied: boolean
 }
 
+interface PrintSize {
+  name: string
+  width: number
+  height: number
+  basePrice: number
+}
+
 export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -34,10 +41,24 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState('')
   const [isSale, setIsSale] = useState<boolean>(false)
+  const [printSizes, setPrintSizes] = useState<PrintSize[]>([{ name: '8x10', width: 8, height: 10, basePrice: 2500 }])
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [uploadProgress, setUploadProgress] = useState(0)
 
+  const handleAddSize = () => {
+    setPrintSizes([...printSizes, { name: '', width: 0, height: 0, basePrice: 0 }])
+  }
+
+  const handleSizeChange = (index: number, field: keyof PrintSize, value: string | number) => {
+    const newSizes = [...printSizes]
+    newSizes[index] = {
+      ...newSizes[index],
+      [field]: field === 'basePrice' ? Number(value) * 100 : value,
+    }
+    setPrintSizes(newSizes)
+  }
+  
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       setFile(event.target.files[0])
@@ -78,6 +99,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
           description: bucket === 'image' ? description : '', 
           tags: bucket === 'image' ? tags : '', 
           isSale: bucket === 'image' ? isSale : false,
+          printSizes: bucket === 'image' ? printSizes : [],
           bucket,
           draftId
         }),
@@ -114,6 +136,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
           setDescription('')
           setTags('')
           setIsSale(false)
+          setPrintSizes([{ name: '8x10', width: 8, height: 10, basePrice: 2500 }])
           setUploadProgress(0)
         } else {
           console.error('R2 Upload Error:', xhr.statusText)
@@ -257,6 +280,55 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
           {uploading ? 'Uploading...' : 'Upload'}
         </Button>
       </CardFooter>      
+      
+      {isSale && (
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Print Sizes</h3>
+              <Button onClick={handleAddSize} variant="outline" size="sm">
+                Add Size
+              </Button>
+            </div>
+            {printSizes.map((size, index) => (
+              <div key={index} className="grid grid-cols-4 gap-4">
+                <div>
+                  <Label>Size Name</Label>
+                  <Input
+                    value={size.name}
+                    onChange={(e) => handleSizeChange(index, 'name', e.target.value)}
+                    placeholder="e.g., 8x10"
+                  />
+                </div>
+                <div>
+                  <Label>Width (inches)</Label>
+                  <Input
+                    type="number"
+                    value={size.width}
+                    onChange={(e) => handleSizeChange(index, 'width', Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label>Height (inches)</Label>
+                  <Input
+                    type="number"
+                    value={size.height}
+                    onChange={(e) => handleSizeChange(index, 'height', Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label>Base Price (£)</Label>
+                  <Input
+                    type="number"
+                    value={size.basePrice / 100}
+                    onChange={(e) => handleSizeChange(index, 'basePrice', e.target.value)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      )}
       
       {uploadSuccess && (
         <div className="px-6 pb-2">
