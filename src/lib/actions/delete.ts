@@ -5,7 +5,7 @@ import { r2 } from '~/lib/r2'
 import { eq } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { revalidatePath } from 'next/cache'
-import { imageData, blogImgData, aboutImgData, storeImages, storeOrders } from '~/server/db/schema'
+import { imageData, blogImgData, aboutImgData } from '~/server/db/schema'
 import { logAction } from '~/lib/logging'
 
 // type definitions
@@ -15,7 +15,7 @@ interface DeleteImageParams {
   keepStoreData?: boolean
 }
 
-export async function deleteImage({ uuid, fileName, keepStoreData = false }: DeleteImageParams) {
+export async function deleteImage({ uuid, fileName }: DeleteImageParams) {
   try {
     
     // delete from r2
@@ -28,18 +28,6 @@ export async function deleteImage({ uuid, fileName, keepStoreData = false }: Del
     await db.delete(imageData).where(eq(imageData.uuid, uuid))
     await db.delete(blogImgData).where(eq(blogImgData.uuid, uuid))
     await db.delete(aboutImgData).where(eq(aboutImgData.uuid, uuid))
-
-    // delete store image data from database
-    // if keepStoreData is false, delete store image data
-    if (!keepStoreData) {
-      const storeImage = await db.select().from(storeImages).where(eq(storeImages.imageUuid, uuid)).limit(1)
-      
-      if (storeImage.length > 0) {
-        const storeImageId = storeImage[0].id
-        await db.delete(storeOrders).where(eq(storeOrders.storeImageId, storeImageId))
-        await db.delete(storeImages).where(eq(storeImages.id, storeImageId))
-      }
-    }
     
     revalidatePath('/admin/delete')
     // log it with custom logging implementation, storing the log in the db
