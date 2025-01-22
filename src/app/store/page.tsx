@@ -26,7 +26,7 @@ export default async function StorePage() {
   return (
     <>
       <SiteHeader />
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12 pt-24">
         <div className="max-w-2xl mx-auto text-center mb-12">
           <h1 className="text-4xl font-bold tracking-tight mb-4">Print Store</h1>
         </div>

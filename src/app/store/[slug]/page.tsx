@@ -4,6 +4,7 @@ import { db } from '~/server/db'
 import { products } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { ProductView } from '~/components/store/product-view'
+import { SiteHeader } from '~/components/site-header'
 
 interface Props {
   params: { slug: string }
@@ -44,8 +45,11 @@ export default async function ProductPage({ params }: Props) {
   }
 
   return (
-    <main className="container mx-auto px-4 py-12">
-      <ProductView product={product} />
+    <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
+      <SiteHeader />
+      <div className="container mx-auto px-4 py-12">
+        <ProductView product={product} />
+      </div>
     </main>
   )
 }

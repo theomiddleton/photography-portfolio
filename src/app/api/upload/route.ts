@@ -6,7 +6,7 @@ import { siteConfig } from '~/config/site'
 
 import { eq, sql, max } from 'drizzle-orm' 
 import { db } from '~/server/db'
-import { imageData, storeImages, blogImgData, aboutImgData, customImgData } from '~/server/db/schema'
+import { imageData, blogImgData, aboutImgData, customImgData } from '~/server/db/schema'
 import { NextResponse } from 'next/server'
 
 import { products, productSizes } from '~/server/db/schema'
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
             unit_amount: size.basePrice,
             currency: 'gbp',
           })
-  
+            
           await db.insert(productSizes).values({
             productId: product.id,
             name: size.name,
@@ -140,6 +140,7 @@ export async function POST(request: Request) {
             stripePriceId: stripePrice.id,
           })
         }
+      }
     } else if (bucket === 'blog') {
       console.log('Inserting blog image data')
       logAction('upload', 'Inserting blog image data')

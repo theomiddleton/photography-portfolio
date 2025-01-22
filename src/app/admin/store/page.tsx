@@ -1,10 +1,9 @@
-import type { Metadata } from 'next'
 import { db } from '~/server/db'
 import { products, productSizes, orders } from '~/server/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { AdminOrders } from '~/components/store/admin/orders'
 import { AdminProducts } from '~/components/store/admin/products'
-import { Button } from '~/components/ui/button'
+import { AdminActions } from '~/components/store/admin/actions' 
 
 async function getProducts() {
   return await db.select().from(products).orderBy(desc(products.createdAt))
@@ -22,7 +21,8 @@ export default async function AdminStorePage() {
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-4xl font-bold mb-8">Store Admin</h1>
-          <div className="grid md:grid-cols-2 gap-8">
+          <AdminActions />
+          <div className="grid md:grid-cols-2 gap-8 mt-8">
             <AdminOrders initialOrders={recentOrders} />
             <AdminProducts products={storeProducts} />
           </div>

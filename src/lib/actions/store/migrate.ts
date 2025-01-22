@@ -1,23 +1,35 @@
-import { db } from './server/db/db.ts'
-import { products, productSizes, basePrintSizes, imageData } from './server/db/schema.ts'
+'use server'
+
+import { db } from '~/server/db'
+import { products, productSizes, basePrintSizes, imageData } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
-import { slugify } from './lib/utils.ts'
+import { slugify } from '~/lib/utils'
 import Stripe from 'stripe'
+import { revalidatePath } from 'next/cache'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY is not defined in environment variables')
+}
 
-async function migrateImages() {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+
+export async function migrateImagesToProducts() {
   try {
-    // Get all images
-    const images = await db.select().from(imageData).where(eq(imageData.active, true))
+    const images = await db.select().from(imageData)
 
-    // Get base print sizes
     const sizes = await db.select().from(basePrintSizes).where(eq(basePrintSizes.active, true))
 
-    console.log(`Found ${images.length} images and ${sizes.length} base sizes`)
+    if (sizes.length === 0) {
+      return { success: false, error: 'No base print sizes found. Please add some first.' }
+    }
+
+    let migratedCount = 0
 
     for (const image of images) {
-      console.log(`Processing image: ${image.name}`)
+      // Check if product already exists
+      const existingProduct = await db.select().from(products).where(eq(products.imageUrl, image.fileUrl)).limit(1)
+
+      if (existingProduct.length > 0) continue
 
       // Create product
       const [product] = await db
@@ -25,13 +37,11 @@ async function migrateImages() {
         .values({
           name: image.name,
           slug: slugify(image.name),
-          description: image.description || 'Beautiful photographic print',
+          description: image.description || 'Print',
           imageUrl: image.fileUrl,
           active: true,
         })
         .returning()
-
-      console.log(`Created product: ${product.name}`)
 
       // Create sizes for product
       for (const size of sizes) {
@@ -56,16 +66,24 @@ async function migrateImages() {
           stripeProductId: stripeProduct.id,
           stripePriceId: stripePrice.id,
         })
-
-        console.log(`Added size ${size.name} for product ${product.name}`)
       }
+
+      migratedCount++
     }
 
-    console.log('Migration complete!')
+    revalidatePath('/admin/store')
+    revalidatePath('/store')
+
+    return {
+      success: true,
+      message: `Successfully migrated ${migratedCount} images to products.`,
+    }
   } catch (error) {
     console.error('Migration failed:', error)
+    return {
+      success: false,
+      error: 'Failed to migrate images. Check the console for more details.',
+    }
   }
 }
-
-migrateImages()
 

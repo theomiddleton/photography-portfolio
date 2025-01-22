@@ -7,7 +7,7 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import type { BasePrintSize } from '~/server/db/schema'
 import { formatPrice } from '~/lib/utils'
-import { addPrintSize } from '~/lib/actions/store/sizes'
+import { addPrintSize, updatePrintSize } from '~/lib/actions/store/sizes'
 
 interface PrintSizesProps {
   sizes: BasePrintSize[]
@@ -21,6 +21,13 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
     height: '',
     basePrice: '',
   })
+  const [editingSize, setEditingSize] = useState<{
+    id: string
+    name: string
+    width: string
+    height: string
+    basePrice: string
+  } | null>(null)
 
   const handleAddSize = async () => {
     try {
@@ -30,12 +37,43 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
         height: Number.parseInt(newSize.height),
         basePrice: Number.parseFloat(newSize.basePrice) * 100,
       })
+
       if (!result.success) throw new Error(result.error)
 
       setSizes([result.data, ...sizes])
-      setNewSize({ name: "", width: "", height: "", basePrice: "" })
+      setNewSize({ name: '', width: '', height: '', basePrice: '' })
     } catch (error) {
-      console.error('Error adding size:', error)
+      console.error(error)
+    }
+  }
+
+  const handleEdit = (size: BasePrintSize) => {
+    setEditingSize({
+      id: size.id,
+      name: size.name,
+      width: size.width.toString(),
+      height: size.height.toString(),
+      basePrice: (size.basePrice / 100).toString(),
+    })
+  }
+
+  const handleUpdate = async () => {
+    if (!editingSize) return
+
+    try {
+      const result = await updatePrintSize(editingSize.id, {
+        name: editingSize.name,
+        width: Number.parseInt(editingSize.width),
+        height: Number.parseInt(editingSize.height),
+        basePrice: Number.parseFloat(editingSize.basePrice) * 100,
+      })
+
+      if (!result.success) throw new Error(result.error)
+
+      setSizes(sizes.map((size) => (size.id === editingSize.id ? result.data : size)))
+      setEditingSize(null)
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -87,26 +125,69 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
           <div className="space-y-4">
             {sizes.map((size) => (
               <div key={size.id} className="grid grid-cols-4 gap-4 p-4 border rounded-lg">
-                <div>
-                  <Label>Size Name</Label>
-                  <p>{size.name}</p>
-                </div>
-                <div>
-                  <Label>Dimensions</Label>
-                  <p>
-                    {`${size.width}" x ${size.height}"`}
-                  </p>
-
-                </div>
-                <div>
-                  <Label>Base Price</Label>
-                  <p>{formatPrice(size.basePrice)}</p>
-                </div>
-                <div className="flex items-end justify-end">
-                  <Button variant="outline" size="sm">
-                    Edit
-                  </Button>
-                </div>
+                {editingSize?.id === size.id ? (
+                  <>
+                    <div>
+                      <Label>Size Name</Label>
+                      <Input
+                        value={editingSize.name}
+                        onChange={(e) => setEditingSize({ ...editingSize, name: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Width (inches)</Label>
+                      <Input
+                        type="number"
+                        value={editingSize.width}
+                        onChange={(e) => setEditingSize({ ...editingSize, width: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Height (inches)</Label>
+                      <Input
+                        type="number"
+                        value={editingSize.height}
+                        onChange={(e) => setEditingSize({ ...editingSize, height: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Base Price (£)</Label>
+                      <Input
+                        type="number"
+                        value={editingSize.basePrice}
+                        onChange={(e) => setEditingSize({ ...editingSize, basePrice: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-span-4 flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setEditingSize(null)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleUpdate}>Save Changes</Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <Label>Size Name</Label>
+                      <p>{size.name}</p>
+                    </div>
+                    <div>
+                      <Label>Dimensions</Label>
+                      <p>
+                        {`${size.width}x${size.height}`}
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Base Price</Label>
+                      <p>{formatPrice(size.basePrice)}</p>
+                    </div>
+                    <div className="flex items-end justify-end">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(size)}>
+                        Edit
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>
