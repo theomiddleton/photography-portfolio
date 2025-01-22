@@ -19,6 +19,54 @@ When uploading in batches check order id works properly, is currently broken whe
 Also fix that linking is broken - it uses the order id rather than the image id
 Make hide buttons show when hidden, change message so fits in the row
 
+## Rework store
+
+- [ ] Public store page
+  - [ ] Filterable by categories, price, date
+  - [ ] Each image displays preview, title, price if for sale
+  - [ ] Lightbox view for detailed image inspection
+  - [ ] "Add to Cart" button only appears on for-sale items
+- [ ] Cart System
+  - [ ] Persistent cart using local storage
+  - [ ] Cart sidebar/modal
+  - [ ] Checkout flow integrated with Stripe
+- [ ] User Account Area
+  - [ ] Order history
+  - [ ] Order status
+  - [ ] Save favorites
+
+- [ ] Admin Interface
+  - [ ] Image Management Form
+    - [ ] Toggle "For Sale" status
+    - [ ] Set pricing
+    - [ ] Add metadata (title, description, categories)
+  - [ ] Order Management
+    - [ ] View/track orders
+    - [ ] Download sales reports
+    - [ ] Customer communication system
+    
+
+  Services Layer
+    - [ ] ImageService  
+      - [ ] Creates thumbnails
+        - [ ] Frame images
+      - [ ] Manages cloud storage (R2)
+
+    StripeService
+    - [ ] Payment processing
+    - [ ] Webhook handling
+    - [ ] Receipt generation
+
+    OrderService
+    - [ ] Order fulfillment
+    - [ ] Email notifications
+
+  - [ ] SEO & Sharing
+    - [ ] Dynamic OG images
+    - [ ] Structured data for products
+    - [ ] Sitemap generation
+    - [ ] Social sharing metadata
+
 ## Security
 
 - [] audit security <https://youtu.be/yUm-ET8w_28>
