@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { db } from '~/server/db'
-import { products } from '~/server/db/schema'
+import { products, productSizes } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { ProductView } from '~/components/store/product-view'
 import { SiteHeader } from '~/components/site-header'
@@ -15,6 +15,10 @@ export const revalidate = 3600
 async function getProduct(slug: string) {
   const product = await db.select().from(products).where(eq(products.slug, slug)).limit(1)
   return product[0]
+}
+
+async function getProductSizes(productId: string) {
+  return await db.select().from(productSizes).where(eq(productSizes.productId, productId))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -44,11 +48,19 @@ export default async function ProductPage({ params }: Props) {
     notFound()
   }
 
+  const sizes = await getProductSizes(product.id)
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
       <SiteHeader />
       <div className="container mx-auto px-4 py-12">
-        <ProductView product={product} />
+        <ProductView
+          product={product}
+          sizes={sizes.map((size) => ({
+            ...size,
+            totalPrice: size.basePrice,
+          }))}
+        />
       </div>
     </main>
   )
