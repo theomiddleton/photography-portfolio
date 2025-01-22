@@ -4,6 +4,7 @@ import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { r2 } from '~/lib/r2'
 import { eq } from 'drizzle-orm'
 import { db } from '~/server/db'
+import { revalidatePath } from 'next/cache'
 import { imageData, blogImgData, aboutImgData, storeImages, storeOrders } from '~/server/db/schema'
 import { logAction } from '~/lib/logging'
 
@@ -39,7 +40,8 @@ export async function deleteImage({ uuid, fileName, keepStoreData = false }: Del
         await db.delete(storeImages).where(eq(storeImages.id, storeImageId))
       }
     }
-
+    
+    revalidatePath('/admin/delete')
     // log it with custom logging implementation, storing the log in the db
     // return either success message or error message
     logAction('Delete', `Image ${uuid} deleted successfully`)

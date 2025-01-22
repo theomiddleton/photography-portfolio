@@ -1,27 +1,58 @@
-import '~/styles/globals.css' 
+import '~/styles/globals.css'
 import { siteConfig } from '~/config/site'
-import { SiteFooter } from '~/components/site-footer' 
+import { SiteFooter } from '~/components/site-footer'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { AxiomWebVitals } from 'next-axiom'
 import { VercelToolbar } from '@vercel/toolbar/next'
+
 import { FlagValues } from '@vercel/flags/react'
 import { get } from '@vercel/edge-config'
+import type { Metadata } from 'next/types'
 
-import { Inter } from 'next/font/google' 
+import { Inter } from 'next/font/google'
 
-// sets global font
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
-}) 
+})
 
-// sets metadata for seo and tab title ect
-export const metadata = {
-  title: siteConfig.title,
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
+
+export const metadata: Metadata = {
+  title: {
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.title}`,
+  },
   description: siteConfig.description,
+  openGraph: {
+    ...siteConfig.seo.openGraph,
+    title: siteConfig.title,
+    description: siteConfig.description,
+    url: siteConfig.url,
+    siteName: siteConfig.title,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteConfig.title,
+    description: siteConfig.description,
+    // url: siteConfig.url,
+    images: siteConfig.seo.openGraph.images,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
   icons: [{ rel: 'icon', url: '/favicon.ico' }],
-} 
+}
 
 export default async function RootLayout({
   children,
@@ -30,18 +61,18 @@ export default async function RootLayout({
 }) {
 
   // checks if the toolbar should be injected, this is only done in development
-  const shouldInjectToolbar = process.env.NODE_ENV === 'development'
+  // const shouldInjectToolbar = process.env.NODE_ENV === 'development'
   // reads the edgeConfif for feature flags
-  const edgeConfigFlags = await get('featureFlags')
+  // const edgeConfigFlags = await get('featureFlags')
 
-  const flags: Record<string, boolean> = typeof edgeConfigFlags === 'object' && edgeConfigFlags !== null
-    ? Object.entries(edgeConfigFlags).reduce((acc, [key, value]) => {
-        if (typeof value === 'boolean') {
-          acc[key] = value;
-        }
-        return acc;
-      }, {} as Record<string, boolean>)
-    : {}
+  // const flags: Record<string, boolean> = typeof edgeConfigFlags === 'object' && edgeConfigFlags !== null
+  //   ? Object.entries(edgeConfigFlags).reduce((acc, [key, value]) => {
+  //       if (typeof value === 'boolean') {
+  //         acc[key] = value
+  //       }
+  //       return acc
+  //     }, {} as Record<string, boolean>)
+  //   : {}
 
 
   return (
@@ -53,8 +84,8 @@ export default async function RootLayout({
         <Analytics />
         <AxiomWebVitals />
         <SpeedInsights />
-        {shouldInjectToolbar && <VercelToolbar />}
-        <FlagValues values={flags} />
+        {/* {shouldInjectToolbar && <VercelToolbar />} */}
+        {/* <FlagValues values={flags} /> */}
       </body>
       <SiteFooter />
     </html>

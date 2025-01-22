@@ -1,7 +1,7 @@
 'use client'
-
 import { useState, useEffect, useCallback } from 'react'
-import ReactMarkdown from 'react-markdown'
+import { serialize } from 'next-mdx-remote/serialize'
+import { MDXRemote } from 'next-mdx-remote'
 import { Textarea } from '~/components/ui/textarea'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { UploadImg } from '~/components/upload-img'
 import { readAbout, saveAbout } from '~/lib/actions/about'
 import { ImageSelect } from '~/components/image-select'
+import { components } from '~/components/pages/mdx-components/mdx-components'
 
 interface FeedbackState {
   type: 'success' | 'error' | null
@@ -25,9 +26,30 @@ interface ImageData {
 export default function AboutEditor() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [compiledContent, setCompiledContent] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [feedback, setFeedback] = useState<FeedbackState>({ type: null, message: '' })
   const [images, setImages] = useState<ImageData[]>([])
+
+  const compileMdx = useCallback(async (mdxContent: string) => {
+    try {
+      const mdxSource = await serialize(mdxContent, {
+        parseFrontmatter: false,
+      })
+      setCompiledContent(mdxSource)
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'MDX compilation failed'
+      })
+    }
+  }, [])
+  
+  useEffect(() => {
+    if (content) {
+      compileMdx(content)
+    }
+  }, [content, compileMdx])
 
   const fetchAbout = useCallback(async () => {
     try {
@@ -122,13 +144,13 @@ export default function AboutEditor() {
           </div>
           <div>
             <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-              About Me Contents
+              About Me Contents (MDX)
             </label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Loading content..."
+              placeholder="Write your MDX content here..."
               className="mt-1 h-[calc(100vh-500px)]"
               aria-label="About content"
             />
@@ -151,7 +173,9 @@ export default function AboutEditor() {
         </div>
         <div className="space-y-4">
           <div className="border rounded-lg p-4 prose prose-sm max-w-none h-[calc(100vh-400px)] overflow-auto">
-            <ReactMarkdown>{content}</ReactMarkdown>
+            {compiledContent && (
+              <MDXRemote {...compiledContent} components={components} />
+            )}
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-2">Select Images</h3>

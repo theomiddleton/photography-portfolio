@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Progress } from '~/components/ui/progress'
 
 interface UploadImgProps {
-  bucket: 'image' | 'blog' | 'about'
+  bucket: 'image' | 'blog' | 'about' | 'custom'
   draftId?: string
   onImageUpload?: (image: { name: string, url: string }) => void
 }
@@ -46,10 +46,21 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
 
   const handleUpload = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
+    if (!file && !name) {
+      alert('Please provide both a file to upload and a name.')
+      return
+    }
+    
     if (!file) {
       alert('Please select a file to upload.')
       return
     }
+    
+    if (!name) {
+      alert('Please provide a name.')
+      return
+    }
+
     setUploading(true)
     setUploadProgress(0)
       
@@ -125,16 +136,35 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
     setUploading(false)
   }
 
-  const copyToClipboard = (index: number) => {
-    const imageUrl = uploadedImages[index].url
-    const markdownText = `![${uploadedImages[index].name}](${imageUrl})`
+  const copyToClipboard = (index: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    const currentImage = uploadedImages[index]
+    const markdownText = `![${currentImage.name}](${currentImage.url})`
     navigator.clipboard.writeText(markdownText).then(() => {
       const newUploadedImages = [...uploadedImages]
-      newUploadedImages[index].copied = true
+      newUploadedImages[index] = { ...currentImage, copied: true }
       setUploadedImages(newUploadedImages)
       setTimeout(() => {
         const resetImages = [...newUploadedImages]
-        resetImages[index].copied = false
+        resetImages[index] = { ...currentImage, copied: false }
+        setUploadedImages(resetImages)
+      }, 2000)
+    }, (err) => {
+      console.error('Could not copy text: ', err)
+    })
+  }
+  
+  const copyToClipboardAlt = (index: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    const currentImage = uploadedImages[index]
+    const componentText = `<Image src="${currentImage.url}" alt="${currentImage.name}" width={800} height={400} />`
+    navigator.clipboard.writeText(componentText).then(() => {
+      const newUploadedImages = [...uploadedImages]
+      newUploadedImages[index] = { ...currentImage, copied: true }
+      setUploadedImages(newUploadedImages)
+      setTimeout(() => {
+        const resetImages = [...newUploadedImages]
+        resetImages[index] = { ...currentImage, copied: false }
         setUploadedImages(resetImages)
       }, 2000)
     }, (err) => {
@@ -145,7 +175,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   return (
     <Card className="mt-2 justify-center w-full">
       <CardHeader>
-        <CardTitle>Upload {bucket === 'image' ? 'Image' : bucket === 'blog' ? 'Blog Image' : 'About Image'}</CardTitle> 
+        <CardTitle>Upload {bucket === 'image' ? 'Image' : bucket === 'blog' ? 'Blog Image' : bucket === 'about' ? 'About Image' : 'Custom Page Images'}</CardTitle> 
       </CardHeader>
       <CardContent>
         <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
@@ -238,16 +268,28 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
         </div>
       )}
       
-      {uploadedImages.length > 0 && (
+      {bucket !== 'image' && uploadedImages.length > 0 && (
         <div className="mt-4 px-6 pb-4 border-t">
           <h3 className="text-lg font-semibold mb-2 pt-2">Uploaded Images</h3>
           <ul className="space-y-2">
             {uploadedImages.map((img, index) => (
-              <li key={index} className="flex justify-between items-center">
-                <span>{img.name}</span>
-                <Button onClick={() => copyToClipboard(index)} size="sm">
-                  {img.copied ? 'Copied!' : 'Copy Markdown'}
-                </Button>
+              <li key={index} className="flex items-center">
+                <span className="flex-1">{img.name}</span>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    onClick={(e) => copyToClipboardAlt(index, e)} 
+                    size="sm"
+                    variant="outline"
+                  >
+                    {img.copied ? 'Copied!' : 'Copy Image Component'}
+                  </Button>
+                  <Button 
+                    onClick={(e) => copyToClipboard(index, e)} 
+                    size="sm"
+                  >
+                    {img.copied ? 'Copied!' : 'Copy Markdown'}
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>

@@ -14,6 +14,7 @@ export const imageData = pgTable('imageData', {
   visible: boolean('visible').default(true).notNull(),
   order: integer('order').default(0).notNull(),
   uploadedAt: timestamp('uploadedAt').defaultNow(),
+  modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
 
 export const blogs = pgTable('blogs', {
@@ -104,6 +105,39 @@ export const logs = pgTable('logs', {
   scope: varchar('scope', { length: 256 }).notNull(),
   log: text('log').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
+})
+
+export const videos = pgTable('videos', {
+  id: text('id').primaryKey(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  description: text('description'),
+  hlsUrl: text('hlsUrl').notNull(),
+  thumbnail: text('thumbnailUrl'),
+  duration: text('duration'),
+  views: text('views').default('0'),
+  isVisible: boolean('isVisible').default(true),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  modifiedAt: timestamp('modifiedAt').defaultNow(),
+})
+
+export const customPages = pgTable('customPages', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  slug: text('slug').notNull().unique(),
+  isPublished: boolean('isPublished').default(false).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+export const customImgData = pgTable('customImgData', {
+  id: serial('id').primaryKey(),
+  uuid: varchar('uuid', { length: 36 }).notNull(),
+  fileName: varchar('fileName', { length: 256 }).notNull(),
+  fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
+  name: varchar('name', { length: 256 }),
+  uploadedAt: timestamp('uploadedAt').defaultNow(),
 })
 
 export const aboutRelations = relations(about, ({ many }) => ({

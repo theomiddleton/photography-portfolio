@@ -6,6 +6,9 @@ import { ImageReorder } from '~/components/image-reorder'
 // Define a type for our image data
 export type ImageDataType = typeof imageData.$inferSelect
 
+export const revalidate = 5
+export const dynamicParams = true
+
 async function getImages(): Promise<ImageDataType[]> {
   return await db.select().from(imageData)
 }
