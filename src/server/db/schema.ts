@@ -158,6 +158,7 @@ export const orders = pgTable('orders', {
   sizeId: uuid('sizeId').references(() => productSizes.id),
   stripeSessionId: text('stripeSessionId').notNull(),
   status: text('status', { enum: orderStatuses }).notNull().default('pending'),
+  customerName: text('customerName').notNull(),
   email: text('email').notNull(),
   shippingAddress: json('shippingAddress').$type<{
     name: string
@@ -167,7 +168,7 @@ export const orders = pgTable('orders', {
     state: string
     postal_code: string
     country: string
-    phone: string
+    phone?: string
   }>(),
   trackingNumber: text('trackingNumber'),
   createdAt: timestamp('createdAt').defaultNow(),

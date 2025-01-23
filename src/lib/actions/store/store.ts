@@ -17,7 +17,7 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
     if (!product || !size) {
       throw new Error('Product or size not found')
     }
-
+    
     // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: size.basePrice,
@@ -33,11 +33,12 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
 
     // Create a pending order
     await db.insert(orders).values({
+      stripeSessionId: paymentIntent.id,
+      customerName: '', // Required field, setting empty initially
+      email: '',
       productId,
       sizeId,
-      stripeSessionId: paymentIntent.id,
       status: 'pending',
-      email: '', // Will be updated after payment
     })
 
     return { clientSecret: paymentIntent.client_secret }
@@ -48,10 +49,45 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
 }
 
 export async function updateOrderStatus(
-  sessionId: string,
+  stripeSessionId: string,
   email: string,
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
+  shipping?: {
+    name: string;
+    address: {
+      line1: string;
+      line2?: string;
+      city: string;
+      state: string;
+      postal_code: string;
+      country: string;
+    };
+  }
 ) {
-  await db.update(orders).set({ email, status }).where(eq(orders.stripeSessionId, sessionId))
+  try {
+    await db
+      .update(orders)
+      .set({
+        status,
+        email,
+        customerName: shipping?.name,
+        shippingAddress: shipping ? {
+          name: shipping.name,
+          line1: shipping.address.line1,
+          line2: shipping.address.line2,
+          city: shipping.address.city,
+          state: shipping.address.state,
+          postal_code: shipping.address.postal_code,
+          country: shipping.address.country,
+        } : undefined,
+        statusUpdatedAt: new Date(),
+      })
+      .where(eq(orders.stripeSessionId, stripeSessionId));
+
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update order:', error);
+    return { success: false, error: 'Failed to update order' };
+  }
 }
 

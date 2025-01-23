@@ -1,7 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { PaymentElement, AddressElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import { 
+  PaymentElement, 
+  AddressElement, 
+  useStripe, 
+  useElements,
+  LinkAuthenticationElement 
+} from '@stripe/react-stripe-js'
 import { Button } from '~/components/ui/button'
 import { updateOrderStatus } from '~/lib/actions/store/store'
 
@@ -10,6 +16,7 @@ export function CheckoutForm() {
   const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string>()
+  const [email, setEmail] = useState<string>('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,8 +39,14 @@ export function CheckoutForm() {
       }
 
       if (paymentIntent.status === 'succeeded') {
-        // Update order status
-        await updateOrderStatus(paymentIntent.id, paymentIntent.shipping?.name || '', 'pending')
+        const { shipping } = paymentIntent;
+        // Update order status with shipping details and email
+        await updateOrderStatus(
+          paymentIntent.id,
+          email || paymentIntent.receipt_email || '',
+          'pending',
+          shipping || undefined
+        )
 
         // Redirect to success page
         window.location.href = `/success?session_id=${paymentIntent.id}`
@@ -49,23 +62,24 @@ export function CheckoutForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Contact Information</h2>
+        <LinkAuthenticationElement onChange={(event) => {
+          if (event.value.email) {
+            setEmail(event.value.email)
+          }
+        }} />
+      </div>
+
+      <div className="space-y-4">
         <h2 className="text-xl font-semibold">Shipping Address</h2>
         <AddressElement
           options={{
             mode: 'shipping',
             allowedCountries: ['GB'],
-            fields: {
-              phone: 'always',
-            },
-            validation: {
-              phone: {
-                required: 'always',
-              },
-            },
           }}
         />
       </div>
-
+      
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Payment</h2>
         <PaymentElement />

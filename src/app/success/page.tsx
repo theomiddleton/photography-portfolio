@@ -63,6 +63,16 @@ export default async function SuccessPage({
             </div>
 
             <div className="rounded-lg border bg-muted/40 p-4 space-y-4">
+              <h2 className="font-semibold">Customer Details</h2>
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-muted-foreground">Name: {order.orders.customerName}</p>
+                  <p className="text-sm text-muted-foreground">Email: {order.orders.email}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border bg-muted/40 p-4 space-y-4">
               <h2 className="font-semibold">Shipping address</h2>
               <div className="text-sm text-muted-foreground space-y-1">
                 {order.orders.shippingAddress && (
