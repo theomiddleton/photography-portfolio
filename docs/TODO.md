@@ -21,7 +21,7 @@ Make hide buttons show when hidden, change message so fits in the row
 
 ## Rework store
 
-- [ ] Public store page
+- [x] Public store page
   - [ ] Filterable by categories, price, date
   - [ ] Each image displays preview, title, price if for sale
   - [ ] Lightbox view for detailed image inspection
@@ -53,7 +53,7 @@ Make hide buttons show when hidden, change message so fits in the row
       - [ ] Manages cloud storage (R2)
 
     StripeService
-    - [ ] Payment processing
+    - [x] Payment processing
     - [ ] Webhook handling
     - [ ] Receipt generation
 

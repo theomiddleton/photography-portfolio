@@ -1,7 +1,10 @@
-import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean, uuid } from 'drizzle-orm/pg-core'
+import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean, uuid, json } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
 export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
+
+export const orderStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const
+export type OrderStatus = (typeof orderStatuses)[number]
 
 export const imageData = pgTable('imageData', {
   id: serial('id').primaryKey(),
@@ -138,17 +141,6 @@ export const productSizes = pgTable('productSizes', {
   updatedAt: timestamp('updatedAt').defaultNow(),
 })
 
-export const orders = pgTable('orders', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  productId: uuid('productId').references(() => products.id),
-  sizeId: uuid('sizeId').references(() => productSizes.id),
-  stripeSessionId: text('stripeSessionId').notNull(),
-  status: text('status').notNull(),
-  email: text('email').notNull(),
-  createdAt: timestamp('createdAt').defaultNow(),
-  updatedAt: timestamp('updatedAt').defaultNow(),
-})
-
 export const basePrintSizes = pgTable('basePrintSizes', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
@@ -160,10 +152,66 @@ export const basePrintSizes = pgTable('basePrintSizes', {
   updatedAt: timestamp('updatedAt').defaultNow(),
 })
 
+export const orders = pgTable('orders', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  productId: uuid('productId').references(() => products.id),
+  sizeId: uuid('sizeId').references(() => productSizes.id),
+  stripeSessionId: text('stripeSessionId').notNull(),
+  status: text('status', { enum: orderStatuses }).notNull().default('pending'),
+  email: text('email').notNull(),
+  shippingAddress: json('shippingAddress').$type<{
+    name: string
+    line1: string
+    line2?: string
+    city: string
+    state: string
+    postal_code: string
+    country: string
+    phone: string
+  }>(),
+  trackingNumber: text('trackingNumber'),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+  statusUpdatedAt: timestamp('statusUpdatedAt').defaultNow(),
+})
+
+export const orderStatusHistory = pgTable('orderStatusHistory', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orderId: uuid('orderId').references(() => orders.id),
+  status: text('status', { enum: orderStatuses }).notNull(),
+  note: text('note'),
+  createdAt: timestamp('createdAt').defaultNow(),
+  createdBy: integer('createdBy').references(() => users.id),
+})
+
+export const orderRelations = relations(orders, ({ one, many }) => ({
+  product: one(products, {
+    fields: [orders.productId],
+    references: [products.id],
+  }),
+  size: one(productSizes, {
+    fields: [orders.sizeId],
+    references: [productSizes.id],
+  }),
+  statusHistory: many(orderStatusHistory),
+}))
+
+export const orderStatusHistoryRelations = relations(orderStatusHistory, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderStatusHistory.orderId],
+    references: [orders.id],
+  }),
+  user: one(users, {
+    fields: [orderStatusHistory.createdBy],
+    references: [users.id],
+  }),
+}))
+
 export type Product = typeof products.$inferSelect
 export type ProductSize = typeof productSizes.$inferSelect
-export type Order = typeof orders.$inferSelect
 export type BasePrintSize = typeof basePrintSizes.$inferSelect
+export type Order = typeof orders.$inferSelect
+export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect
 
 export const aboutRelations = relations(about, ({ many }) => ({
   images: many(aboutImages)
