@@ -22,7 +22,7 @@ export default async function AdminStorePage() {
         <div>
           <h1 className="text-4xl font-bold mb-8">Store Admin</h1>
           <AdminActions />
-          <div className="grid md:grid-cols-2 gap-8 mt-8">
+          <div className="flex flex-col gap-8 mt-8">
             <AdminOrders initialOrders={recentOrders} />
             <AdminProducts products={storeProducts} />
           </div>
