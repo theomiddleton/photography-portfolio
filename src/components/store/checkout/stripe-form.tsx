@@ -33,7 +33,7 @@ export function CheckoutForm() {
 
       if (paymentIntent.status === 'succeeded') {
         // Update order status
-        await updateOrderStatus(paymentIntent.id, paymentIntent.shipping?.name || '', 'completed')
+        await updateOrderStatus(paymentIntent.id, paymentIntent.shipping?.name || '', 'pending')
 
         // Redirect to success page
         window.location.href = `/success?session_id=${paymentIntent.id}`

@@ -47,7 +47,11 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
   }
 }
 
-export async function updateOrderStatus(sessionId: string, email: string, status: string) {
+export async function updateOrderStatus(
+  sessionId: string,
+  email: string,
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+) {
   await db.update(orders).set({ email, status }).where(eq(orders.stripeSessionId, sessionId))
 }
 
