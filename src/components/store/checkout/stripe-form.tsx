@@ -48,7 +48,17 @@ export function CheckoutForm() {
             paymentIntent.id,
             email || paymentIntent.receipt_email || '',
             'pending',
-            shipping || undefined
+            shipping?.name && shipping.address ? {
+              name: shipping.name,
+              address: {
+                line1: shipping.address.line1,
+                line2: shipping.address.line2,
+                city: shipping.address.city,
+                state: shipping.address.state,
+                postal_code: shipping.address.postal_code,
+                country: shipping.address.country
+              }
+            } : undefined
           )
       
           if (!result.success) {

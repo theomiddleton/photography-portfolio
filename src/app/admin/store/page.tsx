@@ -13,8 +13,21 @@ async function getRecentOrders() {
   return await db.select({
     id: orders.id,
     createdAt: orders.createdAt,
+    updatedAt: orders.updatedAt,
     productId: orders.productId,
     sizeId: orders.sizeId,
+    stripeSessionId: orders.stripeSessionId,
+    status: orders.status,
+    customerName: orders.customerName,
+    email: orders.email,
+    subtotal: orders.subtotal,
+    shippingCost: orders.shippingCost,
+    tax: orders.tax,
+    total: orders.total,
+    currency: orders.currency,
+    shippingAddress: orders.shippingAddress,
+    trackingNumber: orders.trackingNumber,
+    statusUpdatedAt: orders.statusUpdatedAt,
     product: products,
     size: productSizes,
   }).from(orders)
@@ -22,7 +35,6 @@ async function getRecentOrders() {
     .leftJoin(productSizes, eq(orders.sizeId, productSizes.id))
     .orderBy(desc(orders.createdAt))
     .limit(10)
-  // return await db.select().from(orders).orderBy(desc(orders.createdAt)).limit(10)
 }
 
 export default async function AdminStorePage() {
