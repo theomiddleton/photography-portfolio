@@ -37,8 +37,16 @@ async function getRecentOrders() {
     .limit(10)
 }
 
+async function getNewOrders() {
+  return await db.select().from(orders)
+}
+
 export default async function AdminStorePage() {
   const [storeProducts, recentOrders] = await Promise.all([getProducts(), getRecentOrders()])
+  const newOrders = await getNewOrders()
+
+  console.log('Recent orders - inital load: ', recentOrders)
+  console.log('New orders - inital load: ', newOrders)
 
   return (
     <main className="container mx-auto px-4 py-12">

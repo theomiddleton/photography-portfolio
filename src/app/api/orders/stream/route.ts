@@ -16,6 +16,8 @@ export async function GET() {
             .from(orders)
             .orderBy(desc(orders.createdAt))
             .limit(10)
+          
+          console.log('Recent orders - via api route: ', recentOrders)
 
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify(recentOrders)}\n\n`)

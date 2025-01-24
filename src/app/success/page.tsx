@@ -47,7 +47,7 @@ export default async function SuccessPage({
             <div className="rounded-lg border bg-muted/40 p-4">
               <div className="flex justify-between text-sm">
                 <span className="font-medium">Order number</span>
-                <span className="font-mono">{order.orders.id.split("-")[0]}</span>
+                <span className="font-mono">{order.orders.id.split('-')[0]}</span>
               </div>
             </div>
 
