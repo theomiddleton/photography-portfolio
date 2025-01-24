@@ -10,7 +10,6 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
   try {
     // Get product and size details
     const product = await db.select().from(products).where(eq(products.id, productId)).limit(1)
-    
     const sizes = await db.select().from(productSizes).where(eq(productSizes.id, sizeId)).limit(1)
     const size = sizes[0]
 
@@ -18,9 +17,14 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
       throw new Error('Product or size not found')
     }
     
+    const subtotal = size.basePrice
+    const shippingCost = 500 // £5.00 flat rate shipping - TODO chage to set
+    const tax = Math.round(subtotal * 0.2) // 20% VAT
+    const total = subtotal + shippingCost + tax
+
     // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: size.basePrice,
+      amount: total,
       currency: 'gbp',
       automatic_payment_methods: {
         enabled: true,
@@ -28,6 +32,9 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
       metadata: {
         productId,
         sizeId,
+        subtotal: subtotal.toString(),
+        shippingCost: shippingCost.toString(),
+        tax: tax.toString(),
       },
     })
 
@@ -39,6 +46,11 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
       productId,
       sizeId,
       status: 'pending',
+      subtotal,
+      shippingCost,
+      tax,
+      total,
+      currency: 'gbp',
     })
 
     return { clientSecret: paymentIntent.client_secret }
@@ -53,18 +65,21 @@ export async function updateOrderStatus(
   email: string,
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
   shipping?: {
-    name: string;
+    name: string
     address: {
-      line1: string;
-      line2?: string;
-      city: string;
-      state: string;
-      postal_code: string;
-      country: string;
-    };
+      line1: string
+      line2?: string
+      city: string
+      state: string
+      postal_code: string
+      country: string
+    }
   }
 ) {
   try {
+    // Get the payment intent to verify the amounts
+    const paymentIntent = await stripe.paymentIntents.retrieve(stripeSessionId)
+    
     await db
       .update(orders)
       .set({
@@ -80,14 +95,19 @@ export async function updateOrderStatus(
           postal_code: shipping.address.postal_code,
           country: shipping.address.country,
         } : undefined,
+        // Ensure the amounts match what was actually paid
+        total: paymentIntent.amount,
+        subtotal: parseInt(paymentIntent.metadata.subtotal),
+        shippingCost: parseInt(paymentIntent.metadata.shippingCost),
+        tax: parseInt(paymentIntent.metadata.tax),
         statusUpdatedAt: new Date(),
       })
-      .where(eq(orders.stripeSessionId, stripeSessionId));
+      .where(eq(orders.stripeSessionId, stripeSessionId))
 
-    return { success: true };
+    return { success: true }
   } catch (error) {
-    console.error('Failed to update order:', error);
-    return { success: false, error: 'Failed to update order' };
+    console.error('Failed to update order:', error)
+    return { success: false, error: 'Failed to update order' }
   }
 }
 

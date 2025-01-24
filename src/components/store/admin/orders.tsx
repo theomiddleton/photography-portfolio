@@ -26,11 +26,15 @@ import { useRouter } from 'next/navigation'
 import { OrderDetails } from './order-details'
 
 interface AdminOrdersProps {
-  initialOrders: Order[]
+  initialOrders: (Order & {
+    product: { name: string } | null
+  })[]
 }
 
 export function AdminOrders({ initialOrders }: AdminOrdersProps) {
-  const [orders, setOrders] = useState<Order[]>(
+  const [orders, setOrders] = useState<(Order & {
+    product: { name: string } | null
+  })[]>(
     [...initialOrders].sort(
       (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
     ),
@@ -118,10 +122,10 @@ export function AdminOrders({ initialOrders }: AdminOrdersProps) {
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => setSelectedOrder(order)}
               >
-                <TableCell>{order.printName || 'Unknown Print'}</TableCell>
+                <TableCell>{order.product?.name || 'Unknown Print'}</TableCell>
                 <TableCell>{formatDateTime(order.createdAt)}</TableCell>
                 <TableCell>{order.email}</TableCell>
-                <TableCell>£{(order.amount / 100).toFixed(2)}</TableCell>
+                <TableCell>£{(order.total / 100).toFixed(2)}</TableCell>
                 <TableCell>
                   <Badge className={`${statusColors[order.status]} text-white`}>
                     {order.status}

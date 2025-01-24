@@ -38,18 +38,32 @@ export function CheckoutForm() {
         return
       }
 
+      // In the handleSubmit function, after successful payment:
       if (paymentIntent.status === 'succeeded') {
-        const { shipping } = paymentIntent;
-        // Update order status with shipping details and email
-        await updateOrderStatus(
-          paymentIntent.id,
-          email || paymentIntent.receipt_email || '',
-          'pending',
-          shipping || undefined
-        )
-
-        // Redirect to success page
-        window.location.href = `/success?session_id=${paymentIntent.id}`
+        const { shipping } = paymentIntent
+        setIsLoading(true)
+        try {
+          // Update order status with shipping details and email
+          const result = await updateOrderStatus(
+            paymentIntent.id,
+            email || paymentIntent.receipt_email || '',
+            'pending',
+            shipping || undefined
+          )
+      
+          if (!result.success) {
+            setError('Failed to update order status')
+            return
+          }
+      
+          // Redirect to success page
+          window.location.href = `/success?session_id=${paymentIntent.id}`
+        } catch (err) {
+          console.error('Error updating order:', err)
+          setError('Failed to update order status')
+        } finally {
+          setIsLoading(false)
+        }
       }
     } catch (err) {
       console.error('Error:', err)

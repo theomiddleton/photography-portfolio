@@ -160,6 +160,11 @@ export const orders = pgTable('orders', {
   status: text('status', { enum: orderStatuses }).notNull().default('pending'),
   customerName: text('customerName').notNull(),
   email: text('email').notNull(),
+  subtotal: integer('subtotal').notNull(),
+  shippingCost: integer('shippingCost').notNull(),
+  tax: integer('tax').notNull(),
+  total: integer('total').notNull(),
+  currency: text('currency').notNull().default('gbp'),
   shippingAddress: json('shippingAddress').$type<{
     name: string
     line1: string

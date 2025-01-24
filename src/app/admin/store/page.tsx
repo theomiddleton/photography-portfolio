@@ -10,7 +10,19 @@ async function getProducts() {
 }
 
 async function getRecentOrders() {
-  return await db.select().from(orders).orderBy(desc(orders.createdAt)).limit(10)
+  return await db.select({
+    id: orders.id,
+    createdAt: orders.createdAt,
+    productId: orders.productId,
+    sizeId: orders.sizeId,
+    product: products,
+    size: productSizes,
+  }).from(orders)
+    .leftJoin(products, eq(orders.productId, products.id))
+    .leftJoin(productSizes, eq(orders.sizeId, productSizes.id))
+    .orderBy(desc(orders.createdAt))
+    .limit(10)
+  // return await db.select().from(orders).orderBy(desc(orders.createdAt)).limit(10)
 }
 
 export default async function AdminStorePage() {
@@ -23,7 +35,7 @@ export default async function AdminStorePage() {
           <h1 className="text-4xl font-bold mb-8">Store Admin</h1>
           <AdminActions />
           <div className="flex flex-col gap-8 mt-8">
-            <AdminOrders initialOrders={recentOrders} />
+            <AdminOrders initialOrders={recentOrders}/>
             <AdminProducts products={storeProducts} />
           </div>
         </div>
