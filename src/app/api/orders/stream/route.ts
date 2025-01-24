@@ -15,10 +15,8 @@ export async function GET() {
           const recentOrders = await db.select()
             .from(orders)
             .orderBy(desc(orders.createdAt))
-            .limit(10)
-          
-          console.log('Recent orders - via api route: ', recentOrders)
-
+            // .limit(10)
+            
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify(recentOrders)}\n\n`)
           )

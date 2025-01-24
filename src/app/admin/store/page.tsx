@@ -34,19 +34,12 @@ async function getRecentOrders() {
     .leftJoin(products, eq(orders.productId, products.id))
     .leftJoin(productSizes, eq(orders.sizeId, productSizes.id))
     .orderBy(desc(orders.createdAt))
-    .limit(10)
-}
-
-async function getNewOrders() {
-  return await db.select().from(orders)
+    // .limit(10)
 }
 
 export default async function AdminStorePage() {
   const [storeProducts, recentOrders] = await Promise.all([getProducts(), getRecentOrders()])
-  const newOrders = await getNewOrders()
 
-  console.log('Recent orders - inital load: ', recentOrders)
-  console.log('New orders - inital load: ', newOrders)
 
   return (
     <main className="container mx-auto px-4 py-12">
