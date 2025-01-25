@@ -23,8 +23,7 @@ import { MoreHorizontal } from 'lucide-react'
 import type { Order } from '~/server/db/schema'
 import { updateOrder } from '~/lib/actions/store/orders'
 import { useRouter } from 'next/navigation'
-import { OrderDetails } from './order-details'
-import { getSession } from '~/lib/auth/auth'
+import { OrderDetails } from '~/components/store/admin/order-details'
 
 interface AdminOrdersProps {
   initialOrders: (Order & {
@@ -81,7 +80,9 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
     orderId: string,
     newStatus: (typeof orderStatuses)[number],
   ) => {
+    console.log('Updating order status: ', orderId, 'to: ' , newStatus)
     const result = await updateOrder(orderId, newStatus, userId)
+    console.log('Result: ', result)
 
     if (result.success) {
       router.refresh()
