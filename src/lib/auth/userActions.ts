@@ -76,7 +76,7 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
     return { message: 'Invalid password' }
   }
   
-  const session = await createSession({ email: user.email, role: user.role })
+  const session = await createSession({ email: user.email, role: user.role, id: user.id })
   
   cookies().set('session', session, {
     httpOnly: true,
@@ -143,25 +143,30 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     }
   }
   
-  const session = await createSession({ email: email, role: role })
-  
-  cookies().set('session', session, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    expires: new Date(Date.now() + JWT_EXPIRATION_MS)
-  })
-  
-  // Create the user
+  // Create the user first to get the id
   try {
     type NewUser = typeof users.$inferInsert;
     
     const insertUser = async (user: NewUser) => {
-      return db.insert(users).values(user)
+      return db.insert(users).values(user).returning({ id: users.id })
     }
     
     const newUser: NewUser = { name: name, email: email, password: hashedPassword, role: role }
-    await insertUser(newUser)
+    const [createdUser] = await insertUser(newUser)
+    
+    // Now create session with the new user's ID
+    const session = await createSession({ 
+      email: email, 
+      role: role, 
+      id: createdUser.id 
+    })
+    
+    cookies().set('session', session, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      expires: new Date(Date.now() + JWT_EXPIRATION_MS)
+    })
     
     return { message: 'User created' }
   } catch (error) {

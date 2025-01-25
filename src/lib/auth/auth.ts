@@ -14,7 +14,7 @@ export async function getSession(): Promise<any | null> {
   if (!session) return null
   try {
     const { payload } = await jwtVerify(session, key, { algorithms: ['HS256'] })
-    return payload as { email: string, role: string, exp: number }
+    return payload as { email: string, role: string, id: number, exp: number }
   } catch (error) {
     console.error('Failed to verify session:', error)
     return null

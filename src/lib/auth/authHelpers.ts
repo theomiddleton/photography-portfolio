@@ -15,7 +15,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash) as Promise<boolean>
 }
 
-export async function createSession(userData: { email: string, role: string }) {
+export async function createSession(userData: { email: string, role: string, id: number }) {
   return await new SignJWT(userData)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
