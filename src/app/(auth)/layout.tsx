@@ -1,4 +1,6 @@
 import { siteConfig } from '~/config/site'
+import { SiteHeader } from '~/components/site-header'
+import { SiteFooter } from '~/components/site-footer'
 
 export const metadata = {
   title: {
@@ -18,10 +20,10 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen grid place-items-center bg-muted/50">
-      <div className="w-full max-w-[400px] p-4 sm:p-6 lg:p-8">
-        <div className="rounded-lg border bg-card p-6 shadow-sm">{children}</div>
-      </div>
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader />
+      <main className="flex-1">{children}</main>
+      <SiteFooter />
     </div>
   )
 }
