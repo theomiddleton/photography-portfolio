@@ -6,6 +6,8 @@ import { AdminProducts } from '~/components/store/admin/products'
 import { AdminActions } from '~/components/store/admin/actions' 
 import { getSession } from '~/lib/auth/auth'
 
+export const revalidate = 30 
+
 async function getProducts() {
   return await db.select().from(products).orderBy(desc(products.createdAt))
 }
