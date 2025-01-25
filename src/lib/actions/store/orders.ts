@@ -1,7 +1,7 @@
 'use server'
 
-import { db } from '~/server/db'
-import { orders, orderStatusHistory, type Order } from '~/server/db/schema'
+import { dbWithTx as db } from '~/server/db'
+import { orders, orderStatusHistory, users } from '~/server/db/schema'
 import { desc, eq, sql } from 'drizzle-orm'
 
 export async function getOrders() {
@@ -15,6 +15,12 @@ export async function updateOrder(
   note?: string,
 ) {
   try {
+    // First check if user exists
+    const user = await db.select().from(users).where(eq(users.id, userId)).limit(1)
+    if (!user.length) {
+      return { success: false, error: 'Invalid user ID' }
+    }
+
     await db.transaction(async (tx) => {
       // Update the order status
       await tx

@@ -24,6 +24,7 @@ import type { Order } from '~/server/db/schema'
 import { updateOrder } from '~/lib/actions/store/orders'
 import { useRouter } from 'next/navigation'
 import { OrderDetails } from './order-details'
+import { getSession } from '~/lib/auth/auth'
 
 interface AdminOrdersProps {
   initialOrders: (Order & {
@@ -79,6 +80,16 @@ export function AdminOrders({ initialOrders }: AdminOrdersProps) {
     orderId: string,
     newStatus: (typeof orderStatuses)[number],
   ) => {
+    
+    // const session = await getSession()
+    
+    // if (!session?.user?.id) {
+    //   console.error('No user found in session')
+    //   return
+    // }
+
+    // const result = await updateOrder(orderId, newStatus, session.user.id)
+
     // TODO: Get actual user ID from session
     const userId = 1
     const result = await updateOrder(orderId, newStatus, userId)
