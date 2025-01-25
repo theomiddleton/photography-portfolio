@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
-import { SiteHeader } from '~/components/site-header'
 
 import { db } from '~/server/db'
 import { blogs } from '~/server/db/schema'
@@ -25,7 +24,6 @@ export default async function Blog() {
   if (publishedPosts.length <= 0) {
     return (
       <main className="flex flex-col">
-        <SiteHeader />
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold mb-8">Latest Blog Posts</h1>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

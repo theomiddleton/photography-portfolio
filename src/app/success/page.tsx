@@ -4,7 +4,6 @@ import { orders, products, productSizes } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { CheckCircle } from 'lucide-react'
 import { formatPrice } from '~/lib/utils'
-import { SiteHeader } from '~/components/site-header'
 
 export default async function SuccessPage({
   searchParams,
@@ -32,7 +31,6 @@ export default async function SuccessPage({
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
-      <SiteHeader />
       <div className="container max-w-lg py-12">
         <div className="rounded-lg border bg-card p-8 text-card-foreground shadow">
           <div className="flex flex-col items-center space-y-4 text-center">

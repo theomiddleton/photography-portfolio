@@ -1,5 +1,4 @@
-import React from 'react' 
-import { SiteHeader } from '~/components/site-header' 
+import React from 'react'  
 import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
 import { imageData } from '~/server/db/schema'
@@ -30,8 +29,7 @@ export default async function Home() {
   }))
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
-      <SiteHeader />
+    <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">      
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
         <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
           {siteConfig.headers.main && (

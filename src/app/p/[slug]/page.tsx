@@ -1,4 +1,3 @@
-import { SiteHeader } from '~/components/site-header'
 import { getCustomPage } from '~/lib/actions/customPages'
 import { notFound } from 'next/navigation'
 import { MDXRemote } from 'next-mdx-remote/rsc'
@@ -14,8 +13,7 @@ export default async function CustomPage({ params }: { params: { slug: string } 
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-white text-black">
-      <SiteHeader />
+    <main className="flex min-h-screen flex-col bg-white text-black">      
       <div className="flex-1 pt-20">
         <div className="container mx-auto px-4">
           <article className="mx-auto max-w-2xl pb-24">

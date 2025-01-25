@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { AxiomWebVitals } from 'next-axiom'
 import type { Metadata } from 'next/types'
+import { headers } from 'next/headers'
 
 import { Inter } from 'next/font/google'
 
@@ -54,20 +55,23 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: {
-  children: React.ReactNode 
+  children: React.ReactNode
 }) {
+
+  const headersList = headers()
+  const pathname = headersList.get('x-pathname') || ''
+  const isAdminRoute = pathname.startsWith('/admin')
+  console.log('Is admin route: ', isAdminRoute)
 
   return (
     <html lang="en">
-      <body className={`font-sans ${inter.variable}`}>
-        <SiteHeader />
-        {/* children is the main content of the page, as defined in page.tsx */}
-        {children}
-        {/* analytics, webvitals, toolbar, and speed insights are used in development */}
+      <body className={`font-sans ${inter.variable} flex min-h-screen flex-col`}>
+        {!isAdminRoute && <SiteHeader />}
+        <main className="flex-1">{children}</main>
+        <SiteFooter />
         <Analytics />
         <AxiomWebVitals />
         <SpeedInsights />
-        <SiteFooter />
       </body>
     </html>
   ) 

@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import React from 'react'
-import { SiteHeader } from '~/components/site-header'
 
 export const revalidate = 60
 export const dynamicParams = true
@@ -9,8 +8,6 @@ export function ImagePage(data: any) {
   const image = data.data
 
   return (
-    <main>
-    <SiteHeader />
     <main className="flex min-h-screen flex-col items-center bg-white text-black">
     {/*the class above is for the background colour, screen size, and centering the following*/}
     {/*below is the grid. with two columns it has the image and then the metadata*/}
@@ -41,7 +38,6 @@ export function ImagePage(data: any) {
           </div>
         </div>
       </div>
-    </main>
     </main>
   )
 }
