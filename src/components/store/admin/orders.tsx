@@ -30,9 +30,10 @@ interface AdminOrdersProps {
   initialOrders: (Order & {
     product: { name: string } | null
   })[]
+  userId: number
 }
 
-export function AdminOrders({ initialOrders }: AdminOrdersProps) {
+export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
   const [orders, setOrders] = useState<(Order & {
     product: { name: string } | null
   })[]>(
@@ -80,18 +81,6 @@ export function AdminOrders({ initialOrders }: AdminOrdersProps) {
     orderId: string,
     newStatus: (typeof orderStatuses)[number],
   ) => {
-    
-    // const session = await getSession()
-    
-    // if (!session?.user?.id) {
-    //   console.error('No user found in session')
-    //   return
-    // }
-
-    // const result = await updateOrder(orderId, newStatus, session.user.id)
-
-    // TODO: Get actual user ID from session
-    const userId = 1
     const result = await updateOrder(orderId, newStatus, userId)
 
     if (result.success) {

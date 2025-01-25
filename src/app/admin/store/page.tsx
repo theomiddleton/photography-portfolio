@@ -4,6 +4,7 @@ import { desc, eq } from 'drizzle-orm'
 import { AdminOrders } from '~/components/store/admin/orders'
 import { AdminProducts } from '~/components/store/admin/products'
 import { AdminActions } from '~/components/store/admin/actions' 
+import { getSession } from '~/lib/auth/auth'
 
 async function getProducts() {
   return await db.select().from(products).orderBy(desc(products.createdAt))
@@ -40,7 +41,7 @@ async function getRecentOrders() {
 
 export default async function AdminStorePage() {
   const [storeProducts, recentOrders] = await Promise.all([getProducts(), getRecentOrders()])
-
+  const session = await getSession()
 
   return (
     <main className="container mx-auto px-4 py-12">
@@ -49,7 +50,7 @@ export default async function AdminStorePage() {
           <h1 className="text-4xl font-bold mb-8">Store Admin</h1>
           <AdminActions />
           <div className="flex flex-col gap-8 mt-8">
-            <AdminOrders initialOrders={recentOrders}/>
+            <AdminOrders initialOrders={recentOrders} userId={session.id}/>
             <AdminProducts products={storeProducts} />
           </div>
         </div>
