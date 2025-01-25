@@ -23,8 +23,8 @@ Make hide buttons show when hidden, change message so fits in the row
 
 - [x] Public store page
   - [ ] Filterable by categories, price, date
-  - [ ] Each image displays preview, title, price if for sale
-  - [ ] Lightbox view for detailed image inspection
+  - [x] Each image displays preview, title, price if for sale
+  - [x] Lightbox view for detailed image inspection
   - [ ] "Add to Cart" button only appears on for-sale items
 - [ ] Cart System
   - [ ] Persistent cart using local storage
@@ -35,13 +35,13 @@ Make hide buttons show when hidden, change message so fits in the row
   - [ ] Order status
   - [ ] Save favorites
 
-- [ ] Admin Interface
-  - [ ] Image Management Form
-    - [ ] Toggle "For Sale" status
-    - [ ] Set pricing
+- [x] Admin Interface
+  - [x] Image Management Form
+    - [x] Toggle "For Sale" status
+    - [x] Set pricing
     - [ ] Add metadata (title, description, categories)
-  - [ ] Order Management
-    - [ ] View/track orders
+  - [x] Order Management
+    - [x] View/track orders
     - [ ] Download sales reports
     - [ ] Customer communication system
     
@@ -55,7 +55,7 @@ Make hide buttons show when hidden, change message so fits in the row
     StripeService
     - [x] Payment processing
     - [ ] Webhook handling
-    - [ ] Receipt generation
+    - [x] Receipt generation
 
     OrderService
     - [ ] Order fulfillment
@@ -66,10 +66,6 @@ Make hide buttons show when hidden, change message so fits in the row
     - [ ] Structured data for products
     - [ ] Sitemap generation
     - [ ] Social sharing metadata
-
-## Security
-
-- [] audit security <https://youtu.be/yUm-ET8w_28>
 
 ## Security
 
