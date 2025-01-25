@@ -1,8 +1,12 @@
 'use server'
 
 import sharp from 'sharp'
-import type { ImageDataType } from '~/app/admin/manage/page'
-import { rgbToHsl, type RGBColour, type HSLColour } from '~/lib/colour/colour-utils'
+import type { ImageDataType } from '~/app/(admin)/admin/manage/page'
+import {
+  rgbToHsl,
+  type RGBColour,
+  type HSLColour,
+} from '~/lib/colour/colour-utils'
 
 type ImageWithColour = {
   id: number
@@ -24,14 +28,13 @@ async function getAverageColour(imageUrl: string): Promise<RGBColour> {
     const response = await fetch(imageUrl)
     const arrayBuffer = await response.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
-    
-    const { dominant } = await sharp(buffer)
-      .stats()
-    
+
+    const { dominant } = await sharp(buffer).stats()
+
     return {
       r: dominant.r,
       g: dominant.g,
-      b: dominant.b
+      b: dominant.b,
     }
   } catch (error) {
     console.error('Error processing image:', error)
@@ -49,7 +52,7 @@ export async function sortImagesByColour(images: ImageDataType[]) {
       const hslColour = rgbToHsl(rgbColour)
       console.log('Image processed:', image.id, hslColour)
       return { ...image, colour: hslColour }
-    })
+    }),
   )
   console.log('Images processed:', imagesWithColour.length)
 
@@ -85,4 +88,3 @@ export async function sortImagesByColour(images: ImageDataType[]) {
     modifiedAt: image.modifiedAt,
   }))
 }
-

@@ -41,11 +41,11 @@ export default async function Home() {
             <div key={image.order} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
               <a href={`/photo/${image.id}`} target="_self" rel="noreferrer">
                 <Image
-                 src={image.url}
-                 alt={image.description || 'Gallery Image'}
-                 height={600}
-                 width={400}
-                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  src={image.url}
+                  alt={image.description || 'Gallery Image'}
+                  height={600}
+                  width={400}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </a>
             </div>

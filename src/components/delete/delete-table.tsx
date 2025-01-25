@@ -1,11 +1,25 @@
 import Image from 'next/image'
-import type { ImageDataType } from '~/app/admin/manage/page'
+import type { ImageDataType } from '~/app/(admin)/admin/manage/page'
 import { deleteImage } from '~/lib/actions/delete'
 import { changeVisibility } from '~/lib/actions/visibility'
 import { DeleteDialog } from '~/components/delete/delete-dialog'
 import { VisibilityDialog } from '~/components/delete/visibility-dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '~/components/ui/table'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card'
 
 interface DeleteTableProps {
   images: ImageDataType[]
@@ -48,10 +62,15 @@ export function DeleteTable({ images }: DeleteTableProps) {
                   />
                 </TableCell>
                 <TableCell className="font-medium">{image.name}</TableCell>
-                <TableCell className="font-medium">{image.description}</TableCell>
+                <TableCell className="font-medium">
+                  {image.description}
+                </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <VisibilityDialog image={image} changeVisibility={changeVisibility} />
+                    <VisibilityDialog
+                      image={image}
+                      changeVisibility={changeVisibility}
+                    />
                   </div>
                 </TableCell>
                 <TableCell>
@@ -66,7 +85,8 @@ export function DeleteTable({ images }: DeleteTableProps) {
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground">
-          Showing <strong>1-{totalImages}</strong> of <strong>{totalImages}</strong> images
+          Showing <strong>1-{totalImages}</strong> of{' '}
+          <strong>{totalImages}</strong> images
         </div>
       </CardFooter>
     </Card>
