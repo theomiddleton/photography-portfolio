@@ -3,10 +3,26 @@
 import { stripe } from '~/lib/stripe'
 import { db } from '~/server/db'
 import { orders, products, productSizes } from '~/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 
 export async function createCheckoutSession(productId: string, sizeId: string) {
   try {
+    // Check if there's already a pending order for this product and size
+    const existingOrder = await db
+      .select()
+      .from(orders)
+      .where(and(
+        eq(orders.productId, productId),
+        eq(orders.sizeId, sizeId),
+        eq(orders.status, 'pending'),
+      )).limit(1)
+
+    // If there's an existing pending order, return its client secret
+    if (existingOrder[0]) {
+      const paymentIntent = await stripe.paymentIntents.retrieve(existingOrder[0].stripeSessionId)
+      return { clientSecret: paymentIntent.client_secret }
+    }
+
     // Get product and size details
     const product = await db.select().from(products).where(eq(products.id, productId)).limit(1)
     const sizes = await db.select().from(productSizes).where(eq(productSizes.id, sizeId)).limit(1)
@@ -36,7 +52,7 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
     })
 
     // Create order record
-    await db.insert(orders).values({
+    const [order] = await db.insert(orders).values({
       stripeSessionId: paymentIntent.id,
       customerName: '',
       email: '',
@@ -48,9 +64,12 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
       tax,
       total,
       currency: 'gbp',
-    })
+    }).returning()
 
-    return { clientSecret: paymentIntent.client_secret }
+    return { 
+      clientSecret: paymentIntent.client_secret,
+      orderId: order.id 
+    }
   } catch (error) {
     console.error('Error:', error)
     throw new Error('Failed to create checkout session')
@@ -80,7 +99,8 @@ export async function updateOrderStatus(
       return { success: false, error: 'Payment not completed' }
     }
 
-    await db
+    // Update existing order instead of creating a new one
+    const result = await db
       .update(orders)
       .set({
         status,
