@@ -12,6 +12,7 @@ async function getProducts() {
 async function getRecentOrders() {
   return await db.select({
     id: orders.id,
+    orderNumber: orders.orderNumber,
     createdAt: orders.createdAt,
     updatedAt: orders.updatedAt,
     productId: orders.productId,

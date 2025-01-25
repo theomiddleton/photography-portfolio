@@ -11,7 +11,7 @@ import {
 import { Button } from '~/components/ui/button'
 import { updateOrderStatus } from '~/lib/actions/store/store'
 
-export function CheckoutForm() {
+export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
   const stripe = useStripe()
   const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
@@ -30,6 +30,7 @@ export function CheckoutForm() {
     try {
       const { error: submitError, paymentIntent } = await stripe.confirmPayment({
         elements,
+        clientSecret,
         redirect: 'if_required',
       })
 
@@ -47,7 +48,7 @@ export function CheckoutForm() {
           const result = await updateOrderStatus(
             paymentIntent.id,
             email || paymentIntent.receipt_email || '',
-            'pending',
+            'processing', 
             shipping?.name && shipping.address ? {
               name: shipping.name,
               address: {

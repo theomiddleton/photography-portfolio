@@ -154,6 +154,7 @@ export const basePrintSizes = pgTable('basePrintSizes', {
 
 export const orders = pgTable('orders', {
   id: uuid('id').defaultRandom().primaryKey(),
+  orderNumber: serial('orderNumber').notNull(),
   productId: uuid('productId').references(() => products.id),
   sizeId: uuid('sizeId').references(() => productSizes.id),
   stripeSessionId: text('stripeSessionId').notNull(),

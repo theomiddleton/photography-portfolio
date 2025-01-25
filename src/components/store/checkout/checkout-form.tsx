@@ -44,7 +44,7 @@ export function Checkout({ product, selectedSize }: CheckoutProps) {
             },
           }}
         >
-          <CheckoutForm />
+          <CheckoutForm clientSecret={clientSecret} />
         </Elements>
       </div>
       <OrderSummary product={product} size={selectedSize} />
