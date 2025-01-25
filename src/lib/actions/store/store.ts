@@ -1,6 +1,5 @@
 'use server'
 
-import { redirect } from 'next/navigation'
 import { stripe } from '~/lib/stripe'
 import { db } from '~/server/db'
 import { orders, products, productSizes } from '~/server/db/schema'
@@ -18,17 +17,15 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
     }
     
     const subtotal = size.basePrice
-    const shippingCost = 500 // £5.00 flat rate shipping - TODO chage to set
-    const tax = Math.round(subtotal * 0.2) // 20% VAT
+    const shippingCost = 500
+    const tax = Math.round(subtotal * 0.2)
     const total = subtotal + shippingCost + tax
 
     // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: total,
       currency: 'gbp',
-      automatic_payment_methods: {
-        enabled: true,
-      },
+      automatic_payment_methods: { enabled: true },
       metadata: {
         productId,
         sizeId,
@@ -38,10 +35,10 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
       },
     })
 
-    // Create a pending order
+    // Create order record
     await db.insert(orders).values({
       stripeSessionId: paymentIntent.id,
-      customerName: '', // Required field, setting empty initially
+      customerName: '',
       email: '',
       productId,
       sizeId,
@@ -63,7 +60,7 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
 export async function updateOrderStatus(
   stripeSessionId: string,
   email: string,
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
+  status: 'processing',
   shipping?: {
     name: string
     address: {
@@ -77,9 +74,12 @@ export async function updateOrderStatus(
   }
 ) {
   try {
-    // Get the payment intent to verify the amounts
     const paymentIntent = await stripe.paymentIntents.retrieve(stripeSessionId)
     
+    if (paymentIntent.status !== 'succeeded') {
+      return { success: false, error: 'Payment not completed' }
+    }
+
     await db
       .update(orders)
       .set({
@@ -95,11 +95,6 @@ export async function updateOrderStatus(
           postal_code: shipping.address.postal_code,
           country: shipping.address.country,
         } : undefined,
-        // Ensure the amounts match what was actually paid
-        total: paymentIntent.amount,
-        subtotal: parseInt(paymentIntent.metadata.subtotal),
-        shippingCost: parseInt(paymentIntent.metadata.shippingCost),
-        tax: parseInt(paymentIntent.metadata.tax),
         statusUpdatedAt: new Date(),
       })
       .where(eq(orders.stripeSessionId, stripeSessionId))

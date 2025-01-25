@@ -16,69 +16,65 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
   const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string>()
-  const [email, setEmail] = useState<string>('')
+  const [email, setEmail] = useState<string>()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!stripe || !elements) {
-      return
-    }
+    if (!stripe || !elements) return
 
     setIsLoading(true)
 
     try {
-      const { error: submitError, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        clientSecret,
-        redirect: 'if_required',
-      })
-
+      // Submit the form elements first
+      const { error: submitError } = await elements.submit()
       if (submitError) {
         setError(submitError.message)
         return
       }
 
-      // In the handleSubmit function, after successful payment:
+      // Then confirm the payment
+      const { error: paymentError, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        redirect: 'if_required',
+      })
+
+      if (paymentError) {
+        setError(paymentError.message)
+        return
+      }
+
       if (paymentIntent.status === 'succeeded') {
-        const { shipping } = paymentIntent
-        setIsLoading(true)
-        try {
-          // Update order status with shipping details and email
-          const result = await updateOrderStatus(
-            paymentIntent.id,
-            email || paymentIntent.receipt_email || '',
-            'processing', 
-            shipping?.name && shipping.address ? {
-              name: shipping.name,
-              address: {
-                line1: shipping.address.line1,
-                line2: shipping.address.line2,
-                city: shipping.address.city,
-                state: shipping.address.state,
-                postal_code: shipping.address.postal_code,
-                country: shipping.address.country
-              }
-            } : undefined
-          )
-      
-          if (!result.success) {
-            setError('Failed to update order status')
-            return
+
+        const shippingDetails = paymentIntent.shipping ? {
+          name: paymentIntent.shipping.name || '',
+          address: {
+            line1: paymentIntent.shipping.address.line1,
+            line2: paymentIntent.shipping.address.line2,
+            city: paymentIntent.shipping.address.city,
+            state: paymentIntent.shipping.address.state,
+            postal_code: paymentIntent.shipping.address.postal_code,
+            country: paymentIntent.shipping.address.country,
           }
-      
-          // Redirect to success page
-          window.location.href = `/success?session_id=${paymentIntent.id}`
-        } catch (err) {
-          console.error('Error updating order:', err)
+        } : undefined;
+
+        const result = await updateOrderStatus(
+          paymentIntent.id,
+          email || paymentIntent.receipt_email || '',
+          'processing',
+          shippingDetails
+        )
+
+        if (!result.success) {
           setError('Failed to update order status')
-        } finally {
-          setIsLoading(false)
+          return
         }
+
+        window.location.href = `/success?session_id=${paymentIntent.id}`
       }
     } catch (err) {
       console.error('Error:', err)
-      setError('An unexpected error occurred.')
+      setError('An unexpected error occurred')
     } finally {
       setIsLoading(false)
     }
@@ -88,11 +84,9 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Contact Information</h2>
-        <LinkAuthenticationElement onChange={(event) => {
-          if (event.value.email) {
-            setEmail(event.value.email)
-          }
-        }} />
+        <LinkAuthenticationElement 
+          onChange={(event) => setEmail(event.value.email)} 
+        />
       </div>
 
       <div className="space-y-4">
@@ -112,7 +106,11 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
 
       {error && <div className="text-red-500 text-sm">{error}</div>}
 
-      <Button type="submit" disabled={isLoading || !stripe || !elements} className="w-full">
+      <Button 
+        type="submit" 
+        disabled={isLoading || !stripe || !elements} 
+        className="w-full"
+      >
         {isLoading ? 'Processing...' : 'Pay Now'}
       </Button>
     </form>
