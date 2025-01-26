@@ -3,6 +3,8 @@ import { basePrintSizes, storeCosts } from '~/server/db/schema'
 import { desc, eq } from 'drizzle-orm'
 
 import { Costs } from '~/components/store/admin/costs/costs'
+import { Button } from '~/components/ui/button'
+import { ChevronLeft } from 'lucide-react'
 
 async function getPrintSizes() {
   return await db.select().from(basePrintSizes).orderBy(desc(basePrintSizes.createdAt))
@@ -34,16 +36,24 @@ export default async function CostsPage() {
   ])
 
   return (
-    <main className="container mx-auto px-4 py-12">
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-4xl font-bold mb-8">Costs</h1>
-          <Costs 
-            sizes={sizes} 
-            initialTax={costs.initialTax}
-            initialShippingCosts={costs.shippingCosts}
-          />
+    <main>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <a href="/admin/store" className="flex items-center gap-2">
+            <Button variant="outline" size="icon" className="h-7 w-7">
+              <ChevronLeft className="h-4 w-4" />
+              <span className="sr-only">Back</span>
+            </Button>
+          </a>
+          <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+            Costs
+          </h1>
         </div>
+        <Costs 
+          sizes={sizes} 
+          initialTax={costs.initialTax}
+          initialShippingCosts={costs.shippingCosts}
+        />
       </div>
     </main>
   )
