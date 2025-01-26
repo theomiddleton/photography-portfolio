@@ -50,7 +50,7 @@ export function ShippingSettings({ initialShippingCosts }: ShippingSettingsProps
               value={(shippingCosts.domestic / 100).toFixed(2)}
               onChange={(e) => handleShippingCostChange('domestic', e.target.value)}
               min="0"
-              step="0.01"
+              step="1.0"
             />
           </div>
           <div className="grid gap-2">
@@ -61,7 +61,7 @@ export function ShippingSettings({ initialShippingCosts }: ShippingSettingsProps
               value={(shippingCosts.international / 100).toFixed(2)}
               onChange={(e) => handleShippingCostChange('international', e.target.value)}
               min="0"
-              step="0.01"
+              step="1.0"
             />
           </div>
           <Button onClick={handleSaveChanges}>Save Shipping Costs</Button>

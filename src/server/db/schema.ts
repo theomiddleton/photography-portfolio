@@ -194,6 +194,7 @@ export const orderStatusHistory = pgTable('orderStatusHistory', {
 export const storeCosts = pgTable('storeCosts', {
   id: serial('id').primaryKey(),
   taxRate: integer('taxRate').notNull(), // Stored as percentage * 100 (e.g., 20.5% = 2050)
+  stripeTaxRate: integer('stripeTaxRate').notNull(), // Stored as percentage * 100 (e.g., 20.5% = 2050)
   domesticShipping: integer('domesticShipping').notNull(), // Stored in pence
   internationalShipping: integer('internationalShipping').notNull(), // Stored in pence
   active: boolean('active').default(true).notNull(),

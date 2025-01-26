@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
@@ -81,6 +81,9 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
     <Card>
       <CardHeader>
         <CardTitle>Base Print Sizes</CardTitle>
+        <CardDescription>
+          Changing base prices will not currently affect existing orders or products.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">

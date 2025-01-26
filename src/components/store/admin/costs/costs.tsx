@@ -15,7 +15,10 @@ import type { BasePrintSize } from '~/server/db/schema'
 
 interface CostsProps {
   sizes: BasePrintSize[]
-  initialTaxRate: number
+  initialTax: {
+    taxRate: number
+    stripeRate: number
+  }
   initialShippingCosts: {
     domestic: number
     international: number
@@ -24,7 +27,7 @@ interface CostsProps {
 
 export function Costs({
   sizes,
-  initialTaxRate,
+  initialTax,
   initialShippingCosts,
 }: CostsProps) {
   return (
@@ -48,7 +51,7 @@ export function Costs({
           </TabsContent>
 
           <TabsContent value="tax" className="space-y-4">
-            <TaxSettings initialTaxRate={initialTaxRate} />
+            <TaxSettings initialTax={initialTax} />
           </TabsContent>
 
           <TabsContent value="shipping" className="space-y-4">

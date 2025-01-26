@@ -13,22 +13,31 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 
 interface TaxSettingsProps {
-  initialTaxRate: number
+  initialTax: {
+    taxRate: number
+    stripeRate: number
+  }
 }
 
-export function TaxSettings({ initialTaxRate }: TaxSettingsProps) {
-  const [taxRate, setTaxRate] = useState(initialTaxRate)
+export function TaxSettings({ initialTax }: TaxSettingsProps) {
+  const [taxRates, setTaxRates] = useState(initialTax)
 
-  const handleTaxRateChange = (value: string) => {
+  const handleTaxRateChange = (
+    type: 'taxRate' | 'stripeRate',
+    value: string,
+  ) => {
     const newRate = parseFloat(value)
     if (!isNaN(newRate) && newRate >= 0 && newRate <= 100) {
-      setTaxRate(newRate)
+      setTaxRates((prev) => ({
+        ...prev,
+        [type]: newRate,
+      }))
     }
   }
 
   const handleSaveChanges = async () => {
     // TODO: Implement save functionality
-    console.log('Saving tax rate:', taxRate)
+    console.log('Saving tax rates:', taxRates)
   }
 
   return (
@@ -40,18 +49,30 @@ export function TaxSettings({ initialTaxRate }: TaxSettingsProps) {
       <CardContent>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="tax-rate">Tax Rate (%)</Label>
+            <Label htmlFor="tax-rate">VAT Rate (%)</Label>
             <Input
               id="tax-rate"
               type="number"
-              value={taxRate}
-              onChange={(e) => handleTaxRateChange(e.target.value)}
+              value={taxRates.taxRate}
+              onChange={(e) => handleTaxRateChange('taxRate', e.target.value)}
               min="0"
               max="100"
               step="0.1"
             />
           </div>
-          <Button onClick={handleSaveChanges}>Save Tax Rate</Button>
+          <div className="grid gap-2">
+            <Label htmlFor="stripe-rate">Stripe Fee (%)</Label>
+            <Input
+              id="stripe-rate"
+              type="number"
+              value={taxRates.stripeRate}
+              onChange={(e) => handleTaxRateChange('stripeRate', e.target.value)}
+              min="0"
+              max="100"
+              step="0.1"
+            />
+          </div>
+          <Button onClick={handleSaveChanges}>Save Tax Rates</Button>
         </div>
       </CardContent>
     </Card>
