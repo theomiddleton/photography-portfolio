@@ -4,7 +4,7 @@ import type { Product } from '~/server/db/schema'
 import { formatPrice } from '~/lib/utils'
 
 interface StoreGridProps {
-  prints: Product[]
+  prints: (Product & { priceWithTax: number })[]
 }
 
 export function StoreGrid({ prints }: StoreGridProps) {
@@ -24,7 +24,9 @@ export function StoreGrid({ prints }: StoreGridProps) {
           </div>
           <div className="mt-4">
             <h2 className="text-lg font-medium">{print.name}</h2>
-            <p className="mt-1 text-sm text-gray-600">From {formatPrice(2500)}</p>
+            <p className="mt-1 text-sm text-gray-600">
+              From {formatPrice(print.priceWithTax)}
+            </p>
           </div>
         </Link>
       ))}

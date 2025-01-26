@@ -66,11 +66,11 @@ export function AdminActions() {
         </CardHeader>
         <CardContent className="flex gap-4">
           <Button asChild variant="outline">
-            <a href="/admin/store/sizes">Manage Print Sizes</a>
+            <a href="/admin/store/costs">Manage Costs & Sizes</a>
           </Button>
-          <Button asChild variant="outline">
+          {/* <Button asChild variant="outline">
             <a href="/admin/store/new">Add New Product</a>
-          </Button>
+          </Button> */}
           <Button onClick={handleMigrate} disabled={isMigrating}>
             {isMigrating ? (
               <>

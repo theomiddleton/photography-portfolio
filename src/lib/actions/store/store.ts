@@ -2,8 +2,8 @@
 
 import { stripe } from '~/lib/stripe'
 import { db } from '~/server/db'
-import { orders, products, productSizes } from '~/server/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { orders, products, productSizes, storeCosts } from '~/server/db/schema'
+import { eq, and, desc } from 'drizzle-orm'
 
 export async function createCheckoutSession(productId: string, sizeId: string) {
   try {
@@ -33,9 +33,17 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
     }
     
     const subtotal = size.basePrice
-    const shippingCost = 500
-    const tax = Math.round(subtotal * 0.2)
-    const total = subtotal + shippingCost + tax
+    const costs = await db
+      .select()
+      .from(storeCosts)
+      .where(eq(storeCosts.active, true))
+      .orderBy(desc(storeCosts.createdAt))
+      .limit(1)
+
+    const shippingCost = costs[0]?.domesticShipping ? costs[0].domesticShipping : 0
+    const tax = Math.round((subtotal + shippingCost) * (costs[0]?.taxRate? costs[0].taxRate / 100 : 20))
+    const stripeTax = Math.round((subtotal + shippingCost) * (costs[0]?.stripeTaxRate? costs[0].stripeTaxRate / 100 : 1.4))
+    const total = subtotal + shippingCost + tax + stripeTax
 
     // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
