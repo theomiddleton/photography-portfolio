@@ -19,6 +19,8 @@ When uploading in batches check order id works properly, is currently broken whe
 Also fix that linking is broken - it uses the order id rather than the image id
 Make hide buttons show when hidden, change message so fits in the row
 
+- [ ] Optimise for mobile - 37% of visitors are on mobile
+
 ## Rework store
 
 - [x] Public store page
@@ -31,11 +33,13 @@ Make hide buttons show when hidden, change message so fits in the row
   - [ ] Cart sidebar/modal
   - [ ] Checkout flow integrated with Stripe
 - [ ] User Account Area
+
   - [ ] Order history
   - [ ] Order status
   - [ ] Save favorites
 
 - [x] Admin Interface
+
   - [x] Image Management Form
     - [x] Toggle "For Sale" status
     - [x] Set pricing
@@ -44,22 +48,24 @@ Make hide buttons show when hidden, change message so fits in the row
     - [x] View/track orders
     - [ ] Download sales reports
     - [ ] Customer communication system
-    
 
   Services Layer
-    - [ ] ImageService  
-      - [ ] Creates thumbnails
-        - [ ] Frame images
-      - [ ] Manages cloud storage (R2)
 
-    StripeService
-    - [x] Payment processing
-    - [ ] Webhook handling
-    - [x] Receipt generation
+  - [ ] ImageService
+    - [ ] Creates thumbnails
+      - [ ] Frame images
+    - [ ] Manages cloud storage (R2)
 
-    OrderService
-    - [ ] Order fulfillment
-    - [ ] Email notifications
+  StripeService
+
+  - [x] Payment processing
+  - [ ] Webhook handling
+  - [x] Receipt generation
+
+  OrderService
+
+  - [ ] Order fulfillment
+  - [ ] Email notifications
 
   - [ ] SEO & Sharing
     - [ ] Dynamic OG images
@@ -79,7 +85,7 @@ Make hide buttons show when hidden, change message so fits in the row
       - [ ] Colour based order (adv)
     - [x] Image page
       - [x] revisit for responsiveness on smaller screens
-  - [ ] Infinite scroll  
+  - [ ] Infinite scroll
   - [x] Auto update
   - [x] Image Select
     - [ ] Metadata
