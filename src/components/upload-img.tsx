@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Icons } from '~/components/ui/icons'
 import { Button } from '~/components/ui/button'
 import {
@@ -45,6 +45,42 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }, [])
+
+  const handleDragIn = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true)
+    }
+  }, [])
+
+  const handleDragOut = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const droppedFile = e.dataTransfer.files[0]
+      if (droppedFile.type.startsWith('image/')) {
+        setFile(droppedFile)
+      } else {
+        alert('Please upload an image file')
+      }
+      e.dataTransfer.clearData()
+    }
+  }, [])
 
   const handleAddSize = () => {
     setPrintSizes([...printSizes, { name: '', width: 0, height: 0, basePrice: 0 }])
@@ -198,10 +234,16 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   return (
     <Card className="mt-2 justify-center w-full">
       <CardHeader>
-        <CardTitle>Upload {bucket === 'image' ? 'Image' : bucket === 'blog' ? 'Blog Image' : bucket === 'about' ? 'About Image' : 'Custom Page Images'}</CardTitle> 
+        <CardTitle>Upload {bucket === 'image' ? 'Image' : bucket === 'blog' ? 'Blog Image' : bucket === 'about' ? 'About Image' : 'Custom Page Images'}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mt-2 flex items-center justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
+        <div 
+          className={`mt-2 flex items-center justify-center rounded-lg border border-dashed ${isDragging ? 'border-primary bg-primary/10' : 'border-black/25'} px-6 py-10 transition-colors duration-200`}
+          onDragEnter={handleDragIn}
+          onDragLeave={handleDragOut}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
           <div className="text-center flex flex-col items-center justify-center">
             <Icons.imageIcon
               className="mx-auto h-12 w-12 text-gray-500"
@@ -222,6 +264,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
                   onChange={handleFileChange}
                 />
               </label>
+              <p className="mt-2">or drag and drop</p>
             </div>
             <p className="text-xs leading-5 text-gray-600">
               {file?.name ? file.name : 'JPEG or PNG up to 100MB'}
