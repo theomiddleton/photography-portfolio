@@ -28,11 +28,25 @@ interface OrderDetailsProps {
 
 export function OrderDetails({ order, open, onOpenChange }: OrderDetailsProps) {
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistory[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    if (open && order) {
-      getOrderStatusHistory(order.id).then(setStatusHistory)
+    async function fetchStatusHistory() {
+      if (open && order) {
+        setIsLoading(true)
+        try {
+          const history = await getOrderStatusHistory(order.id)
+          setStatusHistory(history || [])
+        } catch (error) {
+          console.error('Failed to fetch status history:', error)
+          setStatusHistory([])
+        } finally {
+          setIsLoading(false)
+        }
+      }
     }
+
+    void fetchStatusHistory()
   }, [open, order])
 
   if (!order) return null
@@ -108,15 +122,29 @@ export function OrderDetails({ order, open, onOpenChange }: OrderDetailsProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {statusHistory.map((history) => (
-                    <TableRow key={history.id}>
-                      <TableCell>{formatDate(history.createdAt)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{history.status}</Badge>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center">
+                        Loading status history...
                       </TableCell>
-                      <TableCell>{history.note || '-'}</TableCell>
                     </TableRow>
-                  ))}
+                  ) : statusHistory && statusHistory.length > 0 ? (
+                    statusHistory.map((history) => (
+                      <TableRow key={history.id}>
+                        <TableCell>{formatDate(history.createdAt)}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{history.status}</Badge>
+                        </TableCell>
+                        <TableCell>{history.note || '-'}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center">
+                        No status history available
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </ScrollArea>
