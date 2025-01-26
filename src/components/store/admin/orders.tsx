@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import {
   Table,
@@ -33,6 +33,7 @@ interface AdminOrdersProps {
 }
 
 export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
+  const pendingUpdates = useRef(new Map<string, { status: string, timestamp: number }>())
   const [orders, setOrders] = useState<(Order & {
     product: { name: string } | null
   })[]>(
@@ -47,8 +48,26 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
 
     eventSource.onmessage = (event) => {
       const newOrders = JSON.parse(event.data)
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const updatedOrders = newOrders.map(order => {
+        const pendingUpdate = pendingUpdates.current.get(order.id)
+        if (pendingUpdate) {
+          // Check if the server order is newer than our pending update
+          const serverUpdateTime = new Date(order.updatedAt).getTime()
+          if (serverUpdateTime > pendingUpdate.timestamp) {
+            // Server has newer data, remove pending update
+            pendingUpdates.current.delete(order.id)
+            return order
+          }
+          // Keep our pending update
+          return { ...order, status: pendingUpdate.status }
+        }
+        return order
+      })
+
       setOrders(
-        [...newOrders].sort(
+        [...updatedOrders].sort(
           (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
         ),
       )
@@ -60,6 +79,7 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
   }, [])
 
   const router = useRouter()
+
   const orderStatuses = [
     'pending',
     'processing',
@@ -80,12 +100,49 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
     orderId: string,
     newStatus: (typeof orderStatuses)[number],
   ) => {
-    console.log('Updating order status: ', orderId, 'to: ' , newStatus)
-    const result = await updateOrder(orderId, newStatus, userId)
-    console.log('Result: ', result)
+    console.log('handleStatusUpdate initiated - orderId, newStatus: ', orderId, newStatus)
+    // Add pending update with current timestamp
+    pendingUpdates.current.set(orderId, {
+      status: newStatus,
+      timestamp: Date.now()
+    })
 
-    if (result.success) {
-      router.refresh()
+    // Update local state immediately
+    setOrders(currentOrders =>
+      currentOrders.map(order =>
+        order.id === orderId
+          ? { ...order, status: newStatus }
+          : order
+      )
+    )
+
+    try {
+      console.log('Local - Updating order status to: ', newStatus)
+      const result = await updateOrder(orderId, newStatus, userId)
+      
+      if (!result.success) {
+        // Revert on failure
+        pendingUpdates.current.delete(orderId)
+        setOrders(currentOrders =>
+          currentOrders.map(order =>
+            order.id === orderId
+              ? { ...order, status: order.status }
+              : order
+          )
+        )
+      }
+    } catch (error) {
+      // Revert on error
+      console.log('Error')
+      pendingUpdates.current.delete(orderId)
+      setOrders(currentOrders =>
+        currentOrders.map(order =>
+          order.id === orderId
+            ? { ...order, status: order.status }
+            : order
+        )
+      )
+      console.error('Error updating order status:', error)
     }
   }
 
@@ -132,7 +189,7 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
                     {order.status}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-2">
                     <Select
                       value={order.status}

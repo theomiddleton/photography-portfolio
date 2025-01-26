@@ -45,6 +45,12 @@ export default async function AdminStorePage() {
   const [storeProducts, recentOrders] = await Promise.all([getProducts(), getRecentOrders()])
   const session = await getSession()
 
+  if (!session?.id) {
+    throw new Error('Unauthorized: Session ID is required')
+  }
+
+console.log('Get recent orders passed: ', recentOrders.map(order => ({ id: order.id, status: order.status })))
+
   return (
     <main className="container mx-auto px-4 py-12">
       <div className="flex flex-col gap-8">

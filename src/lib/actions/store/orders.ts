@@ -21,6 +21,8 @@ export async function updateOrder(
       return { success: false, error: 'Invalid user ID' }
     }
 
+    console.log('Updating order status...', orderId, status, userId, note)
+
     await db.transaction(async (tx) => {
       // Update the order status
       await tx
