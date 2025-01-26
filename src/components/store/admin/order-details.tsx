@@ -35,7 +35,9 @@ export function OrderDetails({ order, open, onOpenChange }: OrderDetailsProps) {
       if (open && order) {
         setIsLoading(true)
         try {
+          console.log('Fetching status history for order:', order.id)
           const history = await getOrderStatusHistory(order.id)
+          console.log('Received history:', history)
           setStatusHistory(history || [])
         } catch (error) {
           console.error('Failed to fetch status history:', error)

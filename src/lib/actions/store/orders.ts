@@ -50,9 +50,21 @@ export async function updateOrder(
 }
 
 export async function getOrderStatusHistory(orderId: string) {
-  return await db
-    .select()
-    .from(orderStatusHistory)
-    .where(eq(orderStatusHistory.orderId, orderId))
-    .orderBy(desc(orderStatusHistory.createdAt))
+  try {
+    if (!orderId) {
+      console.error('Server: No orderId provided')
+      return []
+    }
+
+    const history = await db
+      .select()
+      .from(orderStatusHistory)
+      .where(eq(orderStatusHistory.orderId, orderId))
+      .orderBy(desc(orderStatusHistory.createdAt))
+
+    return Array.isArray(history) ? history : []
+  } catch (error) {
+    console.error('Server: Error fetching order history:', error)
+    return []
+  }
 }
