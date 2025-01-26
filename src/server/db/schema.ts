@@ -191,6 +191,16 @@ export const orderStatusHistory = pgTable('orderStatusHistory', {
   createdBy: integer('createdBy').references(() => users.id),
 })
 
+export const storeCosts = pgTable('storeCosts', {
+  id: serial('id').primaryKey(),
+  taxRate: integer('taxRate').notNull(), // Stored as percentage * 100 (e.g., 20.5% = 2050)
+  domesticShipping: integer('domesticShipping').notNull(), // Stored in pence
+  internationalShipping: integer('internationalShipping').notNull(), // Stored in pence
+  active: boolean('active').default(true).notNull(),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
 export const orderRelations = relations(orders, ({ one, many }) => ({
   product: one(products, {
     fields: [orders.productId],
@@ -219,6 +229,7 @@ export type ProductSize = typeof productSizes.$inferSelect
 export type BasePrintSize = typeof basePrintSizes.$inferSelect
 export type Order = typeof orders.$inferSelect
 export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect
+export type StoreCosts = typeof storeCosts.$inferSelect
 
 export const aboutRelations = relations(about, ({ many }) => ({
   images: many(aboutImages)
