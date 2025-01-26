@@ -201,8 +201,8 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
         <CardTitle>Upload {bucket === 'image' ? 'Image' : bucket === 'blog' ? 'Blog Image' : bucket === 'about' ? 'About Image' : 'Custom Page Images'}</CardTitle> 
       </CardHeader>
       <CardContent>
-        <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
-          <div className="text-center">
+        <div className="mt-2 flex items-center justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
+          <div className="text-center flex flex-col items-center justify-center">
             <Icons.imageIcon
               className="mx-auto h-12 w-12 text-gray-500"
               aria-hidden="true"
@@ -246,14 +246,16 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
                   <Input id="tags" placeholder="Tags" value={tags} onChange={(e) => setTags(e.target.value)} />
                 </div>
                 <div className="flex items-center space-x-2 space-y-1.5">
-                  <Label htmlFor="sale">For Sale?</Label>
-                  <input 
-                    className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                    type="checkbox" 
-                    id="sale" 
-                    checked={isSale} 
-                    onChange={(e) => setIsSale(e.target.checked)}
-                  />
+                  <Label htmlFor="sale" className="flex items-center">For Sale?</Label>
+                  <span className="inline-block align-middle">
+                    <input 
+                      className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                      type="checkbox" 
+                      id="sale" 
+                      checked={isSale} 
+                      onChange={(e) => setIsSale(e.target.checked)}
+                    />
+                  </span>
                 </div>
               </>
             )}
