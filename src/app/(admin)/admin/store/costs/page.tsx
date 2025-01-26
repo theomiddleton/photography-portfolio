@@ -6,25 +6,41 @@ import { Costs } from '~/components/store/admin/costs/costs'
 import { Button } from '~/components/ui/button'
 import { ChevronLeft } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 async function getPrintSizes() {
   return await db.select().from(basePrintSizes).orderBy(desc(basePrintSizes.createdAt))
 }
 
 async function getCosts() {
+  // Get the most recent record regardless of active status
   const costs = await db.select()
     .from(storeCosts)
-    .where(eq(storeCosts.active, true))
     .orderBy(desc(storeCosts.createdAt))
     .limit(1)
 
+  if (!costs.length) {
+    // Return default values if no records exist
+    return {
+      initialTax: {
+        taxRate: 20,
+        stripeRate: 1.4,
+      },
+      shippingCosts: {
+        domestic: 500,
+        international: 1000,
+      }
+    }
+  }
+
   return {
     initialTax: {
-      taxRate: costs[0]?.taxRate ? costs[0].taxRate / 100 : 20,
-      stripeRate: costs[0]?.stripeTaxRate ? costs[0].stripeTaxRate / 100 : 1.4,
+      taxRate: costs[0].taxRate / 100,
+      stripeRate: costs[0].stripeTaxRate / 100,
     },
     shippingCosts: {
-      domestic: costs[0]?.domesticShipping ?? 500,
-      international: costs[0]?.internationalShipping ?? 1000,
+      domestic: costs[0].domesticShipping,
+      international: costs[0].internationalShipping,
     }
   }
 }

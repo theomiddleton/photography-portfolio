@@ -4,6 +4,7 @@ import { stripe } from '~/lib/stripe'
 import { db } from '~/server/db'
 import { orders, products, productSizes, storeCosts } from '~/server/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
+import { revalidatePath } from 'next/cache'
 
 export async function createCheckoutSession(productId: string, sizeId: string) {
   try {
@@ -134,3 +135,35 @@ export async function updateOrderStatus(
   }
 }
 
+export async function updateTaxRates(taxRate: number, stripeRate: number) {
+  try {
+    // Deactivate current active record
+    await db
+      .update(storeCosts)
+      .set({ active: false })
+      .where(eq(storeCosts.active, true))
+
+    // Create new record
+    await db.insert(storeCosts).values({
+      taxRate: Math.round(taxRate * 100),
+      stripeTaxRate: Math.round(stripeRate * 100),
+      domesticShipping: (await db
+        .select()
+        .from(storeCosts)
+        .orderBy(desc(storeCosts.createdAt))
+        .limit(1))?.[0]?.domesticShipping ?? 500,
+        internationalShipping: (await db
+          .select()
+          .from(storeCosts)
+          .orderBy(desc(storeCosts.createdAt))
+        .limit(1))?.[0]?.internationalShipping ?? 1000,
+      active: true,
+    })
+    
+    revalidatePath('/admin/store/costs')
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating tax rates:', error)
+    return { success: false, error: 'Failed to update tax rates' }
+  }
+}

@@ -11,6 +11,7 @@ import {
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
+import { updateTaxRates } from '~/lib/actions/store/store'
 
 interface TaxSettingsProps {
   initialTax: {
@@ -20,7 +21,12 @@ interface TaxSettingsProps {
 }
 
 export function TaxSettings({ initialTax }: TaxSettingsProps) {
-  const [taxRates, setTaxRates] = useState(initialTax)
+  const [taxRates, setTaxRates] = useState({
+    taxRate: initialTax.taxRate ?? 20,
+    stripeRate: initialTax.stripeRate ?? 1.4,
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleTaxRateChange = (
     type: 'taxRate' | 'stripeRate',
@@ -36,8 +42,20 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
   }
 
   const handleSaveChanges = async () => {
-    // TODO: Implement save functionality
-    console.log('Saving tax rates:', taxRates)
+    try {
+      setIsLoading(true)
+      setError(null)
+      const result = await updateTaxRates(taxRates.taxRate, taxRates.stripeRate)
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save tax rates')
+      }
+    } catch (error) {
+      console.error('Error saving tax rates:', error)
+      setError(error instanceof Error ? error.message : 'Failed to save tax rates')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -48,6 +66,7 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
+          {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="grid gap-2">
             <Label htmlFor="tax-rate">VAT Rate (%)</Label>
             <Input
@@ -72,7 +91,9 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
               step="0.1"
             />
           </div>
-          <Button onClick={handleSaveChanges}>Save Tax Rates</Button>
+          <Button onClick={handleSaveChanges} disabled={isLoading}>
+            {isLoading ? 'Saving...' : 'Save Tax Rates'}
+          </Button>
         </div>
       </CardContent>
     </Card>
