@@ -238,15 +238,19 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
       </CardHeader>
       <CardContent>
         <div 
-          className={`mt-2 flex items-center justify-center rounded-lg border border-dashed ${isDragging ? 'border-primary bg-primary/10' : 'border-black/25'} px-6 py-10 transition-colors duration-200`}
+          className={`mt-2 flex items-center justify-center rounded-lg border-2 border-dashed 
+            ${isDragging 
+              ? 'border-primary bg-primary/5 cursor-copy ring-2 ring-primary/50' 
+              : 'border-black/25 hover:border-black/40'
+            } px-6 py-10 transition-all duration-200`}
           onDragEnter={handleDragIn}
           onDragLeave={handleDragOut}
           onDragOver={handleDrag}
           onDrop={handleDrop}
         >
-          <div className="text-center flex flex-col items-center justify-center">
+          <div className={`text-center flex flex-col items-center justify-center ${isDragging ? 'scale-105' : ''} transition-transform duration-200`}>
             <Icons.imageIcon
-              className="mx-auto h-12 w-12 text-gray-500"
+              className={`mx-auto h-12 w-12 ${isDragging ? 'text-primary' : 'text-gray-500'} transition-colors duration-200`}
               aria-hidden="true"
             />
             <div className="mt-4 text-sm leading-6 text-gray-600">
