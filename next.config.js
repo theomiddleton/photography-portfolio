@@ -21,7 +21,7 @@ const nextConfig = {
     serverComponentsExternalPackages: ['@aws/sdk/client-s3', '@aws-sdk/s3-request-presigner'],
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   // compiler: {
   //   removeConsole: process.env.NODE_ENV === 'production',
