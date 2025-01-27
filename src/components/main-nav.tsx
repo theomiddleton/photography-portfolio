@@ -18,6 +18,16 @@ export function MainNav({ isAdmin }: MainNavProps) {
   const pathname = usePathname()
   const [open, setOpen] = React.useState(false)
 
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 768px)')
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setOpen(false)
+    }
+    
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+
   const NavItems = () => (
     <nav className="flex flex-col items-start gap-4 text-sm">
       <Link
