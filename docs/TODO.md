@@ -20,6 +20,7 @@ Also fix that linking is broken - it uses the order id rather than the image id
 Make hide buttons show when hidden, change message so fits in the row
 
 - [ ] Optimise for mobile - 37% of visitors are on mobile
+  - [ ] mobile admin page - set sidebar to sheet
 
 ## Rework store
 
