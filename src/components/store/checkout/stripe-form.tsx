@@ -56,7 +56,7 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
             postal_code: paymentIntent.shipping.address.postal_code,
             country: paymentIntent.shipping.address.country,
           }
-        } : undefined;
+        } : undefined
 
         const result = await updateOrderStatus(
           paymentIntent.id,

@@ -145,7 +145,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
   
   // Create the user first to get the id
   try {
-    type NewUser = typeof users.$inferInsert;
+    type NewUser = typeof users.$inferInsert
     
     const insertUser = async (user: NewUser) => {
       return db.insert(users).values(user).returning({ id: users.id })
