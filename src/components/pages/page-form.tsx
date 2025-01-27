@@ -12,7 +12,7 @@ import type { customPages } from '~/server/db/schema'
 import { MDXPreview } from '~/components/pages/mdx-preview'
 import { UploadImg } from '~/components/upload-img'
 import { ImageSelect } from '~/components/image-select'
-import { slugify } from '~/lib/slugify'
+import { slugify } from '~/lib/utils'
 
 export type CustomPage = typeof customPages.$inferSelect
 
