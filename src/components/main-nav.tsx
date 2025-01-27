@@ -28,7 +28,48 @@ export function MainNav({ isAdmin }: MainNavProps) {
     return () => mediaQuery.removeEventListener('change', handleChange)
   }, [])
 
-  const NavItems = () => (
+  const MainNavItems = () => (
+    <nav className="flex items-center gap-6 text-sm">
+      <Link
+        href="/blog"
+        className={cn(
+          "transition-colors hover:text-foreground/80",
+          pathname === "/blog" ? "text-foreground" : "text-foreground/60"
+        )}
+      >
+        Blog
+      </Link>
+      <Link
+        href="/about"
+        className={cn(
+          "text-foreground/60 transition-colors hover:text-foreground/80"
+        )}
+      >
+        About
+      </Link>
+      <Link
+        href="/store"
+        className={cn(
+          "text-foreground/60 transition-colors hover:text-foreground/80"
+        )}
+      >
+        Store
+      </Link>
+      {isAdmin && (
+        <Link
+          href="/admin"
+          className={cn(
+            "text-foreground/60 transition-colors hover:text-foreground/80",
+            pathname?.startsWith("/admin") ? "text-foreground" : "text-foreground/60"
+          )}
+        >
+          Admin
+        </Link>
+      )}
+    </nav>
+  )
+
+  const SheetNavItems = () => (
     <nav className="flex flex-col items-start gap-4 text-sm">
       <Link
         href="/blog"
@@ -78,7 +119,7 @@ export function MainNav({ isAdmin }: MainNavProps) {
             <span className="sr-only">Toggle menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="pr-0 w-[180px]">
+        <SheetContent side="left" className="pr-0 w-[180px] sm:w-[150px]">
           <div className="px-4">
             <Link href="/" className="flex items-center space-x-2" onClick={() => setOpen(false)}>
               <Icons.logo className="h-6 w-6" />
@@ -86,7 +127,7 @@ export function MainNav({ isAdmin }: MainNavProps) {
             </Link>
           </div>
           <div className="flex flex-col space-y-4 px-4 mt-6">
-            <NavItems />
+            <SheetNavItems />
           </div>
         </SheetContent>
       </Sheet>
@@ -95,7 +136,7 @@ export function MainNav({ isAdmin }: MainNavProps) {
           <Icons.logo className="h-6 w-6" />
           <span className="text-lg font-semibold">{siteConfig.title}</span>
         </Link>
-        <NavItems />
+        <MainNavItems />
       </div>
     </div>
   )
