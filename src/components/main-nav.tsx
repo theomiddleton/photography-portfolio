@@ -119,7 +119,7 @@ export function MainNav({ isAdmin }: MainNavProps) {
             <span className="sr-only">Toggle menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="pr-0 w-[180px] sm:w-[150px]">
+        <SheetContent side="left" className="pr-0 w-[180px]">
           <div className="px-4">
             <Link href="/" className="flex items-center space-x-2" onClick={() => setOpen(false)}>
               <Icons.logo className="h-6 w-6" />
