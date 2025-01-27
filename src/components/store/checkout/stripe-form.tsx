@@ -57,19 +57,39 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
             country: paymentIntent.shipping.address.country,
           }
         } : undefined
-
+      
         const result = await updateOrderStatus(
           paymentIntent.id,
           email || paymentIntent.receipt_email || '',
           'processing',
           shippingDetails
         )
-
+      
         if (!result.success) {
           setError('Failed to update order status')
           return
         }
-
+      
+        try {
+          const response = await fetch('/api/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              email: email || paymentIntent.receipt_email,
+              orderId: paymentIntent.id,
+              shippingDetails
+            }),
+          })
+          
+          if (!response.ok) {
+            console.error('Failed to send confirmation email')
+          }
+        } catch (error) {
+          console.error('Error sending confirmation email:', error)
+        }
+      
         window.location.href = `/success?session_id=${paymentIntent.id}`
       }
     } catch (err) {
