@@ -19,7 +19,7 @@ export function MainNav({ isAdmin }: MainNavProps) {
   const [open, setOpen] = React.useState(false)
 
   const NavItems = () => (
-    <nav className="flex items-center gap-6 text-sm">
+    <nav className="flex flex-col items-start gap-4 text-sm">
       <Link
         href="/blog"
         className={cn(
@@ -68,14 +68,14 @@ export function MainNav({ isAdmin }: MainNavProps) {
             <span className="sr-only">Toggle menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="pr-0">
-          <div className="px-7">
+        <SheetContent side="left" className="pr-0 w-[180px]">
+          <div className="px-4">
             <Link href="/" className="flex items-center space-x-2" onClick={() => setOpen(false)}>
               <Icons.logo className="h-6 w-6" />
               <span className="text-lg font-semibold">{siteConfig.title}</span>
             </Link>
           </div>
-          <div className="flex flex-col space-y-4 px-7 mt-6">
+          <div className="flex flex-col space-y-4 px-4 mt-6">
             <NavItems />
           </div>
         </SheetContent>
