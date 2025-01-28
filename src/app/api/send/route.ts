@@ -11,7 +11,7 @@ interface ShippingAddress {
   line2?: string
   city: string
   state: string
-  postal_code: string
+  postalCode: string
   country: string
 }
 
@@ -56,20 +56,28 @@ export async function POST(request: Request) {
       )
     }
 
+    // Format price from pennies to pounds with £ symbol
+    const formattedPrice = `£${(order.orders.total / 100).toFixed(2)}`
+
     const { data, error } = await resend.emails.send({
       from: 'Order receipt <orders@email.theoo.ooo>',
       to: [email],
-      subject: `Order Confirmation #${orderId}`,
+      subject: `Order Confirmation #${order.orders.orderNumber}`,
       react: OrderConfirmationEmail({ 
-        firstName: shippingDetails?.name || email.split('@')[0],
-        orderId,
-        shippingAddress: shippingDetails?.address,
-        orderDetails: {
-          productName: order.products.name,
-          size: order.productSizes.name,
-          price: order.productSizes.basePrice,
-          customerName: order.orders.customerName,
-          customerEmail: order.orders.email
+        orderNumber: order.orders.orderNumber.toString(),
+        customerName: order.orders.customerName,
+        customerEmail: order.orders.email,
+        productName: order.products.name,
+        productSize: order.productSizes.name,
+        price: formattedPrice,
+        imageUrl: order.products.imageUrl,
+        shippingAddress: {
+          line1: shippingDetails?.address.line1 || '',
+          line2: shippingDetails?.address.line2,
+          city: shippingDetails?.address.city || '',
+          state: shippingDetails?.address.state,
+          postalCode: shippingDetails?.address.postalCode || '',
+          country: shippingDetails?.address.country || ''
         }
       }),
     })

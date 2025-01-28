@@ -29,6 +29,9 @@ export const siteConfig = {
       ],
     },  
   },
+  emails: {
+    support: 'support@emails.theoo.ooo'
+  }
 }
 
 

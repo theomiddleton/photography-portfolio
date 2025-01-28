@@ -24,6 +24,9 @@ Make hide buttons show when hidden, change message so fits in the row
 
 ## Rework store
 
+- [ ] FIX 3000% increase on each charge
+  - [ ] change to stripe tax
+
 - [x] Public store page
   - [ ] Filterable by categories, price, date
   - [x] Each image displays preview, title, price if for sale
