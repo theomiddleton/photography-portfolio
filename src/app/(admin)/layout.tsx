@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <AdminHeader />
       <div className="flex flex-1">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block h-full">
           <AdminSidebar />
         </div>
         <div className="flex-1 p-5">

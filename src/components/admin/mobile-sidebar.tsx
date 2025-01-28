@@ -31,8 +31,8 @@ export function MobileSidebar({ children }: MobileSidebarProps) {
             <span className="sr-only">Toggle menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-[240px] p-0">
-          <div className="mt-14">
+        <SheetContent side="left" className="w-[240px] p-0 overflow-y-auto">
+          <div className="mt-14 pb-4">
             {children}
           </div>
         </SheetContent>
