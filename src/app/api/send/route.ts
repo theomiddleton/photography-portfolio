@@ -3,6 +3,7 @@ import { Resend } from 'resend'
 import { db } from '~/server/db'
 import { orders, products, productSizes } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
+import { siteConfig } from '~/config/site'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
     const formattedPrice = `£${(order.orders.total / 100).toFixed(2)}`
 
     const { data, error } = await resend.emails.send({
-      from: 'Order receipt <orders@email.theoo.ooo>',
+      from: `${siteConfig.storeName} <${siteConfig.emails.order}>`,
       to: [email],
       subject: `Order Confirmation #${order.products.name}`,
       react: OrderConfirmationEmail({ 

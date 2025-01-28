@@ -2,6 +2,7 @@ export const siteConfig = {
   //title: 'Portfolio Project',
   title: 'Portfolio',
   description: 'Photography portfolio of Theo Middleton',
+  storeName: 'T Middleton Store',
   imageBucketUrl: 'https://img.theomiddleton.me',
   blogBucketUrl: 'https://blog-img.theomiddleton.me',
   aboutBucketUrl: 'https://about-img.theomiddleton.me',
@@ -30,6 +31,7 @@ export const siteConfig = {
     },  
   },
   emails: {
+    order: 'orders@email.theoo.ooo',
     support: 'support@emails.theoo.ooo'
   }
 }
