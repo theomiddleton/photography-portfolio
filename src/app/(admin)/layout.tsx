@@ -2,7 +2,6 @@ import React from 'react'
 import type { ReactNode } from 'react'
 import { AdminHeader } from '~/components/admin/header'
 import { AdminSidebar } from '~/components/admin/sidebar'
-import { MobileSidebar } from '~/components/admin/mobile-sidebar'
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -18,12 +17,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* Desktop Sidebar */}
         <div className="hidden lg:block">
           <AdminSidebar />
-        </div>
-        {/* Mobile Sidebar */}
-        <div className="lg:hidden">
-          <MobileSidebar>
-            <AdminSidebar />
-          </MobileSidebar>
         </div>
         <div className="flex-1 p-5">
           {children}

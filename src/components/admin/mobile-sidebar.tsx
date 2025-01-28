@@ -12,6 +12,16 @@ interface MobileSidebarProps {
 export function MobileSidebar({ children }: MobileSidebarProps) {
   const [open, setOpen] = React.useState(false)
 
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)')
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setOpen(false)
+    }
+    
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+
   return (
     <>
       <Sheet open={open} onOpenChange={setOpen}>
@@ -22,7 +32,9 @@ export function MobileSidebar({ children }: MobileSidebarProps) {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-[240px] p-0">
-          {children}
+          <div className="mt-14">
+            {children}
+          </div>
         </SheetContent>
       </Sheet>
     </>
