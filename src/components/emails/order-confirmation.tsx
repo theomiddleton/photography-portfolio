@@ -34,6 +34,41 @@ interface OrderConfirmationEmailProps {
   }
 }
 
+export const OrderConfirmationEmailText = ({
+  orderNumber,
+  customerName,
+  customerEmail,
+  productName,
+  productSize,
+  price,
+  shippingAddress,
+}: OrderConfirmationEmailProps) => {
+  return `Order Confirmation for ${productName}
+
+Hi ${customerName},
+
+Thank you for your order! We're preparing it for shipment and will notify you once it's on its way.
+
+Order Details:
+-------------
+Order Number: ${orderNumber}
+Product: ${productName}
+Size: ${productSize}
+Price: ${price}
+
+Shipping Details:
+---------------
+${customerName}
+${shippingAddress.line1}
+${shippingAddress.line2 ? shippingAddress.line2 + '\n' : ''}${shippingAddress.city}
+${shippingAddress.postalCode}
+${shippingAddress.country}
+
+If you have any questions, please contact our customer support at ${siteConfig.emails.support}.
+
+This email was sent to ${customerEmail}. If you didn't place this order, please contact us immediately.`
+}
+
 export const OrderConfirmationEmail = ({
   orderNumber,
   customerName,
@@ -74,7 +109,7 @@ export const OrderConfirmationEmail = ({
               </Row>
             </Section>
 
-            <Section className="bg-gray-50 rounded-lg p-8 my-6">
+            <Section className="bg-gray-50 rounded-lg p-8 my-4">
               <Heading className="text-base font-semibold mb-3">Order Details</Heading>
 
               <Row>
@@ -126,7 +161,7 @@ export const OrderConfirmationEmail = ({
               </div>
             </Section>
 
-            <Hr className="my-6 border-gray-200" />
+            <Hr className="my-4 border-gray-200" />
 
             <Text className="text-sm text-gray-500 text-center">
               If you have any questions, please contact our{' '}

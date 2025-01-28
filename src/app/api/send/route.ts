@@ -1,4 +1,4 @@
-import { OrderConfirmationEmail } from '~/components/emails/order-confirmation'
+import { OrderConfirmationEmail, OrderConfirmationEmailText } from '~/components/emails/order-confirmation'
 import { Resend } from 'resend'
 import { db } from '~/server/db'
 import { orders, products, productSizes } from '~/server/db/schema'
@@ -62,8 +62,25 @@ export async function POST(request: Request) {
     const { data, error } = await resend.emails.send({
       from: 'Order receipt <orders@email.theoo.ooo>',
       to: [email],
-      subject: `Order Confirmation #${order.orders.orderNumber}`,
+      subject: `Order Confirmation #${order.products.name}`,
       react: OrderConfirmationEmail({ 
+        orderNumber: order.orders.orderNumber.toString(),
+        customerName: order.orders.customerName,
+        customerEmail: order.orders.email,
+        productName: order.products.name,
+        productSize: order.productSizes.name,
+        price: formattedPrice,
+        imageUrl: order.products.imageUrl,
+        shippingAddress: {
+          line1: shippingDetails?.address.line1 || '',
+          line2: shippingDetails?.address.line2,
+          city: shippingDetails?.address.city || '',
+          state: shippingDetails?.address.state,
+          postalCode: shippingDetails?.address.postalCode || '',
+          country: shippingDetails?.address.country || ''
+        }
+      }),
+      text: OrderConfirmationEmailText({
         orderNumber: order.orders.orderNumber.toString(),
         customerName: order.orders.customerName,
         customerEmail: order.orders.email,
