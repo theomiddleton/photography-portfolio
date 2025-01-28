@@ -58,6 +58,7 @@ Make hide buttons show when hidden, change message so fits in the row
   - [ ] ImageService
     - [ ] Creates thumbnails
       - [ ] Frame images
+        - [ ] dynamicaly create using sharp / css (darkroom implementation)
     - [ ] Manages cloud storage (R2)
 
   StripeService
