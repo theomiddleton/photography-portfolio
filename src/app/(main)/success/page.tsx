@@ -60,6 +60,28 @@ export default async function SuccessPage({
               </div>
             </div>
 
+            <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
+              <h2 className="font-semibold">Price Breakdown</h2>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>{formatPrice(order.orders.subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Shipping</span>
+                  <span>{formatPrice(order.orders.shippingCost)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tax</span>
+                  <span>{formatPrice(order.orders.tax)}</span>
+                </div>
+                <div className="flex justify-between font-medium pt-2 border-t">
+                  <span>Total</span>
+                  <span>{formatPrice(order.orders.total)}</span>
+                </div>
+              </div>
+            </div>
+
             <div className="rounded-lg border bg-muted/40 p-4 space-y-4">
               <h2 className="font-semibold">Customer Details</h2>
               <div className="flex justify-between items-start">
