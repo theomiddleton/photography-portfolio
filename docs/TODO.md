@@ -61,6 +61,7 @@ Make hide buttons show when hidden, change message so fits in the row
       - [ ] Frame images
         - [ ] dynamicaly create using sharp / css (darkroom implementation)
     - [ ] Manages cloud storage (R2)
+      - [ ] update delete 
 
   StripeService
 
