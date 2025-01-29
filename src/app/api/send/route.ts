@@ -64,6 +64,7 @@ export async function POST(request: Request) {
       from: `${siteConfig.storeName} <${siteConfig.emails.order}>`,
       to: [email],
       subject: `Order Confirmation #${order.products.name}`,
+      replyTo: `${siteConfig.storeName} <${siteConfig.emails.replyTo}>`,
       react: OrderConfirmationEmail({ 
         orderNumber: order.orders.orderNumber.toString(),
         customerName: order.orders.customerName,

@@ -32,7 +32,8 @@ export const siteConfig = {
   },
   emails: {
     order: 'orders@email.theoo.ooo',
-    support: 'support@emails.theoo.ooo'
+    support: 'support@theoo.ooo',
+    replyTo: 'reply@theoo.ooo'
   }
 }
 
