@@ -4,6 +4,8 @@ import { orders, products, productSizes } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { CheckCircle } from 'lucide-react'
 import { formatPrice } from '~/lib/utils'
+import { siteConfig } from '~/config/site'
+import Link from 'next/link' 
 
 export default async function SuccessPage({
   searchParams,
@@ -30,8 +32,8 @@ export default async function SuccessPage({
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
-      <div className="container max-w-lg py-12">
+    <main className="min-h-screen bg-white text-black py-24">
+      <div className="container max-w-lg">
         <div className="rounded-lg border bg-card p-8 text-card-foreground shadow">
           <div className="flex flex-col items-center space-y-4 text-center">
             <CheckCircle className="h-12 w-12 text-green-500" />
@@ -116,9 +118,9 @@ export default async function SuccessPage({
           <div className="mt-8 text-center">
             <p className="text-sm text-muted-foreground">
               Need help?{' '}
-              <a href="/contact" className="text-primary hover:underline">
+              <Link href={`mailto:${siteConfig.emails.support}`} className="text-primary hover:underline hover:text-blue-600">
                 Contact us
-              </a>
+              </Link>
             </p>
           </div>
         </div>
