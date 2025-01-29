@@ -26,17 +26,20 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
     stripeRate: initialTax.stripeRate ?? 1.4,
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [status, setStatus] = useState<{
+    type: 'error' | 'success' | null;
+    message: string | null;
+  }>({ type: null, message: null })
 
   const handleTaxRateChange = (
     type: 'taxRate' | 'stripeRate',
     value: string,
   ) => {
     const newRate = parseFloat(value)
-    if (!isNaN(newRate) && newRate >= 0 && newRate <= 100) {
+    if (!isNaN(newRate)) {
       setTaxRates((prev) => ({
         ...prev,
-        [type]: newRate,
+        [type]: Math.min(Math.max(newRate, 0), 100),
       }))
     }
   }
@@ -44,15 +47,24 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
   const handleSaveChanges = async () => {
     try {
       setIsLoading(true)
-      setError(null)
+      setStatus({ type: null, message: null })
+      
       const result = await updateTaxRates(taxRates.taxRate, taxRates.stripeRate)
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to save tax rates')
       }
+      
+      setStatus({
+        type: 'success',
+        message: 'Tax rates updated successfully'
+      })
     } catch (error) {
       console.error('Error saving tax rates:', error)
-      setError(error instanceof Error ? error.message : 'Failed to save tax rates')
+      setStatus({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to save tax rates'
+      })
     } finally {
       setIsLoading(false)
     }
@@ -66,7 +78,13 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {status.message && (
+            <p className={`text-sm ${
+              status.type === 'error' ? 'text-red-500' : 'text-green-500'
+            }`}>
+              {status.message}
+            </p>
+          )}
           <div className="grid gap-2">
             <Label htmlFor="tax-rate">VAT Rate (%)</Label>
             <Input
@@ -91,8 +109,22 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
               step="0.1"
             />
           </div>
-          <Button onClick={handleSaveChanges} disabled={isLoading}>
-            {isLoading ? 'Saving...' : 'Save Tax Rates'}
+          <Button 
+            onClick={handleSaveChanges} 
+            disabled={isLoading}
+            className="relative"
+          >
+            {isLoading && (
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              </span>
+            )}
+            <span className={isLoading ? 'invisible' : ''}>
+              Save Tax Rates
+            </span>
           </Button>
         </div>
       </CardContent>

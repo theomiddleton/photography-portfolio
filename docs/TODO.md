@@ -26,6 +26,7 @@ Make hide buttons show when hidden, change message so fits in the row
 
 - [ ] FIX 3000% increase on each charge
   - [ ] change to stripe tax
+  - [ ] change shipping implementation
 
 - [x] Public store page
   - [ ] Filterable by categories, price, date
@@ -60,6 +61,7 @@ Make hide buttons show when hidden, change message so fits in the row
       - [ ] Frame images
         - [ ] dynamicaly create using sharp / css (darkroom implementation)
     - [ ] Manages cloud storage (R2)
+      - [ ] update delete 
 
   StripeService
 

@@ -43,7 +43,7 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
 
     const shippingCost = costs[0]?.domesticShipping ? costs[0].domesticShipping : 0
     const tax = Math.round((subtotal + shippingCost) * (costs[0]?.taxRate? costs[0].taxRate / 100 : 20))
-    const stripeTax = Math.round((subtotal + shippingCost) * (costs[0]?.stripeTaxRate? costs[0].stripeTaxRate / 100 : 1.4))
+    const stripeTax = Math.round((subtotal + shippingCost) * (costs[0]?.stripeTaxRate? costs[0].stripeTaxRate / 100 : 1.5))
     const total = subtotal + shippingCost + tax + stripeTax
 
     // Create a payment intent
@@ -137,27 +137,28 @@ export async function updateOrderStatus(
 
 export async function updateTaxRates(taxRate: number, stripeRate: number) {
   try {
-    // Deactivate current active record
-    await db
-      .update(storeCosts)
-      .set({ active: false })
-      .where(eq(storeCosts.active, true))
+    // Get current costs first
+    const currentCosts = await db
+      .select()
+      .from(storeCosts)
+      .orderBy(desc(storeCosts.createdAt))
+      .limit(1)
 
-    // Create new record
-    await db.insert(storeCosts).values({
-      taxRate: Math.round(taxRate * 100),
-      stripeTaxRate: Math.round(stripeRate * 100),
-      domesticShipping: (await db
-        .select()
-        .from(storeCosts)
-        .orderBy(desc(storeCosts.createdAt))
-        .limit(1))?.[0]?.domesticShipping ?? 500,
-        internationalShipping: (await db
-          .select()
-          .from(storeCosts)
-          .orderBy(desc(storeCosts.createdAt))
-        .limit(1))?.[0]?.internationalShipping ?? 1000,
-      active: true,
+    await db.transaction(async (tx) => {
+      // Deactivate current active record
+      await tx
+        .update(storeCosts)
+        .set({ active: false })
+        .where(eq(storeCosts.active, true))
+
+      // Create new record
+      await tx.insert(storeCosts).values({
+        taxRate: Math.round(taxRate),
+        stripeTaxRate: Math.round(stripeRate),
+        domesticShipping: currentCosts[0]?.domesticShipping ?? 500,
+        internationalShipping: currentCosts[0]?.internationalShipping ?? 1000,
+        active: true,
+      })
     })
     
     revalidatePath('/admin/store/costs')
