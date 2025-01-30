@@ -20,11 +20,11 @@ Also fix that linking is broken - it uses the order id rather than the image id
 Make hide buttons show when hidden, change message so fits in the row
 
 - [ ] Optimise for mobile - 37% of visitors are on mobile
-  - [ ] mobile admin page - set sidebar to sheet
+  - [x] mobile admin page - set sidebar to sheet
 
 ## Rework store
 
-- [ ] FIX 3000% increase on each charge
+- [x] FIX 3000% increase on each charge
   - [ ] change to stripe tax
   - [ ] change shipping implementation
 
@@ -36,7 +36,7 @@ Make hide buttons show when hidden, change message so fits in the row
 - [ ] Cart System
   - [ ] Persistent cart using local storage
   - [ ] Cart sidebar/modal
-  - [ ] Checkout flow integrated with Stripe
+  - [x] Checkout flow integrated with Stripe
 - [ ] User Account Area
 
   - [ ] Order history
@@ -72,7 +72,7 @@ Make hide buttons show when hidden, change message so fits in the row
   OrderService
 
   - [ ] Order fulfillment
-  - [ ] Email notifications
+  - [x] Email notifications
 
   - [ ] SEO & Sharing
     - [ ] Dynamic OG images
@@ -82,14 +82,14 @@ Make hide buttons show when hidden, change message so fits in the row
 
 ## Security
 
-- [] audit security <https://youtu.be/yUm-ET8w_28>
+- [ ] audit security <https://youtu.be/yUm-ET8w_28>
 
 ## UI
 
 - [ ] Main page
   - [x] Image Gallery
     - [x] Gallery order - within admin
-      - [ ] Colour based order (adv)
+      - [x] Colour based order (adv)
     - [x] Image page
       - [x] revisit for responsiveness on smaller screens
   - [ ] Infinite scroll
@@ -112,11 +112,11 @@ Make hide buttons show when hidden, change message so fits in the row
     - [x] have title and image header
     - [x] work with markdown
   - [x] Update without redeploy
-- [ ] Film release with mux
+- [x] Film release with hls
 - [ ] Admin
   - [ ] Page views
     - [ ] Rework
-  - [ ] Upload
+  - [x] Upload
     - [x] cloudflare
       - [x] upload
         - [x] upload file info to database
@@ -130,7 +130,7 @@ Make hide buttons show when hidden, change message so fits in the row
     - [ ] Metadata
     - [x] Tags
     - [ ] Location
-  - [ ] Sales
+  - [x] Sales
   - [ ] Dashboard
 
 ## Store
@@ -154,4 +154,4 @@ Make hide buttons show when hidden, change message so fits in the row
 ## Auth / purchase
 
 - [x] Rework auth
-- [ ] Revisit store
+- [x] Revisit store
