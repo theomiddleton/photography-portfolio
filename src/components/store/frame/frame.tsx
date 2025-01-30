@@ -81,6 +81,19 @@ export function Frame({
   const frameThickness = Math.round(frameWidths[frameWidth] * scale)
   const matThickness = matColor !== 'none' ? Math.round(matWidths[frameWidth] * scale) : 0
 
+  const imageDisplayWidth = containerDimensions.width - (frameThickness + matThickness) * 2
+  const imageDisplayHeight = containerDimensions.height - (frameThickness + matThickness) * 2
+  
+  // Calculate the scaling factor to fit the image while maintaining aspect ratio
+  const imageScale = Math.min(
+    imageDisplayWidth / width,
+    imageDisplayHeight / height
+  )
+  
+  // Calculate actual display dimensions
+  const finalWidth = Math.round(width * imageScale)
+  const finalHeight = Math.round(height * imageScale)
+
   return (
     <div
       ref={containerRef}
@@ -141,12 +154,15 @@ export function Frame({
 
         {/* Image container */}
         <div
-          className="absolute z-30 overflow-hidden"
+          className="absolute z-30 overflow-hidden flex items-center justify-center"
           style={{
             top: frameThickness + matThickness,
             right: frameThickness + matThickness,
             bottom: frameThickness + matThickness,
             left: frameThickness + matThickness,
+            width: finalWidth,
+            height: finalHeight,
+            margin: 'auto'
           }}
         >
           <Image
@@ -154,7 +170,7 @@ export function Frame({
             alt={alt}
             width={width}
             height={height}
-            className="w-full h-full object-contain"
+            style={{ width: '100%', height: '100%' }}
             priority
           />
           <div className="absolute inset-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)] pointer-events-none" />
