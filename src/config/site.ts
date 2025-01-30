@@ -8,6 +8,7 @@ export const siteConfig = {
   aboutBucketUrl: 'https://about-img.theomiddleton.me',
   customBucketUrl: 'https://custom-img.theomiddleton.me',
   url: 'https://theomiddleton.me',
+  altUrl: 'https://theoo.ooo',
   links: {
     github: 'https://github.com/theomiddleton/portfolio-project',
     website: 'https://theomiddleton.me'
