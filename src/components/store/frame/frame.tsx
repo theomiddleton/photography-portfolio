@@ -65,9 +65,9 @@ export function Frame({
     containerDimensions.height / height
   )
 
-  // Use consistent base values for frame and mat
-  const baseFrameWidth = Math.max(width, height) * 0.1 // 10% of the larger dimension
-  const baseMatWidth = Math.max(width, height) * 0.06  // 6% of the larger dimension
+  // Use height as the reference for consistent visual size
+  const baseFrameWidth = height * 0.1  // 10% of height
+  const baseMatWidth = height * 0.06   // 6% of height
 
   const frameWidths = {
     narrow: baseFrameWidth * 0.6,
