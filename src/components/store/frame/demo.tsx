@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import { Input } from '~/components/ui/input'
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from '~/components/ui/alert'
+import { cn } from '~/lib/utils'
 
 export function FrameDemo() {
   const [frameStyle, setFrameStyle] = useState<
@@ -151,16 +152,22 @@ export function FrameDemo() {
                 />
                 <div className="absolute inset-0 bg-black/5" />
                 
-                {/* Frame container - adjust size with w-[45%] and position with translate-x/y */}
+                {/* Frame container */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div 
-                    className="w-[25%] -translate-y-[5%]" 
+                    className={cn(
+                      "-translate-y-[5%]",
+                      // Adjust width based on orientation
+                      imageDimensions.height > imageDimensions.width 
+                        ? "w-[16.67%]"  // Portrait: scaled for equal area
+                        : "w-[25%]"     // Landscape: original size
+                    )}
                     style={{
-                      // Use these styles to fine-tune positioning:
-                      transform: 'translate(-10%, -20%)',  // Adjust X and Y position
-                      // width: '45%',                       // Adjust size
-                      marginLeft: '-50px',                // Offset from center
-                      marginTop: '-70px',                 // Offset from center
+                      transform: imageDimensions.height > imageDimensions.width
+                        ? 'translate(-10%, -15%)'  // Adjusted for portrait
+                        : 'translate(-10%, -20%)', // Original landscape position
+                      marginLeft: '-50px',
+                      marginTop: imageDimensions.height > imageDimensions.width ? '-50px' : '-70px',
                     }}
                   >
                     <Frame

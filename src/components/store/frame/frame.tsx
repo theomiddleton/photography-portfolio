@@ -26,7 +26,7 @@ export function Frame({
   const frameStyles = {
     classic: 'bg-[#2d2d2d]',
     modern: 'bg-white',
-    floating: 'bg-white',
+    floating: 'bg-transparent', // Changed to transparent
     walnut: 'bg-[linear-gradient(110deg,#3E2723,#2D1810)]',
     oak: 'bg-[linear-gradient(110deg,#C4A484,#8B7355)]',
     mahogany: 'bg-[linear-gradient(110deg,#4A0404,#2B0000)]',
@@ -84,12 +84,6 @@ export function Frame({
   const frameThickness = Math.round(frameWidths[frameWidth] * baseScale)
   const matThickness = matColor !== 'none' ? Math.round(matWidths[frameWidth] * baseScale) : 0
 
-  // Remove the separate imageScale since we're using baseScale consistently
-  const imageScale = Math.min(
-    containerDimensions.width / width,
-    containerDimensions.height / height
-  )
-
   return (
     <div
       ref={containerRef}
@@ -102,7 +96,15 @@ export function Frame({
     >
       <div className="absolute inset-0">
         {/* Frame - constructed with borders */}
-        <div className={cn("absolute inset-0 z-10", frameStyles[frameStyle], "shadow-[0_8px_16px_rgba(0,0,0,0.2)]")}>
+        <div 
+          className={cn(
+            "absolute inset-0 z-10",
+            frameStyles[frameStyle],
+            frameStyle === 'floating'
+              ? "shadow-[0_35px_60px_-15px_rgba(0,0,0,0.2)]" // Floating shadow
+              : "shadow-[0_8px_16px_rgba(0,0,0,0.2)]" // Regular shadow
+          )}
+        >
           {/* Wood grain effect - only on frame borders */}
           {isWooden && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -113,12 +115,15 @@ export function Frame({
 
           {/* Inner frame opening */}
           <div
-            className="absolute bg-white"
+            className={cn(
+              "absolute",
+              frameStyle === 'floating' ? 'inset-0' : 'bg-white'
+            )}
             style={{
-              top: frameThickness,
-              right: frameThickness,
-              bottom: frameThickness,
-              left: frameThickness,
+              top: frameStyle === 'floating' ? 0 : frameThickness,
+              right: frameStyle === 'floating' ? 0 : frameThickness,
+              bottom: frameStyle === 'floating' ? 0 : frameThickness,
+              left: frameStyle === 'floating' ? 0 : frameThickness,
             }}
           />
         </div>
@@ -159,7 +164,7 @@ export function Frame({
           }}
         >
           <Image
-            src={src || "/placeholder.svg"}
+            src={src}
             alt={alt}
             width={width}
             height={height}
