@@ -5,20 +5,64 @@ import { FrameWrapper, type FrameStyle } from '~/components/store/frame/frame-op
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Label } from '~/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
+import { Input } from '~/components/ui/input'
+import { AlertCircle } from 'lucide-react'
+import { Alert, AlertDescription } from '~/components/ui/alert'
 
 export function FrameDemo() {
   const [frameStyle, setFrameStyle] = useState<FrameStyle>('classic')
   const [matColor, setMatColor] = useState<'white' | 'ivory' | 'black' | 'none'>('ivory')
   const [frameWidth, setFrameWidth] = useState<'narrow' | 'medium' | 'wide'>('medium')
+  const [imageUrl, setImageUrl] = useState('')
+  const [imageError, setImageError] = useState(false)
+
+  const validateImage = (url: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => resolve(true)
+      img.onerror = () => resolve(false)
+      img.src = url
+    })
+  }
+
+  const handleImageUrlChange = async (url: string) => {
+    setImageUrl(url)
+    if (url) {
+      const isValid = await validateImage(url)
+      setImageError(!isValid)
+    } else {
+      setImageError(false)
+    }
+  }
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="bg-white p-6 rounded-lg shadow">
           <h1 className="text-2xl font-bold mb-4">Art Frame Preview</h1>
 
           <div className="grid gap-4 mb-8 md:grid-cols-2 items-start">
             <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="imageUrl">Image URL</Label>
+                <Input
+                  id="imageUrl"
+                  type="url"
+                  placeholder="Enter image URL..."
+                  value={imageUrl}
+                  onChange={(e) => handleImageUrlChange(e.target.value)}
+                  className="w-full"
+                />
+                {imageError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Unable to load image. Please check the URL and ensure it&apos;s publicly accessible.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label>Frame Style</Label>
                 <Select value={frameStyle} onValueChange={(value: FrameStyle) => setFrameStyle(value)}>
@@ -81,22 +125,10 @@ export function FrameDemo() {
             <div className="grid gap-8">
               {/* Landscape image example (3:2 ratio) */}
               <FrameWrapper
-                src="/placeholder.svg?height=400&width=600"
+                src={imageUrl || "/placeholder.svg?height=400&width=600"}
                 alt="Landscape artwork"
                 width={600}
                 height={400}
-                frameStyle={frameStyle}
-                matColor={matColor}
-                frameWidth={frameWidth}
-                className="w-full max-w-sm mx-auto"
-              />
-
-              {/* Portrait image example (2:3 ratio) */}
-              <FrameWrapper
-                src="/placeholder.svg?height=600&width=400"
-                alt="Portrait artwork"
-                width={400}
-                height={600}
                 frameStyle={frameStyle}
                 matColor={matColor}
                 frameWidth={frameWidth}
