@@ -12,7 +12,7 @@ export function FrameDemo() {
   const [frameWidth, setFrameWidth] = useState<'narrow' | 'medium' | 'wide'>('medium')
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="bg-white p-6 rounded-lg shadow">
           <h1 className="text-2xl font-bold mb-4">Art Frame Preview</h1>

@@ -68,6 +68,9 @@ export function AdminActions() {
           <Button asChild variant="outline">
             <a href="/admin/store/costs">Manage Costs & Sizes</a>
           </Button>
+          <Button asChild variant="outline">
+            <a href="/admin/store/frame">Manage Frame Mockups</a>
+          </Button>
           {/* <Button asChild variant="outline">
             <a href="/admin/store/new">Add New Product</a>
           </Button> */}
