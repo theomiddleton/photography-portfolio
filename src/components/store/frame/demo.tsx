@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FrameWrapper, type FrameStyle } from '~/components/store/frame/frame-options'
+import { Frame } from '~/components/store/frame/frame'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Label } from '~/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
@@ -10,10 +10,14 @@ import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 
 export function FrameDemo() {
-  const [frameStyle, setFrameStyle] = useState<FrameStyle>('classic')
-  const [matColor, setMatColor] = useState<'white' | 'ivory' | 'black' | 'none'>('ivory')
+  const [frameStyle, setFrameStyle] = useState<
+    'classic' | 'modern' | 'floating' | 'walnut' | 'oak' | 'mahogany' | 'pine'
+  >('walnut')
+  const [matColor, setMatColor] = useState<'white' | 'ivory' | 'black' | 'none'>('white')
   const [frameWidth, setFrameWidth] = useState<'narrow' | 'medium' | 'wide'>('medium')
-  const [imageUrl, setImageUrl] = useState('')
+  const [imageUrl, setImageUrl] = useState(
+    'https://img.theomiddleton.me/5ddbd35c-6bc2-48ac-8afe-1b4e6f0d22e1.jpg',
+  )
   const [imageError, setImageError] = useState(false)
 
   const validateImage = (url: string): Promise<boolean> => {
@@ -36,13 +40,13 @@ export function FrameDemo() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold mb-4">Art Frame Preview</h1>
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h1 className="text-2xl font-bold mb-6">Art Frame Preview</h1>
 
-          <div className="grid gap-4 mb-8 md:grid-cols-2 items-start">
-            <div className="space-y-4">
+          <div className="grid gap-8 md:grid-cols-2 items-start">
+            <div className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="imageUrl">Image URL</Label>
                 <Input
@@ -51,7 +55,6 @@ export function FrameDemo() {
                   placeholder="Enter image URL..."
                   value={imageUrl}
                   onChange={(e) => handleImageUrlChange(e.target.value)}
-                  className="w-full"
                 />
                 {imageError && (
                   <Alert variant="destructive">
@@ -65,7 +68,7 @@ export function FrameDemo() {
 
               <div className="space-y-2">
                 <Label>Frame Style</Label>
-                <Select value={frameStyle} onValueChange={(value: FrameStyle) => setFrameStyle(value)}>
+                <Select value={frameStyle} onValueChange={(value: typeof frameStyle) => setFrameStyle(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select frame style" />
                   </SelectTrigger>
@@ -83,10 +86,7 @@ export function FrameDemo() {
 
               <div className="space-y-2">
                 <Label>Mat Color</Label>
-                <Select
-                  value={matColor}
-                  onValueChange={(value: "white" | "ivory" | "black" | "none") => setMatColor(value)}
-                >
+                <Select value={matColor} onValueChange={(value: typeof matColor) => setMatColor(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select mat color" />
                   </SelectTrigger>
@@ -103,7 +103,7 @@ export function FrameDemo() {
                 <Label>Frame Width</Label>
                 <RadioGroup
                   value={frameWidth}
-                  onValueChange={(value: "narrow" | "medium" | "wide") => setFrameWidth(value)}
+                  onValueChange={(value: typeof frameWidth) => setFrameWidth(value)}
                   className="flex gap-4"
                 >
                   <div className="flex items-center space-x-2">
@@ -122,17 +122,16 @@ export function FrameDemo() {
               </div>
             </div>
 
-            <div className="grid gap-8">
-              {/* Landscape image example (3:2 ratio) */}
-              <FrameWrapper
-                src={imageUrl || "/placeholder.svg?height=400&width=600"}
-                alt="Landscape artwork"
+            <div className="space-y-8">
+              <Frame
+                src={imageUrl}
+                alt="Framed artwork"
                 width={600}
                 height={400}
                 frameStyle={frameStyle}
                 matColor={matColor}
                 frameWidth={frameWidth}
-                className="w-full max-w-sm mx-auto"
+                className="w-full"
               />
             </div>
           </div>
