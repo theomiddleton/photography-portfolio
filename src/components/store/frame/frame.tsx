@@ -56,43 +56,39 @@ export function Frame({
     window.addEventListener('resize', updateSize)
     return () => window.removeEventListener('resize', updateSize)
   }, [])
-
-  const frameWidths = {
-    narrow: 20,
-    medium: 30,
-    wide: 40,
-  }
-
-  const matWidths = {
-    narrow: 15,
-    medium: 23,
-    wide: 30,
-  }
-
   const isWooden = ['walnut', 'oak', 'mahogany', 'pine'].includes(frameStyle)
   const isFloating = frameStyle === 'floating'
 
-  // Calculate scale based on the smallest ratio to maintain proportions
-  const scale = Math.min(
+  // Calculate base scale using the larger dimension for consistent frame size
+  const baseScale = Math.min(
     containerDimensions.width / width,
     containerDimensions.height / height
   )
 
-  const frameThickness = Math.round(frameWidths[frameWidth] * scale)
-  const matThickness = matColor !== 'none' ? Math.round(matWidths[frameWidth] * scale) : 0
+  // Use consistent base values for frame and mat
+  const baseFrameWidth = Math.max(width, height) * 0.1 // 10% of the larger dimension
+  const baseMatWidth = Math.max(width, height) * 0.06  // 6% of the larger dimension
 
-  const imageDisplayWidth = containerDimensions.width - (frameThickness + matThickness) * 2
-  const imageDisplayHeight = containerDimensions.height - (frameThickness + matThickness) * 2
-  
-  // Calculate the scaling factor to fit the image while maintaining aspect ratio
+  const frameWidths = {
+    narrow: baseFrameWidth * 0.6,
+    medium: baseFrameWidth * 0.8,
+    wide: baseFrameWidth,
+  }
+
+  const matWidths = {
+    narrow: baseMatWidth * 0.6,
+    medium: baseMatWidth * 0.8,
+    wide: baseMatWidth,
+  }
+
+  const frameThickness = Math.round(frameWidths[frameWidth] * baseScale)
+  const matThickness = matColor !== 'none' ? Math.round(matWidths[frameWidth] * baseScale) : 0
+
+  // Remove the separate imageScale since we're using baseScale consistently
   const imageScale = Math.min(
-    imageDisplayWidth / width,
-    imageDisplayHeight / height
+    containerDimensions.width / width,
+    containerDimensions.height / height
   )
-  
-  // Calculate actual display dimensions
-  const finalWidth = Math.round(width * imageScale)
-  const finalHeight = Math.round(height * imageScale)
 
   return (
     <div
@@ -160,9 +156,6 @@ export function Frame({
             right: frameThickness + matThickness,
             bottom: frameThickness + matThickness,
             left: frameThickness + matThickness,
-            width: finalWidth,
-            height: finalHeight,
-            margin: 'auto'
           }}
         >
           <Image
@@ -170,7 +163,7 @@ export function Frame({
             alt={alt}
             width={width}
             height={height}
-            style={{ width: '100%', height: '100%' }}
+            className="max-w-full max-h-full object-contain"
             priority
           />
           <div className="absolute inset-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)] pointer-events-none" />

@@ -20,11 +20,15 @@ export function FrameDemo() {
   )
   const [imageError, setImageError] = useState(false)
 
-  const validateImage = (url: string): Promise<boolean> => {
+  // Add new state for image dimensions
+  const [imageDimensions, setImageDimensions] = useState({ width: 600, height: 400 })
+
+  // Modify the validateImage function to return dimensions
+  const validateImage = (url: string): Promise<{ isValid: boolean; width: number; height: number }> => {
     return new Promise((resolve) => {
       const img = new Image()
-      img.onload = () => resolve(true)
-      img.onerror = () => resolve(false)
+      img.onload = () => resolve({ isValid: true, width: img.naturalWidth, height: img.naturalHeight })
+      img.onerror = () => resolve({ isValid: false, width: 600, height: 400 })
       img.src = url
     })
   }
@@ -32,8 +36,11 @@ export function FrameDemo() {
   const handleImageUrlChange = async (url: string) => {
     setImageUrl(url)
     if (url) {
-      const isValid = await validateImage(url)
+      const { isValid, width, height } = await validateImage(url)
       setImageError(!isValid)
+      if (isValid) {
+        setImageDimensions({ width, height })
+      }
     } else {
       setImageError(false)
     }
@@ -126,8 +133,8 @@ export function FrameDemo() {
               <Frame
                 src={imageUrl}
                 alt="Framed artwork"
-                width={600}
-                height={400}
+                width={imageDimensions.width}
+                height={imageDimensions.height}
                 frameStyle={frameStyle}
                 matColor={matColor}
                 frameWidth={frameWidth}
@@ -159,8 +166,8 @@ export function FrameDemo() {
                     <Frame
                       src={imageUrl}
                       alt="Framed artwork on wall"
-                      width={600}
-                      height={400}
+                      width={imageDimensions.width}
+                      height={imageDimensions.height}
                       frameStyle={frameStyle}
                       matColor={matColor}
                       frameWidth={frameWidth}
