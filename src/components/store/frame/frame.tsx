@@ -64,7 +64,9 @@ export function Frame({
     <div
       className={cn("relative w-full", className)}
       style={{
-        paddingTop: `${aspectRatio * 100}%`,
+        aspectRatio: `${width} / ${height}`,
+        maxWidth: '100%',
+        margin: '0 auto'
       }}
     >
       <div className="absolute inset-0">
@@ -130,7 +132,8 @@ export function Frame({
             alt={alt}
             width={width}
             height={height}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
+            priority
           />
           <div className="absolute inset-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)] pointer-events-none" />
         </div>

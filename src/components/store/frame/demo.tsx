@@ -133,6 +133,42 @@ export function FrameDemo() {
                 frameWidth={frameWidth}
                 className="w-full"
               />
+
+              {/* Wall Preview */}
+              <div className="relative w-full aspect-[3/2] rounded-lg overflow-hidden shadow-xl">
+                <div 
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url('https://images.unsplash.com/photo-1513694203232-719a280e022f')`
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/5" />
+                
+                {/* Frame container - adjust size with w-[45%] and position with translate-x/y */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div 
+                    className="w-[45%] -translate-y-[5%]" 
+                    style={{
+                      // Use these styles to fine-tune positioning:
+                      // transform: 'translate(-10%, -20%)',  // Adjust X and Y position
+                      // width: '45%',                       // Adjust size
+                      // marginLeft: '100px',                // Offset from center
+                      // marginTop: '-50px',                 // Offset from center
+                    }}
+                  >
+                    <Frame
+                      src={imageUrl}
+                      alt="Framed artwork on wall"
+                      width={600}
+                      height={400}
+                      frameStyle={frameStyle}
+                      matColor={matColor}
+                      frameWidth={frameWidth}
+                      className="w-full shadow-2xl"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
