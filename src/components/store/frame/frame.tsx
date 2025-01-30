@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { cn } from '~/lib/utils'
+import { useRef, useEffect, useState } from 'react'
 
 interface FrameProps {
   src: string
@@ -38,30 +39,45 @@ export function Frame({
     black: 'bg-black',
     none: '',
   }
+  
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState(0)
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth)
+      }
+    }
+    updateSize()
+    window.addEventListener('resize', updateSize)
+    return () => window.removeEventListener('resize', updateSize)
+  }, [])
 
   const frameWidths = {
-    narrow: 0.04,  // 4% of respective dimension
-    medium: 0.06,  // 6% of respective dimension
-    wide: 0.08,    // 8% of respective dimension
+    narrow: 20,
+    medium: 30,
+    wide: 40,
   }
 
   const matWidths = {
-    narrow: 0.03,  // 3% of respective dimension
-    medium: 0.045, // 4.5% of respective dimension
-    wide: 0.06,    // 6% of respective dimension
+    narrow: 16,
+    medium: 24,
+    wide: 32,
   }
 
   const isWooden = ['walnut', 'oak', 'mahogany', 'pine'].includes(frameStyle)
   const isFloating = frameStyle === 'floating'
-  
-  // Calculate frame and mat thickness based on respective dimensions
-  const frameThicknessHorizontal = Math.round(width * frameWidths[frameWidth])
-  const frameThicknessVertical = Math.round(height * frameWidths[frameWidth])
-  const matThicknessHorizontal = matColor !== 'none' ? Math.round(width * matWidths[frameWidth]) : 0
-  const matThicknessVertical = matColor !== 'none' ? Math.round(height * matWidths[frameWidth]) : 0
+
+  const scale = containerWidth / width
+  const frameThicknessHorizontal = Math.round(frameWidths[frameWidth] * scale)
+  const frameThicknessVertical = Math.round((frameWidths[frameWidth] * height / width) * scale)
+  const matThicknessHorizontal = matColor !== 'none' ? Math.round(matWidths[frameWidth] * scale) : 0
+  const matThicknessVertical = matColor !== 'none' ? Math.round((matWidths[frameWidth] * height / width) * scale) : 0
 
   return (
     <div
+      ref={containerRef}
       className={cn("relative w-full", className)}
       style={{
         aspectRatio: `${width} / ${height}`,
