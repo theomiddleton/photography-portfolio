@@ -64,9 +64,9 @@ export function Frame({
   }
 
   const matWidths = {
-    narrow: 16,
-    medium: 24,
-    wide: 32,
+    narrow: 15,
+    medium: 23,
+    wide: 30,
   }
 
   const isWooden = ['walnut', 'oak', 'mahogany', 'pine'].includes(frameStyle)
