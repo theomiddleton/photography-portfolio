@@ -41,12 +41,15 @@ export function Frame({
   }
   
   const containerRef = useRef<HTMLDivElement>(null)
-  const [containerWidth, setContainerWidth] = useState(0)
+  const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 })
 
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
-        setContainerWidth(containerRef.current.offsetWidth)
+        setContainerDimensions({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight
+        })
       }
     }
     updateSize()
@@ -69,11 +72,14 @@ export function Frame({
   const isWooden = ['walnut', 'oak', 'mahogany', 'pine'].includes(frameStyle)
   const isFloating = frameStyle === 'floating'
 
-  const scale = containerWidth / width
-  const frameThicknessHorizontal = Math.round(frameWidths[frameWidth] * scale)
-  const frameThicknessVertical = Math.round((frameWidths[frameWidth] * height / width) * scale)
-  const matThicknessHorizontal = matColor !== 'none' ? Math.round(matWidths[frameWidth] * scale) : 0
-  const matThicknessVertical = matColor !== 'none' ? Math.round((matWidths[frameWidth] * height / width) * scale) : 0
+  // Calculate scale based on the smallest ratio to maintain proportions
+  const scale = Math.min(
+    containerDimensions.width / width,
+    containerDimensions.height / height
+  )
+
+  const frameThickness = Math.round(frameWidths[frameWidth] * scale)
+  const matThickness = matColor !== 'none' ? Math.round(matWidths[frameWidth] * scale) : 0
 
   return (
     <div
@@ -100,10 +106,10 @@ export function Frame({
           <div
             className="absolute bg-white"
             style={{
-              top: frameThicknessVertical,
-              right: frameThicknessHorizontal,
-              bottom: frameThicknessVertical,
-              left: frameThicknessHorizontal,
+              top: frameThickness,
+              right: frameThickness,
+              bottom: frameThickness,
+              left: frameThickness,
             }}
           />
         </div>
@@ -113,34 +119,34 @@ export function Frame({
           <div
             className={cn("absolute z-20", matStyles[matColor], "shadow-[0_2px_8px_rgba(0,0,0,0.15)]")}
             style={{
-              top: frameThicknessVertical,
-              right: frameThicknessHorizontal,
-              bottom: frameThicknessVertical,
-              left: frameThicknessHorizontal,
+              top: frameThickness,
+              right: frameThickness,
+              bottom: frameThickness,
+              left: frameThickness,
             }}
           >
             {/* Mat opening */}
             <div
               className="absolute bg-white"
               style={{
-                top: matThicknessVertical,
-                right: matThicknessHorizontal,
-                bottom: matThicknessVertical,
-                left: matThicknessHorizontal,
+                top: matThickness,
+                right: matThickness,
+                bottom: matThickness,
+                left: matThickness,
               }}
             />
             <div className="absolute inset-0 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]" />
           </div>
         )}
 
-        {/* Image */}
+        {/* Image container */}
         <div
           className="absolute z-30 overflow-hidden"
           style={{
-            top: frameThicknessVertical + matThicknessVertical,
-            right: frameThicknessHorizontal + matThicknessHorizontal,
-            bottom: frameThicknessVertical + matThicknessVertical,
-            left: frameThicknessHorizontal + matThicknessHorizontal,
+            top: frameThickness + matThickness,
+            right: frameThickness + matThickness,
+            bottom: frameThickness + matThickness,
+            left: frameThickness + matThickness,
           }}
         >
           <Image

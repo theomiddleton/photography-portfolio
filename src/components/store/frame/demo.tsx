@@ -147,13 +147,13 @@ export function FrameDemo() {
                 {/* Frame container - adjust size with w-[45%] and position with translate-x/y */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div 
-                    className="w-[45%] -translate-y-[5%]" 
+                    className="w-[25%] -translate-y-[5%]" 
                     style={{
                       // Use these styles to fine-tune positioning:
-                      // transform: 'translate(-10%, -20%)',  // Adjust X and Y position
+                      transform: 'translate(-10%, -20%)',  // Adjust X and Y position
                       // width: '45%',                       // Adjust size
-                      // marginLeft: '100px',                // Offset from center
-                      // marginTop: '-50px',                 // Offset from center
+                      marginLeft: '-50px',                // Offset from center
+                      marginTop: '-70px',                 // Offset from center
                     }}
                   >
                     <Frame
