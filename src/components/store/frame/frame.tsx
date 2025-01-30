@@ -40,25 +40,25 @@ export function Frame({
   }
 
   const frameWidths = {
-    narrow: 20,
-    medium: 30,
-    wide: 40,
+    narrow: 0.04,  // 4% of respective dimension
+    medium: 0.06,  // 6% of respective dimension
+    wide: 0.08,    // 8% of respective dimension
   }
 
   const matWidths = {
-    narrow: 16,
-    medium: 24,
-    wide: 32,
+    narrow: 0.03,  // 3% of respective dimension
+    medium: 0.045, // 4.5% of respective dimension
+    wide: 0.06,    // 6% of respective dimension
   }
 
   const isWooden = ['walnut', 'oak', 'mahogany', 'pine'].includes(frameStyle)
   const isFloating = frameStyle === 'floating'
-  const frameThickness = frameWidths[frameWidth]
-  const matThickness = matColor !== 'none' ? matWidths[frameWidth] : 0
-
-  // Calculate aspect ratio for the container
-  const aspectRatio = height / width
-  const containerPadding = frameThickness * 2 + matThickness * 2
+  
+  // Calculate frame and mat thickness based on respective dimensions
+  const frameThicknessHorizontal = Math.round(width * frameWidths[frameWidth])
+  const frameThicknessVertical = Math.round(height * frameWidths[frameWidth])
+  const matThicknessHorizontal = matColor !== 'none' ? Math.round(width * matWidths[frameWidth]) : 0
+  const matThicknessVertical = matColor !== 'none' ? Math.round(height * matWidths[frameWidth]) : 0
 
   return (
     <div
@@ -84,10 +84,10 @@ export function Frame({
           <div
             className="absolute bg-white"
             style={{
-              top: frameThickness,
-              right: frameThickness,
-              bottom: frameThickness,
-              left: frameThickness,
+              top: frameThicknessVertical,
+              right: frameThicknessHorizontal,
+              bottom: frameThicknessVertical,
+              left: frameThicknessHorizontal,
             }}
           />
         </div>
@@ -97,20 +97,20 @@ export function Frame({
           <div
             className={cn("absolute z-20", matStyles[matColor], "shadow-[0_2px_8px_rgba(0,0,0,0.15)]")}
             style={{
-              top: frameThickness,
-              right: frameThickness,
-              bottom: frameThickness,
-              left: frameThickness,
+              top: frameThicknessVertical,
+              right: frameThicknessHorizontal,
+              bottom: frameThicknessVertical,
+              left: frameThicknessHorizontal,
             }}
           >
             {/* Mat opening */}
             <div
               className="absolute bg-white"
               style={{
-                top: matThickness,
-                right: matThickness,
-                bottom: matThickness,
-                left: matThickness,
+                top: matThicknessVertical,
+                right: matThicknessHorizontal,
+                bottom: matThicknessVertical,
+                left: matThicknessHorizontal,
               }}
             />
             <div className="absolute inset-0 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]" />
@@ -121,10 +121,10 @@ export function Frame({
         <div
           className="absolute z-30 overflow-hidden"
           style={{
-            top: frameThickness + matThickness,
-            right: frameThickness + matThickness,
-            bottom: frameThickness + matThickness,
-            left: frameThickness + matThickness,
+            top: frameThicknessVertical + matThicknessVertical,
+            right: frameThicknessHorizontal + matThicknessHorizontal,
+            bottom: frameThicknessVertical + matThicknessVertical,
+            left: frameThicknessHorizontal + matThicknessHorizontal,
           }}
         >
           <Image
