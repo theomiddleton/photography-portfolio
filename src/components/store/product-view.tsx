@@ -7,9 +7,10 @@ import { formatPrice } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Dialog, DialogContent, DialogTrigger } from '~/components/ui/dialog'
-import { ChevronLeftIcon, ChevronRightIcon, ZoomInIcon, FrameIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon, ZoomInIcon } from 'lucide-react'
 import { Checkout } from '~/components/store/checkout/checkout-form'
 import { Frame } from '~/components/store/frame/frame'
+import { cn } from '~/lib/utils'
 
 interface ProductViewProps {
   product: Product
@@ -71,7 +72,22 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                     />
                     <div className="absolute inset-0 bg-black/5" />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-[25%] -translate-y-[5%]">
+                      <div 
+                        className={cn(
+                          "-translate-y-[5%]",
+                          // Adjust width based on orientation
+                          imageDimensions.height > imageDimensions.width 
+                            ? "w-[16.67%]"  // Portrait: scaled for equal area
+                            : "w-[25%]"     // Landscape: original size
+                        )}
+                        style={{
+                          transform: imageDimensions.height > imageDimensions.width
+                            ? 'translate(-10%, -15%)'  // Adjusted for portrait
+                            : 'translate(-0%, -20%)', // Original landscape position
+                          marginLeft: '-50px',
+                          marginTop: imageDimensions.height > imageDimensions.width ? '-50px' : '-70px',
+                        }}
+                      >
                         <Frame
                           src={product.imageUrl}
                           alt={product.name}
