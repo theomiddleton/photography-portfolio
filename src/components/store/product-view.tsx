@@ -88,12 +88,17 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div 
                         className={cn(
+                          "-translate-y-[5%]",
                           imageDimensions.height > imageDimensions.width 
-                            ? "w-[16.67%]"
-                            : "w-[25%]"
+                            ? "w-[16.67%]"  // Portrait: scaled for equal area
+                            : "w-[25%]"     // Landscape: original size
                         )}
                         style={{
-                          transform: 'translate(30%, -15%)'  // Fixed position for both orientations
+                          transform: imageDimensions.height > imageDimensions.width
+                            ? 'translate(-10%, -15%)'  // Portrait: moved left and up
+                            : 'translate(-10%, -20%)', // Landscape: moved left and up more
+                          marginLeft: '-50px',
+                          marginTop: imageDimensions.height > imageDimensions.width ? '-50px' : '-70px',
                         }}
                       >
                         <Frame
@@ -161,12 +166,17 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div 
                         className={cn(
+                          "-translate-y-[5%]",
                           imageDimensions.height > imageDimensions.width 
                             ? "w-[16.67%]"
                             : "w-[25%]"
                         )}
                         style={{
-                          transform: 'translate(30%, -15%)'  // Fixed position for both orientations
+                          transform: imageDimensions.height > imageDimensions.width
+                            ? 'translate(-10%, -15%)'
+                            : 'translate(-10%, -20%)',
+                          marginLeft: '-50px',
+                          marginTop: imageDimensions.height > imageDimensions.width ? '-50px' : '-70px',
                         }}
                       >
                         <Frame
