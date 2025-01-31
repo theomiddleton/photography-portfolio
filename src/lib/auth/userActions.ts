@@ -76,14 +76,20 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
     return { message: 'Invalid password' }
   }
   
-  const session = await createSession({ email: user.email, role: user.role, id: user.id })
-  
-  (await cookies()).set('session', session, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    expires: new Date(Date.now() + JWT_EXPIRATION_MS)
-  })
+  try {
+    const session = await createSession({ email: user.email, role: user.role, id: user.id })
+    
+    const cookieStore = await cookies()
+    cookieStore.set('session', session, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      expires: new Date(Date.now() + JWT_EXPIRATION_MS)
+    })
+  } catch (error) {
+    console.error('Error setting session:', error)
+    return { message: 'Error during login process' }
+  }
   
   // Return redirect path based on role
   const redirectPath = user.role === 'admin' ? '/admin' : '/'
@@ -155,18 +161,24 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     const [createdUser] = await insertUser(newUser)
     
     // Now create session with the new user's ID
-    const session = await createSession({ 
-      email: email, 
-      role: role, 
-      id: createdUser.id 
-    })
-    
-    (await cookies()).set('session', session, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      expires: new Date(Date.now() + JWT_EXPIRATION_MS)
-    })
+    try {
+      const session = await createSession({ 
+        email: email, 
+        role: role, 
+        id: createdUser.id 
+      })
+      
+      const cookieStore = await cookies()
+      cookieStore.set('session', session, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        expires: new Date(Date.now() + JWT_EXPIRATION_MS)
+      })
+    } catch (error) {
+      console.error('Error setting session:', error)
+      return { message: 'Error during registration process' }
+    }
     
     return { message: 'User created' }
   } catch (error) {
