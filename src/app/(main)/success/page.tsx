@@ -7,11 +7,12 @@ import { formatPrice } from '~/lib/utils'
 import { siteConfig } from '~/config/site'
 import Link from 'next/link' 
 
-export default async function SuccessPage({
-  searchParams,
-}: {
-  searchParams: { session_id: string }
-}) {
+export default async function SuccessPage(
+  props: {
+    searchParams: Promise<{ session_id: string }>
+  }
+) {
+  const searchParams = await props.searchParams;
   const sessionId = searchParams.session_id
 
   if (!sessionId) {

@@ -28,11 +28,12 @@ async function updateVideo(id: string, data: VideoFormData) {
   redirect('/admin/videos')
 }
 
-export default async function EditVideoPage({
-  params
-}: {
-  params: { id: string }
-}) {
+export default async function EditVideoPage(
+  props: {
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params;
   const [video] = await db
     .select()
     .from(videos)

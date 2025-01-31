@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react';
 import ReactMarkdown from 'react-markdown'
 import { Textarea } from '~/components/ui/textarea'
 import { Input } from '~/components/ui/input'
@@ -16,9 +16,10 @@ interface FeedbackState {
   message: string
 }
 
-export default function DraftEditor({ params }: { params: { id: string } }) {
+export default function DraftEditor(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const draftId = parseInt(params.id, 10)
-  
+
   const [draft, setDraft] = useState<PostData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)

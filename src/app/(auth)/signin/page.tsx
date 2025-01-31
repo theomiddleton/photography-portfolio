@@ -1,7 +1,6 @@
 'use client'
 
-import { useRef, useEffect} from 'react'
-import { useFormState } from 'react-dom'
+import { useRef, useEffect, useActionState } from 'react';
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { X } from 'lucide-react'
@@ -17,7 +16,7 @@ import {
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation' 
+import { useRouter } from 'next/navigation'
 
 import { loginSchema } from '~/lib/types/loginSchema'
 
@@ -25,7 +24,7 @@ import { login } from '~/lib/auth/userActions'
 
 export default function Signin() {
   const router = useRouter()
-  const [state, formAction] = useFormState(login, {
+  const [state, formAction] = useActionState(login, {
     message: '',
     redirect: null,
   })

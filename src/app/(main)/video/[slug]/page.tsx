@@ -7,11 +7,12 @@ import { notFound } from 'next/navigation'
 
 export const revalidate = 3600 // Revalidate every hour
 
-export default async function VideoPage({
-  params
-}: {
-  params: { slug: string }
-}) {
+export default async function VideoPage(
+  props: {
+    params: Promise<{ slug: string }>
+  }
+) {
+  const params = await props.params;
   const [video] = await db
     .select()
     .from(videos)

@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useRef } from 'react'
-import { useFormState } from 'react-dom'
+import React, { useRef, useActionState } from 'react';
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { X } from 'lucide-react'
@@ -24,7 +23,7 @@ import { registerSchema } from '~/lib/types/registerSchema'
 import { register } from '~/lib/auth/userActions'
 
 export default function Signup() {
-  const [state, formAction] = useFormState(register, {
+  const [state, formAction] = useActionState(register, {
     message: '',
   })
   const form = useForm<z.output<typeof registerSchema>>({

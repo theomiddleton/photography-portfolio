@@ -78,7 +78,7 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
   
   const session = await createSession({ email: user.email, role: user.role, id: user.id })
   
-  cookies().set('session', session, {
+  (await cookies()).set('session', session, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
@@ -161,7 +161,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
       id: createdUser.id 
     })
     
-    cookies().set('session', session, {
+    (await cookies()).set('session', session, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
@@ -176,7 +176,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
 }
 
 export async function logout(_prevState: LogoutState): Promise<LogoutState> {
-  const sessionCookie = cookies().get('session')
+  const sessionCookie = (await cookies()).get('session')
 
   if (!sessionCookie) {
     return { 
@@ -187,7 +187,7 @@ export async function logout(_prevState: LogoutState): Promise<LogoutState> {
   }
 
   try {
-    cookies().set('session', '', { expires: new Date(0) })
+    (await cookies()).set('session', '', { expires: new Date(0) })
     return {
       success: true,
       message: 'Logged out successfully, wait to be redirected.',

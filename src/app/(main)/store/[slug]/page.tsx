@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm'
 import { ProductView } from '~/components/store/product-view'
 
 interface Props {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export const revalidate = 3600
@@ -20,7 +20,8 @@ async function getProductSizes(productId: string) {
   return await db.select().from(productSizes).where(eq(productSizes.productId, productId))
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const product = await getProduct(params.slug)
 
   if (!product) {
@@ -40,7 +41,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function ProductPage({ params }: Props) {
+export default async function ProductPage(props: Props) {
+  const params = await props.params;
   const product = await getProduct(params.slug)
 
   if (!product) {

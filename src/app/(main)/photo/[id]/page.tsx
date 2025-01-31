@@ -22,8 +22,9 @@ export const revalidate = 60
 export const dynamicParams = true
 
 // Generate metadata for the page
-export async function generateMetadata({ params }: { params: { id: number } }): Promise<Metadata> {
-  
+export async function generateMetadata(props: { params: Promise<{ id: number }> }): Promise<Metadata> {
+  const params = await props.params;
+
   // fetch image data from the database
   const result = await db
     .select({
@@ -60,7 +61,8 @@ export async function generateMetadata({ params }: { params: { id: number } }): 
   }
 }
 
-export default async function Photo({ params }: { params: { id: number } }) {
+export default async function Photo(props: { params: Promise<{ id: number }> }) {
+  const params = await props.params;
   // fetch image data from the database
   const result = await db
     .select({
