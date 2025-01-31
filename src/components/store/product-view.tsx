@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Product, ProductSize } from '~/server/db/schema'
 import { formatPrice } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
@@ -23,7 +23,21 @@ export function ProductView({ product, sizes }: ProductViewProps) {
   const [showCheckout, setShowCheckout] = useState(false)
   const [currentView, setCurrentView] = useState<'image' | 'wall'>('image')
   const [showZoom, setShowZoom] = useState(false)
-  const [imageDimensions] = useState({ width: 600, height: 400 })
+  const [imageDimensions, setImageDimensions] = useState({ width: 600, height: 400 })
+
+  useEffect(() => {
+    const validateImage = () => {
+      const img = new window.Image()
+      img.onload = () => {
+        setImageDimensions({
+          width: img.naturalWidth,
+          height: img.naturalHeight
+        })
+      }
+      img.src = product.imageUrl
+    }
+    validateImage()
+  }, [product.imageUrl])
 
   const selectedPrintSize = sizes.find((size) => size.id === selectedSize)
 
@@ -74,18 +88,12 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div 
                         className={cn(
-                          "-translate-y-[5%]",
-                          // Adjust width based on orientation
                           imageDimensions.height > imageDimensions.width 
-                            ? "w-[16.67%]"  // Portrait: scaled for equal area
-                            : "w-[25%]"     // Landscape: original size
+                            ? "w-[16.67%]"
+                            : "w-[25%]"
                         )}
                         style={{
-                          transform: imageDimensions.height > imageDimensions.width
-                            ? 'translate(-10%, -15%)'  // Adjusted for portrait
-                            : 'translate(-0%, -20%)', // Original landscape position
-                          marginLeft: '-50px',
-                          marginTop: imageDimensions.height > imageDimensions.width ? '-50px' : '-70px',
+                          transform: 'translate(30%, -15%)'  // Fixed position for both orientations
                         }}
                       >
                         <Frame
@@ -151,7 +159,16 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                     />
                     <div className="absolute inset-0 bg-black/5" />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-[25%] -translate-y-[5%]">
+                      <div 
+                        className={cn(
+                          imageDimensions.height > imageDimensions.width 
+                            ? "w-[16.67%]"
+                            : "w-[25%]"
+                        )}
+                        style={{
+                          transform: 'translate(30%, -15%)'  // Fixed position for both orientations
+                        }}
+                      >
                         <Frame
                           src={product.imageUrl}
                           alt={product.name}
