@@ -54,7 +54,7 @@ export async function createCheckoutSession(
       .orderBy(desc(storeCosts.createdAt))
       .limit(1)
 
-    const tax = 0
+    const tax = Math.round((subtotal + shippingCost) * (costs[0]?.taxRate ? costs[0].taxRate / 1000000 : 20))
     const stripeTax = Math.round((subtotal + shippingCost) * (costs[0]?.stripeTaxRate ? costs[0].stripeTaxRate / 1000000 : 150))
     const total = subtotal + shippingCost + tax + stripeTax
 
