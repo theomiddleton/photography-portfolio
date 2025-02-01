@@ -89,7 +89,6 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
         } catch (error) {
           console.error('Error sending confirmation email:', error)
         }
-      
         window.location.href = `/success?session_id=${paymentIntent.id}`
       }
     } catch (err) {
