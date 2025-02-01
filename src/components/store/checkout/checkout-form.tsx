@@ -5,8 +5,9 @@ import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { CheckoutForm } from '~/components/store/checkout/stripe-form'
 import { OrderSummary } from '~/components/store/checkout/order-summary'
-import type { Product, ProductSize } from '~/server/db/schema'
+import type { Product, ProductSize, ShippingMethod } from '~/server/db/schema'
 import { createCheckoutSession } from '~/lib/actions/store/store'
+import { getShippingMethods } from '~/lib/actions/store/shipping'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -17,16 +18,31 @@ interface CheckoutProps {
 
 export function Checkout({ product, selectedSize }: CheckoutProps) {
   const [clientSecret, setClientSecret] = useState<string>()
+  const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([])
+  const [selectedShipping, setSelectedShipping] = useState<string>('')
 
   useEffect(() => {
-    createCheckoutSession(product.id, selectedSize.id)
+    getShippingMethods()
+      .then(data => {
+        setShippingMethods(data)
+        if (data.length > 0) {
+          setSelectedShipping(data[0].id)
+        }
+      })
+      .catch(console.error)
+  }, [])
+
+  useEffect(() => {
+    if (!selectedShipping) return
+
+    createCheckoutSession(product.id, selectedSize.id, selectedShipping)
       .then((data) => {
         if (data.clientSecret) {
           setClientSecret(data.clientSecret)
         }
       })
       .catch(console.error)
-  }, [product.id, selectedSize.id])
+  }, [product.id, selectedSize.id, selectedShipping])
 
   if (!clientSecret) {
     return <div>Loading...</div>
@@ -47,7 +63,13 @@ export function Checkout({ product, selectedSize }: CheckoutProps) {
           <CheckoutForm clientSecret={clientSecret} />
         </Elements>
       </div>
-      <OrderSummary product={product} size={selectedSize} />
+      <OrderSummary 
+        product={product} 
+        size={selectedSize}
+        shippingMethods={shippingMethods}
+        selectedShipping={selectedShipping}
+        onShippingChange={setSelectedShipping}
+      />
     </div>
   )
 }

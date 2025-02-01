@@ -6,7 +6,11 @@ import { orders, products, productSizes, storeCosts, shippingMethods } from '~/s
 import { eq, and, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
-export async function createCheckoutSession(productId: string, sizeId: string) {
+export async function createCheckoutSession(
+  productId: string, 
+  sizeId: string,
+  shippingMethodId: string
+) {
   try {
     // Check if there's already a pending order for this product and size
     const existingOrder = await db
@@ -30,23 +34,19 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
     }
 
     // Get product and size details
-    const product = await db
-      .select()
-      .from(products)
-      .where(eq(products.id, productId))
-      .limit(1)
-    const sizes = await db
-      .select()
-      .from(productSizes)
-      .where(eq(productSizes.id, sizeId))
-      .limit(1)
-    const size = sizes[0]
+    const [product, size, shippingMethod] = await Promise.all([
+      db.select().from(products).where(eq(products.id, productId)).limit(1),
+      db.select().from(productSizes).where(eq(productSizes.id, sizeId)).limit(1),
+      db.select().from(shippingMethods).where(eq(shippingMethods.id, shippingMethodId)).limit(1)
+    ])
 
-    if (!product || !size) {
-      throw new Error('Product or size not found')
+    if (!product[0] || !size[0] || !shippingMethod[0]) {
+      throw new Error('Product, size, or shipping method not found')
     }
 
-    const subtotal = size.basePrice
+    const subtotal = size[0].basePrice
+    const shippingCost = shippingMethod[0].price
+    
     const costs = await db
       .select()
       .from(storeCosts)
@@ -54,14 +54,6 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
       .orderBy(desc(storeCosts.createdAt))
       .limit(1)
 
-    // Default to the lowest price shipping method if none selected
-    const availableShippingMethods = await db
-      .select()
-      .from(shippingMethods)
-      .where(eq(shippingMethods.active, true))
-      .orderBy(shippingMethods.price)
-
-    const shippingCost = availableShippingMethods[0]?.price ?? 0
     const tax = Math.round(
       (subtotal + shippingCost) *
         (costs[0]?.taxRate ? costs[0].taxRate / 100 : 20),
@@ -80,6 +72,7 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
       metadata: {
         productId,
         sizeId,
+        shippingMethodId,
         subtotal: subtotal.toString(),
         shippingCost: shippingCost.toString(),
         tax: tax.toString(),
