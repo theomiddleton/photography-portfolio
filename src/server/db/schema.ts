@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
-export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
+export const pgTable = pgTableCreator((name) => `pp_${name}`)
 
 export const orderStatuses = [
   'pending',
