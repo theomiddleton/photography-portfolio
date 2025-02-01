@@ -54,15 +54,8 @@ export async function createCheckoutSession(
       .orderBy(desc(storeCosts.createdAt))
       .limit(1)
 
-
-    const tax = Math.round(
-      (subtotal + shippingCost) *
-        (costs[0]?.taxRate ? costs[0].taxRate / 10000 : 20) / 100,
-    )
-    const stripeTax = Math.round(
-      (subtotal + shippingCost) *
-      (costs[0]?.stripeTaxRate ? costs[0].stripeTaxRate / 10000 : 1.5) / 100,
-    )
+    const tax = 0
+    const stripeTax = Math.round((subtotal + shippingCost) * (costs[0]?.stripeTaxRate ? costs[0].stripeTaxRate / 1000000 : 150))
     const total = subtotal + shippingCost + tax + stripeTax
 
     // Create a payment intent
@@ -185,5 +178,31 @@ export async function updateTaxRates(taxRate: number, stripeRate: number) {
   } catch (error) {
     console.error('Error updating tax rates:', error)
     return { success: false, error: 'Failed to update tax rates' }
+  }
+}
+
+export async function getTaxRates() {
+  try {
+    const costs = await db
+      .select()
+      .from(storeCosts)
+      .where(eq(storeCosts.active, true))
+      .orderBy(desc(storeCosts.createdAt))
+      .limit(1)
+
+    if (!costs.length) {
+      return {
+        taxRate: 2000,
+        stripeTaxRate: 150,
+      }
+    }
+
+    return {
+      taxRate: costs[0].taxRate,
+      stripeTaxRate: costs[0].stripeTaxRate,
+    }
+  } catch (error) {
+    console.error('Error fetching tax rates:', error)
+    return null
   }
 }

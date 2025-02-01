@@ -9,6 +9,8 @@ interface OrderSummaryProps {
   shippingMethods: ShippingMethod[]
   selectedShipping: string
   onShippingChange: (value: string) => void
+  taxRate: number
+  stripeTaxRate: number
 }
 
 export function OrderSummary({ 
@@ -16,9 +18,16 @@ export function OrderSummary({
   size, 
   shippingMethods,
   selectedShipping,
-  onShippingChange 
+  onShippingChange,
+  taxRate,
+  stripeTaxRate
 }: OrderSummaryProps) {
   const selectedMethod = shippingMethods.find(method => method.id === selectedShipping)
+  const subtotal = size.basePrice
+  const shippingCost = selectedMethod?.price ?? 0
+  const tax = Math.round((subtotal + shippingCost) * (taxRate / 1000000))
+  const stripeTax = Math.round((subtotal + shippingCost) * (stripeTaxRate / 1000000))
+  const total = subtotal + shippingCost + tax + stripeTax
 
   return (
     <div className="bg-gray-50 p-6 rounded-lg space-y-4">
@@ -58,17 +67,23 @@ export function OrderSummary({
 
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>{formatPrice(size.basePrice)}</span>
+          <span>{formatPrice(subtotal)}</span>
         </div>
         <div className="flex justify-between">
           <span>Shipping</span>
-          <span>{selectedMethod ? formatPrice(selectedMethod.price) : '-'}</span>
+          <span>{selectedMethod ? formatPrice(shippingCost) : '-'}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Tax</span>
+          <span>{formatPrice(tax)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Processing Fee</span>
+          <span>{formatPrice(stripeTax)}</span>
         </div>
         <div className="flex justify-between font-semibold mt-4">
           <span>Total</span>
-          <span>
-            {formatPrice(size.basePrice + (selectedMethod?.price ?? 0))}
-          </span>
+          <span>{formatPrice(total)}</span>
         </div>
       </div>
     </div>

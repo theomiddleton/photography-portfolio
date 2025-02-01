@@ -8,6 +8,7 @@ import { OrderSummary } from '~/components/store/checkout/order-summary'
 import type { Product, ProductSize, ShippingMethod } from '~/server/db/schema'
 import { createCheckoutSession } from '~/lib/actions/store/store'
 import { getShippingMethods } from '~/lib/actions/store/shipping'
+import { getTaxRates } from '~/lib/actions/store/store'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -20,8 +21,17 @@ export function Checkout({ product, selectedSize }: CheckoutProps) {
   const [clientSecret, setClientSecret] = useState<string>()
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([])
   const [selectedShipping, setSelectedShipping] = useState<string>('')
+  const [taxRates, setTaxRates] = useState({ taxRate: 2000, stripeTaxRate: 150 })
 
   useEffect(() => {
+    getTaxRates()
+      .then(rates => {
+        if (rates) {
+          setTaxRates(rates)
+        }
+      })
+      .catch(console.error)
+
     getShippingMethods()
       .then(data => {
         setShippingMethods(data)
@@ -69,6 +79,8 @@ export function Checkout({ product, selectedSize }: CheckoutProps) {
         shippingMethods={shippingMethods}
         selectedShipping={selectedShipping}
         onShippingChange={setSelectedShipping}
+        taxRate={taxRates.taxRate}
+        stripeTaxRate={taxRates.stripeTaxRate}
       />
     </div>
   )
