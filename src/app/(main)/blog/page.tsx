@@ -8,18 +8,18 @@ import type { Post } from '~/lib/types/Post'
 
 const temp = await db.select().from(blogs)
 // const result = await db.query.blogs.findMany()
-console.log('Temp: ', temp)
-console.log('Res: ', temp)
+// console.log('Temp: ', temp)
+// console.log('Res: ', temp)
 
 export default async function Blog() {
   const allPosts: Post[] = await db.select().from(blogs)
   
-  console.log('All Posts: ', allPosts)
+  // console.log('All Posts: ', allPosts)
   
   // Filter out draft posts
   const publishedPosts = allPosts.filter(post => !post.isDraft)
   
-  console.log('Published Posts: ', publishedPosts)
+  // console.log('Published Posts: ', publishedPosts)
   
   if (publishedPosts.length <= 0) {
     return (

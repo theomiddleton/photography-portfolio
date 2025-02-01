@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "next build",
-    "dev": "next dev --turbopack",
-    "turbo": "next dev --turbo",
+    "dev": "next dev",
+    "turbo": "next dev --turbopack",
     "lint": "next lint",
     "start": "next start",
     "generate": "drizzle-kit generate",
