@@ -4,6 +4,7 @@ import { db } from '~/server/db'
 import { products, productSizes } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { ProductView } from '~/components/store/product-view'
+import { siteConfig } from '~/config/site'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -27,16 +28,52 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   if (!product) {
     return {
       title: 'Print Not Found',
+      description: 'The requested print could not be found.',
     }
   }
 
+  const title = `${product.name} | Print Store`
+  const description = product.description
+  const ogImageUrl = new URL('/api/og', siteConfig.url ?? 'http://localhost:3000')
+  ogImageUrl.searchParams.set('image', product.imageUrl)
+  ogImageUrl.searchParams.set('title', product.name)
+
   return {
-    title: `${product.name} | Print Store`,
-    description: product.description,
+    title,
+    description,
     openGraph: {
-      title: `${product.name} | Print Store`,
-      description: product.description,
+      title,
+      description,
+      images: [
+        {
+          url: ogImageUrl.toString(),
+          width: 1200,
+          height: 630,
+          alt: product.name,
+        }
+      ],
+      siteName: 'Print Store',
+      locale: 'en_GB',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
       images: [product.imageUrl],
+    },
+    alternates: {
+      canonical: `/store/${params.slug}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
     },
   }
 }

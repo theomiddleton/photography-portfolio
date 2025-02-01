@@ -25,9 +25,11 @@ Make hide buttons show when hidden, change message so fits in the row
 ## Rework store
 
 - [x] FIX 3000% increase on each charge
-  - [ ] actually fix it
+  - [x] actually fix it
   - [ ] change to stripe tax
-  - [ ] change shipping implementation
+  - [x] change shipping implementation
+
+- [ ] Add profit / sell at prices
   
 - [ ] Fully upgrade to next 15
 
@@ -78,7 +80,7 @@ Make hide buttons show when hidden, change message so fits in the row
   - [x] Email notifications
 
   - [ ] SEO & Sharing
-    - [ ] Dynamic OG images
+    - [x] Dynamic OG images
     - [ ] Structured data for products
     - [ ] Sitemap generation
     - [ ] Social sharing metadata
