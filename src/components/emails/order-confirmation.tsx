@@ -22,8 +22,15 @@ interface OrderConfirmationEmailProps {
   customerEmail: string
   productName: string
   productSize: string
-  price: string
+  subtotal: string
+  shippingCost: string
+  tax: string
+  total: string
   imageUrl: string
+  shippingMethod: {
+    name: string
+    description: string
+  }
   shippingAddress: {
     line1: string
     line2?: string
@@ -40,7 +47,11 @@ export const OrderConfirmationEmailText = ({
   customerEmail,
   productName,
   productSize,
-  price,
+  subtotal,
+  shippingCost,
+  tax,
+  total,
+  shippingMethod,
   shippingAddress,
 }: OrderConfirmationEmailProps) => {
   return `Order Confirmation for ${productName}
@@ -54,9 +65,20 @@ Order Details:
 Order Number: ${orderNumber}
 Product: ${productName}
 Size: ${productSize}
-Price: ${price}
 
-Shipping Details:
+Costs:
+------
+Subtotal: ${subtotal}
+Shipping (${shippingMethod.name}): ${shippingCost}
+Tax: ${tax}
+Total: ${total}
+
+Shipping Method:
+--------------
+${shippingMethod.name}
+${shippingMethod.description}
+
+Shipping Address:
 ---------------
 ${customerName}
 ${shippingAddress.line1}
@@ -75,8 +97,12 @@ export const OrderConfirmationEmail = ({
   customerEmail,
   productName,
   productSize,
-  price,
+  subtotal,
+  shippingCost,
+  tax,
+  total,
   imageUrl,
+  shippingMethod,
   shippingAddress,
 }: OrderConfirmationEmailProps) => {
   return (
@@ -139,22 +165,59 @@ export const OrderConfirmationEmail = ({
                 </Column>
               </Row>
 
-              <Row className="mt-2">
+              <Hr className="my-4 border-gray-200" />
+
+              <Row className="mt-4">
                 <Column className="w-1/3">
-                  <Text className="text-gray-500 text-sm m-0">Price:</Text>
+                  <Text className="text-gray-500 text-sm m-0">Subtotal:</Text>
                 </Column>
                 <Column className="w-2/3">
-                  <Text className="text-sm font-semibold m-0">{price}</Text>
+                  <Text className="text-sm m-0">{subtotal}</Text>
+                </Column>
+              </Row>
+
+              <Row className="mt-2">
+                <Column className="w-1/3">
+                  <Text className="text-gray-500 text-sm m-0">Shipping:</Text>
+                </Column>
+                <Column className="w-2/3">
+                  <Text className="text-sm m-0">{shippingCost}</Text>
+                </Column>
+              </Row>
+
+              <Row className="mt-2">
+                <Column className="w-1/3">
+                  <Text className="text-gray-500 text-sm m-0">Tax:</Text>
+                </Column>
+                <Column className="w-2/3">
+                  <Text className="text-sm m-0">{tax}</Text>
+                </Column>
+              </Row>
+
+              <Row className="mt-2">
+                <Column className="w-1/3">
+                  <Text className="text-gray-500 text-sm font-medium m-0">Total:</Text>
+                </Column>
+                <Column className="w-2/3">
+                  <Text className="text-sm font-semibold m-0">{total}</Text>
                 </Column>
               </Row>
             </Section>
 
-            <Section className="bg-gray-50 rounded-lg p-8 my-6">
-              <Heading className="text-base font-semibold mb-3">Shipping Details</Heading>
+            <Section className="bg-gray-50 rounded-lg p-8 my-4">
+              <Heading className="text-base font-semibold mb-3">Shipping Method</Heading>
+              <Text className="text-sm font-medium m-0">{shippingMethod.name}</Text>
+              <Text className="text-sm text-gray-600 m-0">{shippingMethod.description}</Text>
+            </Section>
 
+            <Section className="bg-gray-50 rounded-lg p-8 my-4">
+              <Heading className="text-base font-semibold mb-3">Shipping Address</Heading>
               <div className="space-y-1">
                 <Text className="text-sm m-0">{customerName}</Text>
                 <Text className="text-sm m-0">{shippingAddress.line1}</Text>
+                {shippingAddress.line2 && (
+                  <Text className="text-sm m-0">{shippingAddress.line2}</Text>
+                )}
                 <Text className="text-sm m-0">{shippingAddress.city}</Text>
                 <Text className="text-sm m-0">{shippingAddress.postalCode}</Text>
                 <Text className="text-sm m-0">{shippingAddress.country}</Text>

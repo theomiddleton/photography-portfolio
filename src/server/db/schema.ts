@@ -175,6 +175,7 @@ export const orders = pgTable('orders', {
   orderNumber: serial('orderNumber').notNull(),
   productId: uuid('productId').references(() => products.id),
   sizeId: uuid('sizeId').references(() => productSizes.id),
+  shippingMethodId: uuid('shippingMethodId').references(() => shippingMethods.id),
   stripeSessionId: text('stripeSessionId').notNull(),
   status: text('status', { enum: orderStatuses }).notNull().default('pending'),
   customerName: text('customerName').notNull(),
@@ -237,6 +238,10 @@ export const orderRelations = relations(orders, ({ one, many }) => ({
   size: one(productSizes, {
     fields: [orders.sizeId],
     references: [productSizes.id],
+  }),
+  shippingMethod: one(shippingMethods, {
+    fields: [orders.shippingMethodId],
+    references: [shippingMethods.id],
   }),
   statusHistory: many(orderStatusHistory),
 }))

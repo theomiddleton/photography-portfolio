@@ -2,7 +2,7 @@ import { OrderConfirmationEmail, OrderConfirmationEmailText } from '~/components
 import { AdminOrderNotificationEmail, AdminOrderNotificationText } from '~/components/emails/admin-order-notification'
 import { Resend } from 'resend'
 import { db } from '~/server/db'
-import { orders, products, productSizes } from '~/server/db/schema'
+import { orders, products, productSizes, shippingMethods } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { siteConfig } from '~/config/site'
 
@@ -39,30 +39,30 @@ export async function POST(request: Request) {
     }
 
     // Fetch order details
+    // Update order fetch to include shipping method
     const order = await db
       .select()
       .from(orders)
       .where(eq(orders.stripeSessionId, orderId))
       .leftJoin(products, eq(orders.productId, products.id))
       .leftJoin(productSizes, eq(orders.sizeId, productSizes.id))
+      .leftJoin(shippingMethods, eq(orders.shippingMethodId, shippingMethods.id))
       .limit(1)
       .then((results) => results[0])
 
-    if (!order) {
-      return Response.json({ error: 'Order not found' }, { status: 404 })
-    }
+      const orderDate = new Date().toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
 
-    // Format price from pennies to pounds with £ symbol
-    const formattedPrice = `£${(order.orders.total / 100).toFixed(2)}`
-
-    // Format the current date
-    const orderDate = new Date().toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    // Format monetary values
+    const formattedSubtotal = `£${(order.orders.subtotal / 100).toFixed(2)}`
+    const formattedShipping = `£${(order.orders.shippingCost / 100).toFixed(2)}`
+    const formattedTax = `£${(order.orders.tax / 100).toFixed(2)}`
+    const formattedTotal = `£${(order.orders.total / 100).toFixed(2)}`
 
     // Send customer confirmation email
     const customerEmail = await resend.emails.send({
@@ -76,8 +76,15 @@ export async function POST(request: Request) {
         customerEmail: order.orders.email,
         productName: order.products.name,
         productSize: order.productSizes.name,
-        price: formattedPrice,
+        subtotal: formattedSubtotal,
+        shippingCost: formattedShipping,
+        tax: formattedTax,
+        total: formattedTotal,
         imageUrl: order.products.imageUrl,
+        shippingMethod: {
+          name: order.shippingMethods.name,
+          description: order.shippingMethods.description || '',
+        },
         shippingAddress: {
           line1: shippingDetails?.address.line1 || '',
           line2: shippingDetails?.address.line2,
@@ -93,8 +100,15 @@ export async function POST(request: Request) {
         customerEmail: order.orders.email,
         productName: order.products.name,
         productSize: order.productSizes.name,
-        price: formattedPrice,
+        subtotal: formattedSubtotal,
+        shippingCost: formattedShipping,
+        tax: formattedTax,
+        total: formattedTotal,
         imageUrl: order.products.imageUrl,
+        shippingMethod: {
+          name: order.shippingMethods.name,
+          description: order.shippingMethods.description || '',
+        },
         shippingAddress: {
           line1: shippingDetails?.address.line1 || '',
           line2: shippingDetails?.address.line2,
@@ -118,7 +132,7 @@ export async function POST(request: Request) {
         customerEmail: order.orders.email,
         productName: order.products.name,
         productSize: order.productSizes.name,
-        price: formattedPrice,
+        price: formattedTotal,
         orderDate,
         shippingAddress: {
           line1: shippingDetails?.address.line1 || '',
@@ -128,7 +142,7 @@ export async function POST(request: Request) {
           postalCode: shippingDetails?.address.postalCode || '',
           country: shippingDetails?.address.country || '',
         },
-        adminDashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/admin/orders/${order.orders.orderNumber}`,
+        adminDashboardUrl: `${siteConfig.url}/admin/orders/`,
       }),
       text: AdminOrderNotificationText({
         orderNumber: order.orders.orderNumber.toString(),
@@ -136,7 +150,7 @@ export async function POST(request: Request) {
         customerEmail: order.orders.email,
         productName: order.products.name,
         productSize: order.productSizes.name,
-        price: formattedPrice,
+        price: formattedTotal,
         orderDate,
         shippingAddress: {
           line1: shippingDetails?.address.line1 || '',
