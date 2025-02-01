@@ -14,6 +14,7 @@ import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
 import { Plus, Trash2 } from 'lucide-react'
 import type { ShippingMethod } from '~/server/db/schema'
+import { updateShippingMethods } from '~/lib/actions/store/shipping'
 
 interface ShippingSettingsProps {
   shippingMethods: ShippingMethod[]
@@ -39,6 +40,11 @@ export function ShippingSettings({
       estimatedDays: method.estimatedDays?.toString() || '',
     })),
   )
+  const [isLoading, setIsLoading] = useState(false)
+  const [status, setStatus] = useState<{
+    type: 'success' | 'error' | null
+    message: string | null
+  }>({ type: null, message: null })
 
   const handleMethodChange = (
     index: number,
@@ -69,15 +75,37 @@ export function ShippingSettings({
   }
 
   const handleSaveChanges = async () => {
-    const formattedMethods = methods.map((method) => ({
-      ...method,
-      price: Math.round(parseFloat(method.price) * 100),
-      estimatedDays: method.estimatedDays
-        ? parseInt(method.estimatedDays)
-        : null,
-    }))
-    // TODO: Implement save functionality
-    console.log('Saving shipping methods:', formattedMethods)
+    try {
+      setIsLoading(true)
+      setStatus({ type: null, message: null })
+
+      const formattedMethods = methods.map((method) => ({
+        ...method,
+        price: Math.round(parseFloat(method.price) * 100),
+        estimatedDays: method.estimatedDays
+          ? parseInt(method.estimatedDays)
+          : null,
+      }))
+
+      const result = await updateShippingMethods(formattedMethods)
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save shipping methods')
+      }
+
+      setStatus({
+        type: 'success',
+        message: 'Shipping methods updated successfully',
+      })
+    } catch (error) {
+      console.error('Error saving shipping methods:', error)
+      setStatus({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to save shipping methods',
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -90,6 +118,16 @@ export function ShippingSettings({
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
+          {status.message && (
+            <p
+              className={`text-sm ${
+                status.type === 'error' ? 'text-red-500' : 'text-green-500'
+              }`}
+            >
+              {status.message}
+            </p>
+          )}
+
           {methods.map((method, index) => (
             <div
               key={method.id || index}
@@ -173,8 +211,22 @@ export function ShippingSettings({
             Add Shipping Method
           </Button>
 
-          <Button onClick={handleSaveChanges} className="w-full">
-            Save Changes
+          <Button 
+            onClick={handleSaveChanges} 
+            className="w-full relative"
+            disabled={isLoading}
+          >
+            {isLoading && (
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              </span>
+            )}
+            <span className={isLoading ? 'invisible' : ''}>
+              Save Changes
+            </span>
           </Button>
         </div>
       </CardContent>

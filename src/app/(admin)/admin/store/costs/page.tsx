@@ -1,5 +1,5 @@
 import { db } from '~/server/db'
-import { basePrintSizes, storeCosts } from '~/server/db/schema'
+import { basePrintSizes, storeCosts, shippingMethods } from '~/server/db/schema'
 import { desc, eq } from 'drizzle-orm'
 
 import { Costs } from '~/components/store/admin/costs/costs'
@@ -10,6 +10,13 @@ export const dynamic = 'force-dynamic'
 
 async function getPrintSizes() {
   return await db.select().from(basePrintSizes).orderBy(desc(basePrintSizes.createdAt))
+}
+
+async function getShippingMethods() {
+  return await db
+    .select()
+    .from(shippingMethods)
+    .where(eq(shippingMethods.active, true))
 }
 
 async function getCosts() {
@@ -25,10 +32,6 @@ async function getCosts() {
       initialTax: {
         taxRate: 20,
         stripeRate: 1.4,
-      },
-      shippingCosts: {
-        domestic: 500,
-        international: 1000,
       }
     }
   }
@@ -37,18 +40,15 @@ async function getCosts() {
     initialTax: {
       taxRate: costs[0].taxRate / 100,
       stripeRate: costs[0].stripeTaxRate / 100,
-    },
-    shippingCosts: {
-      domestic: costs[0].domesticShipping,
-      international: costs[0].internationalShipping,
     }
   }
 }
 
 export default async function CostsPage() {
-  const [sizes, costs] = await Promise.all([
+  const [sizes, costs, shippingMethods] = await Promise.all([
     getPrintSizes(),
-    getCosts()
+    getCosts(),
+    getShippingMethods()
   ])
 
   return (
@@ -68,7 +68,7 @@ export default async function CostsPage() {
         <Costs 
           sizes={sizes} 
           initialTax={costs.initialTax}
-          initialShippingCosts={costs.shippingCosts}
+          shippingMethods={shippingMethods}
         />
       </div>
     </main>
