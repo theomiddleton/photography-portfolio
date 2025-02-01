@@ -162,7 +162,7 @@ export async function updateOrderStatus(
 
 export async function updateTaxRates(taxRate: number, stripeRate: number) {
   try {
-    await db.transaction(async (tx) => {
+    await dbWithTx.transaction(async (tx) => {
 
       await tx
         .update(storeCosts)
