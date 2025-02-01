@@ -12,7 +12,7 @@ export default async function VideoPage(
     params: Promise<{ slug: string }>
   }
 ) {
-  const params = await props.params;
+  const params = await props.params
   const [video] = await db
     .select()
     .from(videos)

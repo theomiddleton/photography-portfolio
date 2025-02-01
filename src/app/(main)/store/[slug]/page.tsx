@@ -21,7 +21,7 @@ async function getProductSizes(productId: string) {
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
-  const params = await props.params;
+  const params = await props.params
   const product = await getProduct(params.slug)
 
   if (!product) {
@@ -42,7 +42,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage(props: Props) {
-  const params = await props.params;
+  const params = await props.params
   const product = await getProduct(params.slug)
 
   if (!product) {

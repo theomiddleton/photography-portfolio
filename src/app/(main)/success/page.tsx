@@ -12,7 +12,7 @@ export default async function SuccessPage(
     searchParams: Promise<{ session_id: string }>
   }
 ) {
-  const searchParams = await props.searchParams;
+  const searchParams = await props.searchParams
   const sessionId = searchParams.session_id
 
   if (!sessionId) {

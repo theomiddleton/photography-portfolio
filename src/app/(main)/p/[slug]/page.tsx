@@ -6,7 +6,7 @@ import { components } from '~/components/pages/mdx-components/mdx-components'
 export const revalidate = 3600
 
 export default async function CustomPage(props: { params: Promise<{ slug: string }> }) {
-  const params = await props.params;
+  const params = await props.params
   const page = await getCustomPage(params.slug)
 
   if (!page || !page.isPublished) {

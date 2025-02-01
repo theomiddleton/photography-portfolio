@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useActionState } from 'react';
+import { useRef, useEffect, useActionState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { X } from 'lucide-react'

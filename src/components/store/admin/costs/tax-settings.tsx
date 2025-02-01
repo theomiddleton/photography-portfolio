@@ -27,8 +27,8 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [status, setStatus] = useState<{
-    type: 'error' | 'success' | null;
-    message: string | null;
+    type: 'error' | 'success' | null
+    message: string | null
   }>({ type: null, message: null })
 
   const handleTaxRateChange = (

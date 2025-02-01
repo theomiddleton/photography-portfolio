@@ -25,7 +25,7 @@ export function FrameDemo() {
   const [imageDimensions, setImageDimensions] = useState({ width: 600, height: 400 })
 
   // Modify the validateImage function to return dimensions
-  const validateImage = (url: string): Promise<{ isValid: boolean; width: number; height: number }> => {
+  const validateImage = (url: string): Promise<{ isValid: boolean, width: number, height: number }> => {
     return new Promise((resolve) => {
       const img = new Image()
       img.onload = () => resolve({ isValid: true, width: img.naturalWidth, height: img.naturalHeight })

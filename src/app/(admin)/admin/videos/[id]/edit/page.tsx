@@ -33,7 +33,7 @@ export default async function EditVideoPage(
     params: Promise<{ id: string }>
   }
 ) {
-  const params = await props.params;
+  const params = await props.params
   const [video] = await db
     .select()
     .from(videos)

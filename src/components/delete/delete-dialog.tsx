@@ -28,13 +28,13 @@ interface Image {
 
 interface DataTableProps {
   image: Image
-  deleteImage: (params: { uuid: string; fileName: string }) => Promise<{ success: boolean; message: string }>
+  deleteImage: (params: { uuid: string, fileName: string }) => Promise<{ success: boolean, message: string }>
 }
 
 export function DeleteDialog({ image, deleteImage }: DataTableProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const handleDelete = () => {
     // using the transition react api so even if the delete takes a long time, the ui isnt blocked

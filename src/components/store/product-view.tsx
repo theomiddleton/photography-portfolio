@@ -121,8 +121,8 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                     variant="ghost"
                     size="icon"
                     onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrentView(currentView === 'image' ? 'wall' : 'image');
+                      e.stopPropagation()
+                      setCurrentView(currentView === 'image' ? 'wall' : 'image')
                     }}
                     className="transform -translate-x-2"
                   >
@@ -132,8 +132,8 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                     variant="ghost"
                     size="icon"
                     onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrentView(currentView === 'image' ? 'wall' : 'image');
+                      e.stopPropagation()
+                      setCurrentView(currentView === 'image' ? 'wall' : 'image')
                     }}
                     className="transform translate-x-2"
                   >

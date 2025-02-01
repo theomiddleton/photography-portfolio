@@ -29,13 +29,13 @@ interface Image {
 
 interface VisibilityDialogProps {
   image: Image
-  changeVisibility: (params: { uuid: string; visible: boolean }) => Promise<{ success: boolean; message: string }>
+  changeVisibility: (params: { uuid: string, visible: boolean }) => Promise<{ success: boolean, message: string }>
 }
 
 export function VisibilityDialog({ image, changeVisibility }: VisibilityDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const handleVisibilityChange = () => {
     startTransition(async () => {
