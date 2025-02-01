@@ -20,14 +20,12 @@ async function getShippingMethods() {
 }
 
 async function getCosts() {
-  // Get the most recent record regardless of active status
   const costs = await db.select()
     .from(storeCosts)
     .orderBy(desc(storeCosts.createdAt))
     .limit(1)
 
   if (!costs.length) {
-    // Return default values if no records exist
     return {
       initialTax: {
         taxRate: 20,
@@ -38,8 +36,8 @@ async function getCosts() {
 
   return {
     initialTax: {
-      taxRate: costs[0].taxRate / 100,
-      stripeRate: costs[0].stripeTaxRate / 100,
+      taxRate: costs[0].taxRate / 10000,
+      stripeRate: costs[0].stripeTaxRate / 10000,
     }
   }
 }

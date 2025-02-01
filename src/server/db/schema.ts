@@ -223,8 +223,8 @@ export const shippingMethods = pgTable('shippingMethods', {
 
 export const storeCosts = pgTable('storeCosts', {
   id: serial('id').primaryKey(),
-  taxRate: integer('taxRate').notNull(), // Stored as percentage * 100 (e.g., 20.5% = 2050)
-  stripeTaxRate: integer('stripeTaxRate').notNull(), // Stored as percentage * 100 (e.g., 20.5% = 2050)
+  taxRate: integer('taxRate').notNull(), // Stored as percentage * 10000 (e.g., 20.55% = 205500)
+  stripeTaxRate: integer('stripeTaxRate').notNull(), // Stored as percentage * 10000 (e.g., 1.45% = 14500)
   active: boolean('active').default(true).notNull(),
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),

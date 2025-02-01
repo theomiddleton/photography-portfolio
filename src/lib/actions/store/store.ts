@@ -1,7 +1,7 @@
 'use server'
 
 import { stripe } from '~/lib/stripe'
-import { db } from '~/server/db'
+import { db, dbWithTx } from '~/server/db'
 import { orders, products, productSizes, storeCosts, shippingMethods } from '~/server/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
@@ -54,13 +54,14 @@ export async function createCheckoutSession(
       .orderBy(desc(storeCosts.createdAt))
       .limit(1)
 
+
     const tax = Math.round(
       (subtotal + shippingCost) *
-        (costs[0]?.taxRate ? costs[0].taxRate / 100 : 20),
+        (costs[0]?.taxRate ? costs[0].taxRate / 10000 : 20) / 100,
     )
     const stripeTax = Math.round(
       (subtotal + shippingCost) *
-      (costs[0]?.stripeTaxRate ? costs[0].stripeTaxRate / 100 : 1.5),
+      (costs[0]?.stripeTaxRate ? costs[0].stripeTaxRate / 10000 : 1.5) / 100,
     )
     const total = subtotal + shippingCost + tax + stripeTax
 
@@ -161,24 +162,21 @@ export async function updateOrderStatus(
 
 export async function updateTaxRates(taxRate: number, stripeRate: number) {
   try {
-    // Get current costs first
-    const currentCosts = await db
-      .select()
-      .from(storeCosts)
-      .orderBy(desc(storeCosts.createdAt))
-      .limit(1)
-
     await db.transaction(async (tx) => {
-      // Deactivate current active record
+
       await tx
         .update(storeCosts)
         .set({ active: false })
         .where(eq(storeCosts.active, true))
 
+      // Convert percentage to integer (multiply by 10000 to preserve 4 decimal places)
+      const taxRateInt = Math.round(taxRate * 10000)
+      const stripeRateInt = Math.round(stripeRate * 10000)
+
       // Create new record
       await tx.insert(storeCosts).values({
-        taxRate: Math.round(taxRate),
-        stripeTaxRate: Math.round(stripeRate),
+        taxRate: taxRateInt,
+        stripeTaxRate: stripeRateInt,
         active: true,
       })
     })
