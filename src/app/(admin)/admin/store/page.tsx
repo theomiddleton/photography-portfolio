@@ -1,5 +1,5 @@
 import { db } from '~/server/db'
-import { products, productSizes, orders } from '~/server/db/schema'
+import { products, productSizes, orders, shippingMethods } from '~/server/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { AdminOrders } from '~/components/store/admin/orders'
 import { AdminProducts } from '~/components/store/admin/products'
@@ -20,6 +20,7 @@ async function getRecentOrders() {
     updatedAt: orders.updatedAt,
     productId: orders.productId,
     sizeId: orders.sizeId,
+    shippingMethodId: orders.shippingMethodId,
     stripeSessionId: orders.stripeSessionId,
     status: orders.status,
     customerName: orders.customerName,
@@ -34,11 +35,12 @@ async function getRecentOrders() {
     statusUpdatedAt: orders.statusUpdatedAt,
     product: products,
     size: productSizes,
+    shippingMethod: shippingMethods,
   }).from(orders)
     .leftJoin(products, eq(orders.productId, products.id))
     .leftJoin(productSizes, eq(orders.sizeId, productSizes.id))
+    .leftJoin(shippingMethods, eq(orders.shippingMethodId, shippingMethods.id))
     .orderBy(desc(orders.createdAt))
-    // .limit(10)
 }
 
 export default async function AdminStorePage() {
