@@ -2,7 +2,7 @@
 
 import { stripe } from '~/lib/stripe'
 import { db } from '~/server/db'
-import { orders, products, productSizes, storeCosts } from '~/server/db/schema'
+import { orders, products, productSizes, storeCosts, shippingMethods } from '~/server/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
@@ -12,27 +12,40 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
     const existingOrder = await db
       .select()
       .from(orders)
-      .where(and(
-        eq(orders.productId, productId),
-        eq(orders.sizeId, sizeId),
-        eq(orders.status, 'pending'),
-      )).limit(1)
+      .where(
+        and(
+          eq(orders.productId, productId),
+          eq(orders.sizeId, sizeId),
+          eq(orders.status, 'pending'),
+        ),
+      )
+      .limit(1)
 
     // If there's an existing pending order, return its client secret
     if (existingOrder[0]) {
-      const paymentIntent = await stripe.paymentIntents.retrieve(existingOrder[0].stripeSessionId)
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        existingOrder[0].stripeSessionId,
+      )
       return { clientSecret: paymentIntent.client_secret }
     }
 
     // Get product and size details
-    const product = await db.select().from(products).where(eq(products.id, productId)).limit(1)
-    const sizes = await db.select().from(productSizes).where(eq(productSizes.id, sizeId)).limit(1)
+    const product = await db
+      .select()
+      .from(products)
+      .where(eq(products.id, productId))
+      .limit(1)
+    const sizes = await db
+      .select()
+      .from(productSizes)
+      .where(eq(productSizes.id, sizeId))
+      .limit(1)
     const size = sizes[0]
 
     if (!product || !size) {
       throw new Error('Product or size not found')
     }
-    
+
     const subtotal = size.basePrice
     const costs = await db
       .select()
@@ -41,9 +54,22 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
       .orderBy(desc(storeCosts.createdAt))
       .limit(1)
 
-    const shippingCost = costs[0]?.domesticShipping ? costs[0].domesticShipping : 0
-    const tax = Math.round((subtotal + shippingCost) * (costs[0]?.taxRate? costs[0].taxRate / 100 : 20))
-    const stripeTax = Math.round((subtotal + shippingCost) * (costs[0]?.stripeTaxRate? costs[0].stripeTaxRate / 100 : 1.5))
+    // Default to the lowest price shipping method if none selected
+    const availableShippingMethods = await db
+      .select()
+      .from(shippingMethods)
+      .where(eq(shippingMethods.active, true))
+      .orderBy(shippingMethods.price)
+
+    const shippingCost = availableShippingMethods[0]?.price ?? 0
+    const tax = Math.round(
+      (subtotal + shippingCost) *
+        (costs[0]?.taxRate ? costs[0].taxRate / 100 : 20),
+    )
+    const stripeTax = Math.round(
+      (subtotal + shippingCost) *
+      (costs[0]?.stripeTaxRate ? costs[0].stripeTaxRate / 100 : 1.5),
+    )
     const total = subtotal + shippingCost + tax + stripeTax
 
     // Create a payment intent
@@ -61,23 +87,26 @@ export async function createCheckoutSession(productId: string, sizeId: string) {
     })
 
     // Create order record
-    const [order] = await db.insert(orders).values({
-      stripeSessionId: paymentIntent.id,
-      customerName: '',
-      email: '',
-      productId,
-      sizeId,
-      status: 'pending',
-      subtotal,
-      shippingCost,
-      tax,
-      total,
-      currency: 'gbp',
-    }).returning()
+    const [order] = await db
+      .insert(orders)
+      .values({
+        stripeSessionId: paymentIntent.id,
+        customerName: '',
+        email: '',
+        productId,
+        sizeId,
+        status: 'pending',
+        subtotal,
+        shippingCost,
+        tax,
+        total,
+        currency: 'gbp',
+      })
+      .returning()
 
-    return { 
+    return {
       clientSecret: paymentIntent.client_secret,
-      orderId: order.id 
+      orderId: order.id,
     }
   } catch (error) {
     console.error('Error:', error)
@@ -99,11 +128,11 @@ export async function updateOrderStatus(
       postal_code: string
       country: string
     }
-  }
+  },
 ) {
   try {
     const paymentIntent = await stripe.paymentIntents.retrieve(stripeSessionId)
-    
+
     if (paymentIntent.status !== 'succeeded') {
       return { success: false, error: 'Payment not completed' }
     }
@@ -115,15 +144,17 @@ export async function updateOrderStatus(
         status,
         email,
         customerName: shipping?.name,
-        shippingAddress: shipping ? {
-          name: shipping.name,
-          line1: shipping.address.line1,
-          line2: shipping.address.line2,
-          city: shipping.address.city,
-          state: shipping.address.state,
-          postal_code: shipping.address.postal_code,
-          country: shipping.address.country,
-        } : undefined,
+        shippingAddress: shipping
+          ? {
+              name: shipping.name,
+              line1: shipping.address.line1,
+              line2: shipping.address.line2,
+              city: shipping.address.city,
+              state: shipping.address.state,
+              postal_code: shipping.address.postal_code,
+              country: shipping.address.country,
+            }
+          : undefined,
         statusUpdatedAt: new Date(),
       })
       .where(eq(orders.stripeSessionId, stripeSessionId))
@@ -155,12 +186,9 @@ export async function updateTaxRates(taxRate: number, stripeRate: number) {
       await tx.insert(storeCosts).values({
         taxRate: Math.round(taxRate),
         stripeTaxRate: Math.round(stripeRate),
-        domesticShipping: currentCosts[0]?.domesticShipping ?? 500,
-        internationalShipping: currentCosts[0]?.internationalShipping ?? 1000,
         active: true,
       })
     })
-    
     revalidatePath('/admin/store/costs')
     return { success: true }
   } catch (error) {

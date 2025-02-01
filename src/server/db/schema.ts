@@ -1,9 +1,25 @@
-import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean, uuid, json } from 'drizzle-orm/pg-core'
+import {
+  serial,
+  varchar,
+  timestamp,
+  pgTableCreator,
+  integer,
+  text,
+  boolean,
+  uuid,
+  json,
+} from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
 export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
 
-export const orderStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const
+export const orderStatuses = [
+  'pending',
+  'processing',
+  'shipped',
+  'delivered',
+  'cancelled',
+] as const
 export type OrderStatus = (typeof orderStatuses)[number]
 
 export const imageData = pgTable('imageData', {
@@ -60,7 +76,9 @@ export const about = pgTable('about', {
 
 export const aboutImages = pgTable('aboutImages', {
   id: serial('id').primaryKey(),
-  aboutId: integer('about_id').notNull().references(() => about.id),
+  aboutId: integer('about_id')
+    .notNull()
+    .references(() => about.id),
   name: varchar('name', { length: 256 }).notNull(),
   url: varchar('url', { length: 512 }).notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
@@ -191,12 +209,21 @@ export const orderStatusHistory = pgTable('orderStatusHistory', {
   createdBy: integer('createdBy').references(() => users.id),
 })
 
+export const shippingMethods = pgTable('shippingMethods', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  price: integer('price').notNull(), // Stored in pence
+  estimatedDays: integer('estimatedDays'),
+  active: boolean('active').default(true),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
 export const storeCosts = pgTable('storeCosts', {
   id: serial('id').primaryKey(),
   taxRate: integer('taxRate').notNull(), // Stored as percentage * 100 (e.g., 20.5% = 2050)
   stripeTaxRate: integer('stripeTaxRate').notNull(), // Stored as percentage * 100 (e.g., 20.5% = 2050)
-  domesticShipping: integer('domesticShipping').notNull(), // Stored in pence
-  internationalShipping: integer('internationalShipping').notNull(), // Stored in pence
   active: boolean('active').default(true).notNull(),
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),
@@ -214,26 +241,30 @@ export const orderRelations = relations(orders, ({ one, many }) => ({
   statusHistory: many(orderStatusHistory),
 }))
 
-export const orderStatusHistoryRelations = relations(orderStatusHistory, ({ one }) => ({
-  order: one(orders, {
-    fields: [orderStatusHistory.orderId],
-    references: [orders.id],
+export const orderStatusHistoryRelations = relations(
+  orderStatusHistory,
+  ({ one }) => ({
+    order: one(orders, {
+      fields: [orderStatusHistory.orderId],
+      references: [orders.id],
+    }),
+    user: one(users, {
+      fields: [orderStatusHistory.createdBy],
+      references: [users.id],
+    }),
   }),
-  user: one(users, {
-    fields: [orderStatusHistory.createdBy],
-    references: [users.id],
-  }),
-}))
+)
 
 export type Product = typeof products.$inferSelect
 export type ProductSize = typeof productSizes.$inferSelect
 export type BasePrintSize = typeof basePrintSizes.$inferSelect
 export type Order = typeof orders.$inferSelect
 export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect
+export type ShippingMethod = typeof shippingMethods.$inferSelect
 export type StoreCosts = typeof storeCosts.$inferSelect
 
 export const aboutRelations = relations(about, ({ many }) => ({
-  images: many(aboutImages)
+  images: many(aboutImages),
 }))
 
 export const aboutImagesRelations = relations(aboutImages, ({ one }) => ({

@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { PrintSizes } from '~/components/store/admin/costs/print-sizes'
 import { TaxSettings } from '~/components/store/admin/costs/tax-settings'
 import { ShippingSettings } from '~/components/store/admin/costs/shipping-settings'
-import type { BasePrintSize } from '~/server/db/schema'
+import type { BasePrintSize, ShippingMethod } from '~/server/db/schema'
 
 interface CostsProps {
   sizes: BasePrintSize[]
@@ -19,17 +19,10 @@ interface CostsProps {
     taxRate: number
     stripeRate: number
   }
-  initialShippingCosts: {
-    domestic: number
-    international: number
-  }
+  shippingMethods: ShippingMethod[]
 }
 
-export function Costs({
-  sizes,
-  initialTax,
-  initialShippingCosts,
-}: CostsProps) {
+export function Costs({ sizes, initialTax, shippingMethods }: CostsProps) {
   return (
     <Card>
       <CardHeader>
@@ -55,7 +48,7 @@ export function Costs({
           </TabsContent>
 
           <TabsContent value="shipping" className="space-y-4">
-            <ShippingSettings initialShippingCosts={initialShippingCosts} />
+            <ShippingSettings shippingMethods={shippingMethods} />
           </TabsContent>
         </Tabs>
       </CardContent>
