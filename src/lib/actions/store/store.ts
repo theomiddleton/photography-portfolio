@@ -55,10 +55,11 @@ export async function createCheckoutSession(
       .limit(1)
 
     const tax = Math.round((subtotal + shippingCost) * (costs[0]?.taxRate ? costs[0].taxRate / 10000 : 0.20))
-    console.log('Stripe Tax Calculation: ')
-    console.log('Subtotal + Shipping Cost: ', Math.round(subtotal + shippingCost))
+    console.log('Stripe Tax Calculation')
+    console.log('Subtotal + Shipping Cost: ', Math.round(subtotal + shippingCost), '£', (Math.round(subtotal + shippingCost)) / 100)
     console.log('StripeTaxRate: ', costs[0]?.stripeTaxRate)
     console.log('StripeTaxRate / 10000: ', costs[0].stripeTaxRate / 10000)
+    console.log('Total: ', '£', ((Math.round(subtotal + shippingCost)) / 100 ) * (costs[0].stripeTaxRate / 10000))
     const stripeTax = Math.round((subtotal + shippingCost) * (costs[0]?.stripeTaxRate ? costs[0].stripeTaxRate / 10000 : 0.015))
     const total = subtotal + shippingCost + tax + stripeTax
 
