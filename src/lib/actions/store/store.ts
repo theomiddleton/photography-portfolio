@@ -54,8 +54,12 @@ export async function createCheckoutSession(
       .orderBy(desc(storeCosts.createdAt))
       .limit(1)
 
-    const tax = Math.round((subtotal + shippingCost) * (costs[0]?.taxRate ? costs[0].taxRate / 1000000 : 20))
-    const stripeTax = Math.round((subtotal + shippingCost) * (costs[0]?.stripeTaxRate ? costs[0].stripeTaxRate / 1000000 : 150))
+    const tax = Math.round((subtotal + shippingCost) * (costs[0]?.taxRate ? costs[0].taxRate / 10000 : 0.20))
+    console.log('Stripe Tax Calculation: ')
+    console.log('Subtotal + Shipping Cost: ', Math.round(subtotal + shippingCost))
+    console.log('StripeTaxRate: ', costs[0]?.stripeTaxRate)
+    console.log('StripeTaxRate / 10000: ', costs[0].stripeTaxRate / 10000)
+    const stripeTax = Math.round((subtotal + shippingCost) * (costs[0]?.stripeTaxRate ? costs[0].stripeTaxRate / 10000 : 0.015))
     const total = subtotal + shippingCost + tax + stripeTax
 
     // Create a payment intent
