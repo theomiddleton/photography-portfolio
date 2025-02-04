@@ -25,9 +25,8 @@ Make hide buttons show when hidden, change message so fits in the row
 ## Rework store
 
 - [x] FIX 3000% increase on each charge
-  - [ ] actually fix it
+  - [x] actually fix it
     - [ ] Fix shipping always being 1st option
-  - [ ] change to stripe tax
   - [x] change shipping implementation
 
 - [ ] Add profit / sell at prices
