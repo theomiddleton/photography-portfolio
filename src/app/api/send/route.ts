@@ -45,6 +45,8 @@ export async function POST(request: Request) {
       shippingDetails?: ShippingDetails
     } = await request.json()
 
+    console.log('Received request:', { email, orderId, shippingDetails })
+
     if (!email) {
       return Response.json({ error: 'Email is required' }, { status: 400 })
     }
@@ -57,12 +59,17 @@ export async function POST(request: Request) {
       .where(eq(orders.stripeSessionId, orderId))
       .leftJoin(products, eq(orders.productId, products.id))
       .leftJoin(productSizes, eq(orders.sizeId, productSizes.id))
-      .leftJoin(
-        shippingMethods,
-        eq(orders.shippingMethodId, shippingMethods.id),
-      )
+      .leftJoin(shippingMethods, eq(orders.shippingMethodId, shippingMethods.id))
       .limit(1)
-      .then((results) => results[0])
+      .then((results) => {
+        console.log('Database query results:', results)
+        return results[0]
+      })
+
+    if (!order) {
+      console.error('No order found for ID:', orderId)
+      return Response.json({ error: 'Order not found' }, { status: 404 })
+    }
 
     const orderDate = new Date().toLocaleDateString('en-GB', {
       day: 'numeric',
@@ -96,8 +103,8 @@ export async function POST(request: Request) {
         total: formattedTotal,
         imageUrl: order.products.imageUrl,
         shippingMethod: {
-          name: order.shippingMethods.name,
-          description: order.shippingMethods.description || '',
+          name: order.shippingMethods?.name || 'Standard Shipping',
+          description: order.shippingMethods?.description || '',
         },
         shippingAddress: {
           line1: shippingDetails?.address.line1 || '',
@@ -120,8 +127,8 @@ export async function POST(request: Request) {
         total: formattedTotal,
         imageUrl: order.products.imageUrl,
         shippingMethod: {
-          name: order.shippingMethods.name,
-          description: order.shippingMethods.description || '',
+          name: order.shippingMethods?.name || 'Standard Shipping',
+          description: order.shippingMethods?.description || '',
         },
         shippingAddress: {
           line1: shippingDetails?.address.line1 || '',
@@ -189,6 +196,10 @@ export async function POST(request: Request) {
       adminEmail: adminEmail.data,
     })
   } catch (error) {
-    return Response.json({ error }, { status: 500 })
+    console.log(error)
+    return Response.json(
+      { error: error instanceof Error ? error.message : 'An unknown error occurred' },
+      { status: 500 }
+    )
   }
 }
