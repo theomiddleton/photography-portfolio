@@ -29,7 +29,7 @@ interface AdminOrderNotificationProps {
     city: string
     country: string
     state?: string
-    postalCode: string
+    postal_code: string
   }
   adminDashboardUrl?: string
 }
@@ -67,7 +67,7 @@ Shipping Address:
 ${customerName}
 ${shippingAddress.line1}
 ${shippingAddress.line2 ? shippingAddress.line2 + '\n' : ''}${shippingAddress.city}
-${shippingAddress.postalCode}
+${shippingAddress.postal_code}
 ${shippingAddress.country}
 
 Please process this order as soon as possible.`
@@ -92,31 +92,41 @@ export const AdminOrderNotificationEmail = ({
       </Preview>
       <Tailwind>
         <Body className="bg-white font-sans">
-          <Container className="mx-auto py-5 px-4">
-            <Section className="bg-gray-50 rounded-lg p-4 mb-6">
-              <Heading className="text-xl font-semibold text-center m-0">New Order Received</Heading>
-              <Text className="text-center text-gray-500 mt-1 mb-0">#{orderNumber}</Text>
+          <Container className="mx-auto px-4 py-5">
+            <Section className="mb-6 rounded-lg bg-gray-50 p-4">
+              <Heading className="m-0 text-center text-xl font-semibold">
+                New Order Received
+              </Heading>
+              <Text className="mb-0 mt-1 text-center text-gray-500">
+                #{orderNumber}
+              </Text>
             </Section>
 
             <Section className="my-6">
               <Row>
                 <Column>
-                  <Text className="text-base font-semibold mb-2">Order Summary</Text>
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <Text className="mb-2 text-base font-semibold">
+                    Order Summary
+                  </Text>
+                  <div className="rounded-lg bg-gray-50 p-4">
                     <Row>
                       <Column className="w-1/3">
-                        <Text className="text-gray-500 text-sm m-0">Date:</Text>
+                        <Text className="m-0 text-sm text-gray-500">Date:</Text>
                       </Column>
                       <Column className="w-2/3">
-                        <Text className="text-sm m-0">{orderDate}</Text>
+                        <Text className="m-0 text-sm">{orderDate}</Text>
                       </Column>
                     </Row>
                     <Row className="mt-2">
                       <Column className="w-1/3">
-                        <Text className="text-gray-500 text-sm m-0">Amount:</Text>
+                        <Text className="m-0 text-sm text-gray-500">
+                          Amount:
+                        </Text>
                       </Column>
                       <Column className="w-2/3">
-                        <Text className="text-sm font-semibold m-0">{price}</Text>
+                        <Text className="m-0 text-sm font-semibold">
+                          {price}
+                        </Text>
                       </Column>
                     </Row>
                   </div>
@@ -125,44 +135,51 @@ export const AdminOrderNotificationEmail = ({
             </Section>
 
             <Section className="my-6">
-              <Text className="text-base font-semibold mb-2">Product Details</Text>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <Text className="mb-2 text-base font-semibold">
+                Product Details
+              </Text>
+              <div className="rounded-lg bg-gray-50 p-4">
                 <Row>
                   <Column className="w-1/3">
-                    <Text className="text-gray-500 text-sm m-0">Product:</Text>
+                    <Text className="m-0 text-sm text-gray-500">Product:</Text>
                   </Column>
                   <Column className="w-2/3">
-                    <Text className="text-sm m-0">{productName}</Text>
+                    <Text className="m-0 text-sm">{productName}</Text>
                   </Column>
                 </Row>
                 <Row className="mt-2">
                   <Column className="w-1/3">
-                    <Text className="text-gray-500 text-sm m-0">Size:</Text>
+                    <Text className="m-0 text-sm text-gray-500">Size:</Text>
                   </Column>
                   <Column className="w-2/3">
-                    <Text className="text-sm m-0">{productSize}</Text>
+                    <Text className="m-0 text-sm">{productSize}</Text>
                   </Column>
                 </Row>
               </div>
             </Section>
 
             <Section className="my-6">
-              <Text className="text-base font-semibold mb-2">Customer Information</Text>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <Text className="mb-2 text-base font-semibold">
+                Customer Information
+              </Text>
+              <div className="rounded-lg bg-gray-50 p-4">
                 <Row>
                   <Column className="w-1/3">
-                    <Text className="text-gray-500 text-sm m-0">Name:</Text>
+                    <Text className="m-0 text-sm text-gray-500">Name:</Text>
                   </Column>
                   <Column className="w-2/3">
-                    <Text className="text-sm m-0">{customerName}</Text>
+                    <Text className="m-0 text-sm">{customerName}</Text>
                   </Column>
                 </Row>
                 <Row className="mt-2">
                   <Column className="w-1/3">
-                    <Text className="text-gray-500 text-sm m-0">Email:</Text>
+                    <Text className="m-0 text-sm text-gray-500">Email:</Text>
                   </Column>
                   <Column className="w-2/3">
-                    <Link href={`mailto:${customerEmail}`} className="text-sm m-0 text-blue-600">
+                    <Link
+                      href={`mailto:${customerEmail}`}
+                      className="m-0 text-sm text-blue-600"
+                    >
                       {customerEmail}
                     </Link>
                   </Column>
@@ -171,14 +188,20 @@ export const AdminOrderNotificationEmail = ({
             </Section>
 
             <Section className="my-6">
-              <Text className="text-base font-semibold mb-2">Shipping Address</Text>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-1">
-                <Text className="text-sm m-0">{customerName}</Text>
-                <Text className="text-sm m-0">{shippingAddress.line1}</Text>
-                {shippingAddress.line2 && <Text className="text-sm m-0">{shippingAddress.line2}</Text>}
-                <Text className="text-sm m-0">{shippingAddress.city}</Text>
-                <Text className="text-sm m-0">{shippingAddress.postalCode}</Text>
-                <Text className="text-sm m-0">{shippingAddress.country}</Text>
+              <Text className="mb-2 text-base font-semibold">
+                Shipping Address
+              </Text>
+              <div className="space-y-1 rounded-lg bg-gray-50 p-4">
+                <Text className="m-0 text-sm">{customerName}</Text>
+                <Text className="m-0 text-sm">{shippingAddress.line1}</Text>
+                {shippingAddress.line2 && (
+                  <Text className="m-0 text-sm">{shippingAddress.line2}</Text>
+                )}
+                <Text className="m-0 text-sm">{shippingAddress.city}</Text>
+                <Text className="m-0 text-sm">
+                  {shippingAddress.postal_code}
+                </Text>
+                <Text className="m-0 text-sm">{shippingAddress.country}</Text>
               </div>
             </Section>
 
@@ -186,7 +209,7 @@ export const AdminOrderNotificationEmail = ({
               <Section className="mt-8">
                 <Link
                   href={adminDashboardUrl}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg text-sm font-bold text-center block hover:bg-blue-700"
+                  className="block rounded-lg bg-blue-600 px-6 py-3 text-center text-sm font-bold text-white hover:bg-blue-700"
                 >
                   View Order in Dashboard
                 </Link>
@@ -195,8 +218,9 @@ export const AdminOrderNotificationEmail = ({
 
             <Hr className="my-6 border-gray-200" />
 
-            <Text className="text-xs text-gray-400 text-center">
-              This is an automated message from {siteConfig.storeName}. Please do not reply to this email.
+            <Text className="text-center text-xs text-gray-400">
+              This is an automated message from {siteConfig.storeName}. Please
+              do not reply to this email.
             </Text>
           </Container>
         </Body>

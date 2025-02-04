@@ -1,8 +1,19 @@
-import { OrderConfirmationEmail, OrderConfirmationEmailText } from '~/components/emails/order-confirmation'
-import { AdminOrderNotificationEmail, AdminOrderNotificationText } from '~/components/emails/admin-order-notification'
+import {
+  OrderConfirmationEmail,
+  OrderConfirmationEmailText,
+} from '~/components/emails/order-confirmation'
+import {
+  AdminOrderNotificationEmail,
+  AdminOrderNotificationText,
+} from '~/components/emails/admin-order-notification'
 import { Resend } from 'resend'
 import { db } from '~/server/db'
-import { orders, products, productSizes, shippingMethods } from '~/server/db/schema'
+import {
+  orders,
+  products,
+  productSizes,
+  shippingMethods,
+} from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { siteConfig } from '~/config/site'
 
@@ -13,7 +24,7 @@ interface ShippingAddress {
   line2?: string
   city: string
   state: string
-  postalCode: string
+  postal_code: string
   country: string
 }
 
@@ -46,7 +57,10 @@ export async function POST(request: Request) {
       .where(eq(orders.stripeSessionId, orderId))
       .leftJoin(products, eq(orders.productId, products.id))
       .leftJoin(productSizes, eq(orders.sizeId, productSizes.id))
-      .leftJoin(shippingMethods, eq(orders.shippingMethodId, shippingMethods.id))
+      .leftJoin(
+        shippingMethods,
+        eq(orders.shippingMethodId, shippingMethods.id),
+      )
       .limit(1)
       .then((results) => results[0])
 
@@ -90,7 +104,7 @@ export async function POST(request: Request) {
           line2: shippingDetails?.address.line2,
           city: shippingDetails?.address.city || '',
           state: shippingDetails?.address.state,
-          postalCode: shippingDetails?.address.postalCode || '',
+          postal_code: shippingDetails?.address.postal_code || '',
           country: shippingDetails?.address.country || '',
         },
       }),
@@ -114,12 +128,12 @@ export async function POST(request: Request) {
           line2: shippingDetails?.address.line2,
           city: shippingDetails?.address.city || '',
           state: shippingDetails?.address.state,
-          postalCode: shippingDetails?.address.postalCode || '',
+          postal_code: shippingDetails?.address.postal_code || '',
           country: shippingDetails?.address.country || '',
         },
       }),
     })
-    
+
     // Send admin notification email
     const adminEmail = await resend.emails.send({
       from: `${siteConfig.storeName} <${siteConfig.emails.order}>`,
@@ -139,7 +153,7 @@ export async function POST(request: Request) {
           line2: shippingDetails?.address.line2,
           city: shippingDetails?.address.city || '',
           state: shippingDetails?.address.state,
-          postalCode: shippingDetails?.address.postalCode || '',
+          postal_code: shippingDetails?.address.postal_code || '',
           country: shippingDetails?.address.country || '',
         },
         adminDashboardUrl: `${siteConfig.url}/admin/orders/`,
@@ -157,17 +171,23 @@ export async function POST(request: Request) {
           line2: shippingDetails?.address.line2,
           city: shippingDetails?.address.city || '',
           state: shippingDetails?.address.state,
-          postalCode: shippingDetails?.address.postalCode || '',
+          postal_code: shippingDetails?.address.postal_code || '',
           country: shippingDetails?.address.country || '',
         },
       }),
     })
 
     if (customerEmail.error || adminEmail.error) {
-      return Response.json({ error: customerEmail.error || adminEmail.error }, { status: 500 })
+      return Response.json(
+        { error: customerEmail.error || adminEmail.error },
+        { status: 500 },
+      )
     }
 
-    return Response.json({ customerEmail: customerEmail.data, adminEmail: adminEmail.data })
+    return Response.json({
+      customerEmail: customerEmail.data,
+      adminEmail: adminEmail.data,
+    })
   } catch (error) {
     return Response.json({ error }, { status: 500 })
   }

@@ -10,7 +10,10 @@ import { useState } from 'react'
 export default function TestEmailPage() {
   const [sending, setSending] = useState(false)
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+  const [status, setStatus] = useState<{
+    type: 'success' | 'error'
+    message: string
+  } | null>(null)
 
   const sendTestEmail = async () => {
     if (!email) {
@@ -37,9 +40,9 @@ export default function TestEmailPage() {
               city: 'Test City',
               state: 'Test State',
               postal_code: '12345',
-              country: 'GB'
-            }
-          }
+              country: 'GB',
+            },
+          },
         }),
       })
 
@@ -51,7 +54,10 @@ export default function TestEmailPage() {
 
       setStatus({ type: 'success', message: 'Test email sent successfully!' })
     } catch (error) {
-      setStatus({ type: 'error', message: `Failed to send test email: ${error}` })
+      setStatus({
+        type: 'error',
+        message: `Failed to send test email: ${error}`,
+      })
       console.error('Error sending test email:', error)
     } finally {
       setSending(false)
@@ -59,15 +65,13 @@ export default function TestEmailPage() {
   }
 
   return (
-    <div className="container py-10 space-y-4">
+    <div className="container space-y-4 py-10">
       {status && (
         <Alert variant={status.type === 'success' ? 'default' : 'destructive'}>
-          <AlertDescription>
-            {status.message}
-          </AlertDescription>
+          <AlertDescription>{status.message}</AlertDescription>
         </Alert>
       )}
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Test Order Confirmation Email</CardTitle>
@@ -83,10 +87,7 @@ export default function TestEmailPage() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <Button 
-            onClick={sendTestEmail} 
-            disabled={sending}
-          >
+          <Button onClick={sendTestEmail} disabled={sending}>
             {sending ? 'Sending...' : 'Send Test Email'}
           </Button>
         </CardContent>

@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { 
-  PaymentElement, 
-  AddressElement, 
-  useStripe, 
+import {
+  PaymentElement,
+  AddressElement,
+  useStripe,
   useElements,
-  LinkAuthenticationElement 
+  LinkAuthenticationElement,
 } from '@stripe/react-stripe-js'
 import { Button } from '~/components/ui/button'
 import { updateOrderStatus } from '~/lib/actions/store/store'
@@ -33,11 +33,12 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
       }
 
       // Then confirm the payment
-      const { error: paymentError, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        clientSecret,
-        redirect: 'if_required',
-      })
+      const { error: paymentError, paymentIntent } =
+        await stripe.confirmPayment({
+          elements,
+          clientSecret,
+          redirect: 'if_required',
+        })
 
       if (paymentError) {
         setError(paymentError.message)
@@ -45,44 +46,45 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
       }
 
       if (paymentIntent.status === 'succeeded') {
+        const shippingDetails = paymentIntent.shipping
+          ? {
+              name: paymentIntent.shipping.name || '',
+              address: {
+                line1: paymentIntent.shipping.address.line1,
+                line2: paymentIntent.shipping.address.line2,
+                city: paymentIntent.shipping.address.city,
+                state: paymentIntent.shipping.address.state,
+                postal_code: paymentIntent.shipping.address.postal_code,
+                country: paymentIntent.shipping.address.country,
+              },
+            }
+          : undefined
 
-        const shippingDetails = paymentIntent.shipping ? {
-          name: paymentIntent.shipping.name || '',
-          address: {
-            line1: paymentIntent.shipping.address.line1,
-            line2: paymentIntent.shipping.address.line2,
-            city: paymentIntent.shipping.address.city,
-            state: paymentIntent.shipping.address.state,
-            postal_code: paymentIntent.shipping.address.postal_code,
-            country: paymentIntent.shipping.address.country,
-          }
-        } : undefined
-      
         const result = await updateOrderStatus(
           paymentIntent.id,
           email || paymentIntent.receipt_email || '',
           'processing',
-          shippingDetails
+          shippingDetails,
         )
-      
+
         if (!result.success) {
           setError('Failed to update order status')
           return
         }
-      
+
         try {
           const response = await fetch('/api/send', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
               email: email || paymentIntent.receipt_email,
               orderId: paymentIntent.id,
-              shippingDetails
+              shippingDetails,
             }),
           })
-          
+
           if (!response.ok) {
             console.error('Failed to send confirmation email')
           }
@@ -103,8 +105,8 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Contact Information</h2>
-        <LinkAuthenticationElement 
-          onChange={(event) => setEmail(event.value.email)} 
+        <LinkAuthenticationElement
+          onChange={(event) => setEmail(event.value.email)}
         />
       </div>
 
@@ -117,17 +119,17 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
           }}
         />
       </div>
-      
+
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Payment</h2>
         <PaymentElement />
       </div>
 
-      {error && <div className="text-red-500 text-sm">{error}</div>}
+      {error && <div className="text-sm text-red-500">{error}</div>}
 
-      <Button 
-        type="submit" 
-        disabled={isLoading || !stripe || !elements} 
+      <Button
+        type="submit"
+        disabled={isLoading || !stripe || !elements}
         className="w-full"
       >
         {isLoading ? 'Processing...' : 'Pay Now'}
@@ -135,4 +137,3 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
     </form>
   )
 }
-

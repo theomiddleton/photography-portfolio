@@ -2,14 +2,20 @@
 
 import { stripe } from '~/lib/stripe'
 import { db, dbWithTx } from '~/server/db'
-import { orders, products, productSizes, storeCosts, shippingMethods } from '~/server/db/schema'
+import {
+  orders,
+  products,
+  productSizes,
+  storeCosts,
+  shippingMethods,
+} from '~/server/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
 export async function createCheckoutSession(
-  productId: string, 
+  productId: string,
   sizeId: string,
-  shippingMethodId: string
+  shippingMethodId: string,
 ) {
   try {
     // Check if there's already a pending order for this product and size
@@ -36,8 +42,16 @@ export async function createCheckoutSession(
     // Get product and size details
     const [product, size, shippingMethod] = await Promise.all([
       db.select().from(products).where(eq(products.id, productId)).limit(1),
-      db.select().from(productSizes).where(eq(productSizes.id, sizeId)).limit(1),
-      db.select().from(shippingMethods).where(eq(shippingMethods.id, shippingMethodId)).limit(1)
+      db
+        .select()
+        .from(productSizes)
+        .where(eq(productSizes.id, sizeId))
+        .limit(1),
+      db
+        .select()
+        .from(shippingMethods)
+        .where(eq(shippingMethods.id, shippingMethodId))
+        .limit(1),
     ])
 
     if (!product[0] || !size[0] || !shippingMethod[0]) {
@@ -46,7 +60,7 @@ export async function createCheckoutSession(
 
     const subtotal = size[0].basePrice
     const shippingCost = shippingMethod[0].price
-    
+
     const costs = await db
       .select()
       .from(storeCosts)
@@ -54,31 +68,43 @@ export async function createCheckoutSession(
       .orderBy(desc(storeCosts.createdAt))
       .limit(1)
 
-      const baseAmount = subtotal + shippingCost // in pence
+    const baseAmount = subtotal + shippingCost // in pence
 
-      // Convert stored tax rates to decimals.
-      // Using defaults of 0.20 for taxRate and 0.015 for stripeTaxRate if not provided.
-      const taxRateDecimal =
-        costs[0]?.taxRate !== undefined ? costs[0].taxRate / 1000000 : 0.20
-      const stripeTaxRateDecimal =
-        costs[0]?.stripeTaxRate !== undefined
-          ? costs[0].stripeTaxRate / 1000000
-          : 0.015
-      
-      // Calculate the tax amounts (in pence)
-      const tax = Math.round(baseAmount * taxRateDecimal)
-      const stripeTax = Math.round(baseAmount * stripeTaxRateDecimal)
-      
-      // Calculate overall total (in pence)
-      const total = baseAmount + tax + stripeTax
-      
-      console.log('Stripe Tax Calculation')
-      console.log('Subtotal + Shipping Cost:', baseAmount, 'pence (£', (baseAmount / 100).toFixed(2), ')')
-      console.log('Tax Rate (decimal):', taxRateDecimal)
-      console.log('Stripe Tax Rate (decimal):', stripeTaxRateDecimal)
-      console.log('Calculated Tax:', tax, 'pence (', (tax / 100).toFixed(2), '£)')
-      console.log('Calculated Stripe Tax:', stripeTax, 'pence (£', (stripeTax / 100).toFixed(2), ')')
-      console.log('Total:', total, 'pence (£', (total / 100).toFixed(2), ')')
+    // Convert stored tax rates to decimals.
+    // Using defaults of 0.20 for taxRate and 0.015 for stripeTaxRate if not provided.
+    const taxRateDecimal =
+      costs[0]?.taxRate !== undefined ? costs[0].taxRate / 1000000 : 0.2
+    const stripeTaxRateDecimal =
+      costs[0]?.stripeTaxRate !== undefined
+        ? costs[0].stripeTaxRate / 1000000
+        : 0.015
+
+    // Calculate the tax amounts (in pence)
+    const tax = Math.round(baseAmount * taxRateDecimal)
+    const stripeTax = Math.round(baseAmount * stripeTaxRateDecimal)
+
+    // Calculate overall total (in pence)
+    const total = baseAmount + tax + stripeTax
+
+    console.log('Stripe Tax Calculation')
+    console.log(
+      'Subtotal + Shipping Cost:',
+      baseAmount,
+      'pence (£',
+      (baseAmount / 100).toFixed(2),
+      ')',
+    )
+    console.log('Tax Rate (decimal):', taxRateDecimal)
+    console.log('Stripe Tax Rate (decimal):', stripeTaxRateDecimal)
+    console.log('Calculated Tax:', tax, 'pence (', (tax / 100).toFixed(2), '£)')
+    console.log(
+      'Calculated Stripe Tax:',
+      stripeTax,
+      'pence (£',
+      (stripeTax / 100).toFixed(2),
+      ')',
+    )
+    console.log('Total:', total, 'pence (£', (total / 100).toFixed(2), ')')
 
     // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -178,7 +204,6 @@ export async function updateOrderStatus(
 export async function updateTaxRates(taxRate: number, stripeRate: number) {
   try {
     await dbWithTx.transaction(async (tx) => {
-
       await tx
         .update(storeCosts)
         .set({ active: false })

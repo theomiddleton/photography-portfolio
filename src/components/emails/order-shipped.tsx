@@ -32,7 +32,7 @@ interface OrderShippedEmailProps {
     city: string
     country: string
     state?: string
-    postalCode: string
+    postal_code: string
   }
 }
 
@@ -66,7 +66,7 @@ Delivery Address:
 ${customerName}
 ${shippingAddress.line1}
 ${shippingAddress.line2 ? shippingAddress.line2 + '\n' : ''}${shippingAddress.city}
-${shippingAddress.postalCode}
+${shippingAddress.postal_code}
 ${shippingAddress.country}
 
 Track your order: ${
@@ -103,46 +103,57 @@ export const OrderShippedEmail = ({
       <Preview>Your order has shipped! - {productName}</Preview>
       <Tailwind>
         <Body className="bg-white font-sans">
-          <Container className="mx-auto py-5 px-4">
-            <Heading className="text-2xl font-normal text-center mb-8">Your Order Has Shipped!</Heading>
+          <Container className="mx-auto px-4 py-5">
+            <Heading className="mb-8 text-center text-2xl font-normal">
+              Your Order Has Shipped!
+            </Heading>
 
-            <Text className="text-base mb-4">Hi {customerName},</Text>
+            <Text className="mb-4 text-base">Hi {customerName},</Text>
 
-            <Text className="text-base mb-4">Great news! Your order is on its way.</Text>
+            <Text className="mb-4 text-base">
+              Great news! Your order is on its way.
+            </Text>
 
             <Section className="my-8">
               <Row>
                 <Column>
-                  <div className="max-w-[400px] mx-auto">
+                  <div className="mx-auto max-w-[400px]">
                     <Img
                       src={imageUrl}
                       width="100%"
                       alt={productName}
-                      className="rounded-lg w-full max-h-[600px] object-contain"
+                      className="max-h-[600px] w-full rounded-lg object-contain"
                     />
                   </div>
                 </Column>
               </Row>
             </Section>
 
-            <Section className="bg-gray-50 rounded-lg p-8 my-4">
-              <Heading className="text-base font-semibold mb-3">Shipping Details</Heading>
+            <Section className="my-4 rounded-lg bg-gray-50 p-8">
+              <Heading className="mb-3 text-base font-semibold">
+                Shipping Details
+              </Heading>
 
               <Row>
                 <Column className="w-1/3">
-                  <Text className="text-gray-500 text-sm m-0">Carrier:</Text>
+                  <Text className="m-0 text-sm text-gray-500">Carrier:</Text>
                 </Column>
                 <Column className="w-2/3">
-                  <Text className="text-sm m-0">{carrier}</Text>
+                  <Text className="m-0 text-sm">{carrier}</Text>
                 </Column>
               </Row>
 
               <Row className="mt-2">
                 <Column className="w-1/3">
-                  <Text className="text-gray-500 text-sm m-0">Tracking Number:</Text>
+                  <Text className="m-0 text-sm text-gray-500">
+                    Tracking Number:
+                  </Text>
                 </Column>
                 <Column className="w-2/3">
-                  <Link href={trackingUrl} className="text-sm m-0 font-bold hover:text-blue-600">
+                  <Link
+                    href={trackingUrl}
+                    className="m-0 text-sm font-bold hover:text-blue-600"
+                  >
                     {trackingNumber}
                   </Link>
                 </Column>
@@ -150,10 +161,12 @@ export const OrderShippedEmail = ({
 
               <Row className="mt-2">
                 <Column className="w-1/3">
-                  <Text className="text-gray-500 text-sm m-0">Estimated Delivery:</Text>
+                  <Text className="m-0 text-sm text-gray-500">
+                    Estimated Delivery:
+                  </Text>
                 </Column>
                 <Column className="w-2/3">
-                  <Text className="text-sm m-0">{estimatedDelivery}</Text>
+                  <Text className="m-0 text-sm">{estimatedDelivery}</Text>
                 </Column>
               </Row>
 
@@ -161,7 +174,7 @@ export const OrderShippedEmail = ({
                 <Column>
                   <Link
                     href={trackingUrl}
-                    className="bg-black text-white px-6 py-3 rounded-lg text-sm font-bold text-center block hover:bg-gray-800"
+                    className="block rounded-lg bg-black px-6 py-3 text-center text-sm font-bold text-white hover:bg-gray-800"
                   >
                     Track Your Order
                   </Link>
@@ -169,53 +182,67 @@ export const OrderShippedEmail = ({
               </Row>
             </Section>
 
-            <Section className="bg-gray-50 rounded-lg p-8 my-4">
-              <Heading className="text-base font-semibold mb-3">Order Information</Heading>
+            <Section className="my-4 rounded-lg bg-gray-50 p-8">
+              <Heading className="mb-3 text-base font-semibold">
+                Order Information
+              </Heading>
 
               <Row>
                 <Column className="w-1/3">
-                  <Text className="text-gray-500 text-sm m-0">Order Number:</Text>
+                  <Text className="m-0 text-sm text-gray-500">
+                    Order Number:
+                  </Text>
                 </Column>
                 <Column className="w-2/3">
-                  <Text className="text-sm m-0">{orderNumber}</Text>
+                  <Text className="m-0 text-sm">{orderNumber}</Text>
                 </Column>
               </Row>
 
               <Row className="mt-2">
                 <Column className="w-1/3">
-                  <Text className="text-gray-500 text-sm m-0">Product:</Text>
+                  <Text className="m-0 text-sm text-gray-500">Product:</Text>
                 </Column>
                 <Column className="w-2/3">
-                  <Text className="text-sm m-0">{productName}</Text>
+                  <Text className="m-0 text-sm">{productName}</Text>
                 </Column>
               </Row>
             </Section>
 
-            <Section className="bg-gray-50 rounded-lg p-8 my-4">
-              <Heading className="text-base font-semibold mb-3">Delivery Address</Heading>
+            <Section className="my-4 rounded-lg bg-gray-50 p-8">
+              <Heading className="mb-3 text-base font-semibold">
+                Delivery Address
+              </Heading>
 
               <div className="space-y-1">
-                <Text className="text-sm m-0">{customerName}</Text>
-                <Text className="text-sm m-0">{shippingAddress.line1}</Text>
-                {shippingAddress.line2 && <Text className="text-sm m-0">{shippingAddress.line2}</Text>}
-                <Text className="text-sm m-0">{shippingAddress.city}</Text>
-                <Text className="text-sm m-0">{shippingAddress.postalCode}</Text>
-                <Text className="text-sm m-0">{shippingAddress.country}</Text>
+                <Text className="m-0 text-sm">{customerName}</Text>
+                <Text className="m-0 text-sm">{shippingAddress.line1}</Text>
+                {shippingAddress.line2 && (
+                  <Text className="m-0 text-sm">{shippingAddress.line2}</Text>
+                )}
+                <Text className="m-0 text-sm">{shippingAddress.city}</Text>
+                <Text className="m-0 text-sm">
+                  {shippingAddress.postal_code}
+                </Text>
+                <Text className="m-0 text-sm">{shippingAddress.country}</Text>
               </div>
             </Section>
 
             <Hr className="my-4 border-gray-200" />
 
-            <Text className="text-sm text-gray-500 text-center">
+            <Text className="text-center text-sm text-gray-500">
               If you have any questions, please contact our{' '}
-              <Link href={`mailto:${siteConfig.emails.support}`} className="font-bold hover:text-blue-600">
+              <Link
+                href={`mailto:${siteConfig.emails.support}`}
+                className="font-bold hover:text-blue-600"
+              >
                 customer support
               </Link>
               .
             </Text>
 
-            <Text className="text-xs text-gray-400 text-center mt-6">
-              This email was sent to {customerEmail}. If you didn&apos;t place this order, please contact us immediately.
+            <Text className="mt-6 text-center text-xs text-gray-400">
+              This email was sent to {customerEmail}. If you didn&apos;t place
+              this order, please contact us immediately.
             </Text>
           </Container>
         </Body>
