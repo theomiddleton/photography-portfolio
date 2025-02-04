@@ -1,8 +1,8 @@
 'use server'
 
 import { dbWithTx as db } from '~/server/db'
-import { shippingMethods } from '~/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { shippingMethods, orders } from '~/server/db/schema'
+import { eq, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
 interface ShippingMethodInput {
@@ -46,5 +46,36 @@ export async function updateShippingMethods(methods: ShippingMethodInput[]) {
   } catch (error) {
     console.error('Error updating shipping methods:', error)
     return { success: false, error: 'Failed to update shipping methods' }
+  }
+}
+
+export async function updateOrderShipping(orderId: string, shippingMethodId: string) {
+  try {
+    // First get the shipping method to get the price
+    const [method] = await db
+      .select()
+      .from(shippingMethods)
+      .where(eq(shippingMethods.id, shippingMethodId))
+      .limit(1)
+
+    if (!method) {
+      return { success: false, error: 'Shipping method not found' }
+    }
+
+    // Update the order with new shipping method and recalculate total
+    await db
+      .update(orders)
+      .set({
+        shippingMethodId,
+        shippingCost: method.price,
+        total: sql`subtotal + ${method.price} + tax`,
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.stripeSessionId, orderId))
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating order shipping:', error)
+    return { success: false, error: 'Failed to update order shipping' }
   }
 }

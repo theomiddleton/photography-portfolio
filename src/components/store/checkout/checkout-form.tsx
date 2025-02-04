@@ -7,7 +7,7 @@ import { CheckoutForm } from '~/components/store/checkout/stripe-form'
 import { OrderSummary } from '~/components/store/checkout/order-summary'
 import type { Product, ProductSize, ShippingMethod } from '~/server/db/schema'
 import { createCheckoutSession } from '~/lib/actions/store/store'
-import { getShippingMethods } from '~/lib/actions/store/shipping'
+import { getShippingMethods, updateOrderShipping } from '~/lib/actions/store/shipping'
 import { getTaxRates } from '~/lib/actions/store/store'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
@@ -19,6 +19,7 @@ interface CheckoutProps {
 
 export function Checkout({ product, selectedSize }: CheckoutProps) {
   const [clientSecret, setClientSecret] = useState<string>()
+  const [orderId, setOrderId] = useState<string>()
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([])
   const [selectedShipping, setSelectedShipping] = useState<string>('')
   const [taxRates, setTaxRates] = useState({ taxRate: 2000, stripeTaxRate: 150 })
@@ -41,6 +42,16 @@ export function Checkout({ product, selectedSize }: CheckoutProps) {
       })
       .catch(console.error)
   }, [])
+
+  const handleShippingChange = async (methodId: string) => {
+    console.log('Updating shipping method: ', methodId)
+    setSelectedShipping(methodId)
+    if (!orderId) return
+    const result = await updateOrderShipping(orderId, methodId)
+    if (!result.success) {
+      console.error('Failed to update shipping method')
+    }
+  }
 
   useEffect(() => {
     if (!selectedShipping) return
@@ -78,7 +89,7 @@ export function Checkout({ product, selectedSize }: CheckoutProps) {
         size={selectedSize}
         shippingMethods={shippingMethods}
         selectedShipping={selectedShipping}
-        onShippingChange={setSelectedShipping}
+        onShippingChange={handleShippingChange}
         taxRate={taxRates.taxRate}
         stripeTaxRate={taxRates.stripeTaxRate}
       />
