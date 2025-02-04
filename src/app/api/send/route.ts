@@ -50,13 +50,13 @@ export async function POST(request: Request) {
       .limit(1)
       .then((results) => results[0])
 
-      const orderDate = new Date().toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+    const orderDate = new Date().toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
 
     // Format monetary values
     const formattedSubtotal = `£${(order.orders.subtotal / 100).toFixed(2)}`
