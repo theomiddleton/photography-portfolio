@@ -54,14 +54,31 @@ export async function createCheckoutSession(
       .orderBy(desc(storeCosts.createdAt))
       .limit(1)
 
-    const tax = Math.round((subtotal + shippingCost) * (costs[0]?.taxRate ? costs[0].taxRate / 10000 : 0.20))
-    console.log('Stripe Tax Calculation')
-    console.log('Subtotal + Shipping Cost: ', Math.round(subtotal + shippingCost), '£', (Math.round(subtotal + shippingCost)) / 100)
-    console.log('StripeTaxRate: ', costs[0]?.stripeTaxRate)
-    console.log('StripeTaxRate / 10000: ', costs[0].stripeTaxRate / 10000)
-    console.log('Total: ', '£', ((Math.round(subtotal + shippingCost)) / 100 ) * (costs[0].stripeTaxRate / 10000))
-    const stripeTax = Math.round((subtotal + shippingCost) * (costs[0]?.stripeTaxRate ? costs[0].stripeTaxRate / 10000 : 0.015))
-    const total = subtotal + shippingCost + tax + stripeTax
+      const baseAmount = subtotal + shippingCost // in pence
+
+      // Convert stored tax rates to decimals.
+      // Using defaults of 0.20 for taxRate and 0.015 for stripeTaxRate if not provided.
+      const taxRateDecimal =
+        costs[0]?.taxRate !== undefined ? costs[0].taxRate / 1000000 : 0.20
+      const stripeTaxRateDecimal =
+        costs[0]?.stripeTaxRate !== undefined
+          ? costs[0].stripeTaxRate / 1000000
+          : 0.015
+      
+      // Calculate the tax amounts (in pence)
+      const tax = Math.round(baseAmount * taxRateDecimal)
+      const stripeTax = Math.round(baseAmount * stripeTaxRateDecimal)
+      
+      // Calculate overall total (in pence)
+      const total = baseAmount + tax + stripeTax
+      
+      console.log('Stripe Tax Calculation')
+      console.log('Subtotal + Shipping Cost:', baseAmount, 'pence (£', (baseAmount / 100).toFixed(2), ')')
+      console.log('Tax Rate (decimal):', taxRateDecimal)
+      console.log('Stripe Tax Rate (decimal):', stripeTaxRateDecimal)
+      console.log('Calculated Tax:', tax, 'pence (', (tax / 100).toFixed(2), '£)')
+      console.log('Calculated Stripe Tax:', stripeTax, 'pence (£', (stripeTax / 100).toFixed(2), ')')
+      console.log('Total:', total, 'pence (£', (total / 100).toFixed(2), ')')
 
     // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
