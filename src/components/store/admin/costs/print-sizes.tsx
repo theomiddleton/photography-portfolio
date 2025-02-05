@@ -27,7 +27,6 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
     height: '',
     basePrice: '',
     sellAtPrice: '',
-    profitPercentage: '',
   })
   const [editingSize, setEditingSize] = useState<{
     id: string
@@ -36,7 +35,6 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
     height: string
     basePrice: string
     sellAtPrice: string
-    profitPercentage: string
   } | null>(null)
 
   const handleAddSize = async () => {
@@ -49,9 +47,6 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
         sellAtPrice: newSize.sellAtPrice
           ? Number.parseFloat(newSize.sellAtPrice) * 100
           : null,
-        profitPercentage: newSize.profitPercentage
-          ? Number.parseFloat(newSize.profitPercentage) * 10000
-          : null,
       })
 
       if (!result.success) throw new Error(result.error)
@@ -63,7 +58,6 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
         height: '',
         basePrice: '',
         sellAtPrice: '',
-        profitPercentage: '',
       })
     } catch (error) {
       console.error(error)
@@ -78,9 +72,6 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
       height: size.height.toString(),
       basePrice: (size.basePrice / 100).toString(),
       sellAtPrice: size.sellAtPrice ? (size.sellAtPrice / 100).toString() : '',
-      profitPercentage: size.profitPercentage
-        ? (size.profitPercentage / 10000).toString()
-        : '',
     })
   }
 
@@ -95,9 +86,6 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
         basePrice: Number.parseFloat(editingSize.basePrice) * 100,
         sellAtPrice: editingSize.sellAtPrice
           ? Number.parseFloat(editingSize.sellAtPrice) * 100
-          : null,
-        profitPercentage: editingSize.profitPercentage
-          ? Number.parseFloat(editingSize.profitPercentage) * 10000
           : null,
       })
 
@@ -173,17 +161,6 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
                   setNewSize({ ...newSize, sellAtPrice: e.target.value })
                 }
                 placeholder="Leave empty for profit-based pricing"
-              />
-            </div>
-            <div>
-              <Label>Profit Percentage (%, optional)</Label>
-              <Input
-                type="number"
-                value={newSize.profitPercentage}
-                onChange={(e) =>
-                  setNewSize({ ...newSize, profitPercentage: e.target.value })
-                }
-                placeholder="e.g., 20.5 for 20.5%"
               />
             </div>
             <Button onClick={handleAddSize} className="col-span-4">
@@ -262,20 +239,6 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
                           })
                         }
                         placeholder="Leave empty for profit-based pricing"
-                      />
-                    </div>
-                    <div>
-                      <Label>Profit Percentage (%, optional)</Label>
-                      <Input
-                        type="number"
-                        value={editingSize.profitPercentage}
-                        onChange={(e) =>
-                          setEditingSize({
-                            ...editingSize,
-                            profitPercentage: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., 20.5 for 20.5%"
                       />
                     </div>
                     <div className="col-span-4 flex justify-end gap-2">

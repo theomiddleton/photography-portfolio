@@ -11,7 +11,6 @@ export async function addPrintSize(data: {
   height: number
   basePrice: number
   sellAtPrice: number
-  profitPercentage: number
 }) {
   try {
     const [size] = await db
@@ -22,7 +21,6 @@ export async function addPrintSize(data: {
         height: data.height,
         basePrice: data.basePrice,
         sellAtPrice: data.sellAtPrice,
-        profitPercentage: data.profitPercentage,
       })
       .returning()
 
@@ -41,7 +39,6 @@ export async function updatePrintSize(
     height: number
     basePrice: number
     sellAtPrice: number
-    profitPercentage: number
   },
 ) {
   try {
@@ -53,7 +50,6 @@ export async function updatePrintSize(
         height: data.height,
         basePrice: data.basePrice,
         sellAtPrice: data.sellAtPrice,
-        profitPercentage: data.profitPercentage,
         updatedAt: new Date(),
       })
       .where(eq(basePrintSizes.id, id))

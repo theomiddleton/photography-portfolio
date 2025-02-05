@@ -80,12 +80,7 @@ export async function createCheckoutSession(
     // Calculate the subtotal based on the pricing rules
     let subtotal = baseSize[0].basePrice
     if (baseSize[0].sellAtPrice) {
-      // If a fixed sell-at price is set, use that
       subtotal = baseSize[0].sellAtPrice
-    } else if (baseSize[0].profitPercentage) {
-      // Otherwise, calculate price using profit percentage
-      const profitMultiplier = 1 + baseSize[0].profitPercentage / 1000000
-      subtotal = Math.round(baseSize[0].basePrice * profitMultiplier)
     }
 
     const shippingCost = shippingMethod[0].price
@@ -230,7 +225,11 @@ export async function updateOrderStatus(
   }
 }
 
-export async function updateTaxRates(taxRate: number, stripeRate: number) {
+export async function updateTaxRates(
+  taxRate: number, 
+  stripeRate: number,
+  profitPercentage: number
+) {
   try {
     await dbWithTx.transaction(async (tx) => {
       await tx
@@ -238,14 +237,14 @@ export async function updateTaxRates(taxRate: number, stripeRate: number) {
         .set({ active: false })
         .where(eq(storeCosts.active, true))
 
-      // Convert percentage to integer (multiply by 10000 to preserve 4 decimal places)
       const taxRateInt = Math.round(taxRate * 10000)
       const stripeRateInt = Math.round(stripeRate * 10000)
+      const profitPercentageInt = Math.round(profitPercentage * 10000)
 
-      // Create new record
       await tx.insert(storeCosts).values({
         taxRate: taxRateInt,
         stripeTaxRate: stripeRateInt,
+        profitPercentage: profitPercentageInt,
         active: true,
       })
     })
@@ -270,12 +269,14 @@ export async function getTaxRates() {
       return {
         taxRate: 2000,
         stripeTaxRate: 150,
+        profitPercentage: 2000, // 20% default profit
       }
     }
 
     return {
       taxRate: costs[0].taxRate,
       stripeTaxRate: costs[0].stripeTaxRate,
+      profitPercentage: costs[0].profitPercentage,
     }
   } catch (error) {
     console.error('Error fetching tax rates:', error)

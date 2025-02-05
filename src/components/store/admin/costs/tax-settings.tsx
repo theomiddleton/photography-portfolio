@@ -17,6 +17,7 @@ interface TaxSettingsProps {
   initialTax: {
     taxRate: number
     stripeRate: number
+    profitPercentage?: number
   }
 }
 
@@ -24,6 +25,7 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
   const [taxRates, setTaxRates] = useState({
     taxRate: initialTax.taxRate ?? 20,
     stripeRate: initialTax.stripeRate ?? 1.4,
+    profitPercentage: initialTax.profitPercentage ?? 20,
   })
   const [isLoading, setIsLoading] = useState(false)
   const [status, setStatus] = useState<{
@@ -32,7 +34,7 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
   }>({ type: null, message: null })
 
   const handleTaxRateChange = (
-    type: 'taxRate' | 'stripeRate',
+    type: 'taxRate' | 'stripeRate' | 'profitPercentage',
     value: string,
   ) => {
     const newRate = parseFloat(value)
@@ -49,7 +51,11 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
       setIsLoading(true)
       setStatus({ type: null, message: null })
       
-      const result = await updateTaxRates(taxRates.taxRate, taxRates.stripeRate)
+      const result = await updateTaxRates(
+        taxRates.taxRate, 
+        taxRates.stripeRate, 
+        taxRates.profitPercentage
+      )
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to save tax rates')
@@ -73,8 +79,8 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Tax Settings</CardTitle>
-        <CardDescription>Configure tax rates for your products</CardDescription>
+        <CardTitle>Tax & Profit Settings</CardTitle>
+        <CardDescription>Configure tax rates and profit margin for your products</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
@@ -104,6 +110,18 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
               type="number"
               value={taxRates.stripeRate}
               onChange={(e) => handleTaxRateChange('stripeRate', e.target.value)}
+              min="0"
+              max="100"
+              step="0.1"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="profit-percentage">Default Profit Margin (%)</Label>
+            <Input
+              id="profit-percentage"
+              type="number"
+              value={taxRates.profitPercentage}
+              onChange={(e) => handleTaxRateChange('profitPercentage', e.target.value)}
               min="0"
               max="100"
               step="0.1"

@@ -166,7 +166,6 @@ export const basePrintSizes = pgTable('basePrintSizes', {
   height: integer('height').notNull(),
   basePrice: integer('basePrice').notNull(),
   sellAtPrice: integer('sellAtPrice'),
-  profitPercentage: integer('profitPercentage'), // Stored as percentage * 10000 (e.g., 20.55% = 205500)
   active: boolean('active').default(true),
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),
@@ -229,6 +228,7 @@ export const storeCosts = pgTable('storeCosts', {
   id: serial('id').primaryKey(),
   taxRate: integer('taxRate').notNull(), // Stored as percentage * 10000 (e.g., 20.55% = 205500)
   stripeTaxRate: integer('stripeTaxRate').notNull(), // Stored as percentage * 10000 (e.g., 1.45% = 14500)
+  profitPercentage: integer('profitPercentage'), // Stored as percentage * 10000 (e.g., 20.55% = 205500)
   active: boolean('active').default(true).notNull(),
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),
