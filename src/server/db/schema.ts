@@ -165,6 +165,8 @@ export const basePrintSizes = pgTable('basePrintSizes', {
   width: integer('width').notNull(),
   height: integer('height').notNull(),
   basePrice: integer('basePrice').notNull(),
+  sellAtPrice: integer('sellAtPrice'),
+  profitPercentage: integer('profitPercentage'), // Stored as percentage * 10000 (e.g., 20.55% = 205500)
   active: boolean('active').default(true),
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),
