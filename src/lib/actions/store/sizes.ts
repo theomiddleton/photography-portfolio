@@ -21,6 +21,8 @@ export async function addPrintSize(data: {
         width: data.width,
         height: data.height,
         basePrice: data.basePrice,
+        sellAtPrice: data.sellAtPrice,
+        profitPercentage: data.profitPercentage,
       })
       .returning()
 
@@ -50,6 +52,8 @@ export async function updatePrintSize(
         width: data.width,
         height: data.height,
         basePrice: data.basePrice,
+        sellAtPrice: data.sellAtPrice,
+        profitPercentage: data.profitPercentage,
         updatedAt: new Date(),
       })
       .where(eq(basePrintSizes.id, id))
