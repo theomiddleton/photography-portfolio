@@ -10,6 +10,8 @@ export async function addPrintSize(data: {
   width: number
   height: number
   basePrice: number
+  sellAtPrice: number
+  profitPercentage: number
 }) {
   try {
     const [size] = await db
@@ -36,6 +38,8 @@ export async function updatePrintSize(
     width: number
     height: number
     basePrice: number
+    sellAtPrice: number
+    profitPercentage: number
   },
 ) {
   try {

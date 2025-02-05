@@ -8,6 +8,7 @@ import {
   productSizes,
   storeCosts,
   shippingMethods,
+  basePrintSizes,
 } from '~/server/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
@@ -39,8 +40,8 @@ export async function createCheckoutSession(
       return { clientSecret: paymentIntent.client_secret }
     }
 
-    // Get product and size details
-    const [product, size, shippingMethod] = await Promise.all([
+    // Get product, size, base size, and shipping method details
+    const [product, size, baseSize, shippingMethod] = await Promise.all([
       db.select().from(products).where(eq(products.id, productId)).limit(1),
       db
         .select()
@@ -49,16 +50,37 @@ export async function createCheckoutSession(
         .limit(1),
       db
         .select()
+        .from(basePrintSizes)
+        .where(
+          and(
+            eq(basePrintSizes.width, size[0]?.width),
+            eq(basePrintSizes.height, size[0]?.height),
+            eq(basePrintSizes.active, true),
+          ),
+        )
+        .limit(1),
+      db
+        .select()
         .from(shippingMethods)
         .where(eq(shippingMethods.id, shippingMethodId))
         .limit(1),
     ])
 
-    if (!product[0] || !size[0] || !shippingMethod[0]) {
-      throw new Error('Product, size, or shipping method not found')
+    if (!product[0] || !size[0] || !baseSize[0] || !shippingMethod[0]) {
+      throw new Error('Product, size, base size, or shipping method not found')
     }
 
-    const subtotal = size[0].basePrice
+    // Calculate the subtotal based on the pricing rules
+    let subtotal = baseSize[0].basePrice
+    if (baseSize[0].sellAtPrice) {
+      // If a fixed sell-at price is set, use that
+      subtotal = baseSize[0].sellAtPrice
+    } else if (baseSize[0].profitPercentage) {
+      // Otherwise, calculate price using profit percentage
+      const profitMultiplier = 1 + baseSize[0].profitPercentage / 1000000
+      subtotal = Math.round(baseSize[0].basePrice * profitMultiplier)
+    }
+
     const shippingCost = shippingMethod[0].price
 
     const costs = await db
