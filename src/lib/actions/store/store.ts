@@ -41,20 +41,27 @@ export async function createCheckoutSession(
     }
 
     // Get product, size, base size, and shipping method details
-    const [product, size, baseSize, shippingMethod] = await Promise.all([
+    // First get the size details
+    const size = await db
+      .select()
+      .from(productSizes)
+      .where(eq(productSizes.id, sizeId))
+      .limit(1)
+
+    if (!size[0]) {
+      throw new Error('Product size not found')
+    }
+
+    // Then fetch other details using the size information
+    const [product, baseSize, shippingMethod] = await Promise.all([
       db.select().from(products).where(eq(products.id, productId)).limit(1),
-      db
-        .select()
-        .from(productSizes)
-        .where(eq(productSizes.id, sizeId))
-        .limit(1),
       db
         .select()
         .from(basePrintSizes)
         .where(
           and(
-            eq(basePrintSizes.width, size[0]?.width),
-            eq(basePrintSizes.height, size[0]?.height),
+            eq(basePrintSizes.width, size[0].width),
+            eq(basePrintSizes.height, size[0].height),
             eq(basePrintSizes.active, true),
           ),
         )
