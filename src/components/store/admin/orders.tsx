@@ -130,6 +130,25 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
               : order
           )
         )
+        return
+      }
+
+      if (newStatus === 'shipped') {
+        try {
+          const response = await fetch('/api/send/notify-shipped', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ orderId }),
+          })
+
+          if (!response.ok) {
+            console.error('Failed to send shipping notification email')
+          }
+        } catch (error) {
+          console.error('Error sending shipping notification:', error)
+        }
       }
     } catch (error) {
       // Revert on error
