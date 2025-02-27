@@ -76,7 +76,7 @@ Make hide buttons show when hidden, change message so fits in the row
 
   OrderService
 
-  - [ ] Order fulfillment
+  - [ ] Order fulfillment 
   - [x] Email notifications
 
   - [ ] SEO & Sharing

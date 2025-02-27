@@ -14,27 +14,80 @@ export type DeleteStoreResult = {
 
 export async function deleteAllProducts(): Promise<DeleteStoreResult> {
   try {
-    // Get all products with their sizes
+    // Get all products with their sizes and check for orders
     const allProducts = await db
-      .select()
+      .select({
+        products: products,
+        productSizes: productSizes,
+        hasOrders: orders,
+      })
       .from(products)
       .leftJoin(productSizes, eq(products.id, productSizes.productId))
+      .leftJoin(orders, eq(productSizes.id, orders.sizeId))
 
     // Start a transaction to ensure data consistency
     await db.transaction(async (tx) => {
       for (const product of allProducts) {
-        if (product.productSizes) {
-          // Delete Stripe product and price
-          await stripe.products.del(product.productSizes.stripeProductId)
+        if (product.productSizes && product.productSizes.stripeProductId) {
+          try {
+            // First archive the Stripe product (which will archive all associated prices)
+            await stripe.products.update(product.productSizes.stripeProductId, { 
+              active: false 
+            })
+            
+            if (!product.hasOrders) {
+              // Only delete from database if there are no associated orders
+              await tx
+                .delete(productSizes)
+                .where(eq(productSizes.productId, product.products.id))
+              
+              await tx
+                .delete(products)
+                .where(eq(products.id, product.products.id))
+            } else {
+              // If there are orders, just mark the product as inactive
+              await tx
+                .update(products)
+                .set({ active: false })
+                .where(eq(products.id, product.products.id))
+
+              await tx
+                .update(productSizes)
+                .set({ active: false })
+                .where(eq(productSizes.productId, product.products.id))
+            }
+          } catch (stripeError) {
+            console.error('Error with Stripe product:', product.productSizes.stripeProductId, stripeError)
+            throw stripeError
+          }
+        } else {
+          // If no Stripe product associated
+          if (!product.hasOrders) {
+            // Only delete if there are no orders
+            if (product.productSizes) {
+              await tx
+                .delete(productSizes)
+                .where(eq(productSizes.productId, product.products.id))
+            }
+            
+            await tx
+              .delete(products)
+              .where(eq(products.id, product.products.id))
+          } else {
+            // If there are orders, mark as inactive
+            await tx
+              .update(products)
+              .set({ active: false })
+              .where(eq(products.id, product.products.id))
+
+            if (product.productSizes) {
+              await tx
+                .update(productSizes)
+                .set({ active: false })
+                .where(eq(productSizes.productId, product.products.id))
+            }
+          }
         }
-
-        // Delete product sizes
-        await tx
-          .delete(productSizes)
-          .where(eq(productSizes.productId, product.products.id))
-
-        // Delete the product
-        await tx.delete(products).where(eq(products.id, product.products.id))
       }
     })
 
@@ -42,14 +95,14 @@ export async function deleteAllProducts(): Promise<DeleteStoreResult> {
 
     return {
       success: true,
-      message: `Successfully deleted ${allProducts.length} products and their associated data`,
+      message: `Successfully processed ${allProducts.length} products. Products with orders have been archived.`,
     }
   } catch (error) {
-    console.error('Error deleting store products:', error)
+    console.error('Error processing store products:', error)
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : 'Failed to delete products',
+        error instanceof Error ? error.message : 'Failed to process products',
     }
   }
 }
