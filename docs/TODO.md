@@ -30,6 +30,7 @@ Make hide buttons show when hidden, change message so fits in the row
   - [x] change shipping implementation
 
 - [ ] Add profit / sell at prices
+- [ ] Fix product delete
   
 - [ ] Fully upgrade to next 15
 
@@ -84,6 +85,10 @@ Make hide buttons show when hidden, change message so fits in the row
     - [ ] Structured data for products
     - [ ] Sitemap generation
     - [ ] Social sharing metadata
+
+## Change Editors
+
+- [ ] Change to Lexical / Slate / MDXEditor
 
 ## Security
 
