@@ -214,6 +214,49 @@ export const storeCosts = pgTable('storeCosts', {
   updatedAt: timestamp('updatedAt').defaultNow(),
 })
 
+export const blogPosts = pgTable('blogPosts', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  description: text('description'),
+  content: text('content').notNull(),
+  published: boolean('published').default(false).notNull(),
+  publishedAt: timestamp('publishedAt'),
+  authorId: integer('authorId').references(() => users.id),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+export const blogDrafts = pgTable('blogDrafts', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  postId: uuid('postId').references(() => blogPosts.id),
+  title: text('title').notNull(),
+  description: text('description'),
+  content: text('content').notNull(),
+  authorId: integer('authorId').references(() => users.id),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+export const blogVersions = pgTable('blogVersions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  postId: uuid('postId').references(() => blogPosts.id),
+  title: text('title').notNull(),
+  description: text('description'),
+  content: text('content').notNull(),
+  authorId: integer('authorId').references(() => users.id),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+})
+
+export const blogImages = pgTable('blogImages', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  postId: uuid('postId').references(() => blogPosts.id),
+  fileName: text('fileName').notNull(),
+  fileUrl: text('fileUrl').notNull(),
+  alt: text('alt'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+})
+
 export const orderRelations = relations(orders, ({ one, many }) => ({
   product: one(products, {
     fields: [orders.productId],
@@ -262,3 +305,48 @@ export const aboutImagesRelations = relations(aboutImages, ({ one }) => ({
     references: [about.id],
   }),
 }))
+
+
+export const blogRelations = relations(blogPosts, ({ one, many }) => ({
+  author: one(users, {
+    fields: [blogPosts.authorId],
+    references: [users.id],
+  }),
+  drafts: many(blogDrafts),
+  versions: many(blogVersions),
+  images: many(blogImages),
+}))
+
+export const blogDraftRelations = relations(blogDrafts, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogDrafts.postId],
+    references: [blogPosts.id],
+  }),
+  author: one(users, {
+    fields: [blogDrafts.authorId],
+    references: [users.id],
+  }),
+}))
+
+export const blogVersionRelations = relations(blogVersions, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogVersions.postId],
+    references: [blogPosts.id],
+  }),
+  author: one(users, {
+    fields: [blogVersions.authorId],
+    references: [users.id],
+  }),
+}))
+
+export const blogImageRelations = relations(blogImages, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogImages.postId],
+    references: [blogPosts.id],
+  }),
+}))
+
+export type BlogPost = typeof blogPosts.$inferSelect
+export type BlogDraft = typeof blogDrafts.$inferSelect
+export type BlogVersion = typeof blogVersions.$inferSelect
+export type BlogImage = typeof blogImages.$inferSelect
