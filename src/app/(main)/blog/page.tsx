@@ -1,74 +1,96 @@
+import React from 'react'
 import Link from 'next/link'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
-
 import { db } from '~/server/db'
-import { blogs } from '~/server/db/schema'
+import { desc, and, eq } from 'drizzle-orm'
+import { blogPosts } from '~/server/db/schema'
+import { formatDistance } from 'date-fns'
 
-import type { Post } from '~/lib/types/Post'
+const POSTS_PER_PAGE = 10
 
-const temp = await db.select().from(blogs)
-// const result = await db.query.blogs.findMany()
-// console.log('Temp: ', temp)
-// console.log('Res: ', temp)
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: { page?: string }
+}) {
+  const currentPage = Number(searchParams.page) || 1
+  const offset = (currentPage - 1) * POSTS_PER_PAGE
 
-export default async function Blog() {
-  const allPosts: Post[] = await db.select().from(blogs)
-  
-  // console.log('All Posts: ', allPosts)
-  
-  // Filter out draft posts
-  const publishedPosts = allPosts.filter(post => !post.isDraft)
-  
-  // console.log('Published Posts: ', publishedPosts)
-  
-  if (publishedPosts.length <= 0) {
-    return (
-      <main className="flex flex-col">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-8">Latest Blog Posts</h1>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <p>No posts found.</p>
-          </div>
-        </div>
-      </main>
-    ) 
-  }
-
-  const formatDate = (date: Date): string => {
-    return date.toLocaleString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
+  const posts = await db
+    .select({
+      id: blogPosts.id,
+      title: blogPosts.title,
+      description: blogPosts.description,
+      slug: blogPosts.slug,
+      publishedAt: blogPosts.publishedAt,
     })
-  }
-  
+    .from(blogPosts)
+    .where(and(eq(blogPosts.published, true)))
+    .orderBy(desc(blogPosts.publishedAt))
+    .limit(POSTS_PER_PAGE)
+    .offset(offset)
+
+  const totalPosts = await db
+    .select({ count: blogPosts.id })
+    .from(blogPosts)
+    .where(and(eq(blogPosts.published, true)))
+    .then((res) => res.length)
+
+  const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE)
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Latest Blog Posts</h1>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {publishedPosts.map((post) => (
-            <Card key={post.id} className="flex flex-col">
-              <CardHeader>
-                <CardTitle className="text-xl">
-                  <Link href={`/blog/${post.id}`} className="hover:underline">
-                    {post.title}
-                  </Link>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-muted-foreground line-clamp-3">{post.content}</p>
-              </CardContent>
-              <CardFooter className="flex justify-between items-center">
-                <div className="text-sm text-muted-foreground">
-                  {formatDate(post.createdAt)}
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
+      <h1 className="mb-8 text-4xl font-bold">Blog</h1>
+
+      <div className="grid gap-8">
+        {posts.map((post) => (
+          <article
+            key={post.id}
+            className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+          >
+            <Link href={`/blog/${post.slug}`}>
+              <h2 className="mb-2 text-2xl font-semibold text-gray-900 hover:text-blue-600">
+                {post.title}
+              </h2>
+            </Link>
+            {post.description && (
+              <p className="mb-4 text-gray-600">{post.description}</p>
+            )}
+            <div className="text-sm text-gray-500">
+              {post.publishedAt &&
+                formatDistance(new Date(post.publishedAt), new Date(), {
+                  addSuffix: true,
+                })}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center gap-2">
+          {currentPage > 1 && (
+            <Link
+              href={`/blog?page=${currentPage - 1}`}
+              className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+            >
+              Previous
+            </Link>
+          )}
+          {currentPage < totalPages && (
+            <Link
+              href={`/blog?page=${currentPage + 1}`}
+              className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+            >
+              Next
+            </Link>
+          )}
         </div>
+      )}
+
+      {posts.length === 0 && (
+        <div className="py-12 text-center">
+          <p className="text-gray-600">No blog posts available.</p>
+        </div>
+      )}
     </div>
   )
 }

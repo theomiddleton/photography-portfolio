@@ -1,20 +1,22 @@
 'use client'
 
 import { type FC, useCallback, useEffect, useRef } from 'react'
-import { MDXEditor } from '@mdxeditor/editor'
-import { UndoRedo } from '@mdxeditor/editor/plugins/toolbar/components/UndoRedo'
-import { BoldItalicUnderlineToggles } from '@mdxeditor/editor/plugins/toolbar/components/BoldItalicUnderlineToggles'
-import { BlockTypeSelect } from '@mdxeditor/editor/plugins/toolbar/components/BlockTypeSelect'
-import { CreateLink } from '@mdxeditor/editor/plugins/toolbar/components/CreateLink'
-import { InsertImage } from '@mdxeditor/editor/plugins/toolbar/components/InsertImage'
-import { toolbarPlugin } from '@mdxeditor/editor/plugins/toolbar'
-import { headingsPlugin } from '@mdxeditor/editor/plugins/headings'
-import { listsPlugin } from '@mdxeditor/editor/plugins/lists'
-import { quotePlugin } from '@mdxeditor/editor/plugins/quote'
-import { thematicBreakPlugin } from '@mdxeditor/editor/plugins/thematic-break'
-import { imagePlugin } from '@mdxeditor/editor/plugins/image'
-import { linkPlugin } from '@mdxeditor/editor/plugins/link'
-import { linkDialogPlugin } from '@mdxeditor/editor/plugins/link-dialog'
+import {
+  MDXEditor,
+  UndoRedo,
+  BoldItalicUnderlineToggles,
+  BlockTypeSelect,
+  CreateLink,
+  InsertImage,
+  toolbarPlugin,
+  headingsPlugin,
+  listsPlugin,
+  quotePlugin,
+  thematicBreakPlugin,
+  imagePlugin,
+  linkPlugin,
+  linkDialogPlugin,
+} from '@mdxeditor/editor'
 import { Card, CardContent } from '~/components/ui/card'
 import { cn } from '~/lib/utils'
 
