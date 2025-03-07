@@ -1,18 +1,10 @@
-import React, { useState } from 'react'
 import { BlogEditor } from '~/components/blog/editor'
 
-export const revalidate = 0 // disable cache for admin pages
-
-export default function NewBlogPost() {
-  const [content, setContent] = useState('')
-
+export default function NewPostPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-4xl font-bold">New Blog Post</h1>
-      <BlogEditor 
-        content={content}
-        onChange={setContent}
-      />
-    </div>
+    <main className="container mx-auto py-10 px-4">
+      <h1 className="text-3xl font-bold mb-8">New Blog Post</h1>
+      <BlogEditor />
+    </main>
   )
 }
