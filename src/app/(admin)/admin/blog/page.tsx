@@ -1,13 +1,13 @@
 import React from 'react'
 import { db } from '~/server/db'
 import { desc } from 'drizzle-orm'
-import { blogPosts } from '~/server/db/schema'  // Changed from 'blog' to 'blogPosts'
+import { blogPosts } from '~/server/db/schema'  
 import Link from 'next/link'
 import { Button } from '~/components/ui/button'
 import { PlusCircle } from 'lucide-react'
 import { formatDistance } from 'date-fns'
 
-export const revalidate = 0 // disable cache for admin pages
+export const revalidate = 0
 
 export default async function AdminBlogPage() {
   const posts = await db
@@ -79,7 +79,7 @@ export default async function AdminBlogPage() {
                   </td>
                   <td className="space-x-2 px-6 py-4 text-sm font-medium">
                     <Link
-                      href={`/admin/blog/${post.slug}/edit`}
+                      href={`/admin/blog/edit/${post.slug}`}
                       className="text-indigo-600 hover:text-indigo-900"
                     >
                       Edit

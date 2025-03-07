@@ -42,13 +42,14 @@ import { toast } from 'sonner'
 import { ArrowLeft, Save, Eye } from 'lucide-react'
 import '@mdxeditor/editor/style.css'
 import type { BlogPost, BlogImage } from '~/server/db/schema'
-import { createPost, updatePost } from '~/lib/blog/blog-actions'
+import { createPost, updatePost } from '~/lib/actions/blog-actions'
 
 interface BlogEditorProps {
   post?: BlogPost & { images?: BlogImage[] }
+  session?: { id: number; email: string; role: string }
 }
 
-export function BlogEditor({ post }: BlogEditorProps = {}) {
+export function BlogEditor({ post, session }: BlogEditorProps = {}) {
   const router = useRouter()
   const [title, setTitle] = useState(post?.title || '')
   const [slug, setSlug] = useState(post?.slug || '')
@@ -86,6 +87,7 @@ export function BlogEditor({ post }: BlogEditorProps = {}) {
         description,
         content,
         published,
+        authorId: session?.id
       }
 
       if (post) {
@@ -96,7 +98,7 @@ export function BlogEditor({ post }: BlogEditorProps = {}) {
         toast('Post created successfully')
 
         // Redirect to edit page for the new post
-        router.push(`/admin/edit/${newPost.id}`)
+        router.push(`/admin/edit/${newPost.slug}`)
       }
 
       router.refresh()
@@ -133,7 +135,7 @@ export function BlogEditor({ post }: BlogEditorProps = {}) {
           )}
           <Button onClick={handleSave} disabled={isSaving}>
             <Save className="mr-2 h-4 w-4" />
-            {isSaving ? "Saving..." : "Save Post"}
+            {isSaving ? 'Saving...' : 'Save Post'}
           </Button>
         </div>
       </div>

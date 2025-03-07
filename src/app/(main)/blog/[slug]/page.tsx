@@ -1,111 +1,84 @@
-import { eq } from 'drizzle-orm'
-import { db } from '~/server/db'
-import { blogPosts, users } from '~/server/db/schema'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { MDXRemote } from 'next-mdx-remote'
-import { Card, CardContent } from '~/components/ui/card'
-import type { Metadata } from 'next'
-import { siteConfig } from '~/config/site'
+import { Button } from '~/components/ui/button'
+import { ArrowLeft, Edit } from 'lucide-react'
+import { getPublishedPosts } from '~/lib/actions/blog-actions'
+import { formatDate } from '~/lib/utils'
+import { MDXRemote } from 'next-mdx-remote/rsc'
+import { db } from '~/server/db'
+import { blogPosts } from '~/server/db/schema'
+import { eq } from 'drizzle-orm'
+import { getSession } from '~/lib/auth/auth'
 
-// revalidate pages for new blog posts every minute
-export const revalidate = 60
-export const dynamicParams = true
-
-// Generate metadata for the page
-export async function generateMetadata(props: {
-  params: { slug: string }
-}): Promise<Metadata> {
-  const { slug } = props.params
-
-  // fetch blog post data from the database
-  const [post] = await db
-    .select({
-      title: blogPosts.title,
-      description: blogPosts.description,
-      authorName: users.name,
-    })
-    .from(blogPosts)
-    .where(eq(blogPosts.slug, slug))
-    .leftJoin(users, eq(blogPosts.authorId, users.id))
-    .limit(1)
-
-  if (!post) {
-    return {
-      title: 'Blog Post Not Found',
-    }
-  }
-
-  const canonicalUrl = `${siteConfig.url}/blog/${slug}`
-
-  return {
-    title: post.title,
-    description: post.description,
-    authors: [{ name: post.authorName }],
-    openGraph: {
-      title: post.title,
-      description: post.description,
-      type: 'article',
-      authors: [post.authorName],
-    },
-    alternates: {
-      canonical: canonicalUrl,
-    },
+interface PostPageProps {
+  params: {
+    slug: string
   }
 }
 
-export default async function BlogPost(props: { params: { slug: string } }) {
-  const { slug } = props.params
+export default async function PostPage({ params }: PostPageProps) {
+  const { slug } = await params
 
-  // fetch blog post data from the database
-  const [post] = await db
-    .select({
-      title: blogPosts.title,
-      content: blogPosts.content,
-      description: blogPosts.description,
-      publishedAt: blogPosts.publishedAt,
-      authorName: users.name,
-    })
+  const post = await db
+    .select()
     .from(blogPosts)
     .where(eq(blogPosts.slug, slug))
-    .leftJoin(users, eq(blogPosts.authorId, users.id))
     .limit(1)
+    .then((rows) => rows[0] || null)
 
   if (!post) {
     notFound()
   }
 
+  const session = await getSession()
+
+  if (!post || !post.published) {
+    notFound()
+  }
+
   return (
-    <article className="container mx-auto py-8">
-      <Card>
-        <CardContent className="p-6">
-          <header className="mb-8">
-            <h1 className="mb-4 text-4xl font-bold">{post.title}</h1>
-            {post.description && (
-              <p className="mb-4 text-lg text-muted-foreground">
-                {post.description}
-              </p>
-            )}
-            <div className="text-sm text-muted-foreground">
-              <span>By {post.authorName}</span>
-              {post.publishedAt && (
-                <time
-                  dateTime={post.publishedAt.toISOString()}
-                  className="ml-4"
-                >
-                  {post.publishedAt.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </time>
-              )}
-            </div>
-          </header>
-          <div className="prose prose-stone max-w-none dark:prose-invert">
-            <MDXRemote source={post.content} />
-          </div>
-        </CardContent>
-      </Card>
-    </article>
+    <main className="container mx-auto px-4 pb-10 pt-20">
+      <div className="mb-8 flex items-center justify-between">
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to posts
+          </Button>
+        </Link>
+        {session && session.role === 'admin' && (
+          <Link href={`/admin/blog/edit/${post.slug}`}>
+            <Button variant="outline" size="sm">
+              <Edit className="mr-2 h-4 w-4" />
+              Edit post
+            </Button>
+          </Link>
+        )}
+      </div>
+      <article className="prose prose-lg mx-auto max-w-4xl dark:prose-invert">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold">{post.title}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {formatDate(post.publishedAt || post.createdAt)}
+          </p>
+        </div>
+
+        {post.description && (
+          <p className="mb-8 text-xl italic text-muted-foreground">
+            {post.description}
+          </p>
+        )}
+
+        <MDXRemote source={post.content} />
+      </article>
+    </main>
   )
+}
+
+// Generate static params for all published posts
+export async function generateStaticParams() {
+  const posts = await getPublishedPosts()
+
+  return posts.map((post) => ({
+    slug: post.slug,
+  }))
 }
