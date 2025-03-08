@@ -10,9 +10,10 @@ const POSTS_PER_PAGE = 10
 export default async function BlogPage({
   searchParams,
 }: {
-  searchParams: { page?: string }
+  searchParams: Promise<{ page?: string }>
 }) {
-  const currentPage = Number(searchParams.page) || 1
+  const resolvedParams = await searchParams
+  const currentPage = Number(resolvedParams.page) || 1
   const offset = (currentPage - 1) * POSTS_PER_PAGE
 
   const posts = await db

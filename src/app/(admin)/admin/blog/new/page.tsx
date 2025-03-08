@@ -1,14 +1,12 @@
 import { BlogEditor } from '~/components/blog/editor'
 import { getSession } from '~/lib/auth/auth'
-const session = await getSession()
 
-const user = session
-
-export default function NewPostPage() {
+export default async function NewPostPage() {
+  const session = await getSession()
   return (
-    <main className="container mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-8">New Blog Post</h1>
-      <BlogEditor session={user} />
+    <main className="container mx-auto px-4 py-10">
+      <h1 className="mb-8 text-3xl font-bold">New Blog Post</h1>
+      <BlogEditor session={session} />
     </main>
   )
 }

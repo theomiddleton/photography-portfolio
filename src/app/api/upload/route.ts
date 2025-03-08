@@ -6,7 +6,7 @@ import { siteConfig } from '~/config/site'
 
 import { eq, sql, max } from 'drizzle-orm' 
 import { db } from '~/server/db'
-import { imageData, blogImgData, aboutImgData, customImgData } from '~/server/db/schema'
+import { imageData, aboutImgData, customImgData } from '~/server/db/schema'
 import { NextResponse } from 'next/server'
 
 import { products, productSizes } from '~/server/db/schema'
@@ -144,12 +144,6 @@ export async function POST(request: Request) {
     } else if (bucket === 'blog') {
       console.log('Inserting blog image data')
       logAction('upload', 'Inserting blog image data')
-      await db.insert(blogImgData).values({
-        uuid: keyName,
-        fileName: newFileName,
-        fileUrl: fileUrl,
-        name: name,
-      })
     } else if (bucket === 'about') {
       console.log('Inserting about image data')
       logAction('upload', 'Inserting about image data')

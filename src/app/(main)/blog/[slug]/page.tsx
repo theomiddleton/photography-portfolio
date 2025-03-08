@@ -11,9 +11,9 @@ import { eq } from 'drizzle-orm'
 import { getSession } from '~/lib/auth/auth'
 
 interface PostPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export default async function PostPage({ params }: PostPageProps) {

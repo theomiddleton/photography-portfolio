@@ -32,6 +32,7 @@ import {
   InsertThematicBreak,
   ConditionalContents,
   ChangeCodeMirrorLanguage,
+  type MDXEditorMethods,
 } from '@mdxeditor/editor'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -57,7 +58,7 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
   const [content, setContent] = useState(post?.content || '')
   const [published, setPublished] = useState(post?.published || false)
   const [isSaving, setIsSaving] = useState(false)
-  const editorRef = useRef<MDXEditor>(null)
+  const editorRef = useRef<MDXEditorMethods>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -203,18 +204,18 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
                 toolbarPlugin({
                   toolbarContents: () => (
                     <div className="flex items-center flex-wrap gap-0.5 bg-slate-50 p-1 rounded-md">
-                      <UndoRedo className="rounded hover:bg-slate-100" />
+                      <UndoRedo />
                       <div className="w-px h-6 bg-slate-200 mx-1" />
-                      <BoldItalicUnderlineToggles className="rounded hover:bg-slate-100" />
+                      <BoldItalicUnderlineToggles />
                       <div className="w-px h-6 bg-slate-200 mx-1" />
-                      <BlockTypeSelect className="rounded hover:bg-slate-100" />
+                      <BlockTypeSelect />
                       <div className="w-px h-6 bg-slate-200 mx-1" />
-                      <ListsToggle className="rounded hover:bg-slate-100" />
+                      <ListsToggle />
                       <div className="w-px h-6 bg-slate-200 mx-1" />
-                      <CreateLink className="rounded hover:bg-slate-100" />
-                      <InsertImage className="rounded hover:bg-slate-100" />
+                      <CreateLink />
+                      <InsertImage />
                       <div className="w-px h-6 bg-slate-200 mx-1" />
-                      <CodeToggle className="rounded hover:bg-slate-100" />
+                      <CodeToggle />
                       <ConditionalContents
                         options={[
                           {
@@ -224,8 +225,8 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
                         ]}
                       />
                       <div className="w-px h-6 bg-slate-200 mx-1" />
-                      <InsertTable className="rounded hover:bg-slate-100" />
-                      <InsertThematicBreak className="rounded hover:bg-slate-100" />
+                      <InsertTable />
+                      <InsertThematicBreak />
                     </div>
                   ),
                 }),

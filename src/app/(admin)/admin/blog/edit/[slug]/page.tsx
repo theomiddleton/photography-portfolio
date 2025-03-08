@@ -6,17 +6,19 @@ import { blogPosts } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 
 interface EditBlogPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export default async function EditBlogPage({ params }: EditBlogPageProps) {
   const { slug } = await params
-  const post = await db.select().from(blogPosts)
+  const post = await db
+    .select()
+    .from(blogPosts)
     .where(eq(blogPosts.slug, slug))
     .limit(1)
-    .then(rows => rows[0] || null)
+    .then((rows) => rows[0] || null)
 
   if (!post) {
     notFound()
