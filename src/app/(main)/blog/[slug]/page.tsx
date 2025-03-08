@@ -39,7 +39,7 @@ export default async function PostPage({ params }: PostPageProps) {
   return (
     <main className="container mx-auto px-4 pb-10 pt-20">
       <div className="mb-8 flex items-center justify-between">
-        <Link href="/">
+        <Link href="/blog">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to posts
