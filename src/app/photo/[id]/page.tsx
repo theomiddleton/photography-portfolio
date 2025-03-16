@@ -16,9 +16,10 @@ interface SelectedImageData {
   uploadedAt: Date
 }
 
-// revalidate pages for new images every minute
-// this ensures any recently uploaded images will be shown
-export const revalidate = 60
+// Using on-demand revalidation instead of time-based revalidation
+// dynamicParams is used to tell nextjs to generate the page for each new image
+// This page will be revalidated when images are uploaded or deleted via the API
+export const revalidate = 3600 // Set to 1 hour as a fallback, primarily using on-demand revalidation
 export const dynamicParams = true
 
 // Generate metadata for the page

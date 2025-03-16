@@ -41,9 +41,12 @@ export async function deleteImage({ uuid, fileName, keepStoreData = false }: Del
       }
     }
     
+    // Revalidate all necessary paths
     revalidatePath('/admin/delete')
-    // log it with custom logging implementation, storing the log in the db
-    // return either success message or error message
+    revalidatePath('/')
+    revalidatePath('/photo')
+    
+    // Log the action with custom logging implementation
     logAction('Delete', `Image ${uuid} deleted successfully`)
     return { success: true, message: 'Image deleted successfully' }
   } catch (error) {
