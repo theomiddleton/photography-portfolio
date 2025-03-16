@@ -1,32 +1,36 @@
-import React from 'react' 
-import { SiteHeader } from '~/components/site-header' 
+import React from 'react'
+import { SiteHeader } from '~/components/site-header'
 import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
 import { imageData } from '~/server/db/schema'
 import { siteConfig } from '~/config/site'
 import Image from 'next/image'
 
-// revalidate is used to tell nextjs to refetch the data every 60 seconds
+// Using on-demand revalidation instead of time-based revalidation
 // dynamicParams is used to tell nextjs to generate the page for each new image
-// this insures the page updates when a new image is added, without having to rebuild the entire site
-export const revalidate = 60
-export const dynamicParams = true
+// This page will be revalidated when images are uploaded or deleted via the API
+export const revalidate = 3600 // Set to 1 hour as a fallback, primarily using on-demand revalidation
 
 export default async function Home() {
-  // Get only visible image data from the database
-  const result = await db.select({
-    id: imageData.id,
-    description: imageData.description,
-    order: imageData.order,
-    fileUrl: imageData.fileUrl,
-  }).from(imageData)
-  .where(eq(imageData.visible, true))
+  // Get only visible image data from the database, ordered by the 'order' field
+  const result = await db
+    .select({
+      id: imageData.id,
+      description: imageData.description,
+      order: imageData.order,
+      fileUrl: imageData.fileUrl,
+      name: imageData.name,
+    })
+    .from(imageData)
+    .where(eq(imageData.visible, true))
+    .orderBy(imageData.order)
 
   const imageUrls = result.map((item) => ({
     id: item.id,
     description: item.description,
     order: item.order,
     url: item.fileUrl,
+    name: item.name,
   }))
 
   return (
@@ -34,20 +38,24 @@ export default async function Home() {
       <SiteHeader />
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
         <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-          {siteConfig.headers.main && (
-            <div>{siteConfig.headers.main}</div>
-          )}
+          {siteConfig.headers.main && <div>{siteConfig.headers.main}</div>}
         </h1>
-        <section className="sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4 max-h-5xl mx-auto space-y-4">
-          {imageUrls.map((image) => (
-            <div key={image.order} className="rounded-md overflow-hidden hover:scale-[0.97] duration-100">
+        <section className="max-h-5xl mx-auto space-y-4 sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4">
+          {imageUrls.map((image, index) => (
+            <div
+              key={image.order}
+              className="mb-4 overflow-hidden rounded-md duration-100 hover:scale-[0.97]"
+            >
               <a href={`/photo/${image.id}`} target="_self" rel="noreferrer">
                 <Image
-                 src={image.url}
-                 alt={image.description || 'Gallery Image'}
-                 height={600}
-                 width={400}
-                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  src={image.url}
+                  alt={image.description || image.name || 'Gallery Image'}
+                  height={600}
+                  width={400}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority={index < 4} // Prioritize loading the first 4 images
+                  loading={index < 4 ? 'eager' : 'lazy'}
+                  className="h-auto w-full object-cover"
                 />
               </a>
             </div>

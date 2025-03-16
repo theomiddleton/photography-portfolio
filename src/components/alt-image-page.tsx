@@ -13,16 +13,20 @@ interface AltImagePageProps {
     uploadedAt: Date
   }
 }
-export const revalidate = 3600
+export const revalidate = 3600 // Set to 1 hour as a fallback, primarily using on-demand revalidation
 export const dynamicParams = true
 
 export async function AltImagePage({ data }: AltImagePageProps) {
   return (
     <main>
       <SiteHeader />
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <div className="relative w-full max-w-4xl aspect-[4/3] rounded-lg overflow-hidden">
-          <Suspense fallback={<div className='bg-gray-300 animate-pulse h-full w-full'></div>}>
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="relative aspect-[4/3] w-full max-w-4xl overflow-hidden rounded-lg">
+          <Suspense
+            fallback={
+              <div className="h-full w-full animate-pulse bg-gray-300"></div>
+            }
+          >
             <Image
               src={data.fileUrl}
               alt={data.description}
