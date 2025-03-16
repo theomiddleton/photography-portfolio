@@ -32,6 +32,7 @@ import {
   InsertThematicBreak,
   ConditionalContents,
   ChangeCodeMirrorLanguage,
+  jsxPlugin,
   type MDXEditorMethods,
 } from '@mdxeditor/editor'
 import { Button } from '~/components/ui/button'
@@ -44,6 +45,15 @@ import { ArrowLeft, Save, Eye } from 'lucide-react'
 import '@mdxeditor/editor/style.css'
 import type { BlogPost, BlogImage } from '~/server/db/schema'
 import { createPost, updatePost } from '~/lib/actions/blog-actions'
+import { components } from '~/components/pages/mdx-components/mdx-components'
+import {
+  InsertInfoBox,
+  InsertBanner,
+  InsertCard,
+  InsertImageGallery,
+  InsertImageCompare,
+} from '~/components/blog/custom-mdx-components'
+import { UploadImg } from '~/components/upload-img'
 
 interface BlogEditorProps {
   post?: BlogPost & { images?: BlogImage[] }
@@ -60,6 +70,7 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
   const [isSaving, setIsSaving] = useState(false)
   const editorRef = useRef<MDXEditorMethods>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showImageUpload, setShowImageUpload] = useState(false)
 
   useEffect(() => {
     // Generate slug from title
@@ -88,7 +99,7 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
         description,
         content,
         published,
-        authorId: session?.id
+        authorId: session?.id,
       }
 
       if (post) {
@@ -111,9 +122,28 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
     }
   }
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     // TODO: Implement image upload
     console.log('handleImageUpload')
+  }
+
+  const handleImageUploaded = (image: { name: string; url: string }) => {
+    // Insert the uploaded image into the editor
+    if (editorRef.current) {
+      editorRef.current.insertMarkdown(`![${image.name}](${image.url})`)
+      setShowImageUpload(false)
+    }
+  }
+
+  const testInsert = () => {
+    if (editorRef.current) {
+      // editorRef.current.insertMarkdown('Test')
+      editorRef.current?.insertMarkdown(
+        'waow\n ```jsx\n<InfoBox title="Information">\nYour information content here\n</InfoBox>\n```',
+      )
+    }
   }
 
   return (
@@ -176,13 +206,17 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
         </div>
 
         <div className="flex items-center space-x-2">
-          <Switch id="published" checked={published} onCheckedChange={setPublished} />
+          <Switch
+            id="published"
+            checked={published}
+            onCheckedChange={setPublished}
+          />
           <Label htmlFor="published">Published</Label>
         </div>
 
         <div>
           <Label htmlFor="content">Content</Label>
-          <div className="mt-1 border rounded-md">
+          <div className="mt-1 rounded-md border">
             <MDXEditor
               ref={editorRef}
               markdown={content}
@@ -201,41 +235,192 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
                 diffSourcePlugin(),
                 frontmatterPlugin(),
                 markdownShortcutPlugin(),
+                jsxPlugin({
+                  jsxComponentDescriptors: [
+                    {
+                      name: 'InfoBox',
+                      kind: 'flow',
+                      props: [
+                        { name: 'title', type: 'string' },
+                        { name: 'children', type: 'string' },
+                      ],
+                      hasChildren: true,
+                    },
+                    {
+                      name: 'ImageGallery',
+                      kind: 'flow',
+                      props: [{ name: 'images', type: 'expression' }],
+                      hasChildren: false,
+                    },
+                    {
+                      name: 'Banner',
+                      kind: 'flow',
+                      props: [
+                        { name: 'type', type: 'string' },
+                        { name: 'title', type: 'string' },
+                        { name: 'children', type: 'string' },
+                      ],
+                      hasChildren: true,
+                    },
+                    {
+                      name: 'Card',
+                      kind: 'flow',
+                      props: [
+                        { name: 'className', type: 'string' },
+                        { name: 'children', type: 'expression' },
+                      ],
+                      hasChildren: true,
+                    },
+                    {
+                      name: 'CardHeader',
+                      kind: 'flow',
+                      props: [
+                        { name: 'className', type: 'string' },
+                        { name: 'children', type: 'expression' },
+                      ],
+                      hasChildren: true,
+                    },
+                    {
+                      name: 'CardTitle',
+                      kind: 'flow',
+                      props: [
+                        { name: 'className', type: 'string' },
+                        { name: 'children', type: 'string' },
+                      ],
+                      hasChildren: true,
+                    },
+                    {
+                      name: 'CardDescription',
+                      kind: 'flow',
+                      props: [
+                        { name: 'className', type: 'string' },
+                        { name: 'children', type: 'string' },
+                      ],
+                      hasChildren: true,
+                    },
+                    {
+                      name: 'CardContent',
+                      kind: 'flow',
+                      props: [
+                        { name: 'className', type: 'string' },
+                        { name: 'children', type: 'expression' },
+                      ],
+                      hasChildren: true,
+                    },
+                    {
+                      name: 'CardFooter',
+                      kind: 'flow',
+                      props: [
+                        { name: 'className', type: 'string' },
+                        { name: 'children', type: 'expression' },
+                      ],
+                      hasChildren: true,
+                    },
+                    {
+                      name: 'ImageCompare',
+                      kind: 'flow',
+                      props: [
+                        { name: 'beforeImage', type: 'string' },
+                        { name: 'afterImage', type: 'string' },
+                        { name: 'beforeLabel', type: 'string' },
+                        { name: 'afterLabel', type: 'string' },
+                      ],
+                      hasChildren: false,
+                    },
+                  ],
+                }),
                 toolbarPlugin({
                   toolbarContents: () => (
-                    <div className="flex items-center flex-wrap gap-0.5 bg-slate-50 p-1 rounded-md">
+                    <div className="flex flex-wrap items-center gap-0.5 rounded-md bg-slate-50 p-1">
                       <UndoRedo />
-                      <div className="w-px h-6 bg-slate-200 mx-1" />
+                      <div className="mx-1 h-6 w-px bg-slate-200" />
                       <BoldItalicUnderlineToggles />
-                      <div className="w-px h-6 bg-slate-200 mx-1" />
+                      <div className="mx-1 h-6 w-px bg-slate-200" />
                       <BlockTypeSelect />
-                      <div className="w-px h-6 bg-slate-200 mx-1" />
+                      <div className="mx-1 h-6 w-px bg-slate-200" />
                       <ListsToggle />
-                      <div className="w-px h-6 bg-slate-200 mx-1" />
+                      <div className="mx-1 h-6 w-px bg-slate-200" />
                       <CreateLink />
                       <InsertImage />
-                      <div className="w-px h-6 bg-slate-200 mx-1" />
+                      <div className="mx-1 h-6 w-px bg-slate-200" />
                       <CodeToggle />
                       <ConditionalContents
                         options={[
                           {
-                            when: (editor) => editor?.editorType === 'codemirror',
-                            contents: () => <ChangeCodeMirrorLanguage />
-                          }
+                            when: (editor) =>
+                              editor?.editorType === 'codemirror',
+                            contents: () => <ChangeCodeMirrorLanguage />,
+                          },
                         ]}
                       />
-                      <div className="w-px h-6 bg-slate-200 mx-1" />
+                      <div className="mx-1 h-6 w-px bg-slate-200" />
                       <InsertTable />
                       <InsertThematicBreak />
+                      {/* Custom MDX Components */}
+                      <div className="mx-1 h-6 w-px bg-slate-200" />
+                      <ConditionalContents
+                        options={[
+                          {
+                            when: () => true,
+                            contents: () => (
+                              <>
+                                <InsertInfoBox />
+                                <InsertBanner />
+                                <InsertCard />
+                                <InsertImageGallery />
+                                <InsertImageCompare />
+                              </>
+                            ),
+                          },
+                        ]}
+                      />
+                      {/* Image Upload Button */}
+                      <Button
+                        variant="ghost"
+                        className="h-8 px-2 text-xs"
+                        onClick={() => setShowImageUpload(!showImageUpload)}
+                        title="Upload Image"
+                      >
+                        Upload Image
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="h-8 px-2 text-xs"
+                        onClick={testInsert}
+                        title="Test Insert"
+                      >
+                        Test Insert
+                      </Button>
                     </div>
                   ),
                 }),
               ]}
-              
               contentEditableClassName="prose dark:prose-invert max-w-none p-4 min-h-[400px]"
             />
           </div>
-          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+          {showImageUpload && (
+            <div className="mt-4 rounded-md border p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-medium">Upload Image</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowImageUpload(false)}
+                  className="h-6 w-6 p-0"
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </div>
+              <UploadImg bucket="blog" onImageUpload={handleImageUploaded} />
+            </div>
+          )}
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleImageUpload}
+          />
         </div>
       </div>
     </div>
