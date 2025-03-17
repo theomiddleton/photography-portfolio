@@ -11,13 +11,12 @@ import { NextResponse } from 'next/server'
 
 import { products, productSizes } from '~/server/db/schema'
 import { slugify } from '~/lib/utils'
-import Stripe from 'stripe'
+
 import { revalidatePath } from 'next/cache'
 
 import { logAction } from '~/lib/logging'
 import { getSession } from '~/lib/auth/auth'
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+import { stripe } from '~/lib/stripe'
 
 export async function POST(request: Request) {
   const session = await getSession()
