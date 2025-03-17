@@ -11,8 +11,8 @@ export function StoreGrid({ prints }: StoreGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-8">
       {prints.map((print) => (
-        <Link key={print.id} href={`/store/${print.slug}`} className="group block bg-white">
-          <div className="aspect-square rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center">
+        <Link key={print.id} href={`/store/${print.slug}`} className="group block">
+          <div className="aspect-square rounded-2xl overflow-hidden bg-black/5 flex items-center justify-center">
             <div className="relative w-[90%] h-[90%]">
               <Image
                 src={print.imageUrl}
@@ -35,4 +35,3 @@ export function StoreGrid({ prints }: StoreGridProps) {
     </div>
   )
 }
-

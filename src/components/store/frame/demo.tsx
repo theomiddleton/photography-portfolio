@@ -50,7 +50,7 @@ export function FrameDemo() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="bg-white p-6 rounded-lg shadow-lg">
+        <div className="p-6 rounded-lg shadow-lg">
           <h1 className="text-2xl font-bold mb-6">Art Frame Preview</h1>
 
           <div className="grid gap-8 md:grid-cols-2 items-start">

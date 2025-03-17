@@ -228,18 +228,18 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
                 markdownShortcutPlugin(),
                 toolbarPlugin({
                   toolbarContents: () => (
-                    <div className="flex flex-wrap items-center gap-0.5 rounded-md bg-slate-50 p-1">
+                    <div className="flex flex-wrap items-center gap-0.5 rounded-md bg-black/5 p-1 dark:bg-white/10">
                       <UndoRedo />
-                      <div className="mx-1 h-6 w-px bg-slate-200" />
+                      <div className="mx-1 h-6 w-px bg-current opacity-20" />
                       <BoldItalicUnderlineToggles />
-                      <div className="mx-1 h-6 w-px bg-slate-200" />
+                      <div className="mx-1 h-6 w-px bg-current opacity-20" />
                       <BlockTypeSelect />
-                      <div className="mx-1 h-6 w-px bg-slate-200" />
+                      <div className="mx-1 h-6 w-px bg-current opacity-20" />
                       <ListsToggle />
-                      <div className="mx-1 h-6 w-px bg-slate-200" />
+                      <div className="mx-1 h-6 w-px bg-current opacity-20" />
                       <CreateLink />
                       <InsertImage />
-                      <div className="mx-1 h-6 w-px bg-slate-200" />
+                      <div className="mx-1 h-6 w-px bg-current opacity-20" />
                       <CodeToggle />
                       <ConditionalContents
                         options={[
@@ -250,7 +250,7 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
                           },
                         ]}
                       />
-                      <div className="mx-1 h-6 w-px bg-slate-200" />
+                      <div className="mx-1 h-6 w-px bg-current opacity-20" />
                       <InsertTable />
                       <InsertThematicBreak />
                       {/* Image Upload Button */}

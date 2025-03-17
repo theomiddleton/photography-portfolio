@@ -17,7 +17,7 @@ export default async function ImageManagementPage() {
   const images = await getImages()
 
   return (
-    <div className="min-h-screen container mx-auto bg-white text-black space-y-12 py-10">
+    <div className="min-h-screen container mx-auto text-black space-y-12 py-10">
       <DeleteTable images={images} />
       <ImageReorder images={images} />
     </div>
