@@ -32,7 +32,7 @@ export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">      
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-        <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
+        <h1 className="text-5xl font-serif tracking-tight sm:text-[5rem]">
           {siteConfig.headers.main && <div>{siteConfig.headers.main}</div>}
         </h1>
         <section className="max-h-5xl mx-auto space-y-4 sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4">

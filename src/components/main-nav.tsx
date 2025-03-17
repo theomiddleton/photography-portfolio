@@ -123,7 +123,7 @@ export function MainNav({ isAdmin }: MainNavProps) {
           <div className="px-4">
             <Link href="/" className="flex items-center space-x-2" onClick={() => setOpen(false)}>
               <Icons.logo className="h-6 w-6" />
-              <span className="text-lg font-semibold">{siteConfig.title}</span>
+              <span className="text-lg font-semibold font-serif">{siteConfig.title}</span>
             </Link>
           </div>
           <div className="flex flex-col space-y-4 px-4 mt-6">
@@ -134,7 +134,7 @@ export function MainNav({ isAdmin }: MainNavProps) {
       <div className="hidden md:flex">
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <Icons.logo className="h-6 w-6" />
-          <span className="text-lg font-semibold">{siteConfig.title}</span>
+          <span className="text-lg font-semibold font-serif">{siteConfig.title}</span>
         </Link>
         <MainNavItems />
       </div>

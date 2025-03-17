@@ -4,11 +4,16 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { AxiomWebVitals } from 'next-axiom'
 import { Toaster } from '~/components/ui/sonner'
 
-import { Inter } from 'next/font/google'
+import { Inter, Playfair_Display } from 'next/font/google'
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
+})
+
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-serif',
 })
 
 export const viewport = {
@@ -24,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`font-sans ${inter.variable}`}>
+      <body className={`font-sans ${inter.variable} ${playfairDisplay.variable}`}>
         {children}
         <Toaster />
         <Analytics />
@@ -32,5 +37,5 @@ export default function RootLayout({
         <SpeedInsights />
       </body>
     </html>
-  ) 
+  )
 }

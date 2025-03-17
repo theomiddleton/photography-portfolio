@@ -1,5 +1,4 @@
 export const siteConfig = {
-  //title: 'Portfolio Project',
   title: 'Portfolio',
   description: 'Photography portfolio of Theo Middleton',
   storeName: 'T Middleton Store',
@@ -10,8 +9,11 @@ export const siteConfig = {
   url: 'https://theomiddleton.me',
   altUrl: 'https://theoo.ooo',
   links: {
-    github: 'https://github.com/theomiddleton/portfolio-project',
-    website: 'https://theomiddleton.me'
+    github: '',
+    website: 'https://theoo.ooo',
+    instagram: 'https://www.instagram.com/theomiddleton_/',
+    twitter: '',
+    facebook: ''
   },
   headers: {
     main: '',
@@ -37,6 +39,4 @@ export const siteConfig = {
     replyTo: 'reply@theoo.ooo'
   }
 }
-
-
 export type SiteConfig = typeof siteConfig
