@@ -27,6 +27,7 @@ export const env = createEnv({
     JWT_EXPIRATION_HOURS: z.coerce.number(),
     SITE_URL: z.string().url(),
     ADMIN_EMAIL: z.string().email(),
+    RESEND_API_KEY: z.string(),
   },
 
   client: {
@@ -52,6 +53,7 @@ export const env = createEnv({
     JWT_EXPIRATION_HOURS: process.env.JWT_EXPIRATION_HOURS,
     SITE_URL: process.env.SITE_URL,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
