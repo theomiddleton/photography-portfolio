@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import React from 'react'
 
-export const revalidate = 60
+export const revalidate = 3600 // Set to 1 hour as a fallback, primarily using on-demand revalidation
 export const dynamicParams = true
 
 export function ImagePage(data: any) {

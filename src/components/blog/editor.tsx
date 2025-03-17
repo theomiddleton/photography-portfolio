@@ -1,7 +1,6 @@
 'use client'
 
 import type React from 'react'
-
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -45,14 +44,6 @@ import { ArrowLeft, Save, Eye } from 'lucide-react'
 import '@mdxeditor/editor/style.css'
 import type { BlogPost, BlogImage } from '~/server/db/schema'
 import { createPost, updatePost } from '~/lib/actions/blog-actions'
-import { components } from '~/components/pages/mdx-components/mdx-components'
-import {
-  InsertInfoBox,
-  InsertBanner,
-  InsertCard,
-  InsertImageGallery,
-  InsertImageCompare,
-} from '~/components/blog/custom-mdx-components'
 import { UploadImg } from '~/components/upload-img'
 
 interface BlogEditorProps {
@@ -235,100 +226,6 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
                 diffSourcePlugin(),
                 frontmatterPlugin(),
                 markdownShortcutPlugin(),
-                jsxPlugin({
-                  jsxComponentDescriptors: [
-                    {
-                      name: 'InfoBox',
-                      kind: 'flow',
-                      props: [
-                        { name: 'title', type: 'string' },
-                        { name: 'children', type: 'string' },
-                      ],
-                      hasChildren: true,
-                    },
-                    {
-                      name: 'ImageGallery',
-                      kind: 'flow',
-                      props: [{ name: 'images', type: 'expression' }],
-                      hasChildren: false,
-                    },
-                    {
-                      name: 'Banner',
-                      kind: 'flow',
-                      props: [
-                        { name: 'type', type: 'string' },
-                        { name: 'title', type: 'string' },
-                        { name: 'children', type: 'string' },
-                      ],
-                      hasChildren: true,
-                    },
-                    {
-                      name: 'Card',
-                      kind: 'flow',
-                      props: [
-                        { name: 'className', type: 'string' },
-                        { name: 'children', type: 'expression' },
-                      ],
-                      hasChildren: true,
-                    },
-                    {
-                      name: 'CardHeader',
-                      kind: 'flow',
-                      props: [
-                        { name: 'className', type: 'string' },
-                        { name: 'children', type: 'expression' },
-                      ],
-                      hasChildren: true,
-                    },
-                    {
-                      name: 'CardTitle',
-                      kind: 'flow',
-                      props: [
-                        { name: 'className', type: 'string' },
-                        { name: 'children', type: 'string' },
-                      ],
-                      hasChildren: true,
-                    },
-                    {
-                      name: 'CardDescription',
-                      kind: 'flow',
-                      props: [
-                        { name: 'className', type: 'string' },
-                        { name: 'children', type: 'string' },
-                      ],
-                      hasChildren: true,
-                    },
-                    {
-                      name: 'CardContent',
-                      kind: 'flow',
-                      props: [
-                        { name: 'className', type: 'string' },
-                        { name: 'children', type: 'expression' },
-                      ],
-                      hasChildren: true,
-                    },
-                    {
-                      name: 'CardFooter',
-                      kind: 'flow',
-                      props: [
-                        { name: 'className', type: 'string' },
-                        { name: 'children', type: 'expression' },
-                      ],
-                      hasChildren: true,
-                    },
-                    {
-                      name: 'ImageCompare',
-                      kind: 'flow',
-                      props: [
-                        { name: 'beforeImage', type: 'string' },
-                        { name: 'afterImage', type: 'string' },
-                        { name: 'beforeLabel', type: 'string' },
-                        { name: 'afterLabel', type: 'string' },
-                      ],
-                      hasChildren: false,
-                    },
-                  ],
-                }),
                 toolbarPlugin({
                   toolbarContents: () => (
                     <div className="flex flex-wrap items-center gap-0.5 rounded-md bg-slate-50 p-1">
@@ -356,24 +253,6 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
                       <div className="mx-1 h-6 w-px bg-slate-200" />
                       <InsertTable />
                       <InsertThematicBreak />
-                      {/* Custom MDX Components */}
-                      <div className="mx-1 h-6 w-px bg-slate-200" />
-                      <ConditionalContents
-                        options={[
-                          {
-                            when: () => true,
-                            contents: () => (
-                              <>
-                                <InsertInfoBox />
-                                <InsertBanner />
-                                <InsertCard />
-                                <InsertImageGallery />
-                                <InsertImageCompare />
-                              </>
-                            ),
-                          },
-                        ]}
-                      />
                       {/* Image Upload Button */}
                       <Button
                         variant="ghost"

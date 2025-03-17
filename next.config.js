@@ -10,6 +10,10 @@ const nextConfig = {
         port: '',
       },
     ],
+    minimumCacheTTL: 3600, // Set to 1 hour to reduce cache writes
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920], // Reduced number of device sizes
+    imageSizes: [16, 32, 64, 96, 128, 256], // Reduced number of image sizes
+    formats: ['image/webp'], // Prefer WebP format for better compression
   },
   experimental: {
     serverActions: {

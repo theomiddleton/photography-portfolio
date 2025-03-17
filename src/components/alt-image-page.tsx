@@ -16,7 +16,7 @@ interface AltImagePageProps {
   prevImageUrl?: string
   nextImageUrl?: string
 }
-export const revalidate = 3600
+export const revalidate = 3600 // Set to 1 hour as a fallback, primarily using on-demand revalidation
 export const dynamicParams = true
 
 export async function AltImagePage({

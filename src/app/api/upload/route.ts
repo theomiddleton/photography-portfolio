@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { r2 } from '~/lib/r2'
 import { siteConfig } from '~/config/site'
 
-import { eq, sql, max } from 'drizzle-orm' 
+import { eq, sql, max } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { imageData, aboutImgData, customImgData } from '~/server/db/schema'
 import { NextResponse } from 'next/server'
@@ -20,12 +20,14 @@ import { getSession } from '~/lib/auth/auth'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export async function POST(request: Request) {
-  
   const session = await getSession()
-  
+
   // If there's no session or the user is not an admin, return an error message
   if (!session || session.role !== 'admin') {
-    return NextResponse.json({ error: 'User is not authenticated, or is not authorized.' }, { status: 401 })
+    return NextResponse.json(
+      { error: 'User is not authenticated, or is not authorized.' },
+      { status: 401 },
+    )
   }
   
   const { filename, name, description, tags, isSale, bucket, printSizes } = await request.json()
@@ -36,29 +38,30 @@ export async function POST(request: Request) {
     // take the file extention from the filename
     const fileExtension = filename.split('.').pop()
     // create a unique key name for the image
-    const keyName = uuidv4() 
-    
+    const keyName = uuidv4()
+
     // Determine which bucket to use based on the bucket prop
-    const bucketName = bucket === 'image'
-      ? process.env.R2_IMAGE_BUCKET_NAME
-      : bucket === 'blog'
-        ? process.env.R2_BLOG_IMG_BUCKET_NAME
-        : bucket === 'about'
-          ? process.env.R2_ABOUT_IMG_BUCKET_NAME
-          : bucket === 'custom'
-            ? process.env.R2_CUSTOM_IMG_BUCKET_NAME
-            : null
-    
+    const bucketName =
+      bucket === 'image'
+        ? process.env.R2_IMAGE_BUCKET_NAME
+        : bucket === 'blog'
+          ? process.env.R2_BLOG_IMG_BUCKET_NAME
+          : bucket === 'about'
+            ? process.env.R2_ABOUT_IMG_BUCKET_NAME
+            : bucket === 'custom'
+              ? process.env.R2_CUSTOM_IMG_BUCKET_NAME
+              : null
+
     if (!bucketName) {
       throw new Error(`Invalid bucket type: ${bucket}`)
     }
-    
+
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: keyName + '.' + fileExtension,
-    }) 
+    })
 
-    const url = await getSignedUrl(r2, command, { expiresIn: 60 }) 
+    const url = await getSignedUrl(r2, command, { expiresIn: 60 })
 
     const newFileName = keyName + '.' + fileExtension
     const fileUrl = `${
@@ -95,7 +98,7 @@ export async function POST(request: Request) {
         tags: tags,
         order: newOrder,
       })
-      
+
       const result = await db
         .select({
           id: imageData.id,
@@ -166,6 +169,32 @@ export async function POST(request: Request) {
 
     revalidatePath('/store')
     revalidatePath(`/store/${slug}`)
+
+    // Revalidate paths after successful upload
+    if (bucket === 'image') {
+      // Use fetch to call the revalidation API
+      try {
+        // Revalidate the homepage and photo pages
+        const revalidateResponse = await fetch(
+          `/api/revalidate`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              path: '/',
+            }),
+          },
+        )
+
+        if (!revalidateResponse.ok) {
+          console.error('Failed to revalidate paths')
+        }
+      } catch (revalidateError) {
+        console.error('Error revalidating paths:', revalidateError)
+      }
+    }
 
     return Response.json({ url, fileUrl })
   } catch (error) {

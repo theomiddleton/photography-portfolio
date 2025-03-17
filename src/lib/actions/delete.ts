@@ -44,10 +44,14 @@ export async function deleteImage({ uuid, fileName }: DeleteImageParams) {
     await db.delete(imageData).where(eq(imageData.uuid, uuid))
     await db.delete(aboutImgData).where(eq(aboutImgData.uuid, uuid))
     
+    // Revalidate all necessary paths
     revalidatePath('/admin/mangage')
     revalidatePath('/admin/store')
-    // log it with custom logging implementation, storing the log in the db
-    // return either success message or error message
+    revalidatePath('/admin/delete')
+    revalidatePath('/')
+    revalidatePath('/photo')
+    
+    // Log the action with custom logging implementation
     logAction('Delete', `Image ${uuid} deleted successfully`)
     return { success: true, message: 'Image deleted successfully' }
   } catch (error) {

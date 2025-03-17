@@ -16,9 +16,7 @@ interface SelectedImageData {
   uploadedAt: Date
 }
 
-// revalidate pages for new images every minute
-// this ensures any recently uploaded images will be shown
-export const revalidate = 60
+export const revalidate = 3600
 export const dynamicParams = true
 
 // Generate metadata for the page
