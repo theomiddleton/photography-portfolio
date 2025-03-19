@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '~/server/db'
+import { dbWithTx } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 import { getSession } from '~/lib/auth/auth'
 import { logAction } from '~/lib/logging'
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     // Process the import - this is a simple implementation that just inserts the data
     // In a real-world scenario, you might want to handle duplicates, updates, etc.
-    const result = await db.transaction(async (tx) => {
+    const result = await dbWithTx.transaction(async (tx) => {
       // Clear existing data if needed (optional, depends on your use case)
       // await tx.delete(imageData)
       
