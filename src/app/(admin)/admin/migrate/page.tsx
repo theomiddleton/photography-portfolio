@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Textarea } from '~/components/ui/textarea'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Icons } from '~/components/ui/icons'
+import { CopyIcon } from 'lucide-react'
 
 export default function MigratePage() {
   const [exportedData, setExportedData] = useState('')
@@ -129,7 +130,7 @@ export default function MigratePage() {
                     size="sm"
                     onClick={handleCopyToClipboard}
                   >
-                    <Icons.copy className="mr-2 h-4 w-4" />
+                    <CopyIcon className="mr-2 h-4 w-4" />
                     Copy
                   </Button>
                 </div>
