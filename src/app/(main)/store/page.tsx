@@ -50,7 +50,6 @@ async function getProducts() {
 
 export default async function StorePage() {
   const prints = await getProducts()
-
   return (
     <main className="container mx-auto px-4 py-12 pt-24">
       <div className="max-w-2xl mx-auto text-center mb-12">
@@ -60,4 +59,3 @@ export default async function StorePage() {
     </main>
   )
 }
-
