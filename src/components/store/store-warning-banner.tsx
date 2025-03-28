@@ -12,17 +12,28 @@ export function StoreWarningBanner() {
 
   const [isVisible, setIsVisible] = useState(true)
 
-  // Check if the banner has been dismissed before
+  // Check if the banner has been dismissed and if 24 hours have passed
   useEffect(() => {
-    const isDismissed = localStorage.getItem('store-warning-dismissed')
-    if (isDismissed === 'true') {
-      setIsVisible(false)
+    const dismissedData = localStorage.getItem('store-warning-dismissed')
+    if (dismissedData) {
+      const { timestamp } = JSON.parse(dismissedData)
+      const twentyFourHoursInMs = 24 * 60 * 60 * 1000
+      const hasExpired = Date.now() - timestamp > twentyFourHoursInMs
+
+      if (!hasExpired) {
+        setIsVisible(false)
+      }
     }
   }, [])
 
   const dismissBanner = () => {
     setIsVisible(false)
-    localStorage.setItem('store-warning-dismissed', 'true')
+    localStorage.setItem(
+      'store-warning-dismissed',
+      JSON.stringify({
+        timestamp: Date.now(),
+      }),
+    )
   }
 
   if (!isStorePage) return null
@@ -42,7 +53,7 @@ export function StoreWarningBanner() {
         size="sm"
         onClick={dismissBanner}
         className="ml-2 text-amber-900 hover:bg-amber-100 hover:text-amber-900"
-        aria-label="Dismiss warning"
+        aria-label="Dismiss warning for 24 hours"
       >
         <X size={16} />
       </Button>
