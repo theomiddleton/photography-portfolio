@@ -90,7 +90,7 @@
     "@types/node": "^20.17.24",
     "@types/react": "19.0.8",
     "drizzle-kit": "^0.21.4",
-    "eslint-config-next": "15.1.6",
+    "eslint-config-next": "15.2.4",
     "knip": "^5.46.0",
     "typescript": "^5.8.2"
   }
