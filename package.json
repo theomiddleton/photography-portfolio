@@ -58,7 +58,7 @@
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.29.5",
     "eslint": "^8.57.1",
-    "flags": "^3.1.1",
+    "flags": "^3.2.0",
     "hls.js": "^1.5.20",
     "jose": "^5.10.0",
     "lucide-react": "^0.435.0",
