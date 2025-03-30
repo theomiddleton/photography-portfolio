@@ -16,6 +16,9 @@ interface FeedbackState {
   message: string
 }
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default function DraftEditor({ params }: { params: { id: string } }) {
   const draftId = parseInt(params.id, 10)
   

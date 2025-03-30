@@ -4,8 +4,8 @@ import { Card, CardHeader, CardTitle, CardDescription } from '~/components/ui/ca
 
 import { BlogsTable } from '~/components/blog/blog-table'
 
-export const revalidate = 60
-export const dynamicParams = true
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default function Blog() {
   return (
