@@ -15,6 +15,9 @@
 - [ ] Infinte scroll
 - [x] rethink auth
 
+
+- [ ] audit security - https://youtu.be/0EVB5LAtlDQ, https://nextjs.org/blog/security-nextjs-server-components-actions
+
 When uploading in batches check order id works properly, is currently broken when rearagning ui
 Also fix that linking is broken - it uses the order id rather than the image id
 Make hide buttons show when hidden, change message so fits in the row
