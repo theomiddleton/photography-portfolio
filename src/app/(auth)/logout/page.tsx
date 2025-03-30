@@ -7,6 +7,8 @@ import { X } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { logout } from '~/lib/auth/userActions'
+import { SiteHeader } from '~/components/site-header'
+import { SiteFooter } from '~/components/site-footer'
 
 const initialState = {
   success: false,
@@ -36,6 +38,7 @@ export default function LogoutPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
+      <SiteHeader />
       <Card className="w-[350px] shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Log Out</CardTitle>
@@ -76,6 +79,7 @@ export default function LogoutPage() {
           </form>
         </CardContent>
       </Card>
+      <SiteFooter />
     </div>
   )
 }

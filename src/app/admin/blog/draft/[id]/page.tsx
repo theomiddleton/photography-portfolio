@@ -31,6 +31,7 @@ export default function DraftEditor({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchDraft = async () => {
       const loadedDraft = await loadDraft(draftId)
+      console.log('loaded draft: ', loadedDraft)
       if (loadedDraft) {
         setDraft(loadedDraft)
       } else {

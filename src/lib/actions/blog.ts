@@ -65,14 +65,9 @@ export async function updateImageAssociations({ tempId, permanentId }: { tempId:
 }
 
 export async function loadDraft(id: number): Promise<PostData | null> {
-  const draft = await db.select()
-  .from(blogs)
-  .where(
-    and(
-      eq(blogs.id, id),
-      eq(blogs.isDraft, true)
-    )
-  )
+  const [draft] = await db.select()
+    .from(blogs)
+    .where(eq(blogs.id, id))
 
   return draft ? { ...draft, isDraft: true } : null
 }

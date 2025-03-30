@@ -18,6 +18,7 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation' 
+import { SiteHeader } from '~/components/site-header'
 
 import { loginSchema } from '~/lib/types/loginSchema'
 
@@ -48,6 +49,7 @@ export default function Signin() {
 
   return (
     <div className="min-h-screen space-y-12">
+      <SiteHeader />
       <div className="max-w-md mx-auto py-24 px-4">
         <Card className="w-full">
           <CardHeader>
