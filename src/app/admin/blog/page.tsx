@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from '~/components/ui/ca
 import { BlogsTable } from '~/components/blog/blog-table'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// export const revalidate = 0
 
 export default function Blog() {
   return (
