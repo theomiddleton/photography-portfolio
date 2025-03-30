@@ -13,7 +13,7 @@ export const dynamicParams = true
 
 // Generate metadata for the page
 export async function generateMetadata( { params }: { params: { id: string } }, parent: ResolvingMetadata ): Promise<Metadata> {
-  const id = parseInt(params.id, 10)
+  const id = await parseInt(params.id, 10)
   
   if (isNaN(id)) {
     return {
@@ -58,7 +58,7 @@ const formatDate = (date: Date): string => {
 }
 
 export default async function BlogPost({ params }: { params: { id: string } }) {
-  const id = parseInt(params.id, 10)
+  const id = await parseInt(params.id, 10)
   
   if (isNaN(id)) {
     notFound()
