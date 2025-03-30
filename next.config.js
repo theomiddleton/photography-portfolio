@@ -23,8 +23,8 @@ const nextConfig = {
         'http://localhost:3000'
       ],
     },
-    serverComponentsExternalPackages: ['@aws/sdk/client-s3', '@aws-sdk/s3-request-presigner'],
   },
+  serverExternalPackages: ['@aws/sdk/client-s3', '@aws-sdk/s3-request-presigner'],
   eslint: {
     ignoreDuringBuilds: false,
   },
