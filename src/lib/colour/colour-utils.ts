@@ -75,4 +75,3 @@ export function rgbToHsl(rgb: RGBColour): HSLColour {
     l: l * 100   // Convert lightness to percentage
   }
 }
-

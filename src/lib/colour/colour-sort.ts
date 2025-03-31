@@ -85,4 +85,3 @@ export async function sortImagesByColour(images: ImageDataType[]) {
     modifiedAt: image.modifiedAt,
   }))
 }
-

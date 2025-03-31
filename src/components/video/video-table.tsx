@@ -78,4 +78,3 @@ export function VideoTable({ videos, onVisibilityChange }: VideoTableProps) {
     </Card>
   )
 }
-

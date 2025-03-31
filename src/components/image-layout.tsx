@@ -26,4 +26,3 @@ export function ImageLayoutPreview({ images }: ImagePreviewProps) {
     </div>
   )
 }
-

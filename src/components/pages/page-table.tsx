@@ -85,4 +85,3 @@ export function PagesTable({ pages }: { pages: CustomPage[] }) {
     </Card>
   )
 }
-

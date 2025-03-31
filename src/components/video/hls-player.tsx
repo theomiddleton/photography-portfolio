@@ -52,4 +52,3 @@ export function HLSPlayer({ src, poster, autoPlay = false }: HLSPlayerProps) {
     />
   )
 }
-

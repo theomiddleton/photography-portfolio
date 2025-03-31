@@ -20,4 +20,3 @@ export function VideoCard({ video }: { video: Video }) {
     </div>
   )
 }
-

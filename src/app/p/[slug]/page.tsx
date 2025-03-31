@@ -34,4 +34,3 @@ export default async function CustomPage({ params }: { params: { slug: string } 
     </main>
   )
 }
-

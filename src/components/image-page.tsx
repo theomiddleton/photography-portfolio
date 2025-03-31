@@ -45,4 +45,3 @@ export function ImagePage(data: any) {
     </main>
   )
 }
-

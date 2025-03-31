@@ -33,4 +33,3 @@ export async function updateImageOrder(newOrder: UpdateImageOrderInput) {
     return { success: false, message: 'Failed to update image order' }
   }
 }
-
