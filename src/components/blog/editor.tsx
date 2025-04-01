@@ -33,6 +33,9 @@ import {
   ChangeCodeMirrorLanguage,
   jsxPlugin,
   type MDXEditorMethods,
+  usePublisher,
+  insertJsx$,
+  type JsxComponentDescriptor,
 } from '@mdxeditor/editor'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -46,9 +49,60 @@ import type { BlogPost, BlogImage } from '~/server/db/schema'
 import { createPost, updatePost } from '~/lib/actions/blog-actions'
 import { UploadImg } from '~/components/upload-img'
 
+import { InfoBox } from './info-box'
+
 interface BlogEditorProps {
   post?: BlogPost & { images?: BlogImage[] }
-  session?: { id: number; email: string; role: string }
+  session?: { id: number, email: string, role: string }
+}
+
+// Define your custom component descriptor
+const jsxComponentDescriptors: JsxComponentDescriptor[] = [
+  {
+    name: 'InfoBox',
+    kind: 'flow',
+    source: './info-box',
+    props: [
+      { name: 'title', type: 'string' },
+    ],
+    Editor: ({ mdastNode, ...props }) => {
+      const nodeProps = mdastNode?.attributes?.reduce((acc, attr) => {
+        if (attr.type === 'mdxJsxAttribute') {
+          acc[attr.name] = attr.value
+        }
+        return acc
+      }, {} as Record<string, any>) ?? {}
+
+      return (
+        <InfoBox title={nodeProps.title}>
+          {nodeProps.children}
+        </InfoBox>
+      )
+    }
+  }
+]
+
+// Custom Insert Button Component
+const InsertInfoBoxButton: React.FC = () => {
+  const insertJsx = usePublisher(insertJsx$)
+
+  return (
+    <Button
+      variant="ghost"
+      className="h-8 px-2 text-xs"
+      onClick={() =>
+        insertJsx({
+          name: 'InfoBox',
+          kind: 'flow',
+          props: {
+            title: 'Information'
+          }
+        })
+      }
+    >
+      Insert Info Box
+    </Button>
+  )
 }
 
 export function BlogEditor({ post, session }: BlogEditorProps = {}) {
@@ -226,6 +280,7 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
                 diffSourcePlugin(),
                 frontmatterPlugin(),
                 markdownShortcutPlugin(),
+                jsxPlugin({ jsxComponentDescriptors }),
                 toolbarPlugin({
                   toolbarContents: () => (
                     <div className="flex flex-wrap items-center gap-0.5 rounded-md bg-black/5 p-1 dark:bg-white/10">
@@ -270,6 +325,7 @@ export function BlogEditor({ post, session }: BlogEditorProps = {}) {
                       >
                         Test Insert
                       </Button>
+                      <InsertInfoBoxButton />
                     </div>
                   ),
                 }),
