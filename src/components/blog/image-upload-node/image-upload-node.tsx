@@ -214,7 +214,7 @@ const ImageUploadPreview: React.FC<ImageUploadPreviewProps> = ({
     <div className="relative rounded-lg border border-gray-200 bg-white p-4">
       {status === "uploading" && (
         <div 
-          className="absolute inset-x-0 bottom-0 h-1 rounded-b-lg bg-primary transition-all duration-300" 
+          className="absolute inset-x-0 bottom-0 h-1 bg-primary/20 transition-all duration-300" 
           style={{ width: `${progress}%` }}
         />
       )}
@@ -222,27 +222,27 @@ const ImageUploadPreview: React.FC<ImageUploadPreviewProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="rounded-full bg-primary/10 p-2 text-primary">
-            <Upload size={20} />
+            <Upload size={20} className={status === "uploading" ? "animate-pulse" : ""} />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-700">{file.name}</p>
-            <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+            <div className="flex items-center space-x-2 text-xs text-gray-500">
+              <span>{formatFileSize(file.size)}</span>
+              {status === "uploading" && (
+                <span className="font-medium text-primary">{progress}%</span>
+              )}
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          {status === "uploading" && (
-            <span className="text-sm text-gray-500">{progress}%</span>
-          )}
-          <button
-            className="rounded-full p-1 hover:bg-gray-100"
-            onClick={(e) => {
-              e.stopPropagation()
-              onRemove()
-            }}
-          >
-            <X size={16} className="text-gray-500" />
-          </button>
-        </div>
+        <button
+          className="rounded-full p-1.5 hover:bg-gray-100 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation()
+            onRemove()
+          }}
+        >
+          <X size={16} className="text-gray-500" />
+        </button>
       </div>
     </div>
   )

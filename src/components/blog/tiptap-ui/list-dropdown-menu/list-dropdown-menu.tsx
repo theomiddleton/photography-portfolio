@@ -214,6 +214,7 @@ export function ListDropdownMenu({
                 text={option.label}
                 hideWhenUnavailable={hideWhenUnavailable}
                 tooltip={""}
+                className="w-full justify-start"
               />
             </DropdownMenuItem>
           ))}

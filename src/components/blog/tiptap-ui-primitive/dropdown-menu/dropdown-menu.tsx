@@ -18,8 +18,6 @@ import {
   useRole,
   useTypeahead,
 } from "@floating-ui/react"
-// Remove SCSS import
-// import "@/components/tiptap-ui-primitive/dropdown-menu/dropdown-menu.scss"
 import { Separator } from "../separator"
 
 interface DropdownMenuOptions {
@@ -251,6 +249,7 @@ export const DropdownMenuContent = React.forwardRef<
             data-[side=left]:slide-in-from-right-2
             data-[side=right]:slide-in-from-left-2
             data-[side=top]:slide-in-from-bottom-2
+            text-left
             ${className || ""}
           `.trim()}
           style={{
@@ -352,7 +351,7 @@ export const DropdownMenuItem = React.forwardRef<
     }
 
     const baseItemClasses = `
-      relative flex items-center
+      relative flex items-center justify-start
       w-full px-2 py-1.5
       text-sm text-gray-700
       rounded-md select-none
@@ -362,6 +361,7 @@ export const DropdownMenuItem = React.forwardRef<
       data-[disabled=true]:opacity-50
       data-[highlighted=true]:bg-gray-100
       data-[highlighted=true]:text-gray-900
+      text-left
       ${className || ""}
     `.trim()
 

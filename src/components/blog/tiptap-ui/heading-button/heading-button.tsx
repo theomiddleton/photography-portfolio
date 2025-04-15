@@ -214,10 +214,10 @@ export const HeadingButton = React.forwardRef<
         ref={ref}
       >
         {children || (
-          <>
-            <Icon className="tiptap-button-icon" />
-            {text && <span className="tiptap-button-text">{text}</span>}
-          </>
+          <div className="flex items-center gap-2 w-full">
+            <Icon className="tiptap-button-icon flex-shrink-0" />
+            {text && <span className="tiptap-button-text text-left">{text}</span>}
+          </div>
         )}
       </Button>
     )
