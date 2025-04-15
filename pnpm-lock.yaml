@@ -137,6 +137,9 @@ importers:
       '@tiptap/starter-kit':
         specifier: ^2.11.7
         version: 2.11.7
+      '@troop.com/tiptap-react-render':
+        specifier: ^0.0.2
+        version: 0.0.2
       '@vercel/analytics':
         specifier: ^1.5.0
         version: 1.5.0(next@15.1.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)
@@ -2410,6 +2413,9 @@ packages:
 
   '@tiptap/starter-kit@2.11.7':
     resolution: {integrity: sha512-K+q51KwNU/l0kqRuV5e1824yOLVftj6kGplGQLvJG56P7Rb2dPbM/JeaDbxQhnHT/KDGamG0s0Po0M3pPY163A==}
+
+  '@troop.com/tiptap-react-render@0.0.2':
+    resolution: {integrity: sha512-+MHnLLChM63mduFxgaMv+rKd1FaN0WW+H9nYYA6EfDcXdildRGTujjNlG2Zndp67rHW/8h1mFo5XvM24oRXNag==}
 
   '@tybys/wasm-util@0.9.0':
     resolution: {integrity: sha512-6+7nlbMVX/PVDCwaIQ8nTOPveOcFLSt8GcXdx8hD0bt39uWxYT88uXzqTd4fTvqta7oeUJqudepapKNt2DYJFw==}
@@ -8357,6 +8363,8 @@ snapshots:
       '@tiptap/extension-text': 2.11.7(@tiptap/core@2.11.7(@tiptap/pm@2.11.7))
       '@tiptap/extension-text-style': 2.11.7(@tiptap/core@2.11.7(@tiptap/pm@2.11.7))
       '@tiptap/pm': 2.11.7
+
+  '@troop.com/tiptap-react-render@0.0.2': {}
 
   '@tybys/wasm-util@0.9.0':
     dependencies:

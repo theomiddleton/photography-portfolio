@@ -11,6 +11,7 @@ import { blogPosts } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { getSession } from '~/lib/auth/auth'
 import type { BlogPostWithImages } from '~/lib/types/blog'
+import { TipTapRenderer } from '~/components/blog/tiptap-renderer'
 
 interface PostPageProps {
   params: {
@@ -105,7 +106,7 @@ export default async function PostPage({ params }: PostPageProps) {
           </p>
         )}
 
-        <pre className="whitespace-pre-wrap">{post.content}</pre>
+        <TipTapRenderer content={JSON.parse(post.content)} />
       </article>
     </main>
   )
