@@ -11,7 +11,7 @@ import { blogPosts } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { getSession } from '~/lib/auth/auth'
 import type { BlogPostWithImages } from '~/lib/types/blog'
-import { TipTapRenderer } from '~/components/blog/tiptap-renderer'
+import { renderTiptapContent } from '~/lib/actions/render-tiptap'
 
 interface PostPageProps {
   params: {
@@ -68,6 +68,16 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound()
   }
 
+  let tiptapHtml = ''
+  if (post.content) {
+    tiptapHtml = await renderTiptapContent(post.content)
+  }
+
+  // console.log('post:', post)
+  // console.log('post.content:', post.content)
+  console.log('renderTiptapContent:', await renderTiptapContent(post.content))
+  console.log('tiptapHtml:', tiptapHtml)
+
   const session = await getSession()
 
   if (!post || (!post.published && (!session || !session.isAdmin))) {
@@ -105,8 +115,25 @@ export default async function PostPage({ params }: PostPageProps) {
             {post.description}
           </p>
         )}
+        {tiptapHtml ? (
+          <>
+            <div
+              className="tiptap-content"
+              dangerouslySetInnerHTML={{ __html: tiptapHtml }}
+              />
+            <pre className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded overflow-auto">
+              <code>{tiptapHtml}</code>
+            </pre>
+          </>
+        ) : (
+          <>
+            <p className="text-red-500">Error: Could not render blog content</p>
+            <pre className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded overflow-auto">
+              <code>{tiptapHtml}</code>
+            </pre>
+          </>
+        )}
 
-        <TipTapRenderer content={JSON.parse(post.content)} />
       </article>
     </main>
   )
