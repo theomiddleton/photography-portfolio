@@ -1,9 +1,8 @@
 import * as React from "react"
 import type { NodeViewProps } from "@tiptap/react"
 import { NodeViewWrapper } from "@tiptap/react"
-import { CloseIcon } from "~/components/blog/tiptap-icons/close-icon"
-// Remove this import
-// import "~/components/blog/image-upload-node/image-upload-node.scss"
+import { Upload, X, FileIcon } from "lucide-react"
+// Remove SCSS import since we're using Tailwind
 
 export interface FileItem {
   id: string
@@ -252,6 +251,30 @@ interface ImageUploadPreviewProps {
   onRemove: () => void
 }
 
+// Replace custom icons with Lucide components
+const DropZoneContent: React.FC<{ maxSize: number }> = ({ maxSize }) => (
+  <div className="flex flex-col items-center justify-center gap-4">
+    <div className="relative">
+      <div className="text-gray-200">
+        <FileIcon />
+      </div>
+      <div className="absolute bottom-0 right-0 rounded-full p-1">
+        <Upload size={16} />
+      </div>
+    </div>
+    
+    <div className="text-center">
+      <p className="text-sm">
+        <span className="font-medium text-primary">Click to upload</span> or drag and drop
+      </p>
+      <p className="mt-1 text-xs text-gray-500">
+        Maximum file size {maxSize / 1024 / 1024}MB.
+      </p>
+    </div>
+  </div>
+)
+
+// Update ImageUploadPreview component
 const ImageUploadPreview: React.FC<ImageUploadPreviewProps> = ({
   file,
   progress,
@@ -267,67 +290,42 @@ const ImageUploadPreview: React.FC<ImageUploadPreviewProps> = ({
   }
 
   return (
-    <div className="tiptap-image-upload-preview">
+    <div className="relative rounded-lg border border-gray-200 bg-white p-4">
       {status === "uploading" && (
-        <div
-          className="tiptap-image-upload-progress"
+        <div 
+          className="absolute inset-x-0 bottom-0 h-1 rounded-b-lg bg-primary transition-all duration-300" 
           style={{ width: `${progress}%` }}
         />
       )}
 
-      <div className="tiptap-image-upload-preview-content">
-        <div className="tiptap-image-upload-file-info">
-          <div className="tiptap-image-upload-file-icon">
-            <CloudUploadIcon />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full bg-primary/10 p-2 text-primary">
+            <Upload size={20} />
           </div>
-          <div className="tiptap-image-upload-details">
-            <span className="tiptap-image-upload-text">{file.name}</span>
-            <span className="tiptap-image-upload-subtext">
-              {formatFileSize(file.size)}
-            </span>
+          <div>
+            <p className="text-sm font-medium text-gray-700">{file.name}</p>
+            <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
           </div>
         </div>
-        <div className="tiptap-image-upload-actions">
+        <div className="flex items-center gap-3">
           {status === "uploading" && (
-            <span className="tiptap-image-upload-progress-text">
-              {progress}%
-            </span>
+            <span className="text-sm text-gray-500">{progress}%</span>
           )}
           <button
-            className="tiptap-image-upload-close-btn"
+            className="rounded-full p-1 hover:bg-gray-100"
             onClick={(e) => {
               e.stopPropagation()
               onRemove()
             }}
           >
-            <CloseIcon />
+            <X size={16} className="text-gray-500" />
           </button>
         </div>
       </div>
     </div>
   )
 }
-
-const DropZoneContent: React.FC<{ maxSize: number }> = ({ maxSize }) => (
-  <>
-    <div className="tiptap-image-upload-dropzone">
-      <FileIcon />
-      <FileCornerIcon />
-      <div className="tiptap-image-upload-icon-container">
-        <CloudUploadIcon />
-      </div>
-    </div>
-
-    <div className="tiptap-image-upload-content">
-      <span className="tiptap-image-upload-text">
-        <em>Click to upload</em> or drag and drop
-      </span>
-      <span className="tiptap-image-upload-subtext">
-        Maximum file size {maxSize / 1024 / 1024}MB.
-      </span>
-    </div>
-  </>
-)
 
 export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   const { accept, limit, maxSize } = props.node.attrs
@@ -384,24 +382,35 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
 
   return (
     <NodeViewWrapper
-      className="tiptap-image-upload"
+      className="my-8" // margin: 2rem 0
       tabIndex={0}
       onClick={handleClick}
       contentEditable={false}
     >
       {!fileItem && (
         <ImageUploadDragArea onFile={handleUpload}>
-          <DropZoneContent maxSize={maxSize} />
+          <div className="relative py-8 px-6 border-2 border-dashed border-[--tiptap-image-upload-border] rounded-[--tt-radius-md,0.5rem] text-center cursor-pointer overflow-hidden hover:border-[--tiptap-image-upload-border-active] hover:bg-[--tiptap-image-upload-active-rgb]/5">
+            <div className="flex flex-col items-center justify-center gap-1">
+              <div className="relative w-[3.125rem] h-[3.75rem] inline-flex items-start justify-center">
+                <div className="absolute w-7 h-7 bottom-0 right-0 bg-[--tiptap-image-upload-icon-bg] rounded-[--tt-radius-lg,0.75rem] flex items-center justify-center">
+                  <Upload className="w-3.5 h-3.5 text-[--tiptap-image-upload-icon-color]" />
+                </div>
+              </div>
+              <DropZoneContent maxSize={maxSize} />
+            </div>
+          </div>
         </ImageUploadDragArea>
       )}
 
       {fileItem && (
-        <ImageUploadPreview
-          file={fileItem.file}
-          progress={fileItem.progress}
-          status={fileItem.status}
-          onRemove={clearFileItem}
-        />
+        <div className="relative rounded-[--tt-radius-md,0.5rem] overflow-hidden">
+          <ImageUploadPreview
+            file={fileItem.file}
+            progress={fileItem.progress}
+            status={fileItem.status}
+            onRemove={clearFileItem}
+          />
+        </div>
       )}
 
       <input
@@ -411,6 +420,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
         type="file"
         onChange={handleChange}
         onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
+        className="hidden" // display: none
       />
     </NodeViewWrapper>
   )

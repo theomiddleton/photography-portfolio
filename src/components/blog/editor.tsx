@@ -258,7 +258,6 @@ export function SimpleEditor() {
           className={`
             max-w-2xl w-full mx-auto
             px-12 py-12 sm:px-6 sm:py-4
-            font-['DM_Sans']
             simple-editor-content
             prose prose-sm sm:prose lg:prose-lg xl:prose-xl
             prose-headings:font-bold prose-headings:text-gray-900
