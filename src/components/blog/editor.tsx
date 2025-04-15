@@ -31,11 +31,6 @@ import {
 
 // --- Tiptap Node ---
 import { ImageUploadNode } from '~/components/blog/image-upload-node/image-upload-node-extension'
-// --- Tiptap Node Styles --- REPLACE
-// import '~/components/tiptap-node/code-block-node/code-block-node.scss'
-// import '~/components/tiptap-node/list-node/list-node.scss'
-// import '~/components/tiptap-node/image-node/image-node.scss'
-// import '~/components/tiptap-node/paragraph-node/paragraph-node.scss'
 
 // --- Tiptap UI ---
 import { HeadingDropdownMenu } from '~/components/blog/tiptap-ui/heading-dropdown-menu'
@@ -67,10 +62,6 @@ import { useWindowSize } from '~/hooks/use-window-size'
 
 // --- Lib ---
 import { handleImageUpload, MAX_FILE_SIZE } from '~/lib/tiptap-utils'
-
-// --- Styles --- REPLACE
-// Remove this import
-// import '~/components/tiptap-templates/simple/simple-editor.scss'
 
 import content from '~/components/blog/temp-content.json'
 
@@ -197,8 +188,17 @@ export function SimpleEditor() {
       StarterKit,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Underline,
-      TaskList,
-      TaskItem.configure({ nested: true }),
+      TaskList.configure({
+            HTMLAttributes: {
+              class: 'not-prose pl-0',
+            },
+          }),
+          TaskItem.configure({
+            nested: true,
+            HTMLAttributes: {
+              class: 'flex items-start gap-2 my-2 text-base text-gray-900 [&:has(input:checked)]:text-gray-500 [&:has(input:checked)]:line-through',
+            },
+          }),
       Highlight.configure({ multicolor: true }),
       Image,
       Typography,
@@ -272,6 +272,12 @@ export function SimpleEditor() {
             prose-ol:list-decimal prose-ol:mt-6 prose-ol:mb-6 prose-ol:pl-6
             prose-ul:list-disc prose-ul:mt-6 prose-ul:mb-6 prose-ul:pl-6
             prose-li:mt-2
+            [&_.task-list]:list-none [&_.task-list]:pl-0
+            [&_.task-item]:flex [&_.task-item]:items-start [&_.task-item]:gap-2
+            [&_.task-item]:pl-0 [&_.task-item]:mt-2
+            [&_.task-item]:text-base [&_.task-item]:text-gray-900
+            [&_.task-item_input[type="checkbox"]]:mt-1 [&_.task-item_input[type="checkbox"]]:mr-1
+            [&_.task-item]:before:content-none
             prose-a:text-blue-500 prose-a:underline
             prose-hr:my-12 prose-hr:border-gray-200
             prose-img:my-8 prose-img:rounded-sm prose-img:max-w-full prose-img:h-auto
