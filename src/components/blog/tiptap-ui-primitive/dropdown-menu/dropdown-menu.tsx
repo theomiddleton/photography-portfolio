@@ -18,7 +18,8 @@ import {
   useRole,
   useTypeahead,
 } from "@floating-ui/react"
-import "@/components/tiptap-ui-primitive/dropdown-menu/dropdown-menu.scss"
+// Remove SCSS import
+// import "@/components/tiptap-ui-primitive/dropdown-menu/dropdown-menu.scss"
 import { Separator } from "../separator"
 
 interface DropdownMenuOptions {
@@ -210,19 +211,16 @@ export const DropdownMenuContent = React.forwardRef<
   HTMLDivElement,
   DropdownMenuContentProps
 >(
-  (
-    {
-      style,
-      className,
-      orientation = "vertical",
-      side = "bottom",
-      align = "start",
-      portal = true,
-      portalProps = {},
-      ...props
-    },
-    propRef
-  ) => {
+  ({
+    style,
+    className,
+    orientation = "vertical",
+    side = "bottom",
+    align = "start",
+    portal = true,
+    portalProps = {},
+    ...props
+  }, propRef) => {
     const context = useDropdownMenuContext()
     const ref = useMergeRefs([context.refs.setFloating, propRef])
 
@@ -241,12 +239,24 @@ export const DropdownMenuContent = React.forwardRef<
       >
         <div
           ref={ref}
-          className={`tiptap-dropdown-menu ${className || ""}`}
+          className={`
+            z-50 min-w-[220px]
+            bg-white border border-gray-200
+            rounded-lg p-1
+            shadow-lg outline-none
+            overflow-hidden flex flex-col gap-0.5
+            data-[orientation=horizontal]:p-0.5
+            animate-in fade-in-0 zoom-in-95
+            data-[side=bottom]:slide-in-from-top-2 
+            data-[side=left]:slide-in-from-right-2
+            data-[side=right]:slide-in-from-left-2
+            data-[side=top]:slide-in-from-bottom-2
+            ${className || ""}
+          `.trim()}
           style={{
             position: context.strategy,
             top: context.y ?? 0,
             left: context.x ?? 0,
-            outline: "none",
             ...style,
           }}
           aria-orientation={orientation}
@@ -281,10 +291,7 @@ export const DropdownMenuItem = React.forwardRef<
   HTMLDivElement,
   DropdownMenuItemProps
 >(
-  (
-    { children, disabled, asChild = false, onSelect, className, ...props },
-    ref
-  ) => {
+  ({ children, disabled, asChild = false, onSelect, className, ...props }, ref) => {
     const context = useDropdownMenuContext()
     const item = useListItem({ label: disabled ? null : children?.toString() })
     const isActive = context.activeIndex === item.index
@@ -344,7 +351,21 @@ export const DropdownMenuItem = React.forwardRef<
       })
     }
 
-    return <div {...itemProps}>{children}</div>
+    const baseItemClasses = `
+      relative flex items-center
+      w-full px-2 py-1.5
+      text-sm text-gray-700
+      rounded-md select-none
+      outline-none cursor-default
+      transition-colors
+      data-[disabled=true]:pointer-events-none
+      data-[disabled=true]:opacity-50
+      data-[highlighted=true]:bg-gray-100
+      data-[highlighted=true]:text-gray-900
+      ${className || ""}
+    `.trim()
+
+    return <div {...itemProps} className={baseItemClasses}>{children}</div>
   }
 )
 
@@ -364,7 +385,7 @@ export const DropdownMenuGroup = React.forwardRef<
       ref={ref}
       role="group"
       aria-label={label}
-      className={`tiptap-button-group ${className || ""}`}
+      className={`flex flex-col gap-0.5 ${className || ""}`}
     >
       {children}
     </div>
@@ -379,7 +400,7 @@ export const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <Separator
     ref={ref}
-    className={`tiptap-dropdown-menu-separator ${className || ""}`}
+    className={`my-1 h-px bg-gray-200 ${className || ""}`}
     {...props}
   />
 ))

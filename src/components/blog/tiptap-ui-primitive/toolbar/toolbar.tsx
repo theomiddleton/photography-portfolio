@@ -1,6 +1,7 @@
 import * as React from "react"
-import { Separator } from "@/components/tiptap-ui-primitive/separator"
-import "@/components/tiptap-ui-primitive/toolbar/toolbar.scss"
+import { Separator } from "~/components/blog/tiptap-ui-primitive/separator"
+// Remove this import
+// import "@/components/tiptap-ui-primitive/toolbar/toolbar.scss"
 
 type BaseProps = React.HTMLAttributes<HTMLDivElement>
 
@@ -235,13 +236,52 @@ export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
 
     if (!isVisible) return null
 
+    const baseClasses = `
+      flex items-center gap-1
+      ${variant === "fixed" ? `
+        sticky top-0 z-10 w-full
+        min-h-[2.75rem]
+        bg-white dark:bg-black
+        border-b border-gray-100 dark:border-gray-800
+        px-2
+        overflow-x-auto overscroll-contain
+        touch-pan-x
+        scrollbar-none
+        sm:flex-wrap
+        sm:justify-start
+        sm:static
+        sm:bottom-auto
+        sm:border-t-0
+        sm:border-b
+        sm:p-2
+      ` : `
+        p-[0.188rem]
+        rounded-xl
+        border border-gray-100 dark:border-gray-800
+        bg-white dark:bg-black
+        shadow-md
+        outline-none
+        overflow-hidden
+        data-[plain=true]:p-0
+        data-[plain=true]:rounded-none
+        data-[plain=true]:border-0
+        data-[plain=true]:shadow-none
+        data-[plain=true]:bg-transparent
+        md:w-full
+        md:rounded-none
+        md:border-0
+        md:shadow-none
+      `}
+      ${className || ""}
+    `.trim()
+
     return (
       <div
         ref={mergeRefs([toolbarRef, ref])}
         role="toolbar"
         aria-label="toolbar"
         data-variant={variant}
-        className={`tiptap-toolbar ${className || ""}`}
+        className={baseClasses}
         {...props}
       >
         {children}
@@ -249,8 +289,6 @@ export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
     )
   }
 )
-
-Toolbar.displayName = "Toolbar"
 
 export const ToolbarGroup = React.forwardRef<HTMLDivElement, BaseProps>(
   ({ children, className, ...props }, ref) => {
@@ -263,7 +301,7 @@ export const ToolbarGroup = React.forwardRef<HTMLDivElement, BaseProps>(
       <div
         ref={mergeRefs([groupRef, ref])}
         role="group"
-        className={`tiptap-toolbar-group ${className || ""}`}
+        className={`flex items-center gap-0.5 empty:hidden ${className || ""}`}
         {...props}
       >
         {children}

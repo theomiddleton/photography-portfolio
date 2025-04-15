@@ -2,27 +2,28 @@ import * as React from "react"
 import { isNodeSelection, type Editor } from "@tiptap/react"
 
 // --- Hooks ---
-import { useMenuNavigation } from "@/hooks/use-menu-navigation"
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useMenuNavigation } from "~/hooks/use-menu-navigation"
+import { useTiptapEditor } from "~/hooks/use-tiptap-editor"
 
 // --- Icons ---
-import { BanIcon } from "@/components/tiptap-icons/ban-icon"
-import { HighlighterIcon } from "@/components/tiptap-icons/highlighter-icon"
+import { BanIcon } from "~/components/blog/tiptap-icons/ban-icon"
+import { HighlighterIcon } from "~/components/blog/tiptap-icons/highlighter-icon"
 
 // --- Lib ---
-import { isMarkInSchema } from "@/lib/tiptap-utils"
+import { isMarkInSchema } from "~/lib/tiptap-utils"
 
 // --- UI Primitives ---
-import { Button, ButtonProps } from "@/components/tiptap-ui-primitive/button"
+import { Button, ButtonProps } from "~/components/blog/tiptap-ui-primitive/button"
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@/components/tiptap-ui-primitive/popover"
-import { Separator } from "@/components/tiptap-ui-primitive/separator"
+} from "~/components/blog/tiptap-ui-primitive/popover"
+import { Separator } from "~/components/blog/tiptap-ui-primitive/separator"
 
 // --- Styles ---
-import "@/components/tiptap-ui/highlight-popover/highlight-popover.scss"
+// Remove SCSS import
+// import "@/components/tiptap-ui/highlight-popover/highlight-popover.scss"
 
 export interface HighlightColor {
   label: string
@@ -39,28 +40,28 @@ export interface HighlightContentProps {
 export const DEFAULT_HIGHLIGHT_COLORS: HighlightColor[] = [
   {
     label: "Green",
-    value: "var(--tt-highlight-green)",
-    border: "var(--tt-highlight-green-contrast)",
+    value: "#dcfce7",
+    border: "#86efac",
   },
   {
     label: "Blue",
-    value: "var(--tt-highlight-blue)",
-    border: "var(--tt-highlight-blue-contrast)",
+    value: "#e0f2fe",
+    border: "#93c5fd",
   },
   {
     label: "Red",
-    value: "var(--tt-highlight-red)",
-    border: "var(--tt-highlight-red-contrast)",
+    value: "#ffe4e6",
+    border: "#fca5a5",
   },
   {
     label: "Purple",
-    value: "var(--tt-highlight-purple)",
-    border: "var(--tt-highlight-purple-contrast)",
+    value: "#f3e8ff",
+    border: "#d8b4fe",
   },
   {
     label: "Yellow",
-    value: "var(--tt-highlight-yellow)",
-    border: "var(--tt-highlight-yellow-contrast)",
+    value: "#fef9c3",
+    border: "#fde047",
   },
 ]
 
@@ -149,8 +150,12 @@ export function HighlightContent({
   })
 
   return (
-    <div ref={containerRef} className="tiptap-highlight-content" tabIndex={0}>
-      <div className="tiptap-button-group" data-orientation="horizontal">
+    <div 
+      ref={containerRef} 
+      className="flex items-center gap-1 outline-none" 
+      tabIndex={0}
+    >
+      <div className="flex items-center" data-orientation="horizontal">
         {colors.map((color, index) => (
           <Button
             key={color.value}
@@ -164,10 +169,18 @@ export function HighlightContent({
             data-highlighted={selectedIndex === index}
           >
             <span
-              className="tiptap-button-highlight"
-              style={
-                { "--highlight-color": color.value } as React.CSSProperties
-              }
+              className={`
+                relative w-5 h-5 -mx-0.5 rounded-full
+                transition-transform duration-200 ease-in-out
+                after:content-[''] after:absolute after:inset-0
+                after:rounded-full after:border
+                after:border-current after:opacity-20
+                data-[active-state=on]:after:opacity-40
+              `}
+              style={{
+                backgroundColor: color.value,
+                borderColor: color.border,
+              }}
             />
           </Button>
         ))}
@@ -175,7 +188,7 @@ export function HighlightContent({
 
       <Separator />
 
-      <div className="tiptap-button-group">
+      <div className="flex items-center">
         <Button
           onClick={() => toggleHighlight("none")}
           aria-label="Remove highlight"
@@ -185,7 +198,7 @@ export function HighlightContent({
           data-style="ghost"
           data-highlighted={selectedIndex === colors.length}
         >
-          <BanIcon className="tiptap-button-icon" />
+          <BanIcon className="w-4 h-4 text-gray-600" />
         </Button>
       </div>
     </div>

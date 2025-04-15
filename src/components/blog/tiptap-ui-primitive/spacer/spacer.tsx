@@ -10,21 +10,25 @@ interface SpacerProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Spacer = React.forwardRef<HTMLDivElement, SpacerProps>(
-  (
-    { orientation = "horizontal", size, className = "", style = {}, ...props },
-    ref
-  ) => {
-    const computedStyle = {
-      ...style,
-      ...(orientation === "horizontal" && !size && { flex: 1 }),
-      ...(size && {
-        width: orientation === "vertical" ? "1px" : size,
-        height: orientation === "horizontal" ? "1px" : size,
-      }),
-    }
+  ({ orientation = "horizontal", size = "1rem", className, ...props }, ref) => {
+    const style = React.useMemo(() => {
+      const sizeValue = typeof size === "number" ? `${size}px` : size
+      return {
+        [orientation === "horizontal" ? "width" : "height"]: sizeValue,
+      }
+    }, [orientation, size])
 
     return (
-      <div ref={ref} {...props} className={className} style={computedStyle} />
+      <div
+        ref={ref}
+        className={`
+          flex-shrink-0
+          ${orientation === "horizontal" ? "w-full" : "h-full"}
+          ${className || ""}
+        `.trim()}
+        style={style}
+        {...props}
+      />
     )
   }
 )

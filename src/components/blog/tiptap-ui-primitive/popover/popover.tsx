@@ -15,7 +15,8 @@ import {
   limitShift,
   FloatingPortal,
 } from "@floating-ui/react"
-import "@/components/tiptap-ui-primitive/popover/popover.scss"
+// Remove SCSS import
+// import "@/components/tiptap-ui-primitive/popover/popover.scss"
 
 type PopoverContextValue = ReturnType<typeof usePopover> & {
   setLabelId: (id: string | undefined) => void
@@ -219,7 +220,24 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
           }}
           aria-labelledby={context.labelId}
           aria-describedby={context.descriptionId}
-          className={`tiptap-popover ${className || ""}`}
+          className={`
+            z-50 flex items-center gap-1
+            bg-white border border-gray-200
+            p-1 outline-none overflow-hidden
+            shadow-lg rounded-lg
+            data-[orientation=horizontal]:p-0.5
+            data-[state=open]:animate-in
+            data-[state=closed]:animate-out
+            data-[state=closed]:fade-out-0
+            data-[state=open]:fade-in-0
+            data-[state=open]:zoom-in-95
+            data-[state=closed]:zoom-out-95
+            data-[side=bottom]:slide-in-from-top-2
+            data-[side=left]:slide-in-from-right-2
+            data-[side=right]:slide-in-from-left-2
+            data-[side=top]:slide-in-from-bottom-2
+            ${className || ''}
+          `.trim()}
           data-side={side}
           data-align={align}
           data-state={context.context.open ? "open" : "closed"}

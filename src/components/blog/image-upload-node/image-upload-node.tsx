@@ -1,8 +1,9 @@
 import * as React from "react"
 import type { NodeViewProps } from "@tiptap/react"
 import { NodeViewWrapper } from "@tiptap/react"
-import { CloseIcon } from "@/components/tiptap-icons/close-icon"
-import "@/components/tiptap-node/image-upload-node/image-upload-node.scss"
+import { CloseIcon } from "~/components/blog/tiptap-icons/close-icon"
+// Remove this import
+// import "~/components/blog/image-upload-node/image-upload-node.scss"
 
 export interface FileItem {
   id: string
@@ -152,7 +153,7 @@ const CloudUploadIcon: React.FC = () => (
     width="24"
     height="24"
     viewBox="0 0 24 24"
-    className="tiptap-image-upload-icon"
+    className="w-3.5 h-3.5 text-white" // Updated class
     fill="currentColor"
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -172,8 +173,8 @@ const FileIcon: React.FC = () => (
     width="43"
     height="57"
     viewBox="0 0 43 57"
+    className="absolute text-gray-200" // Updated class
     fill="currentColor"
-    className="tiptap-image-upload-dropzone-rect-primary"
     xmlns="http://www.w3.org/2000/svg"
   >
     <path

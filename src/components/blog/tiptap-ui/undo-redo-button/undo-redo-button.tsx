@@ -2,14 +2,14 @@ import * as React from "react"
 import { type Editor } from "@tiptap/react"
 
 // --- Hooks ---
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useTiptapEditor } from "~/hooks/use-tiptap-editor"
 
 // --- Icons ---
-import { Redo2Icon } from "@/components/tiptap-icons/redo2-icon"
-import { Undo2Icon } from "@/components/tiptap-icons/undo2-icon"
+import { Redo2Icon } from "~/components/blog/tiptap-icons/redo2-icon"
+import { Undo2Icon } from "~/components/blog/tiptap-icons/undo2-icon"
 
 // --- UI Primitives ---
-import { Button, ButtonProps } from "@/components/tiptap-ui-primitive/button"
+import { Button, ButtonProps } from "~/components/blog/tiptap-ui-primitive/button"
 
 export type HistoryAction = "undo" | "redo"
 

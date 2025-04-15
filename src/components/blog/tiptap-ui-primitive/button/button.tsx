@@ -3,11 +3,12 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/tiptap-ui-primitive/tooltip"
+} from "~/components/blog/tiptap-ui-primitive/tooltip"
 
-import "@/components/tiptap-ui-primitive/button/button-colors.scss"
-import "@/components/tiptap-ui-primitive/button/button-group.scss"
-import "@/components/tiptap-ui-primitive/button/button.scss"
+// Remove these SCSS imports
+// import "~/components/blog/tiptap-ui-primitive/button/button-colors.scss"
+// import "~/components/blog/tiptap-ui-primitive/button/button-group.scss"
+// import "~/components/blog/tiptap-ui-primitive/button/button.scss"
 
 type PlatformShortcuts = Record<string, string>
 
@@ -51,11 +52,13 @@ export const ShortcutDisplay: React.FC<{ shortcuts: string[] }> = ({
   if (shortcuts.length === 0) return null
 
   return (
-    <div>
+    <div className="flex items-center gap-1">
       {shortcuts.map((key, index) => (
         <React.Fragment key={index}>
-          {index > 0 && <kbd>+</kbd>}
-          <kbd>{key}</kbd>
+          {index > 0 && <kbd className="mx-0.5">+</kbd>}
+          <kbd className="min-w-[1.25rem] px-1 py-0.5 text-xs font-sans font-medium bg-gray-100 border border-gray-200 rounded">
+            {key}
+          </kbd>
         </React.Fragment>
       ))}
     </div>
@@ -87,10 +90,28 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       [shortcutKeys, isMac]
     )
 
+    const baseButtonClasses = `
+      h-8 min-w-8 px-2 py-2 gap-1
+      inline-flex items-center justify-center
+      text-sm font-medium leading-none
+      rounded-xl border-none
+      transition-all duration-200
+      disabled:bg-gray-50 disabled:text-gray-400
+      focus:outline-none
+      data-[highlighted=true]:bg-gray-100 data-[highlighted=true]:text-gray-900
+      data-[size=large]:text-[0.9375rem] data-[size=large]:h-[2.375rem] data-[size=large]:min-w-[2.375rem] data-[size=large]:p-2.5
+      data-[size=small]:text-xs data-[size=small]:h-6 data-[size=small]:min-w-6 data-[size=small]:p-1.5 data-[size=small]:rounded-lg
+      data-[style=ghost]:bg-transparent data-[style=ghost]:hover:bg-gray-100
+      data-[style=primary]:bg-blue-500 data-[style=primary]:text-white data-[style=primary]:hover:bg-blue-600
+      data-[active-state=on]:bg-gray-200 data-[active-state=on]:text-gray-900
+      data-[state=open]:bg-gray-200 data-[state=open]:text-gray-900
+      ${className}
+    `.trim()
+
     if (!tooltip || !showTooltip) {
       return (
         <button
-          className={`tiptap-button ${className}`.trim()}
+          className={baseButtonClasses}
           ref={ref}
           aria-label={ariaLabel}
           {...props}
@@ -103,7 +124,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <Tooltip delay={200}>
         <TooltipTrigger
-          className={`tiptap-button ${className}`.trim()}
+          className={baseButtonClasses}
           ref={ref}
           aria-label={ariaLabel}
           {...props}
@@ -111,8 +132,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           {children}
         </TooltipTrigger>
         <TooltipContent>
-          <span>{tooltip}</span>
-          <ShortcutDisplay shortcuts={shortcuts} />
+          <div className="flex flex-col gap-1">
+            <span>{tooltip}</span>
+            <ShortcutDisplay shortcuts={shortcuts} />
+          </div>
         </TooltipContent>
       </Tooltip>
     )

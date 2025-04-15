@@ -2,28 +2,29 @@ import * as React from "react"
 import { isNodeSelection, type Editor } from "@tiptap/react"
 
 // --- Hooks ---
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useTiptapEditor } from "~/hooks/use-tiptap-editor"
 
 // --- Icons ---
-import { CornerDownLeftIcon } from "@/components/tiptap-icons/corner-down-left-icon"
-import { ExternalLinkIcon } from "@/components/tiptap-icons/external-link-icon"
-import { LinkIcon } from "@/components/tiptap-icons/link-icon"
-import { TrashIcon } from "@/components/tiptap-icons/trash-icon"
+import { CornerDownLeftIcon } from "~/components/blog/tiptap-icons/corner-down-left-icon"
+import { ExternalLinkIcon } from "~/components/blog/tiptap-icons/external-link-icon"
+import { LinkIcon } from "~/components/blog/tiptap-icons/link-icon"
+import { TrashIcon } from "~/components/blog/tiptap-icons/trash-icon"
 
 // --- Lib ---
-import { isMarkInSchema } from "@/lib/tiptap-utils"
+import { isMarkInSchema } from "~/lib/tiptap-utils"
 
 // --- UI Primitives ---
-import { Button, ButtonProps } from "@/components/tiptap-ui-primitive/button"
+import { Button, ButtonProps } from "~/components/blog/tiptap-ui-primitive/button"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/tiptap-ui-primitive/popover"
-import { Separator } from "@/components/tiptap-ui-primitive/separator"
+} from "~/components/blog/tiptap-ui-primitive/popover"
+import { Separator } from "~/components/blog/tiptap-ui-primitive/separator"
 
 // --- Styles ---
-import "@/components/tiptap-ui/link-popover/link-popover.scss"
+// Remove SCSS import
+// import "~/components/tiptap-ui/link-popover/link-popover.scss"
 
 export interface LinkHandlerProps {
   editor: Editor | null
@@ -170,10 +171,18 @@ const LinkMain: React.FC<LinkMainProps> = ({
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
-        className="tiptap-input tiptap-input-clamp"
+        className="
+          block w-full h-8 min-w-[12rem] pr-0
+          text-base leading-6 
+          rounded-md bg-transparent
+          px-3 py-1.5
+          focus:outline-none
+          text-ellipsis whitespace-nowrap
+          focus:text-clip focus:overflow-visible
+        "
       />
 
-      <div className="tiptap-button-group" data-orientation="horizontal">
+      <div className="flex items-center gap-0.5">
         <Button
           type="button"
           onClick={setLink}
@@ -181,13 +190,13 @@ const LinkMain: React.FC<LinkMainProps> = ({
           disabled={!url && !isActive}
           data-style="ghost"
         >
-          <CornerDownLeftIcon className="tiptap-button-icon" />
+          <CornerDownLeftIcon className="h-4 w-4" />
         </Button>
       </div>
 
       <Separator />
 
-      <div className="tiptap-button-group" data-orientation="horizontal">
+      <div className="flex items-center gap-0.5">
         <Button
           type="button"
           onClick={() => window.open(url, "_blank")}
@@ -195,7 +204,7 @@ const LinkMain: React.FC<LinkMainProps> = ({
           disabled={!url && !isActive}
           data-style="ghost"
         >
-          <ExternalLinkIcon className="tiptap-button-icon" />
+          <ExternalLinkIcon className="h-4 w-4" />
         </Button>
 
         <Button
@@ -205,7 +214,7 @@ const LinkMain: React.FC<LinkMainProps> = ({
           disabled={!url && !isActive}
           data-style="ghost"
         >
-          <TrashIcon className="tiptap-button-icon" />
+          <TrashIcon className="h-4 w-4" />
         </Button>
       </div>
     </>

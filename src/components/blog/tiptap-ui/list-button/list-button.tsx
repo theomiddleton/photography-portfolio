@@ -4,18 +4,18 @@ import * as React from "react"
 import { isNodeSelection, type Editor } from "@tiptap/react"
 
 // --- Hooks ---
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useTiptapEditor } from "~/hooks/use-tiptap-editor"
 
 // --- Icons ---
-import { ListIcon } from "@/components/tiptap-icons/list-icon"
-import { ListOrderedIcon } from "@/components/tiptap-icons/list-ordered-icon"
-import { ListTodoIcon } from "@/components/tiptap-icons/list-todo-icon"
+import { ListIcon } from "~/components/blog/tiptap-icons/list-icon"
+import { ListOrderedIcon } from "~/components/blog/tiptap-icons/list-ordered-icon"
+import { ListTodoIcon } from "~/components/blog/tiptap-icons/list-todo-icon"
 
 // --- Lib ---
-import { isNodeInSchema } from "@/lib/tiptap-utils"
+import { isNodeInSchema } from "~/lib/tiptap-utils"
 
 // --- UI Primitives ---
-import { Button, ButtonProps } from "@/components/tiptap-ui-primitive/button"
+import { Button, ButtonProps } from "~/components/blog/tiptap-ui-primitive/button"
 
 export type ListType = "bulletList" | "orderedList" | "taskList"
 

@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react'
 import { EditorContent, EditorContext, useEditor } from '@tiptap/react'
 
@@ -30,10 +32,10 @@ import {
 // --- Tiptap Node ---
 import { ImageUploadNode } from '~/components/blog/image-upload-node/image-upload-node-extension'
 // --- Tiptap Node Styles --- REPLACE
-import '~/components/tiptap-node/code-block-node/code-block-node.scss'
-import '~/components/tiptap-node/list-node/list-node.scss'
-import '~/components/tiptap-node/image-node/image-node.scss'
-import '~/components/tiptap-node/paragraph-node/paragraph-node.scss'
+// import '~/components/tiptap-node/code-block-node/code-block-node.scss'
+// import '~/components/tiptap-node/list-node/list-node.scss'
+// import '~/components/tiptap-node/image-node/image-node.scss'
+// import '~/components/tiptap-node/paragraph-node/paragraph-node.scss'
 
 // --- Tiptap UI ---
 import { HeadingDropdownMenu } from '~/components/blog/tiptap-ui/heading-dropdown-menu'
@@ -67,7 +69,8 @@ import { useWindowSize } from '~/hooks/use-window-size'
 import { handleImageUpload, MAX_FILE_SIZE } from '~/lib/tiptap-utils'
 
 // --- Styles --- REPLACE
-import '~/components/tiptap-templates/simple/simple-editor.scss'
+// Remove this import
+// import '~/components/tiptap-templates/simple/simple-editor.scss'
 
 import content from '~/components/blog/temp-content.json'
 
@@ -232,6 +235,7 @@ export function SimpleEditor() {
               }
             : {}
         }
+        className="h-11" // Added toolbar height
       >
         {mobileView === "main" ? (
           <MainToolbarContent
@@ -247,11 +251,41 @@ export function SimpleEditor() {
         )}
       </Toolbar>
 
-      <div className="content-wrapper">
+      <div className="h-[calc(100%-2.75rem)] overflow-y-auto scrollbar scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300">
         <EditorContent
           editor={editor}
           role="presentation"
-          className="simple-editor-content"
+          className={`
+            max-w-2xl w-full mx-auto
+            px-12 py-12 sm:px-6 sm:py-4
+            font-['DM_Sans']
+            simple-editor-content
+            prose prose-sm sm:prose lg:prose-lg xl:prose-xl
+            prose-headings:font-bold prose-headings:text-gray-900
+            prose-h1:text-2xl prose-h1:mt-12
+            prose-h2:text-xl prose-h2:mt-10
+            prose-h3:text-lg prose-h3:mt-8
+            prose-h4:text-base prose-h4:mt-8
+            prose-p:text-base prose-p:leading-relaxed prose-p:mt-5 first:prose-p:mt-0
+            prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:rounded-md prose-pre:p-4 prose-pre:my-6
+            prose-code:bg-gray-100 prose-code:text-gray-700 prose-code:border prose-code:border-gray-200 prose-code:rounded prose-code:px-1 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono
+            prose-blockquote:border-l-4 prose-blockquote:border-gray-900 prose-blockquote:pl-4 prose-blockquote:py-1.5 prose-blockquote:my-6
+            prose-ol:list-decimal prose-ol:mt-6 prose-ol:mb-6 prose-ol:pl-6
+            prose-ul:list-disc prose-ul:mt-6 prose-ul:mb-6 prose-ul:pl-6
+            prose-li:mt-2
+            prose-a:text-blue-500 prose-a:underline
+            prose-hr:my-12 prose-hr:border-gray-200
+            prose-img:my-8 prose-img:rounded-sm prose-img:max-w-full prose-img:h-auto
+            [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500
+            [&_.collaboration-cursor__caret]:border-r [&_.collaboration-cursor__caret]:border-l [&_.collaboration-cursor__caret]:border-transparent
+            [&_.tiptap-thread]:transition-colors [&_.tiptap-thread--unresolved]:border-b-2 [&_.tiptap-thread--unresolved]:border-dashed [&_.tiptap-thread--unresolved]:border-yellow-400
+            [&_.tiptap-thread--selected]:bg-yellow-50 [&_.tiptap-thread--selected]:border-transparent
+            [&_[data-type="mention"]]:inline-block [&_[data-type="mention"]]:text-blue-500
+            [&_[data-type="emoji"]_img]:inline-block [&_[data-type="emoji"]_img]:w-5 [&_[data-type="emoji"]_img]:h-5 [&_[data-type="emoji"]_img]:cursor-text
+            [&_.ProseMirror-gapcursor]:hidden [&_.ProseMirror-gapcursor]:pointer-events-none [&_.ProseMirror-gapcursor]:absolute
+            [&_.is-editor-empty]:before:content-[attr(data-placeholder)] [&_.is-editor-empty]:before:text-gray-400 [&_.is-editor-empty]:before:float-left [&_.is-editor-empty]:before:h-0 [&_.is-editor-empty]:before:pointer-events-none
+            outline-none
+          `}
         />
       </div>
     </EditorContext.Provider>

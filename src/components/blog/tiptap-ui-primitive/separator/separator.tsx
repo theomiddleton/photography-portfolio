@@ -1,5 +1,4 @@
 import * as React from "react"
-import "@/components/tiptap-ui-primitive/separator/separator.scss"
 
 type Orientation = "horizontal" | "vertical"
 
@@ -20,7 +19,11 @@ export const Separator = React.forwardRef<HTMLDivElement, SeparatorProps>(
 
     return (
       <div
-        className={`tiptap-separator ${className}`.trim()}
+        className={`
+          flex-shrink-0 bg-gray-200
+          ${orientation === "horizontal" ? "h-px w-full" : "h-6 w-px"}
+          ${className}
+        `.trim()}
         data-orientation={orientation}
         {...semanticProps}
         {...divProps}

@@ -17,7 +17,7 @@ import {
   type ReferenceType,
   FloatingDelayGroup,
 } from "@floating-ui/react"
-import "@/components/tiptap-ui-primitive/tooltip/tooltip.scss"
+// import "@/components/tiptap-ui-primitive/tooltip/tooltip.scss"
 
 interface TooltipProviderProps {
   children: React.ReactNode
@@ -205,7 +205,14 @@ export const TooltipContent = React.forwardRef<
         ...style,
       }}
       {...context.getFloatingProps(props)}
-      className="tiptap-tooltip"
+      className={`
+        z-50 overflow-hidden
+        rounded-md bg-gray-900 
+        px-2 py-1.5
+        text-xs font-medium text-white
+        shadow-md
+        ${props.className || ''}
+      `.trim()}
     >
       {children}
     </div>
