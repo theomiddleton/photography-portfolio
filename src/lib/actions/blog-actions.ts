@@ -40,49 +40,45 @@ export async function createPost(data: {
   return post[0]
 }
 
-export async function updatePost(
-  id: string,
-  data: {
-    title?: string
-    slug?: string
-    description?: string
-    content?: string
-    published?: boolean
-  },
-) {
+export async function updatePost(slug: string, data: {
+  title?: string
+  slug?: string
+  description?: string
+  content?: string
+  published?: boolean
+  authorId?: number
+}) {
   // Get the current post to check if we're changing publish status
-  const currentPost = await db.select().from(blogPosts).where(eq(blogPosts.id, id)).limit(1).execute().then(rows => rows[0])
+  const currentPost = await db
+    .select()
+    .from(blogPosts)
+    .where(eq(blogPosts.slug, slug))
+    .limit(1)
+    .execute()
+    .then(rows => rows[0])
 
   if (!currentPost) {
     throw new Error('Post not found')
   }
 
   // Update the post
-  const updateValues: any = { ...data }
-
-  // If we're publishing a post that wasn't published before
-  if (data.published === true && !currentPost.published) {
-    updateValues.publishedAt = new Date()
-  }
-
-  const post = await db
+  const updatedPost = await db
     .update(blogPosts)
     .set({
-      ...updateValues,
+      ...data,
       updatedAt: new Date(),
+      ...(data.published && !currentPost.published
+        ? { publishedAt: new Date() }
+        : {}),
     })
-    .where(eq(blogPosts.id, id))
+    .where(eq(blogPosts.slug, slug))
     .returning()
 
   revalidatePath('/admin')
   revalidatePath('/blog')
-  revalidatePath(`/blog/${currentPost.slug}`)
+  revalidatePath(`/blog/${slug}`)
 
-  if (data.slug && data.slug !== currentPost.slug) {
-    revalidatePath(`/blog/${data.slug}`)
-  }
-
-  return post[0]
+  return updatedPost[0]
 }
 
 export async function deletePost(id: string) {

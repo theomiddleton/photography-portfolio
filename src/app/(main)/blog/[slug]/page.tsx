@@ -1,3 +1,4 @@
+import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Button } from '~/components/ui/button'
@@ -9,22 +10,58 @@ import { db } from '~/server/db'
 import { blogPosts } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { getSession } from '~/lib/auth/auth'
+import type { BlogPostWithImages } from '~/lib/types/blog'
 
 interface PostPageProps {
-  params: Promise<{
+  params: {
     slug: string
-  }>
+  }
 }
 
-export default async function PostPage({ params }: PostPageProps) {
-  const { slug } = await params
+// Enable Incremental Static Regeneration with a revalidation period of 60 seconds
+export const revalidate = 60
 
-  const post = await db
+// Generate metadata for SEO
+export async function generateMetadata({
+  params,
+}: PostPageProps): Promise<Metadata> {
+  const { slug } = await Promise.resolve(params)  // Await the params
+
+  const post = (await db
     .select()
     .from(blogPosts)
     .where(eq(blogPosts.slug, slug))
     .limit(1)
-    .then((rows) => rows[0] || null)
+    .then((rows) => rows[0] || null)) as BlogPostWithImages | null
+
+  if (!post) {
+    return {
+      title: 'Post Not Found',
+    }
+  }
+
+  return {
+    title: post.title,
+    description: post.description || undefined,
+    openGraph: {
+      title: post.title,
+      description: post.description || undefined,
+      type: 'article',
+      publishedTime: post.publishedAt?.toISOString(),
+      modifiedTime: post.updatedAt.toISOString(),
+    },
+  }
+}
+
+export default async function PostPage({ params }: PostPageProps) {
+  const { slug } = await Promise.resolve(params)
+
+  const post = (await db
+    .select()
+    .from(blogPosts)
+    .where(eq(blogPosts.slug, slug))
+    .limit(1)
+    .then((rows) => rows[0] || null)) as BlogPostWithImages | null
 
   if (!post) {
     notFound()
@@ -32,7 +69,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const session = await getSession()
 
-  if (!post || !post.published) {
+  if (!post || (!post.published && (!session || !session.isAdmin))) {
     notFound()
   }
 
@@ -68,7 +105,7 @@ export default async function PostPage({ params }: PostPageProps) {
           </p>
         )}
 
-        <MDXRemote source={post.content} />
+        <pre className="whitespace-pre-wrap">{post.content}</pre>
       </article>
     </main>
   )

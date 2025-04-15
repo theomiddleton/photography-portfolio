@@ -63,104 +63,10 @@ import { useWindowSize } from '~/hooks/use-window-size'
 // --- Lib ---
 import { handleImageUpload, MAX_FILE_SIZE } from '~/lib/tiptap-utils'
 
-const MainToolbarContent = ({
-  onHighlighterClick,
-  onLinkClick,
-  isMobile,
-}: {
-  onHighlighterClick: () => void
-  onLinkClick: () => void
-  isMobile: boolean
-}) => {
-  return (
-    <>
-      <Spacer />
-
-      <ToolbarGroup>
-        <UndoRedoButton action="undo" />
-        <UndoRedoButton action="redo" />
-      </ToolbarGroup>
-
-      <ToolbarSeparator />
-
-      <ToolbarGroup>
-        <HeadingDropdownMenu levels={[1, 2, 3, 4]} />
-        <ListDropdownMenu types={["bulletList", "orderedList", "taskList"]} />
-        <NodeButton type="codeBlock" />
-        <NodeButton type="blockquote" />
-      </ToolbarGroup>
-
-      <ToolbarSeparator />
-
-      <ToolbarGroup>
-        <MarkButton type="bold" />
-        <MarkButton type="italic" />
-        <MarkButton type="strike" />
-        <MarkButton type="code" />
-        <MarkButton type="underline" />
-        {!isMobile ? (
-          <HighlightPopover />
-        ) : (
-          <HighlighterButton onClick={onHighlighterClick} />
-        )}
-        {!isMobile ? <LinkPopover /> : <LinkButton onClick={onLinkClick} />}
-      </ToolbarGroup>
-
-      <ToolbarSeparator />
-
-      <ToolbarGroup>
-        <MarkButton type="superscript" />
-        <MarkButton type="subscript" />
-      </ToolbarGroup>
-
-      <ToolbarSeparator />
-
-      <ToolbarGroup>
-        <TextAlignButton align="left" />
-        <TextAlignButton align="center" />
-        <TextAlignButton align="right" />
-        <TextAlignButton align="justify" />
-      </ToolbarGroup>
-
-      <ToolbarSeparator />
-
-      <ToolbarGroup>
-        <ImageUploadButton text="Add" />
-      </ToolbarGroup>
-
-      <Spacer />
-
-      {isMobile && <ToolbarSeparator />}
-    </>
-  )
-}
-
-const MobileToolbarContent = ({
-  type,
-  onBack,
-}: {
-  type: "highlighter" | "link"
-  onBack: () => void
-}) => (
-  <>
-    <ToolbarGroup>
-      <Button data-style="ghost" onClick={onBack}>
-        <ArrowLeftIcon className="tiptap-button-icon" />
-        {type === "highlighter" ? (
-          <HighlighterIcon className="tiptap-button-icon" />
-        ) : (
-          <LinkIcon className="tiptap-button-icon" />
-        )}
-      </Button>
-    </ToolbarGroup>
-
-    <ToolbarSeparator />
-
-    {type === "highlighter" ? <HighlightContent /> : <LinkContent />}
-  </>
-)
-
-export function SimpleEditor({ initialContent }: { initialContent: any }) {
+export const SimpleEditor = React.forwardRef<
+  { editor: ReturnType<typeof useEditor> },
+  { initialContent: any }
+>(({ initialContent }, ref) => {
   const isMobile = useMobile()
   const windowSize = useWindowSize()
   const [mobileView, setMobileView] = React.useState<
@@ -216,10 +122,15 @@ export function SimpleEditor({ initialContent }: { initialContent: any }) {
       TrailingNode,
       Link.configure({ openOnClick: false }),
     ],
-    content: initialContent,  // Use the passed content instead of imported content
-    onCreate: () => {
+    content: typeof initialContent === 'string' ? JSON.parse(initialContent) : initialContent,
+    onCreate: ({ editor }) => {
       setIsEditorReady(true)
       setIsToolbarReady(true)
+      if (ref) {
+        ;(ref as React.MutableRefObject<{ editor: typeof editor }>).current = {
+          editor,
+        }
+      }
     },
   })
 
@@ -314,4 +225,103 @@ export function SimpleEditor({ initialContent }: { initialContent: any }) {
       </div>
     </EditorContext.Provider>
   )
+})
+
+SimpleEditor.displayName = 'SimpleEditor'
+
+const MainToolbarContent = ({
+  onHighlighterClick,
+  onLinkClick,
+  isMobile,
+}: {
+  onHighlighterClick: () => void
+  onLinkClick: () => void
+  isMobile: boolean
+}) => {
+  return (
+    <>
+      <Spacer />
+
+      <ToolbarGroup>
+        <UndoRedoButton action="undo" />
+        <UndoRedoButton action="redo" />
+      </ToolbarGroup>
+
+      <ToolbarSeparator />
+
+      <ToolbarGroup>
+        <HeadingDropdownMenu levels={[1, 2, 3, 4]} />
+        <ListDropdownMenu types={["bulletList", "orderedList", "taskList"]} />
+        <NodeButton type="codeBlock" />
+        <NodeButton type="blockquote" />
+      </ToolbarGroup>
+
+      <ToolbarSeparator />
+
+      <ToolbarGroup>
+        <MarkButton type="bold" />
+        <MarkButton type="italic" />
+        <MarkButton type="strike" />
+        <MarkButton type="code" />
+        <MarkButton type="underline" />
+        {!isMobile ? (
+          <HighlightPopover />
+        ) : (
+          <HighlighterButton onClick={onHighlighterClick} />
+        )}
+        {!isMobile ? <LinkPopover /> : <LinkButton onClick={onLinkClick} />}
+      </ToolbarGroup>
+
+      <ToolbarSeparator />
+
+      <ToolbarGroup>
+        <MarkButton type="superscript" />
+        <MarkButton type="subscript" />
+      </ToolbarGroup>
+
+      <ToolbarSeparator />
+
+      <ToolbarGroup>
+        <TextAlignButton align="left" />
+        <TextAlignButton align="center" />
+        <TextAlignButton align="right" />
+        <TextAlignButton align="justify" />
+      </ToolbarGroup>
+
+      <ToolbarSeparator />
+
+      <ToolbarGroup>
+        <ImageUploadButton text="Add" />
+      </ToolbarGroup>
+
+      <Spacer />
+
+      {isMobile && <ToolbarSeparator />}
+    </>
+  )
+}
+
+const MobileToolbarContent = ({
+  type,
+  onBack,
+}: {
+  type: "highlighter" | "link"
+  onBack: () => void
+}) => {
+  <>
+    <ToolbarGroup>
+      <Button data-style="ghost" onClick={onBack}>
+        <ArrowLeftIcon className="tiptap-button-icon" />
+        {type === "highlighter" ? (
+          <HighlighterIcon className="tiptap-button-icon" />
+        ) : (
+          <LinkIcon className="tiptap-button-icon" />
+        )}
+      </Button>
+    </ToolbarGroup>
+
+    <ToolbarSeparator />
+
+    {type === "highlighter" ? <HighlightContent /> : <LinkContent />}
+  </>
 }
