@@ -1,149 +1,132 @@
-import { Metadata } from 'next'
-import Link from 'next/link'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { Button } from '~/components/ui/button'
-import { ArrowLeft, Edit } from 'lucide-react'
-import { getPublishedPosts } from '~/lib/actions/blog-actions'
-import { formatDate } from '~/lib/utils'
-import { MDXRemote } from 'next-mdx-remote/rsc'
 import { db } from '~/server/db'
 import { blogPosts } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { getSession } from '~/lib/auth/auth'
-import type { BlogPostWithImages } from '~/lib/types/blog'
-import { renderTiptapContent } from '~/lib/actions/render-tiptap'
+import { TipTapRenderer } from '~/components/blog/tiptap-renderer'
+import { formatDate } from '~/lib/utils'
+import { CalendarIcon, ArrowLeft, Edit } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '~/components/ui/button'
+import { siteConfig } from '~/config/site'
 
-interface PostPageProps {
-  params: {
-    slug: string
-  }
+// Generate static params for all blog posts
+export async function generateStaticParams() {
+  const allPosts = await db.select({ slug: blogPosts.slug }).from(blogPosts)
+  return allPosts.map((blogPosts) => ({
+    slug: blogPosts.slug,
+  }))
 }
-
-// Enable Incremental Static Regeneration with a revalidation period of 60 seconds
-export const revalidate = 60
 
 // Generate metadata for SEO
 export async function generateMetadata({
   params,
-}: PostPageProps): Promise<Metadata> {
-  const { slug } = await Promise.resolve(params)  // Await the params
-
-  const post = (await db
-    .select()
-    .from(blogPosts)
-    .where(eq(blogPosts.slug, slug))
-    .limit(1)
-    .then((rows) => rows[0] || null)) as BlogPostWithImages | null
+}: {
+  params: { slug: string }
+}): Promise<Metadata> {
+  const resolvedParams = await Promise.resolve(params)
+  const post = await db.select().from(blogPosts).where(eq(blogPosts.slug, resolvedParams.slug)).limit(1).then(rows => rows[0])
 
   if (!post) {
     return {
       title: 'Post Not Found',
+      description: 'The requested blog post could not be found.',
     }
   }
 
   return {
     title: post.title,
-    description: post.description || undefined,
+    description: post.description,
     openGraph: {
       title: post.title,
-      description: post.description || undefined,
+      description: post.description,
+      images: siteConfig.seo.openGraph.images,
       type: 'article',
-      publishedTime: post.publishedAt?.toISOString(),
-      modifiedTime: post.updatedAt.toISOString(),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description,
+      images: siteConfig.seo.openGraph.images,
     },
   }
 }
 
-export default async function PostPage({ params }: PostPageProps) {
-  const { slug } = await Promise.resolve(params)
-
-  const post = (await db
-    .select()
+export default async function BlogPostPage({
+  params,
+}: {
+  params: { slug: string }
+}) {
+  const resolvedParams = await Promise.resolve(params)
+  // Fetch the blog post with author information
+  const post = await db
+    .select({
+      id: blogPosts.id,
+      title: blogPosts.title,
+      content: blogPosts.content,
+      description: blogPosts.description,
+      published: blogPosts.published,
+      slug: blogPosts.slug,
+      publishedAt: blogPosts.publishedAt,
+      updatedAt: blogPosts.updatedAt,
+      authorId: blogPosts.authorId,
+    })
     .from(blogPosts)
-    .where(eq(blogPosts.slug, slug))
+    .where(eq(blogPosts.slug, resolvedParams.slug))
     .limit(1)
-    .then((rows) => rows[0] || null)) as BlogPostWithImages | null
 
-  if (!post) {
+  // If post not found, return 404
+  if (!post.length) {
     notFound()
   }
-
-  let tiptapHtml = ''
-  if (post.content) {
-    tiptapHtml = await renderTiptapContent(post.content)
-  }
-
-  // console.log('post:', post)
-  // console.log('post.content:', post.content)
-  console.log('renderTiptapContent:', await renderTiptapContent(post.content))
-  console.log('tiptapHtml:', tiptapHtml)
 
   const session = await getSession()
-
-  if (!post || (!post.published && (!session || !session.isAdmin))) {
+  
+  const blogPost = post[0]
+  
+  if (!post.length || (!blogPost.published && (!session || !session.isAdmin))) {
     notFound()
   }
+  
+  // Parse the TipTap JSON content
+  const content = JSON.parse(blogPost.content)
 
   return (
-    <main className="container mx-auto px-4 pb-10 pt-20">
-      <div className="mb-8 flex items-center justify-between">
-        <Link href="/blog">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to posts
-          </Button>
-        </Link>
-        {session && session.role === 'admin' && (
-          <Link href={`/admin/blog/edit/${post.slug}`}>
-            <Button variant="outline" size="sm">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit post
+    <article className="container max-w-4xl mx-auto px-4 py-12 mt-12">
+      <div className="space-y-8">
+        <div className="mb-8 flex items-center justify-between">
+          <Link href="/blog">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to posts
             </Button>
           </Link>
-        )}
-      </div>
-      <article className="prose prose-lg mx-auto max-w-4xl dark:prose-invert">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold">{post.title}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {formatDate(post.publishedAt || post.createdAt)}
-          </p>
+          {session && session.role === 'admin' && (
+            <Link href={`/admin/blog/edit/${blogPost.slug}`}>
+              <Button variant="outline" size="sm">
+                <Edit className="mr-2 h-4 w-4" />
+                Edit post
+              </Button>
+            </Link>
+          )}
         </div>
-
-        {post.description && (
-          <p className="mb-8 text-xl italic text-muted-foreground">
-            {post.description}
-          </p>
-        )}
-        {tiptapHtml ? (
-          <>
-            <div
-              className="tiptap-content"
-              dangerouslySetInnerHTML={{ __html: tiptapHtml }}
-              />
-            <pre className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded overflow-auto">
-              <code>{tiptapHtml}</code>
-            </pre>
-          </>
-        ) : (
-          <>
-            <p className="text-red-500">Error: Could not render blog content</p>
-            <pre className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded overflow-auto">
-              <code>{tiptapHtml}</code>
-            </pre>
-          </>
-        )}
-
-      </article>
-    </main>
+        {/* Post Header */}
+        <div className="space-y-4">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">{blogPost.title}</h1>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
+            {/* Publication Date */}
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4" />
+              <time dateTime={blogPost.publishedAt.toISOString()}>{formatDate(blogPost.publishedAt)}</time>
+            </div>
+          </div>
+        </div>
+        {/* Post Content */}
+        <div className="prose prose-lg dark:prose-invert max-w-none">
+          <TipTapRenderer content={content} />
+        </div>
+      </div>
+    </article>
   )
-}
-
-// Generate static params for all published posts
-export async function generateStaticParams() {
-  const posts = await getPublishedPosts()
-
-  return posts.map((post) => ({
-    slug: post.slug,
-  }))
 }
