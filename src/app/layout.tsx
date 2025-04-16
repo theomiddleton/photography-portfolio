@@ -4,16 +4,28 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { AxiomWebVitals } from 'next-axiom'
 import { Toaster } from '~/components/ui/sonner'
 
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Merriweather, Libre_Baskerville, JetBrains_Mono, Playfair_Display } from 'next/font/google'
 
-const inter = Inter({
+const merriweather = Merriweather({
   subsets: ['latin'],
+  weight: ['300', '400', '700'],
   variable: '--font-sans',
+})
+
+const libreBaskerville = Libre_Baskerville({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-serif',
 })
 
 const playfairDisplay = Playfair_Display({
   subsets: ['latin'],
-  variable: '--font-serif',
+  variable: '--font-display',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
 })
 
 export const viewport = {
@@ -29,7 +41,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`font-sans ${inter.variable} ${playfairDisplay.variable}`}>
+      <body className={`font-sans bg-background ${merriweather.variable} ${libreBaskerville.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable}`}>
         {children}
         <Toaster />
         <Analytics />
