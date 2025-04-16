@@ -48,7 +48,7 @@ export default async function BlogPage({
             className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
           >
             <Link href={`/blog/${post.slug}`}>
-              <h2 className="mb-2 text-2xl font-semibold text-gray-900 hover:text-blue-600">
+              <h2 className="mb-2 text-2xl font-semibold text-gray-900 hover:text-black">
                 {post.title}
               </h2>
             </Link>

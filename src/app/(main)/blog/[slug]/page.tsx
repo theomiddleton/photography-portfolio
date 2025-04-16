@@ -11,6 +11,10 @@ import Link from 'next/link'
 import { Button } from '~/components/ui/button'
 import { siteConfig } from '~/config/site'
 
+interface PostPageProps {
+  params: Promise<{ slug: string }>
+}
+
 // Generate static params for all blog posts
 export async function generateStaticParams() {
   const allPosts = await db.select({ slug: blogPosts.slug }).from(blogPosts)
@@ -22,10 +26,8 @@ export async function generateStaticParams() {
 // Generate metadata for SEO
 export async function generateMetadata({
   params,
-}: {
-  params: { slug: string }
-}): Promise<Metadata> {
-  const resolvedParams = await Promise.resolve(params)
+}: PostPageProps): Promise<Metadata> {
+  const resolvedParams = await params
   const post = await db.select().from(blogPosts).where(eq(blogPosts.slug, resolvedParams.slug)).limit(1).then(rows => rows[0])
 
   if (!post) {
@@ -53,13 +55,8 @@ export async function generateMetadata({
   }
 }
 
-export default async function BlogPostPage({
-  params,
-}: {
-  params: { slug: string }
-}) {
-  const resolvedParams = await Promise.resolve(params)
-  // Fetch the blog post with author information
+export default async function PostPage({ params }: PostPageProps) {
+  const resolvedParams = await params
   const post = await db
     .select({
       id: blogPosts.id,
@@ -120,6 +117,12 @@ export default async function BlogPostPage({
               <CalendarIcon className="h-4 w-4" />
               <time dateTime={blogPost.publishedAt.toISOString()}>{formatDate(blogPost.publishedAt)}</time>
             </div>
+            {/* Description */}
+            {blogPost.description && (
+              <p className="text-sm italic">
+                {blogPost.description}
+              </p>
+            )}
           </div>
         </div>
         {/* Post Content */}
