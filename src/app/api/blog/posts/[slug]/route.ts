@@ -4,9 +4,9 @@ import { getSession } from '~/lib/auth/auth'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const { slug } = await params
+  const resolvedParams = await params
   const session = await getSession()
 
   if (!session || session.role !== 'admin') {
@@ -15,7 +15,7 @@ export async function PUT(
 
   try {
     const body = await request.json()
-    const post = await updatePost(slug, {
+    const post = await updatePost(resolvedParams.slug, {
       ...body,
       authorId: session.id,
     })

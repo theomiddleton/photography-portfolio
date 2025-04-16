@@ -308,20 +308,22 @@ const MobileToolbarContent = ({
   type: "highlighter" | "link"
   onBack: () => void
 }) => {
-  <>
-    <ToolbarGroup>
-      <Button data-style="ghost" onClick={onBack}>
-        <ArrowLeftIcon className="tiptap-button-icon" />
-        {type === "highlighter" ? (
-          <HighlighterIcon className="tiptap-button-icon" />
-        ) : (
-          <LinkIcon className="tiptap-button-icon" />
-        )}
-      </Button>
-    </ToolbarGroup>
+  return (
+    <>
+      <ToolbarGroup>
+        <Button data-style="ghost" onClick={onBack}>
+          <ArrowLeftIcon className="tiptap-button-icon" />
+          {type === "highlighter" ? (
+            <HighlighterIcon className="tiptap-button-icon" />
+          ) : (
+            <LinkIcon className="tiptap-button-icon" />
+          )}
+        </Button>
+      </ToolbarGroup>
 
-    <ToolbarSeparator />
+      <ToolbarSeparator />
 
-    {type === "highlighter" ? <HighlightContent /> : <LinkContent />}
-  </>
+      {type === "highlighter" ? <HighlightContent /> : <LinkContent />}
+    </>
+  )
 }
