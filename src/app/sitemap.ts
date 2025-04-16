@@ -15,11 +15,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .where(eq(imageData.visible, true))
 
   const routes = [
-    { path: '', changeFrequency: 'daily', priority: 1 },
+    { path: '', changeFrequency: 'weekly', priority: 1 },
     { path: '/about', changeFrequency: 'monthly', priority: 0.8 },
     { path: '/blog', changeFrequency: 'weekly', priority: 0.7 },
     { path: '/store', changeFrequency: 'weekly', priority: 0.7 },
-    { path: '/admin', changeFrequency: 'daily', priority: 0.8 },
+    { path: '/admin', changeFrequency: 'weekly', priority: 0.8 },
     { path: '/auth-test', changeFrequency: 'weekly', priority: 0.5 },
   ]
 
@@ -27,13 +27,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const adminRoutes = [
     '/admin/about',
     '/admin/blog',
-    '/admin/blog/draft',
-    '/admin/blog/newpost',
+    '/admin/blog/edit',
+    '/admin/blog/new',
+    '/admin/emails',
     '/admin/manage',
+    '/admin/migrate',
+    '/admin/pages',
+    '/admin/pages/new',
     '/admin/store',
+    '/admin/store/costs',
+    '/admin/store/frame',
     '/admin/upload',
     '/admin/users',
     '/admin/videos',
+    '/admin/videos/new',
   ]
   const storeRoutes = ['/store/checkout']
 
