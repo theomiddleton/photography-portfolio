@@ -60,6 +60,10 @@ import { LinkIcon } from '~/components/blog/tiptap-icons/link-icon'
 import { ImageGalleryExtension } from '~/components/blog/tiptap-extension/image-gallery-extension'
 import { ImageGalleryPopover } from '~/components/blog/tiptap-ui/image-gallery-popover/image-gallery-popover'
 
+// --- Import HLS Video Components ---
+import { HLSVideoExtension } from '~/components/blog/tiptap-extension/hls-video-extension'
+import { HLSVideoPopover } from '~/components/blog/tiptap-ui/hls-video-popover/hls-video-popover'
+
 // --- Hooks ---
 import { useMobile } from '~/hooks/use-mobile'
 import { useWindowSize } from '~/hooks/use-window-size'
@@ -88,9 +92,9 @@ export const SimpleEditor = React.forwardRef<
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        autocomplete: 'off',
-        autocorrect: 'off',
-        autocapitalize: 'off',
+        autocomplete: 'on',
+        autocorrect: 'on',
+        autocapitalize: 'on',
         'aria-label': 'Main content area, start typing to enter text.',
       },
     },
@@ -127,6 +131,7 @@ export const SimpleEditor = React.forwardRef<
       TrailingNode,
       Link.configure({ openOnClick: false }),
       ImageGalleryExtension,
+      HLSVideoExtension, // Add the HLS Video extension
     ],
     content:
       typeof initialContent === 'string'
@@ -302,6 +307,7 @@ const MainToolbarContent = ({
       <ToolbarGroup>
         <ImageUploadButton text="Add" />
         <ImageGalleryPopover />
+        <HLSVideoPopover /> {/* Add the HLS Video popover button */}
       </ToolbarGroup>
 
       <Spacer />
