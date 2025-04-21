@@ -14,6 +14,8 @@ import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
+import { ImageGalleryExtension } from '~/components/blog/tiptap-extension/image-gallery-extension'
+import { HLSVideoExtension } from '~/components/blog/tiptap-extension/hls-video-extension'
 
 interface TipTapRendererProps {
   content: any
@@ -46,6 +48,8 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
         Superscript,
         Subscript,
         Placeholder,
+        ImageGalleryExtension,
+        HLSVideoExtension,
         Link.configure({ openOnClick: false }),
       ])
     } catch (error) {
@@ -55,7 +59,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
   }, [content])
 
   // Process the HTML to replace img tags with Next.js Image components
-  // This would require a more complex solution in a real app
+  // This would require a more complex solution
   // For now, we'll use dangerouslySetInnerHTML with some basic styling
 
   return <div className="tiptap-content" dangerouslySetInnerHTML={{ __html: output }} />
