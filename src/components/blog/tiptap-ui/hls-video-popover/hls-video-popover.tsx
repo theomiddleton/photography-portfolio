@@ -20,9 +20,10 @@ import {
 
 // --- UI Primitives ---
 import {
-  Button,
-  ButtonProps,
+  Button as TipTapButton,
+  ButtonProps as TipTapButtonProps,
 } from '~/components/blog/tiptap-ui-primitive/button'
+import { Button, ButtonProps } from '~/components/ui/button'
 import {
   Popover,
   PopoverContent,
@@ -42,7 +43,7 @@ const MAX_THUMBNAIL_SIZE = MAX_THUMBNAIL_SIZE_MB * 1024 * 1024
 // --- Button Component ---
 export const HLSVideoButton = React.forwardRef<
   HTMLButtonElement,
-  ButtonProps & { editor?: Editor | null }
+  TipTapButtonProps & { editor?: Editor | null }
 >(({ editor: providedEditor, className, children, ...props }, ref) => {
   const editor = useTiptapEditor(providedEditor)
   const hlsVideoInSchema = isNodeInSchema('hlsVideo', editor)
@@ -52,7 +53,7 @@ export const HLSVideoButton = React.forwardRef<
   }
 
   return (
-    <Button
+    <TipTapButton
       type="button"
       className={className}
       data-style="ghost"
@@ -64,13 +65,13 @@ export const HLSVideoButton = React.forwardRef<
       {...props}
     >
       {children || <VideoIcon className="tiptap-button-icon" />}
-    </Button>
+    </TipTapButton>
   )
 })
 HLSVideoButton.displayName = 'HLSVideoButton'
 
 // --- Popover Content Component ---
-const HLSVideoContent: React.FC<{
+export const HLSVideoContent: React.FC<{
   editor: Editor | null
   closePopover: () => void
 }> = ({ editor, closePopover }) => {
@@ -192,7 +193,6 @@ const HLSVideoContent: React.FC<{
               </p>
               <Button
                 variant="outline"
-                size="xs"
                 className="mt-2 h-6 px-2 text-xs"
                 onClick={openFileDialog}
               >
@@ -267,13 +267,13 @@ const HLSVideoContent: React.FC<{
 }
 
 // --- Main Popover Component ---
-export interface HLSVideoPopoverProps extends Omit<ButtonProps, 'type'> {
+export interface HLSVideoPopoverProps extends Omit<TipTapButtonProps, 'type'> {
   editor?: Editor | null
   hideWhenUnavailable?: boolean
   onOpenChange?: (isOpen: boolean) => void
 }
 
-export default function HLSVideoPopover({
+export function HLSVideoPopover({
   editor: providedEditor,
   hideWhenUnavailable = false,
   onOpenChange,
@@ -312,7 +312,7 @@ export default function HLSVideoPopover({
       <PopoverTrigger asChild>
         <HLSVideoButton editor={editor} {...props} />
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" sideOffset={6}>
+      <PopoverContent className="w-auto p-0">
         <HLSVideoContent editor={editor} closePopover={closePopover} />
       </PopoverContent>
     </Popover>

@@ -15,9 +15,10 @@ import { AlertCircleIcon, UploadIcon, XIcon } from 'lucide-react'
 
 // --- UI Primitives ---
 import {
-  Button,
-  ButtonProps,
+  Button as TipTapButton,
+  ButtonProps as TipTapButtonProps,
 } from '~/components/blog/tiptap-ui-primitive/button'
+import { Button } from '~/components/ui/button'
 import {
   Popover,
   PopoverContent,
@@ -38,10 +39,10 @@ const MAX_GALLERY_FILES = 10
 // --- Button Component ---
 export const ImageGalleryButton = React.forwardRef<
   HTMLButtonElement,
-  ButtonProps
+  TipTapButtonProps
 >(({ className, children, ...props }, ref) => {
   return (
-    <Button
+    <TipTapButton
       type="button"
       className={className}
       data-style="ghost"
@@ -54,7 +55,7 @@ export const ImageGalleryButton = React.forwardRef<
     >
       {children || <GalleryThumbnailsIcon className="tiptap-button-icon" />}
       Image Gallery
-    </Button>
+    </TipTapButton>
   )
 })
 ImageGalleryButton.displayName = 'ImageGalleryButton'
@@ -233,7 +234,7 @@ const ImageGalleryContent: React.FC<{
 }
 
 // --- Main Popover Component ---
-export interface ImageGalleryPopoverProps extends Omit<ButtonProps, 'type'> {
+export interface ImageGalleryPopoverProps extends Omit<TipTapButtonProps, 'type'> {
   editor?: Editor | null
   hideWhenUnavailable?: boolean
   extensionName?: string
@@ -243,7 +244,7 @@ export function ImageGalleryPopover({
   editor: providedEditor,
   hideWhenUnavailable = false,
   extensionName = 'imageGallery',
-  ...buttonProps
+  ...TipTapButtonProps
 }: ImageGalleryPopoverProps) {
   const [isOpen, setIsOpen] = React.useState(false)
   const editor = useTiptapEditor(providedEditor)
@@ -265,9 +266,9 @@ export function ImageGalleryPopover({
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <ImageGalleryButton {...buttonProps} />
+        <ImageGalleryButton {...TipTapButtonProps} />
       </PopoverTrigger>
-      <PopoverContent align="start" sideOffset={8} className="w-auto p-0">
+      <PopoverContent align="start" side="bottom" className="w-auto p-0">
         <ImageGalleryContent
           editor={editor}
           closePopover={() => setIsOpen(false)}
