@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Enable View Transitions */
+@view-transition {
+  navigation: auto;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
