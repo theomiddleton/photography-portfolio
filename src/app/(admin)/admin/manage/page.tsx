@@ -1,18 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { Upload, Loader2 } from 'lucide-react'
 
 import { Button } from '~/components/ui/button'
 import { ImageGallery } from '~/components/image-gallery/image-gallery'
 import type { ImageDataWithId } from '~/lib/actions/image'
-import { getInitialPortfolioImages } from './action'
+import { toast } from 'sonner'
+import { getInitialPortfolioImages, savePortfolioImagesOrder } from './action'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 
 export default function ImageManagementPage() {
   const [images, setImages] = useState<ImageDataWithId[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
     console.log('Fetching initial images...')
@@ -36,11 +40,43 @@ export default function ImageManagementPage() {
     loadImages()
   }, [])
 
-  const handleImagesChange = (updatedImages: ImageDataWithId[]) => {
-    // Updated type
+  const handleImagesChange = async (updatedImages: ImageDataWithId[]) => {
     setImages(updatedImages)
-    // TODO: Save to DB
-    console.log('Images updated:', updatedImages)
+    setSaveError(null)
+    setIsSaving(true)
+
+    const imagesToSave = updatedImages.map((image, index) => ({
+      id: image.id,
+      order: index, // Assuming the order in updatedImages is the new desired order
+    }))
+
+    startTransition(async () => {
+      try {
+        const result = await savePortfolioImagesOrder(imagesToSave)
+        if (result.success) {
+          toast.success('Image order saved successfully!')
+          // Optionally re-fetch or assume client state is source of truth
+        } else {
+          const errorMessage =
+            typeof result.error === 'string'
+              ? result.error
+              : 'Failed to save image order.'
+          setSaveError(errorMessage)
+          toast.error(`Error: ${errorMessage}`)
+          console.error('Failed to save image order:', result.error)
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'An unexpected error occurred while saving.'
+        setSaveError(errorMessage)
+        toast.error(`Error: ${errorMessage}`)
+        console.error('Error in handleImagesChange:', err)
+      } finally {
+        setIsSaving(false)
+      }
+    })
   }
 
   if (isLoading) {
@@ -80,16 +116,36 @@ export default function ImageManagementPage() {
             Organize and manage your photography portfolio
           </p>
         </div>
-        <Button className="flex items-center gap-2" onClick={() => window.location.href = '/admin/upload'}>
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => (window.location.href = '/admin/upload')}
+        >
           <Upload className="h-4 w-4" />
           Upload Images
         </Button>
       </div>
 
+      {saveError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription className="text-center">
+            <p className="text-lg font-semibold">Failed to save changes</p>
+            <p className="text-sm">{saveError}</p>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isSaving && (
+        <div className="my-4 flex items-center justify-center rounded-md border bg-muted p-4 text-sm">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Saving changes...
+        </div>
+      )}
+
       <div className="mt-8">
         <ImageGallery
           initialImages={images}
           onImagesChange={handleImagesChange}
+          isSaving={isSaving || isPending}
           columns={{ default: 3, tablet: 2, mobile: 1 }}
         />
       </div>

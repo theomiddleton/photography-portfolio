@@ -18,6 +18,7 @@ import type { ImageDataWithId } from '~/lib/actions/image'
 type ViewMode = 'masonry' | 'grid' | 'list' | 'reorder'
 
 interface ImageGalleryProps {
+  isSaving?: boolean
   initialImages?: ImageDataWithId[]
   columns?: { default: number; tablet: number; mobile: number }
   visibleOnly?: boolean
@@ -29,16 +30,25 @@ export function ImageGallery({
   columns = { default: 3, tablet: 2, mobile: 1 },
   visibleOnly,
   refreshInterval = 10000, // 10 seconds by default
+  isSaving = false,
 }: ImageGalleryProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('masonry')
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
-  const { images, isLoading, error, refresh, updateImagesOrder, toggleImageVisibility, deleteImage, updateImage } =
-    useImages({
-      initialImages,
-      visibleOnly,
-      refreshInterval,
-    })
+  const {
+    images,
+    isLoading,
+    error,
+    refresh,
+    updateImagesOrder,
+    toggleImageVisibility,
+    deleteImage,
+    updateImage,
+  } = useImages({
+    initialImages,
+    visibleOnly,
+    refreshInterval,
+  })
 
   // Handle image selection
   const handleImageSelect = (id: string) => {
@@ -59,7 +69,7 @@ export function ImageGallery({
 
   if (isLoading && images.length === 0) {
     return (
-      <div className="flex justify-center items-center py-12">
+      <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <span className="ml-2 text-lg">Loading images...</span>
       </div>
@@ -69,7 +79,7 @@ export function ImageGallery({
   if (error) {
     return (
       <Alert variant="destructive" className="mb-4">
-        <AlertDescription className="flex justify-between items-center">
+        <AlertDescription className="flex items-center justify-between">
           <span>Error loading images: {error}</span>
           <Button variant="outline" size="sm" onClick={handleRefresh}>
             Retry
@@ -85,19 +95,27 @@ export function ImageGallery({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          {images.length} {images.length === 1 ? "image" : "images"}
+          {images.length} {images.length === 1 ? 'image' : 'images'}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isLoading || isSaving}
+          >
+            {isLoading ? (
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            ) : null}
             Refresh
           </Button>
           <ToggleGroup
             type="single"
             value={viewMode}
             onValueChange={(value) => value && setViewMode(value as ViewMode)}
+            disabled={isSaving}
           >
             <ToggleGroupItem value="masonry" aria-label="Masonry view">
               <LayoutGrid className="h-4 w-4" />
@@ -115,10 +133,10 @@ export function ImageGallery({
         </div>
       </div>
 
-      {viewMode === "masonry" && (
+      {viewMode === 'masonry' && (
         <Masonry
           breakpointCols={breakpointColumnsObj}
-          className="flex w-auto -ml-4"
+          className="-ml-4 flex w-auto"
           columnClassName="pl-4 bg-clip-padding"
         >
           {images.map((image, index) => (
@@ -134,16 +152,23 @@ export function ImageGallery({
                   index > 0
                     ? () => {
                         const newImages = [...images]
-                        ;[newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]]
+                        ;[newImages[index - 1], newImages[index]] = [
+                          newImages[index],
+                          newImages[index - 1],
+                        ]
                         updateImagesOrder(newImages)
                       }
                     : undefined
                 }
+                isProcessing={isSaving}
                 onMoveDown={
                   index < images.length - 1
                     ? () => {
                         const newImages = [...images]
-                        ;[newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]]
+                        ;[newImages[index], newImages[index + 1]] = [
+                          newImages[index + 1],
+                          newImages[index],
+                        ]
                         updateImagesOrder(newImages)
                       }
                     : undefined
@@ -155,13 +180,16 @@ export function ImageGallery({
         </Masonry>
       )}
 
-      {viewMode === "grid" && (
+      {viewMode === 'grid' && (
         <GridView
           images={images}
           selectedImage={selectedImage}
           onSelect={handleImageSelect}
-          onToggleVisibility={(id) => toggleImageVisibility(Number.parseInt(id))}
+          onToggleVisibility={(id) =>
+            toggleImageVisibility(Number.parseInt(id))
+          }
           onDelete={(id) => deleteImage(Number.parseInt(id))}
+          isProcessing={isSaving}
           onMove={(id, offset) => {
             const index = images.findIndex((img) => img.id.toString() === id)
             if (index === -1) return
@@ -178,15 +206,20 @@ export function ImageGallery({
         />
       )}
 
-      {viewMode === "list" && (
+      {viewMode === 'list' && (
         <ListView
           images={images}
           selectedImage={selectedImage}
           onSelect={handleImageSelect}
-          onToggleVisibility={(id) => toggleImageVisibility(Number.parseInt(id))}
+          onToggleVisibility={(id) =>
+            toggleImageVisibility(Number.parseInt(id))
+          }
           onDelete={(id) => deleteImage(Number.parseInt(id))}
+          isProcessing={isSaving}
           onMove={(id, toPosition) => {
-            const fromIndex = images.findIndex((img) => img.id.toString() === id)
+            const fromIndex = images.findIndex(
+              (img) => img.id.toString() === id,
+            )
             if (fromIndex === -1) return
 
             const newImages = [...images]
@@ -198,7 +231,13 @@ export function ImageGallery({
         />
       )}
 
-      {viewMode === "reorder" && <ReorderPanel images={images} onReorder={updateImagesOrder} isLoading={isLoading} />}
+      {viewMode === 'reorder' && (
+        <ReorderPanel
+          images={images}
+          onReorder={updateImagesOrder}
+          isLoading={isLoading || isSaving}
+        />
+      )}
     </div>
   )
 }

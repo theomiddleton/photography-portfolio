@@ -1,5 +1,9 @@
 'use server'
-import { ImageDataWithId, getImages } from '~/lib/actions/image'
+import {
+  ImageDataWithId,
+  getImages,
+  updateImagesOrder,
+} from '~/lib/actions/image'
 
 export async function getInitialPortfolioImages(): Promise<ImageDataWithId[]> {
   'use server'
@@ -32,5 +36,30 @@ export async function getInitialPortfolioImages(): Promise<ImageDataWithId[]> {
     throw new Error(
       'An unknown error occurred in the server action while fetching initial images.',
     )
+  }
+}
+
+export async function savePortfolioImagesOrder(
+  imagesToUpdate: { id: number; order: number }[],
+): Promise<{ success: boolean; error?: string | unknown }> {
+  'use server'
+  try {
+    console.log('Updating portfolio images order in server action...')
+    const { error } = await updateImagesOrder(imagesToUpdate)
+
+    if (error) {
+      console.error(
+        'Error updating portfolio images order in server action:',
+        error,
+      )
+      return { success: false, error: 'Failed to update images order.' }
+    }
+
+    return { success: true }
+  } catch (err) {
+    console.error('Exception in savePortfolioImagesOrder server action:', err)
+    const errorMessage =
+      err instanceof Error ? err.message : 'An unknown server error occurred.'
+    return { success: false, error: errorMessage }
   }
 }

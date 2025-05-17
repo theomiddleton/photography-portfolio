@@ -4,13 +4,21 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { ArrowDown, ArrowUp, Eye, EyeOff, Trash2 } from 'lucide-react'
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '~/components/ui/table'
 import { Button } from '~/components/ui/button'
 import { Switch } from '~/components/ui/switch'
 import { Input } from '~/components/ui/input'
 import type { ImageData } from '~/lib/types/image'
 
 interface ListViewProps {
+  isProcessing?: boolean
   images: ImageData[]
   selectedImage: string | null
   onSelect: (id: string) => void
@@ -19,18 +27,32 @@ interface ListViewProps {
   onMove: (id: string, toPosition: number) => void
 }
 
-export function ListView({ images, selectedImage, onSelect, onToggleVisibility, onDelete, onMove }: ListViewProps) {
-  const [editingPosition, setEditingPosition] = useState<{ id: string; value: string } | null>(null)
+export function ListView({
+  images,
+  selectedImage,
+  onSelect,
+  onToggleVisibility,
+  onDelete,
+  onMove,
+  isProcessing = false,
+}: ListViewProps) {
+  const [editingPosition, setEditingPosition] = useState<{
+    id: string
+    value: string
+  } | null>(null)
 
   const handlePositionChange = (id: string, position: number) => {
     // Convert to zero-based index
-    const targetPosition = Math.max(0, Math.min(position - 1, images.length - 1))
+    const targetPosition = Math.max(
+      0,
+      Math.min(position - 1, images.length - 1),
+    )
     onMove(id, targetPosition)
     setEditingPosition(null)
   }
 
   return (
-    <div className="border rounded-md">
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -46,7 +68,7 @@ export function ListView({ images, selectedImage, onSelect, onToggleVisibility, 
           {images.map((image, index) => (
             <TableRow
               key={image.id}
-              className={selectedImage === image.id ? "bg-muted/50" : undefined}
+              className={selectedImage === image.id ? 'bg-muted/50' : undefined}
               onClick={() => onSelect(image.id)}
             >
               <TableCell>
@@ -66,11 +88,19 @@ export function ListView({ images, selectedImage, onSelect, onToggleVisibility, 
                       min="1"
                       max={images.length}
                       value={editingPosition.value}
-                      onChange={(e) => setEditingPosition({ id: image.id, value: e.target.value })}
-                      className="w-16 h-8"
+                      onChange={(e) =>
+                        setEditingPosition({
+                          id: image.id,
+                          value: e.target.value,
+                        })
+                      }
+                      disabled={isProcessing}
+                      className="h-8 w-16"
                       autoFocus
                       onBlur={() => {
-                        const newPosition = Number.parseInt(editingPosition.value)
+                        const newPosition = Number.parseInt(
+                          editingPosition.value,
+                        )
                         if (!isNaN(newPosition)) {
                           handlePositionChange(image.id, newPosition)
                         } else {
@@ -86,52 +116,63 @@ export function ListView({ images, selectedImage, onSelect, onToggleVisibility, 
                     className="h-8 px-2"
                     onClick={(e) => {
                       e.stopPropagation()
-                      setEditingPosition({ id: image.id, value: (index + 1).toString() })
+                      setEditingPosition({
+                        id: image.id,
+                        value: (index + 1).toString(),
+                      })
                     }}
+                    disabled={isProcessing}
                   >
                     {index + 1}
                   </Button>
                 )}
               </TableCell>
               <TableCell>
-                <div className="relative w-16 h-12">
+                <div className="relative h-12 w-16">
                   <Image
-                    src={image.src || "/placeholder.svg"}
+                    src={image.src || '/placeholder.svg'}
                     alt={image.alt}
                     fill
-                    className="object-cover rounded-sm"
+                    className="rounded-sm object-cover"
                   />
                 </div>
               </TableCell>
               <TableCell>{image.title}</TableCell>
               <TableCell>{image.category}</TableCell>
               <TableCell>
-                <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="flex items-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Switch
                     id={`list-visibility-${image.id}`}
                     checked={image.visible}
                     onCheckedChange={() => onToggleVisibility(image.id)}
+                    disabled={isProcessing}
                   />
                   <span className="ml-2 text-xs">
                     {image.visible ? (
                       <span className="flex items-center">
-                        <Eye className="h-3 w-3 mr-1" /> Visible
+                        <Eye className="mr-1 h-3 w-3" /> Visible
                       </span>
                     ) : (
                       <span className="flex items-center">
-                        <EyeOff className="h-3 w-3 mr-1" /> Hidden
+                        <EyeOff className="mr-1 h-3 w-3" /> Hidden
                       </span>
                     )}
                   </span>
                 </div>
               </TableCell>
               <TableCell>
-                <div className="flex space-x-1" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="flex space-x-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    disabled={index === 0}
+                    disabled={index === 0 || isProcessing}
                     onClick={() => onMove(image.id, index - 1)}
                   >
                     <ArrowUp className="h-4 w-4" />
@@ -140,7 +181,7 @@ export function ListView({ images, selectedImage, onSelect, onToggleVisibility, 
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    disabled={index === images.length - 1}
+                    disabled={index === images.length - 1 || isProcessing}
                     onClick={() => onMove(image.id, index + 1)}
                   >
                     <ArrowDown className="h-4 w-4" />
@@ -148,8 +189,9 @@ export function ListView({ images, selectedImage, onSelect, onToggleVisibility, 
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => onDelete(image.id)}
+                    disabled={isProcessing}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
