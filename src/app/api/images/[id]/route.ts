@@ -1,12 +1,21 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { getImageById, updateImage, deleteImage, toggleImageVisibility } from '~/lib/actions/image'
+import {
+  getImageById,
+  updateImage,
+  deleteImage,
+  toggleImageVisibility,
+} from '~/lib/actions/image'
 
 // GET /api/images/[id]
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const id = Number.parseInt(params.id)
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id: paramId } = await params
+  const id = Number.parseInt(paramId)
 
   if (isNaN(id)) {
-    return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
   }
 
   const { image, error } = await getImageById(id)
@@ -16,25 +25,29 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 
   if (!image) {
-    return NextResponse.json({ error: "Image not found" }, { status: 404 })
+    return NextResponse.json({ error: 'Image not found' }, { status: 404 })
   }
 
   return NextResponse.json({ image })
 }
 
 // PATCH /api/images/[id]
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  const id = Number.parseInt(params.id)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id: paramId } = await params
+  const id = Number.parseInt(paramId)
 
   if (isNaN(id)) {
-    return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
   }
 
   try {
     const body = await request.json()
 
     // Check if this is a visibility toggle request
-    if (Object.keys(body).length === 1 && "toggleVisibility" in body) {
+    if (Object.keys(body).length === 1 && 'toggleVisibility' in body) {
       const { image, error } = await toggleImageVisibility(id)
 
       if (error) {
@@ -52,22 +65,26 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     if (!image) {
-      return NextResponse.json({ error: "Image not found" }, { status: 404 })
+      return NextResponse.json({ error: 'Image not found' }, { status: 404 })
     }
 
     return NextResponse.json({ image })
   } catch (error) {
     console.error(`Error in PATCH /api/images/${id}:`, error)
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   }
 }
 
 // DELETE /api/images/[id]
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const id = Number.parseInt(params.id)
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id: paramId } = await params
+  const id = Number.parseInt(paramId)
 
   if (isNaN(id)) {
-    return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
   }
 
   const { success, error } = await deleteImage(id)
@@ -77,7 +94,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   }
 
   if (!success) {
-    return NextResponse.json({ error: "Image not found" }, { status: 404 })
+    return NextResponse.json({ error: 'Image not found' }, { status: 404 })
   }
 
   return NextResponse.json({ success: true })
