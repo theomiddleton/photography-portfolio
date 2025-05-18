@@ -8,11 +8,11 @@ import { GripVertical, Loader2 } from 'lucide-react'
 
 import { Card } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
-import type { ImageDataWithId } from '~/lib/actions/image'
+import type { PortfolioImageData } from '~/lib/types/image'
 
 interface ReorderPanelProps {
-  images: ImageDataWithId[]
-  onReorder: (images: ImageDataWithId[]) => void
+  images: PortfolioImageData[]
+  onReorder: (updatedImages: PortfolioImageData[]) => void
   isLoading?: boolean
 }
 

@@ -1,11 +1,20 @@
 'use server'
-import {
-  ImageDataWithId,
-  getImages,
-  updateImagesOrder,
-} from '~/lib/actions/image'
+import type { PortfolioImageData } from '~/lib/types/image'
+import { getImages, updateImagesOrder } from '~/lib/actions/image'
 
-export async function getInitialPortfolioImages(): Promise<ImageDataWithId[]> {
+// Define SerializedImageData where Date fields are strings
+type SerializedImageData = Omit<
+  PortfolioImageData,
+  'uploadedAt' | 'modifiedAt'
+> & {
+  uploadedAt: string
+  modifiedAt: string
+}
+
+export async function getInitialPortfolioImages(): Promise<
+  SerializedImageData[]
+> {
+  // Returns SerializedImageData
   'use server'
   try {
     console.log('Fetching initial portfolio images in server action...')
@@ -25,8 +34,40 @@ export async function getInitialPortfolioImages(): Promise<ImageDataWithId[]> {
       throw new Error('Failed to fetch initial portfolio images.')
     }
 
-    // Ensure that 'images' is always an array, even if the underlying function might return undefined on error (though it seems to throw)
-    return images || []
+    if (!images) {
+      return []
+    }
+
+    const mappedImages: SerializedImageData[] = images.map((dbImage) => {
+      // dbImage.uploadedAt and dbImage.modifiedAt might be Date objects or null from the database.
+      const uploadedAtDate = dbImage.uploadedAt
+        ? new Date(dbImage.uploadedAt)
+        : null
+      const modifiedAtDate = dbImage.modifiedAt
+        ? new Date(dbImage.modifiedAt)
+        : null
+
+      // Ensure all required fields have a value, falling back to defaults if undefined/null.
+      return {
+        id: dbImage.id ?? 0,
+        uuid: dbImage.uuid ?? '',
+        fileName: dbImage.fileName ?? '',
+        fileUrl: dbImage.fileUrl ?? '',
+        name: dbImage.name ?? '',
+        description: dbImage.description ?? undefined,
+        tags: dbImage.tags ?? undefined,
+        visible: dbImage.visible ?? false,
+        order: dbImage.order ?? 0,
+        // Convert Date objects (or null) to ISO strings. Use epoch if null.
+        uploadedAt: uploadedAtDate
+          ? uploadedAtDate.toISOString()
+          : new Date(0).toISOString(),
+        modifiedAt: modifiedAtDate
+          ? modifiedAtDate.toISOString()
+          : new Date(0).toISOString(),
+      }
+    })
+    return mappedImages
   } catch (err) {
     console.error('Exception in getInitialPortfolioImages server action:', err)
     // Re-throw the error so the client component can catch it and display an error state

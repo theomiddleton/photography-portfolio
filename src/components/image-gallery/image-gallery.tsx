@@ -13,16 +13,17 @@ import { Button } from '~/components/ui/button'
 import { GridView } from '~/components/image-gallery/grid-view'
 import { ListView } from '~/components/image-gallery/list-view'
 import { useImages } from '~/hooks/use-images'
-import type { ImageDataWithId } from '~/lib/actions/image'
+import type { PortfolioImageData } from '~/lib/types/image'
 
 type ViewMode = 'masonry' | 'grid' | 'list' | 'reorder'
 
 interface ImageGalleryProps {
   isSaving?: boolean
-  initialImages?: ImageDataWithId[]
-  columns?: { default: number; tablet: number; mobile: number }
+  initialImages?: PortfolioImageData[]
+  columns?: { default: number, tablet: number, mobile: number }
   visibleOnly?: boolean
   refreshInterval?: number | null
+  onImagesChange?: (updatedImages: PortfolioImageData[]) => Promise<void> | void 
 }
 
 export function ImageGallery({
@@ -31,6 +32,7 @@ export function ImageGallery({
   visibleOnly,
   refreshInterval = 10000, // 10 seconds by default
   isSaving = false,
+  onImagesChange, 
 }: ImageGalleryProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('masonry')
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -48,6 +50,7 @@ export function ImageGallery({
     initialImages,
     visibleOnly,
     refreshInterval,
+    onOrderChange: onImagesChange,
   })
 
   // Handle image selection

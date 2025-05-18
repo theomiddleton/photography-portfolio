@@ -1,11 +1,11 @@
 'use client'
 
 import { ImageItem } from '~/components/image-gallery/image-item'
-import type { ImageData } from '~/lib/types/image'
+import type { PortfolioImageData } from '~/lib/types/image'
 
 interface GridViewProps {
   isProcessing?: boolean
-  images: ImageData[]
+  images: PortfolioImageData[]
   selectedImage: string | null
   onSelect: (id: string) => void
   onToggleVisibility: (id: string) => void
@@ -29,13 +29,13 @@ export function GridView({
           <ImageItem
             image={image}
             index={index}
-            isSelected={selectedImage === image.id}
-            onSelect={() => onSelect(image.id)}
+            isSelected={selectedImage === (String(image.id))}
+            onSelect={() => onSelect(String(image.id))}
             onToggleVisibility={onToggleVisibility}
             onDelete={onDelete}
-            onMoveUp={index > 0 ? () => onMove(image.id, -1) : undefined}
+            onMoveUp={index > 0 ? () => onMove((String(image.id)), -1) : undefined}
             onMoveDown={
-              index < images.length - 1 ? () => onMove(image.id, 1) : undefined
+              index < images.length - 1 ? () => onMove((String(image.id)), 1) : undefined
             }
             showOrderControls={true}
             compact={true}

@@ -5,10 +5,10 @@ import { X } from 'lucide-react'
 
 import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
-import type { ImageData } from '~/lib/types/image'
+import type { PortfolioImageData } from '~/lib/types/image'
 
 interface ImagePreviewModalProps {
-  image: ImageData
+  image: PortfolioImageData
   isOpen: boolean
   onClose: () => void
 }
@@ -28,16 +28,16 @@ export function ImagePreviewModal({ image, isOpen, onClose }: ImagePreviewModalP
           </Button>
           <div className="p-1">
             <Image
-              src={image.src || "/placeholder.svg"}
-              alt={image.alt}
+              src={image.fileUrl || "/placeholder.svg"}
+              alt={image.description}
               width={1200}
               height={800}
               className="w-full h-auto max-h-[80vh] object-contain"
             />
           </div>
           <div className="p-4">
-            <h2 className="text-xl font-medium">{image.title}</h2>
-            <p className="text-sm text-muted-foreground">{image.category}</p>
+            <h2 className="text-xl font-medium">{image.name}</h2>
+            <p className="text-sm text-muted-foreground">{image.tags}</p>
           </div>
         </div>
       </DialogContent>

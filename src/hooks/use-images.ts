@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useCallback, useTransition } from 'react'
 import { toast } from 'sonner'
-import type { ImageDataWithId } from '~/lib/actions/image'
+import type { PortfolioImageData } from '~/lib/types/image'
 
 interface UseImagesOptions {
-  initialImages?: ImageDataWithId[]
+  initialImages?: PortfolioImageData[]
   visibleOnly?: boolean
   sortBy?: string
   sortDirection?: "asc" | "desc"
   limit?: number
   refreshInterval?: number | null
+  onOrderChange?: (updatedImages: PortfolioImageData[]) => Promise<void> | void
 }
 
 export function useImages({
@@ -20,8 +21,9 @@ export function useImages({
   sortDirection = "asc",
   limit,
   refreshInterval = 10000, // Default to 10 seconds, null to disable
+  onOrderChange,
 }: UseImagesOptions = {}) {
-  const [images, setImages] = useState<ImageDataWithId[]>(initialImages)
+  const [images, setImages] = useState<PortfolioImageData[]>(initialImages)
   const [isLoading, setIsLoading] = useState(initialImages.length === 0)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -98,44 +100,56 @@ export function useImages({
 
   // Function to update image order with optimistic updates
   const updateImagesOrder = useCallback(
-    async (updatedImages: ImageDataWithId[]) => {
-      // Create a map of id -> order for the API request
-      const orderUpdates = updatedImages.map((img, index) => ({
-        id: img.id,
-        order: index,
-      }))
-
+    async (updatedImages: PortfolioImageData[]) => {
+      const oldImages = images; // Store old images for revert
       // Optimistically update the UI
       setImages(updatedImages)
 
-      try {
-        const response = await fetch("/api/images", {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(orderUpdates),
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || "Failed to update image order")
+      if (onOrderChange) {
+        try {
+          await onOrderChange(updatedImages)
+          // Parent component is responsible for success feedback (e.g., toast)
+        } catch (err) {
+          console.error("Error in onOrderChange callback:", err)
+          setImages(oldImages) // Revert optimistic update
+          toast.error(
+            err instanceof Error ? err.message : "Failed to save order via callback.",
+          )
         }
+      } else {
+        // Default behavior: call internal API if onOrderChange is not provided
+        try {
+          const orderUpdates = updatedImages.map((img, index) => ({
+            id: img.id,
+            order: index,
+          }))
 
-        // Refresh images to ensure we have the latest data
-        fetchImages(false)
+          const response = await fetch("/api/images", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(orderUpdates),
+          })
 
-        toast("Success: Image order updated successfully")
-      } catch (err) {
-        console.error("Error updating image order:", err)
+          if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || "Failed to update image order via API")
+          }
 
-        // Revert to previous state on error
-        fetchImages()
-
-        toast(err instanceof Error ? err.message : "Failed to update image order")
+          // Refresh images to ensure we have the latest data if API is source of truth
+          // fetchImages(false) // Consider if this is needed or if parent handles data refresh
+          toast.success("Success: Image order updated successfully via API")
+        } catch (err) {
+          console.error("Error updating image order via API:", err)
+          setImages(oldImages) // Revert to previous state on error
+          toast.error(
+            err instanceof Error ? err.message : "Failed to update image order via API",
+          )
+        }
       }
     },
-    [fetchImages, toast],
+    [images, onOrderChange, toast], // Removed fetchImages, parent should manage data if onOrderChange is used
   )
 
   // Function to toggle image visibility with optimistic updates
@@ -213,7 +227,7 @@ export function useImages({
 
   // Function to update image metadata
   const updateImage = useCallback(
-    async (id: number, data: Partial<ImageDataWithId>) => {
+    async (id: number, data: Partial<PortfolioImageData>) => {
       // Optimistically update the UI
       setImages((prevImages) => prevImages.map((img) => (img.id === id ? { ...img, ...data } : img)))
 

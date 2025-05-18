@@ -5,13 +5,22 @@ import { Upload, Loader2 } from 'lucide-react'
 
 import { Button } from '~/components/ui/button'
 import { ImageGallery } from '~/components/image-gallery/image-gallery'
-import type { ImageDataWithId } from '~/lib/actions/image'
 import { toast } from 'sonner'
 import { getInitialPortfolioImages, savePortfolioImagesOrder } from './action'
 import { Alert, AlertDescription } from '~/components/ui/alert'
+import type { PortfolioImageData } from '~/lib/types/image'
+
+// Define a type that represents ImageData after JSON serialization (Dates become strings)
+type SerializedImageData = Omit<
+  PortfolioImageData,
+  'uploadedAt' | 'modifiedAt'
+> & {
+  uploadedAt: string
+  modifiedAt: string
+}
 
 export default function ImageManagementPage() {
-  const [images, setImages] = useState<ImageDataWithId[]>([])
+  const [images, setImages] = useState<PortfolioImageData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -24,8 +33,32 @@ export default function ImageManagementPage() {
       try {
         setIsLoading(true)
         setError(null)
-        const fetchedImages = await getInitialPortfolioImages()
-        setImages(fetchedImages)
+        // getInitialPortfolioImages is typed to return Promise<SerializedImageData[]> in action.ts
+        const imagesFromServer: SerializedImageData[] =
+          await getInitialPortfolioImages()
+
+        const processedImages: PortfolioImageData[] = imagesFromServer.map(
+          (imgJson: SerializedImageData) => {
+            // Explicitly construct and type the object to match ImageData
+            const item: PortfolioImageData = {
+              id: imgJson.id ?? 0,
+              uuid: imgJson.uuid ?? '',
+              fileName: imgJson.fileName ?? '',
+              fileUrl: imgJson.fileUrl ?? '',
+              name: imgJson.name ?? '',
+              description: imgJson.description, // Optional, so undefined is fine
+              tags: imgJson.tags, // Optional, so undefined is fine
+              visible: imgJson.visible ?? false,
+              order: imgJson.order ?? 0,
+              // imgJson.uploadedAt and modifiedAt are strings from SerializedImageData
+              uploadedAt: new Date(imgJson.uploadedAt || 0), // Use epoch if string is empty/falsy
+              modifiedAt: new Date(imgJson.modifiedAt || 0), // Use epoch if string is empty/falsy
+            }
+            return item
+          },
+        )
+
+        setImages(processedImages)
       } catch (err) {
         console.error('Failed to load initial images:', err)
         setError(
@@ -40,8 +73,8 @@ export default function ImageManagementPage() {
     loadImages()
   }, [])
 
-  const handleImagesChange = async (updatedImages: ImageDataWithId[]) => {
-    setImages(updatedImages)
+  const handleImagesChange = async (updatedImages: PortfolioImageData[]) => {
+    setImages(updatedImages) // Explicit cast to ensure type compatibility
     setSaveError(null)
     setIsSaving(true)
 

@@ -15,11 +15,11 @@ import {
 import { Button } from '~/components/ui/button'
 import { Switch } from '~/components/ui/switch'
 import { Input } from '~/components/ui/input'
-import type { ImageData } from '~/lib/types/image'
+import type { PortfolioImageData } from '~/lib/types/image'
 
 interface ListViewProps {
   isProcessing?: boolean
-  images: ImageData[]
+  images: PortfolioImageData[]
   selectedImage: string | null
   onSelect: (id: string) => void
   onToggleVisibility: (id: string) => void
@@ -68,17 +68,17 @@ export function ListView({
           {images.map((image, index) => (
             <TableRow
               key={image.id}
-              className={selectedImage === image.id ? 'bg-muted/50' : undefined}
-              onClick={() => onSelect(image.id)}
+              className={selectedImage === String(image.id) ? 'bg-muted/50' : undefined}
+              onClick={() => onSelect(String(image.id))}
             >
               <TableCell>
-                {editingPosition && editingPosition.id === image.id ? (
+                {editingPosition && editingPosition.id === String(image.id) ? (
                   <form
                     onSubmit={(e) => {
                       e.preventDefault()
                       const newPosition = Number.parseInt(editingPosition.value)
                       if (!isNaN(newPosition)) {
-                        handlePositionChange(image.id, newPosition)
+                        handlePositionChange(String(image.id), newPosition)
                       }
                     }}
                     onClick={(e) => e.stopPropagation()}
@@ -90,7 +90,7 @@ export function ListView({
                       value={editingPosition.value}
                       onChange={(e) =>
                         setEditingPosition({
-                          id: image.id,
+                          id: String(image.id),
                           value: e.target.value,
                         })
                       }
@@ -102,7 +102,7 @@ export function ListView({
                           editingPosition.value,
                         )
                         if (!isNaN(newPosition)) {
-                          handlePositionChange(image.id, newPosition)
+                          handlePositionChange(String(image.id), newPosition)
                         } else {
                           setEditingPosition(null)
                         }
@@ -117,7 +117,7 @@ export function ListView({
                     onClick={(e) => {
                       e.stopPropagation()
                       setEditingPosition({
-                        id: image.id,
+                        id: String(image.id),
                         value: (index + 1).toString(),
                       })
                     }}
@@ -130,15 +130,15 @@ export function ListView({
               <TableCell>
                 <div className="relative h-12 w-16">
                   <Image
-                    src={image.src || '/placeholder.svg'}
-                    alt={image.alt}
+                    src={image.fileUrl || '/placeholder.svg'}
+                    alt={image.description}
                     fill
                     className="rounded-sm object-cover"
                   />
                 </div>
               </TableCell>
-              <TableCell>{image.title}</TableCell>
-              <TableCell>{image.category}</TableCell>
+              <TableCell>{image.name}</TableCell>
+              <TableCell>{image.tags}</TableCell>
               <TableCell>
                 <div
                   className="flex items-center"
@@ -147,7 +147,7 @@ export function ListView({
                   <Switch
                     id={`list-visibility-${image.id}`}
                     checked={image.visible}
-                    onCheckedChange={() => onToggleVisibility(image.id)}
+                    onCheckedChange={() => onToggleVisibility(String(image.id))}
                     disabled={isProcessing}
                   />
                   <span className="ml-2 text-xs">
@@ -173,7 +173,7 @@ export function ListView({
                     size="icon"
                     className="h-8 w-8"
                     disabled={index === 0 || isProcessing}
-                    onClick={() => onMove(image.id, index - 1)}
+                    onClick={() => onMove(String(image.id), index - 1)}
                   >
                     <ArrowUp className="h-4 w-4" />
                   </Button>
@@ -182,7 +182,7 @@ export function ListView({
                     size="icon"
                     className="h-8 w-8"
                     disabled={index === images.length - 1 || isProcessing}
-                    onClick={() => onMove(image.id, index + 1)}
+                    onClick={() => onMove(String(image.id), index + 1)}
                   >
                     <ArrowDown className="h-4 w-4" />
                   </Button>
@@ -190,7 +190,7 @@ export function ListView({
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => onDelete(image.id)}
+                    onClick={() => onDelete(String(image.id))}
                     disabled={isProcessing}
                   >
                     <Trash2 className="h-4 w-4" />

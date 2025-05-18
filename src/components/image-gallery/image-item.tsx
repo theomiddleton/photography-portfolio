@@ -23,11 +23,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import type { ImageData } from '~/lib/types/image'
+import type { PortfolioImageData } from '~/lib/types/image'
 import { ImagePreviewModal } from '~/components/image-gallery/image-preview-modal'
 
 interface ImageItemProps {
-  image: ImageData
+  image: PortfolioImageData
   index?: number
   isSelected?: boolean
   onSelect?: () => void
@@ -65,8 +65,8 @@ export function ImageItem({
       >
         <div className="group relative aspect-auto w-full overflow-hidden">
           <Image
-            src={image.src || '/placeholder.svg'}
-            alt={image.alt}
+            src={image.fileUrl || '/placeholder.svg'}
+            alt={image.name}
             width={600}
             height={400}
             className="h-auto w-full object-cover"
@@ -99,10 +99,10 @@ export function ImageItem({
         <CardContent className={compact ? 'p-2' : 'p-3'}>
           <div className="mb-2 flex items-start justify-between">
             <div>
-              <h3 className="truncate text-base font-medium">{image.title}</h3>
+              <h3 className="truncate text-base font-medium">{image.name}</h3>
               {!compact && (
                 <p className="text-xs text-muted-foreground">
-                  {image.category}
+                  {image.tags}
                 </p>
               )}
             </div>
@@ -147,7 +147,7 @@ export function ImageItem({
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation()
-                      onDelete(image.id)
+                      onDelete(String(image.id))
                     }}
                     disabled={isProcessing}
                     className="text-destructive"
@@ -167,8 +167,8 @@ export function ImageItem({
                 checked={image.visible}
                 disabled={isProcessing}
                 onCheckedChange={(e) => {
-                  e.stopPropagation()
-                  onToggleVisibility(image.id)
+                  // e.stopPropagation()
+                  onToggleVisibility(String(image.id))
                 }}
                 onClick={(e) => e.stopPropagation()}
               />
@@ -196,7 +196,7 @@ export function ImageItem({
                 className="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={(e) => {
                   e.stopPropagation()
-                  onDelete(image.id)
+                  onDelete(String(image.id))
                 }}
                 disabled={isProcessing}
                 aria-label="Delete image"
