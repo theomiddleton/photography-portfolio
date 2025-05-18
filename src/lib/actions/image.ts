@@ -17,8 +17,6 @@ export const imageSchema = z.object({
   order: z.number().int().default(0),
 })
 
-export type ImageDataWithId = z.infer<typeof imageSchema> & { id: number }
-
 // Get all images with optional filtering and sorting
 export async function getImages({
   visible,
@@ -115,7 +113,7 @@ export async function createImage(data: z.infer<typeof imageSchema>) {
 
     // Revalidate the images page to update the UI
     revalidatePath('/admin/manage')
-    revalidatePath('/')
+    revalidatePath('/', 'layout')
 
     return { image: newImage, error: null }
   } catch (error) {
@@ -152,7 +150,7 @@ export async function updateImage(
 
     // Revalidate the images page to update the UI
     revalidatePath('/admin/manage')
-    revalidatePath('/')
+    revalidatePath('/', 'layout')
 
     return { image: updatedImage, error: null }
   } catch (error) {
@@ -178,7 +176,7 @@ export async function deleteImage(id: number) {
 
     // Revalidate the images page to update the UI
     revalidatePath('/admin/manage')
-    revalidatePath('/')
+    revalidatePath('/', 'layout')
 
     return { success: true, error: null }
   } catch (error) {
@@ -216,7 +214,7 @@ export async function updateImagesOrder(
 
     // Revalidate the images page to update the UI
     revalidatePath('/admin/manage')
-    revalidatePath('/')
+    revalidatePath('/', 'layout')
 
     return { images: result, error: null }
   } catch (error) {
@@ -247,7 +245,7 @@ export async function toggleImageVisibility(id: number) {
 
     // Revalidate the images page to update the UI
     revalidatePath('/admin/manage')
-    revalidatePath('/')
+    revalidatePath('/', 'layout')
 
     return { image: updatedImage, error: null }
   } catch (error) {

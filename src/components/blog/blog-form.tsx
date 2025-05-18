@@ -36,6 +36,7 @@ export function BlogForm({ initialContent, post }: BlogFormProps) {
   const [slug, setSlug] = React.useState(post?.slug ?? '')
   const [published, setPublished] = React.useState(post?.published ?? false)
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = React.useState(false)
+  const [error, setError] = React.useState('')
 
   React.useEffect(() => {
     if (title && !isSlugManuallyEdited && !post) {
@@ -49,6 +50,12 @@ export function BlogForm({ initialContent, post }: BlogFormProps) {
   }
 
   const handleSubmit = async (isDraft: boolean) => {
+    if (!title.trim() || !slug.trim()) {
+      setError('Title and slug are required.')
+      toast.error('Title and slug are required.')
+      return
+    }
+    setError('')
     try {
       const endpoint = post ? `/api/blog/posts/${post.slug}` : '/api/blog/posts'
       const method = post ? 'PUT' : 'POST'
@@ -66,7 +73,6 @@ export function BlogForm({ initialContent, post }: BlogFormProps) {
           title,
           description,
           slug,
-          // content: JSON.stringify(editorContent || initialContent),
           content: JSON.stringify(editorContent),
           published: !isDraft,
         }),
@@ -80,15 +86,22 @@ export function BlogForm({ initialContent, post }: BlogFormProps) {
       
       // Show appropriate toast based on action
       if (post) {
-        toast.success(isDraft ? 'Draft saved successfully' : 'Post updated successfully')
+        toast.success(
+          isDraft ? 'Draft saved successfully' : 'Post updated successfully',
+        )
       } else {
-        toast.success(isDraft ? 'Draft created successfully' : 'Post published successfully')
+        toast.success(
+          isDraft
+            ? 'Draft created successfully'
+            : 'Post published successfully',
+        )
       }
-
       router.push(`/admin/blog/edit/${data.slug}`)
     } catch (error) {
       console.error(`Failed to ${post ? 'update' : 'create'} post:`, error)
-      toast.error(`Failed to ${post ? 'update' : 'create'} post. Please try again.`)
+      toast.error(
+        `Failed to ${post ? 'update' : 'create'} post. Please try again.`,
+      )
     }
   }
 
@@ -142,13 +155,21 @@ export function BlogForm({ initialContent, post }: BlogFormProps) {
       </Card>
 
       <div className="flex justify-end space-x-4">
-        <Button variant="outline" onClick={() => handleSubmit(true)}>
+        <Button
+          variant="outline"
+          onClick={() => handleSubmit(true)}
+          disabled={!title.trim() || !slug.trim()}
+        >
           Save as Draft
         </Button>
-        <Button onClick={() => handleSubmit(false)}>
+        <Button
+          onClick={() => handleSubmit(false)}
+          disabled={!title.trim() || !slug.trim()}
+        >
           {published ? 'Publish' : 'Save'}
         </Button>
       </div>
+      {error && <div className="mb-2 text-sm text-red-500">{error}</div>}
     </div>
   )
 }

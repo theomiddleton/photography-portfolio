@@ -1,8 +1,18 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { getImages, createImage, updateImagesOrder } from '~/lib/actions/image'
+import { getSession } from '~/lib/auth/auth'
 
 // GET /api/images
 export async function GET(request: NextRequest) {
+  const session = await getSession()
+  // If there's no session or the user is not an admin, return an error message
+  if (!session || session.role !== 'admin') {
+    return NextResponse.json(
+      { error: 'User is not authenticated, or is not authorized.' },
+      { status: 401 },
+    )
+  }
+  
   const searchParams = request.nextUrl.searchParams
   const visible = searchParams.get("visible")
   const sortBy = (searchParams.get("sortBy") as any) || "order"
@@ -27,6 +37,14 @@ export async function GET(request: NextRequest) {
 
 // POST /api/images
 export async function POST(request: NextRequest) {
+  const session = await getSession()
+  // If there's no session or the user is not an admin, return an error message
+  if (!session || session.role !== 'admin') {
+    return NextResponse.json(
+      { error: 'User is not authenticated, or is not authorized.' },
+      { status: 401 },
+    )
+  }
   try {
     const body = await request.json()
     const { image, error } = await createImage(body)
@@ -44,6 +62,14 @@ export async function POST(request: NextRequest) {
 
 // PATCH /api/images/order
 export async function PATCH(request: NextRequest) {
+  const session = await getSession()
+  // If there's no session or the user is not an admin, return an error message
+  if (!session || session.role !== 'admin') {
+    return NextResponse.json(
+      { error: 'User is not authenticated, or is not authorized.' },
+      { status: 401 },
+    )
+  }
   try {
     const body = await request.json()
 

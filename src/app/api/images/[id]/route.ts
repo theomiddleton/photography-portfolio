@@ -5,6 +5,7 @@ import {
   deleteImage,
   toggleImageVisibility,
 } from '~/lib/actions/image'
+import { getSession } from '~/lib/auth/auth'
 
 // GET /api/images/[id]
 export async function GET(
@@ -13,6 +14,15 @@ export async function GET(
 ) {
   const { id: paramId } = await params
   const id = Number.parseInt(paramId)
+
+  const session = await getSession()
+  // If there's no session or the user is not an admin, return an error message
+  if (!session || session.role !== 'admin') {
+    return NextResponse.json(
+      { error: 'User is not authenticated, or is not authorized.' },
+      { status: 401 },
+    )
+  }
 
   if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
@@ -38,6 +48,15 @@ export async function PATCH(
 ) {
   const { id: paramId } = await params
   const id = Number.parseInt(paramId)
+
+  const session = await getSession()
+  // If there's no session or the user is not an admin, return an error message
+  if (!session || session.role !== 'admin') {
+    return NextResponse.json(
+      { error: 'User is not authenticated, or is not authorized.' },
+      { status: 401 },
+    )
+  }
 
   if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
@@ -82,6 +101,15 @@ export async function DELETE(
 ) {
   const { id: paramId } = await params
   const id = Number.parseInt(paramId)
+
+  const session = await getSession()
+  // If there's no session or the user is not an admin, return an error message
+  if (!session || session.role !== 'admin') {
+    return NextResponse.json(
+      { error: 'User is not authenticated, or is not authorized.' },
+      { status: 401 },
+    )
+  }
 
   if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
