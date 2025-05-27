@@ -131,7 +131,7 @@ export const SimpleEditor = React.forwardRef<
       TrailingNode,
       Link.configure({ openOnClick: false }),
       ImageGalleryExtension,
-      HLSVideoExtension, // Add the HLS Video extension
+      HLSVideoExtension,
     ],
     content:
       typeof initialContent === 'string'

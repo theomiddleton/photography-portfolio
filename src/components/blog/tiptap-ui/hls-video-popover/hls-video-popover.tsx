@@ -29,6 +29,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '~/components/blog/tiptap-ui-primitive/popover'
+import { AltUpload } from '~/components/alt-upload-img'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Separator } from '~/components/ui/separator'
@@ -162,94 +163,7 @@ export const HLSVideoContent: React.FC<{
 
       {/* Thumbnail Upload Section */}
       <div className="flex flex-col gap-2">
-        <Label htmlFor="hls-thumbnail-upload">
-          Upload Thumbnail (Optional)
-        </Label>
-        <div
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          data-dragging={isDragging || undefined}
-          data-has-file={files.length > 0 || undefined}
-          className="relative flex min-h-24 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-input p-3 transition-colors has-[input:focus]:border-ring has-[input:focus]:ring-[3px] has-[input:focus]:ring-ring/50 data-[has-file=true]:border-solid data-[dragging=true]:bg-accent/50"
-        >
-          <input
-            {...getInputProps({ id: 'hls-thumbnail-upload' })}
-            className="sr-only"
-            aria-label="Upload HLS thumbnail image"
-          />
-          {files.length === 0 ? (
-            <div className="flex flex-col items-center justify-center text-center">
-              <div
-                className="mb-1.5 flex size-7 shrink-0 items-center justify-center rounded-full border bg-background"
-                aria-hidden="true"
-              >
-                <ImageIcon className="size-3.5 opacity-60" />
-              </div>
-              <p className="mb-1 text-xs font-medium">Drop image here</p>
-              <p className="text-[10px] text-muted-foreground">
-                Max {MAX_THUMBNAIL_SIZE_MB}MB
-              </p>
-              <Button
-                variant="outline"
-                className="mt-2 h-6 px-2 text-xs"
-                onClick={openFileDialog}
-              >
-                <UploadIcon
-                  className="-ms-0.5 me-1 size-3 opacity-60"
-                  aria-hidden="true"
-                />
-                Select image
-              </Button>
-            </div>
-          ) : (
-            // Show uploaded file preview
-            files.map((file) => (
-              <div
-                key={file.id}
-                className="relative flex w-full items-center justify-between gap-2 rounded border bg-background p-1.5 pe-2 text-xs"
-              >
-                <div className="flex items-center gap-2 overflow-hidden">
-                  {file.preview && (
-                    <img
-                      src={file.preview}
-                      alt={file.file.name}
-                      className="size-8 shrink-0 rounded object-cover"
-                    />
-                  )}
-                  <div className="flex min-w-0 flex-col gap-0">
-                    <p className="truncate text-[11px] font-medium">
-                      {file.file.name}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {formatBytes(file.file.size)}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="absolute right-0 top-0 -me-1 -mt-1 size-5 shrink-0 rounded-full bg-background/80 text-muted-foreground/80 shadow backdrop-blur-sm hover:bg-background hover:text-foreground"
-                  onClick={() => removeFile(file.id)}
-                  aria-label="Remove thumbnail"
-                >
-                  <XIcon size={12} aria-hidden="true" />
-                </Button>
-              </div>
-            ))
-          )}
-        </div>
-
-        {uploadErrors.length > 0 && (
-          <div
-            className="flex items-center gap-1 text-xs text-destructive"
-            role="alert"
-          >
-            <AlertCircleIcon className="size-3 shrink-0" />
-            <span>{uploadErrors[0]}</span>
-          </div>
-        )}
+        <AltUpload bucket='blog' />
       </div>
 
       <Separator />

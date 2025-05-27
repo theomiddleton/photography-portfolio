@@ -24,6 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '~/components/blog/tiptap-ui-primitive/popover'
+import { AltUpload } from '~/components/alt-upload-img'
 import { Separator } from '~/components/ui/separator'
 import { Textarea } from '~/components/ui/textarea'
 import { Label } from '~/components/ui/label'
@@ -115,94 +116,7 @@ const ImageGalleryContent: React.FC<{
       {/* File Upload Section */}
       <div className="flex flex-col gap-2">
         <Label htmlFor="gallery-file-upload">Upload Images</Label>
-        <div
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          data-dragging={isDragging || undefined}
-          data-files={files.length > 0 || undefined}
-          className="not-data-[files]:justify-center relative flex min-h-32 flex-col items-center overflow-hidden rounded-xl border border-dashed border-input p-4 transition-colors has-[input:focus]:border-ring has-[input:focus]:ring-[3px] has-[input:focus]:ring-ring/50 data-[dragging=true]:bg-accent/50"
-        >
-          <input
-            {...getInputProps({ id: 'gallery-file-upload' })}
-            className="sr-only"
-            aria-label="Upload image files for gallery"
-          />
-          <div className="flex flex-col items-center justify-center px-4 py-3 text-center">
-            <div
-              className="mb-2 flex size-9 shrink-0 items-center justify-center rounded-full border bg-background"
-              aria-hidden="true"
-            >
-              <ImageIcon className="size-4 opacity-60" />
-            </div>
-            <p className="mb-1 text-sm font-medium">Drop images here</p>
-            <p className="text-xs text-muted-foreground">
-              Max {MAX_GALLERY_FILES} files, {MAX_GALLERY_SIZE_MB}MB each
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              onClick={openFileDialog}
-            >
-              <UploadIcon
-                className="-ms-1 size-3 opacity-60"
-                aria-hidden="true"
-              />
-              Select images
-            </Button>
-          </div>
-        </div>
-
-        {uploadErrors.length > 0 && (
-          <div
-            className="flex items-center gap-1 text-xs text-destructive"
-            role="alert"
-          >
-            <AlertCircleIcon className="size-3 shrink-0" />
-            <span>{uploadErrors[0]}</span>
-          </div>
-        )}
-
-        {/* File list */}
-        {files.length > 0 && (
-          <div className="max-h-32 space-y-1 overflow-y-auto text-xs">
-            {files.map((file) => (
-              <div
-                key={file.id}
-                className="flex items-center justify-between gap-2 rounded border bg-background p-1 pe-2"
-              >
-                <div className="flex items-center gap-2 overflow-hidden">
-                  {file.preview && (
-                    <img
-                      src={file.preview}
-                      alt={file.file.name}
-                      className="size-6 shrink-0 rounded-[inherit] object-cover"
-                    />
-                  )}
-                  <div className="flex min-w-0 flex-col gap-0">
-                    <p className="truncate text-[11px] font-medium">
-                      {file.file.name}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {formatBytes(file.file.size)}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="-me-1 size-5 shrink-0 text-muted-foreground/80 hover:bg-transparent hover:text-foreground"
-                  onClick={() => removeFile(file.id)}
-                  aria-label="Remove file"
-                >
-                  <XIcon size={14} aria-hidden="true" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
+        <AltUpload bucket='blog'/>
       </div>
 
       <Separator />
@@ -218,6 +132,9 @@ const ImageGalleryContent: React.FC<{
           rows={4}
           className="text-sm"
         />
+        <div className="text-xs text-muted-foreground">
+          External images may not work due to image optimisation configurations in next.config.js.
+        </div>
       </div>
 
       <Separator />

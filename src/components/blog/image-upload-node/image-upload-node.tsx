@@ -2,7 +2,6 @@ import * as React from "react"
 import type { NodeViewProps } from "@tiptap/react"
 import { NodeViewWrapper } from "@tiptap/react"
 import { Upload, X } from "lucide-react"
-// Remove SCSS import since we're using Tailwind
 
 export interface FileItem {
   id: string
