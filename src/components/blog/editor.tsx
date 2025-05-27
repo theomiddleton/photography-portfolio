@@ -68,6 +68,10 @@ import { HLSVideoPopover } from '~/components/blog/tiptap-ui/hls-video-popover/h
 import { ImageComparisonExtension } from '~/components/blog/tiptap-extension/image-comparison-extension'
 import { ImageComparisonPopover } from '~/components/blog/tiptap-ui/image-comparison-popover/image-comparison-popover'
 
+// --- Import Image Masonry Components ---
+import { ImageMasonryExtension } from '~/components/blog/tiptap-extension/image-masonry-extension'
+import { ImageMasonryPopover } from '~/components/blog/tiptap-ui/image-masonry-popover/image-masonry-popover'
+
 // --- Hooks ---
 import { useMobile } from '~/hooks/use-mobile'
 import { useWindowSize } from '~/hooks/use-window-size'
@@ -137,6 +141,7 @@ export const SimpleEditor = React.forwardRef<
       ImageGalleryExtension,
       HLSVideoExtension,
       ImageComparisonExtension,
+      ImageMasonryExtension,
     ],
     content:
       typeof initialContent === 'string'
@@ -312,9 +317,9 @@ const MainToolbarContent = ({
       <ToolbarGroup>
         <ImageUploadButton text="Add" />
         <ImageGalleryPopover />
-        <HLSVideoPopover /> {/* Add the HLS Video popover button */}
+        <HLSVideoPopover />
         <ImageComparisonPopover />{' '}
-        {/* Add the Image Comparison popover button */}
+        <ImageMasonryPopover /> 
       </ToolbarGroup>
 
       <Spacer />
