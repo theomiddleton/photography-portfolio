@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { db } from '~/server/db'
 import { blogPosts } from '~/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { getSession } from '~/lib/auth/auth'
 import { TipTapRenderer } from '~/components/blog/tiptap-renderer'
 import { formatDate } from '~/lib/utils'
@@ -17,18 +17,31 @@ interface PostPageProps {
 
 // Generate static params for all blog posts
 export async function generateStaticParams() {
-  const allPosts = await db.select({ slug: blogPosts.slug }).from(blogPosts)
-  return allPosts.map((blogPosts) => ({
-    slug: blogPosts.slug,
+  // Only generate static params for PUBLISHED blog posts
+  const publishedPosts = await db
+    .select({ slug: blogPosts.slug })
+    .from(blogPosts)
+    .where(eq(blogPosts.published, true))
+
+  return publishedPosts.map((post) => ({
+    slug: post.slug,
   }))
 }
+
+// Allow dynamic params for unpublished posts (for admin preview)
+export const dynamicParams = true
 
 // Generate metadata for SEO
 export async function generateMetadata({
   params,
 }: PostPageProps): Promise<Metadata> {
   const resolvedParams = await params
-  const post = await db.select().from(blogPosts).where(eq(blogPosts.slug, resolvedParams.slug)).limit(1).then(rows => rows[0])
+  const post = await db
+    .select()
+    .from(blogPosts)
+    .where(eq(blogPosts.slug, resolvedParams.slug))
+    .limit(1)
+    .then(rows => rows[0])
 
   if (!post) {
     return {
@@ -79,10 +92,10 @@ export default async function PostPage({ params }: PostPageProps) {
   }
 
   const session = await getSession()
-  
   const blogPost = post[0]
   
-  if (!post.length || (!blogPost.published && (!session || !session.isAdmin))) {
+  // Check if post should be accessible
+  if (!blogPost.published && (!session || session.role !== 'admin')) {
     notFound()
   }
   
@@ -108,6 +121,7 @@ export default async function PostPage({ params }: PostPageProps) {
             </Link>
           )}
         </div>
+        
         {/* Post Header */}
         <div className="space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">{blogPost.title}</h1>
@@ -115,7 +129,9 @@ export default async function PostPage({ params }: PostPageProps) {
             {/* Publication Date */}
             <div className="flex items-center gap-2">
               <CalendarIcon className="h-4 w-4" />
-              <time dateTime={blogPost.publishedAt.toISOString()}>{formatDate(blogPost.publishedAt)}</time>
+              <time dateTime={blogPost.publishedAt.toISOString()}>
+                {formatDate(blogPost.publishedAt)}
+              </time>
             </div>
             {/* Description */}
             {blogPost.description && (
@@ -125,6 +141,7 @@ export default async function PostPage({ params }: PostPageProps) {
             )}
           </div>
         </div>
+        
         {/* Post Content */}
         <div className="prose prose-lg dark:prose-invert max-w-none">
           <TipTapRenderer content={content} />
