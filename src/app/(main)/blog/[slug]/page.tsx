@@ -11,6 +11,11 @@ import Link from 'next/link'
 import { Button } from '~/components/ui/button'
 import { siteConfig } from '~/config/site'
 
+// Force static generation for known routes
+export const dynamic = 'force-static'
+// Allow dynamic params for unpublished posts (for admin preview)
+export const dynamicParams = true
+
 interface PostPageProps {
   params: Promise<{ slug: string }>
 }
@@ -39,11 +44,6 @@ export async function generateStaticParams() {
     return []
   }
 }
-
-// Force static generation for known routes
-export const dynamic = 'force-static'
-// Allow dynamic params for unpublished posts (for admin preview)
-export const dynamicParams = true
 
 // Generate metadata for SEO
 export async function generateMetadata({
