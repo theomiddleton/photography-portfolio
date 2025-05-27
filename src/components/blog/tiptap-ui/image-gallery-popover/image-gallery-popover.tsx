@@ -3,15 +3,9 @@ import { type Editor } from '@tiptap/react'
 
 // --- Hooks ---
 import { useTiptapEditor } from '~/hooks/use-tiptap-editor'
-import {
-  useFileUpload,
-  FileWithPreview,
-  formatBytes,
-} from '~/hooks/use-file-upload'
 
 // --- Icons ---
 import { ImageIcon, GalleryThumbnailsIcon } from 'lucide-react'
-import { AlertCircleIcon, UploadIcon, XIcon } from 'lucide-react'
 
 // --- UI Primitives ---
 import {
@@ -31,11 +25,6 @@ import { Label } from '~/components/ui/label'
 
 // --- Lib ---
 import { isNodeInSchema } from '~/lib/tiptap-utils'
-
-// --- Config ---
-const MAX_GALLERY_SIZE_MB = 20
-const MAX_GALLERY_SIZE = MAX_GALLERY_SIZE_MB * 1024 * 1024
-const MAX_GALLERY_FILES = 10
 
 // --- Button Component ---
 export const ImageGalleryButton = React.forwardRef<
@@ -67,32 +56,30 @@ const ImageGalleryContent: React.FC<{
   closePopover: () => void
 }> = ({ editor, closePopover }) => {
   const [urlInput, setUrlInput] = React.useState('')
+  const [uploadedFiles, setUploadedFiles] = React.useState<{ id: string, name: string, url: string, file: File }[]>([])
 
-  const [
-    { files, isDragging, errors: uploadErrors },
-    {
-      handleDragEnter,
-      handleDragLeave,
-      handleDragOver,
-      handleDrop,
-      openFileDialog,
-      removeFile,
-      clearFiles,
-      getInputProps,
-    },
-  ] = useFileUpload({
-    accept: 'image/svg+xml,image/png,image/jpeg,image/jpg,image/gif',
-    maxSize: MAX_GALLERY_SIZE,
-    multiple: true,
-    maxFiles: MAX_GALLERY_FILES,
-  })
+  // Handle uploaded files from AltUpload component
+  const handleFilesUploaded = (files: { id: string, name: string, url: string, file: File }[]) => {
+    setUploadedFiles(prev => [...prev, ...files])
+  }
+
+  // Clear uploaded files
+  const clearUploadedFiles = () => {
+    setUploadedFiles([])
+  }
+
+  // Remove a specific uploaded file
+  const removeUploadedFile = (id: string) => {
+    setUploadedFiles(prev => prev.filter(file => file.id !== id))
+  }
 
   const handleInsertGallery = () => {
     if (!editor) return
 
-    const uploadedUrls = files
-      .map((f) => f.preview)
-      .filter((url): url is string => !!url)
+    // Get URLs from uploaded files
+    const uploadedUrls = uploadedFiles.map(file => file.url)
+    
+    // Get URLs from pasted input
     const pastedUrls = urlInput
       .split(/\s+|\n+|\,+/) // Split by whitespace, newline, or comma
       .map((url) => url.trim())
@@ -102,7 +89,7 @@ const ImageGalleryContent: React.FC<{
 
     if (allSources.length > 0) {
       editor.chain().focus().setImageGallery({ sources: allSources }).run()
-      clearFiles()
+      clearUploadedFiles()
       setUrlInput('')
       closePopover()
     } else {
@@ -116,8 +103,51 @@ const ImageGalleryContent: React.FC<{
       {/* File Upload Section */}
       <div className="flex flex-col gap-2">
         <Label htmlFor="gallery-file-upload">Upload Images</Label>
-        <AltUpload bucket='blog'/>
+        <AltUpload 
+          bucket="blog" 
+          onFilesAdded={handleFilesUploaded}
+        />
       </div>
+
+      {/* Show uploaded files */}
+      {uploadedFiles.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Label>Uploaded Images ({uploadedFiles.length})</Label>
+          <div className="max-h-32 overflow-y-auto space-y-1">
+            {uploadedFiles.map((file) => (
+              <div
+                key={file.id}
+                className="flex items-center justify-between gap-2 p-2 rounded border bg-gray-50"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <img
+                    src={file.url}
+                    alt={file.name}
+                    className="w-8 h-8 object-cover rounded"
+                  />
+                  <span className="text-sm truncate">{file.name}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeUploadedFile(file.id)}
+                  className="h-6 w-6 p-0"
+                >
+                  ×
+                </Button>
+              </div>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearUploadedFiles}
+            className="self-start"
+          >
+            Clear all uploaded images
+          </Button>
+        </div>
+      )}
 
       <Separator />
 
@@ -142,9 +172,9 @@ const ImageGalleryContent: React.FC<{
       {/* Action Button */}
       <Button
         onClick={handleInsertGallery}
-        disabled={files.length === 0 && urlInput.trim() === ''}
+        disabled={uploadedFiles.length === 0 && urlInput.trim() === ''}
       >
-        Insert Gallery
+        Insert Gallery ({uploadedFiles.length + (urlInput.trim() ? urlInput.split(/\s+|\n+|\,+/).filter(url => url.trim().length > 0).length : 0)} images)
       </Button>
     </div>
   )

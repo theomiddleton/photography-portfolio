@@ -12,19 +12,22 @@ const initialFiles = []
 
 interface AltUploadProps {
   bucket: string
+  onFilesAdded?: (files: { id: string, name: string, url: string, file: File }[]) => void
 }
 
-export function AltUpload({ bucket }: AltUploadProps) {
+export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
   const maxSizeMB = 20
   const maxSize = maxSizeMB * 1024 * 1024 // 20MB default
   const maxFiles = 10
 
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
+  const [uploadedFiles, setUploadedFiles] = useState<{ id: string, name: string, url: string, file: File }[]>([])
 
   // Function to handle actual file uploads
   const handleFilesAdded = async (addedFiles: FileWithPreview[]) => {
     setIsUploading(true)
+    const successfulUploads: { id: string, name: string, url: string, file: File }[] = []
     
     for (const fileItem of addedFiles) {
       if (!(fileItem.file instanceof File)) continue // Skip metadata files
@@ -59,7 +62,7 @@ export function AltUpload({ bucket }: AltUploadProps) {
           throw new Error('Failed to get upload URL')
         }
 
-        const { url: uploadUrl } = await uploadResponse.json()
+        const { url: uploadUrl, fileUrl } = await uploadResponse.json()
 
         // Upload file to the pre-signed URL with progress tracking
         const xhr = new XMLHttpRequest()
@@ -76,6 +79,18 @@ export function AltUpload({ bucket }: AltUploadProps) {
             if (xhr.status >= 200 && xhr.status < 300) {
               setUploadProgress(prev => ({ ...prev, [fileItem.id]: 100 }))
               console.log(`Successfully uploaded ${fileItem.file.name}`)
+              
+              // Add to successful uploads
+              if (fileItem.file instanceof File) {
+                const uploadedFile = {
+                  id: fileItem.id,
+                  name: fileItem.file.name,
+                  url: fileUrl || uploadUrl, // Use fileUrl if available, fallback to uploadUrl
+                  file: fileItem.file
+                }
+                successfulUploads.push(uploadedFile)
+              }
+              
               resolve(xhr.response)
             } else {
               reject(new Error('Upload failed'))
@@ -102,6 +117,15 @@ export function AltUpload({ bucket }: AltUploadProps) {
     }
     
     setIsUploading(false)
+    
+    // Update uploaded files state
+    setUploadedFiles(prev => [...prev, ...successfulUploads])
+    
+    // Call the optional callback with successful uploads
+    if (onFilesAdded && successfulUploads.length > 0) {
+      onFilesAdded(successfulUploads)
+    }
+    
     // Clear progress after a delay
     setTimeout(() => setUploadProgress({}), 2000)
   }

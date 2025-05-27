@@ -15,6 +15,7 @@ export async function PUT(
 
   try {
     const body = await request.json()
+    console.log('Updating post')
     const post = await updatePost(resolvedParams.slug, {
       ...body,
       authorId: session.id,

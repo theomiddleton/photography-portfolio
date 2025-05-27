@@ -61,6 +61,24 @@ export async function updatePost(slug: string, data: {
     throw new Error('Post not found')
   }
 
+  console.log('Updating post', slug)
+  // If slug is being changed, ensure it's unique
+  if (data.slug && data.slug !== currentPost.slug) {
+    const existingPost = await db
+      .select()
+      .from(blogPosts)
+      .where(eq(blogPosts.slug, data.slug))
+      .limit(1)
+    if (existingPost.length > 0) {
+      throw new Error('Slug must be unique')
+    }
+  }
+
+  // If title is being changed, ensure it's not empty
+  if (data.title && data.title.trim() === '') {
+    throw new Error('Title cannot be empty')
+  }
+
   // Update the post
   const updatedPost = await db
     .update(blogPosts)
@@ -73,6 +91,7 @@ export async function updatePost(slug: string, data: {
     })
     .where(eq(blogPosts.slug, slug))
     .returning()
+  console.log('Updated post')
 
   revalidatePath('/admin')
   revalidatePath('/blog')

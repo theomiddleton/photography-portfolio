@@ -2,6 +2,7 @@ import * as React from "react"
 import type { NodeViewProps } from "@tiptap/react"
 import { NodeViewWrapper } from "@tiptap/react"
 import { Upload, X } from "lucide-react"
+import { AltUpload } from "~/components/alt-upload-img"
 
 export interface FileItem {
   id: string
@@ -308,23 +309,32 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
       contentEditable={false}
     >
       {!fileItem && (
-        <ImageUploadDragArea onFile={handleUpload}>
-          <div className="relative py-8 px-6 border-2 border-dashed border-[--tiptap-image-upload-border] rounded-[--tt-radius-md,0.5rem] text-center cursor-pointer overflow-hidden hover:border-[--tiptap-image-upload-border-active] hover:bg-[--tiptap-image-upload-active-rgb]/5">
-            <div className="flex flex-col items-center justify-center gap-4">
-              <div className="flex items-center justify-center bg-white rounded-full p-2.5 shadow-md">
-                <Upload className="w-8 h-8 text-primary" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm">
-                  <span className="font-medium text-[--tiptap-image-upload-icon-bg]">Click to upload</span> or drag and drop
-                </p>
-                <p className="mt-1 text-xs text-gray-500">
-                  Maximum file size {maxSize / 1024 / 1024}MB.
-                </p>
-              </div>
-            </div>
-          </div>
-        </ImageUploadDragArea>
+        <AltUpload
+          bucket='blog'
+          onFilesAdded={(uploadedFiles) => {
+            // Handle the uploaded files - insert the first one into the editor
+            if (uploadedFiles.length > 0) {
+              const firstFile = uploadedFiles[0]
+              const pos = props.getPos()
+              
+              props.editor
+                .chain()
+                .focus()
+                .deleteRange({ from: pos, to: pos + 1 })
+                .insertContentAt(pos, [
+                  {
+                    type: "image",
+                    attrs: { 
+                      src: firstFile.url, 
+                      alt: firstFile.name, 
+                      title: firstFile.name 
+                    },
+                  },
+                ])
+                .run()
+            }
+          }}
+        />
       )}
 
       {fileItem && (
