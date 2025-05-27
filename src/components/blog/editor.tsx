@@ -48,7 +48,7 @@ import {
   LinkButton,
 } from '~/components/blog/tiptap-ui/link-popover'
 import { MarkButton } from '~/components/blog/tiptap-ui/mark-button'
-import { TextAlignButton } from '~/components/blog/tiptap-ui/text-align-button'
+import { TextAlignDropdownMenu } from '~/components/blog/tiptap-ui/text-align-dropdown-menu'
 import { UndoRedoButton } from '~/components/blog/tiptap-ui/undo-redo-button'
 
 // --- Icons ---
@@ -306,10 +306,7 @@ const MainToolbarContent = ({
       <ToolbarSeparator />
 
       <ToolbarGroup>
-        <TextAlignButton align="left" />
-        <TextAlignButton align="center" />
-        <TextAlignButton align="right" />
-        <TextAlignButton align="justify" />
+        <TextAlignDropdownMenu />
       </ToolbarGroup>
 
       <ToolbarSeparator />
@@ -318,8 +315,7 @@ const MainToolbarContent = ({
         <ImageUploadButton text="Add" />
         <ImageGalleryPopover />
         <HLSVideoPopover />
-        <ImageComparisonPopover />{' '}
-        <ImageMasonryPopover /> 
+        <ImageComparisonPopover /> <ImageMasonryPopover />
       </ToolbarGroup>
 
       <Spacer />
