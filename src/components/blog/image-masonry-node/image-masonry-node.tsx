@@ -39,7 +39,7 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
   }
 
   const gapClasses = {
-    small: captionsEnabled ? 'gap-1' : 'gap-px',
+    small: captionsEnabled ? 'gap-2' : 'gap-px',
     medium: captionsEnabled ? 'gap-4' : 'gap-1',
     large: captionsEnabled ? 'gap-6' : 'gap-2',
   }
@@ -86,15 +86,14 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
             'mx-auto max-w-5xl',
             columnClasses[columns as keyof typeof columnClasses] ||
               'sm:columns-1 md:columns-2 lg:columns-3',
-            // gapClasses[gap as keyof typeof gapClasses],
+            gapClasses[gap as keyof typeof gapClasses],
           )}
         >
           {images.map((image: MasonryImage, index: number) => (
             <div
               key={image.id}
               className={cn(
-                // 'break-inside-avoid overflow-hidden rounded-md duration-100 hover:scale-[0.97]',
-                'overflow-hidden rounded-md duration-100 hover:scale-[0.97]',
+                'break-inside-avoid overflow-hidden rounded-md duration-100 hover:scale-[0.97]',
                 itemSpacing[gap as keyof typeof itemSpacing],
               )}
             >
@@ -102,7 +101,8 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
                 <img
                   src={image.src}
                   alt={image.alt || `Masonry image ${index + 1}`}
-                  className="w-full object-cover"
+                  className="w-full object-cover my-0"
+                  style={{ marginTop: '0', marginBottom: '0' }}
                   draggable={false}
                   loading="lazy"
                 />
