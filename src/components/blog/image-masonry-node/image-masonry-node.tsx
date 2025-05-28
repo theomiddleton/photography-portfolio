@@ -80,7 +80,7 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
 
   return (
     <NodeViewWrapper>
-      <div className="mx-auto my-6 w-full max-w-6xl">
+      <div className="not-prose mx-auto my-6 w-full max-w-6xl">
         <div
           className={cn(
             'mx-auto max-w-5xl',
