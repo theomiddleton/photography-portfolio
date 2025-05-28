@@ -20,6 +20,7 @@ declare module '@tiptap/core' {
         images: MasonryImage[]
         columns?: number
         gap?: 'small' | 'medium' | 'large'
+        captionsEnabled?: boolean
       }) => ReturnType
     }
   }
@@ -71,6 +72,19 @@ export const ImageMasonryExtension = Node.create<ImageMasonryOptions>({
         renderHTML: (attributes) => {
           return {
             'data-gap': attributes.gap || 'medium',
+          }
+        },
+      },
+      captionsEnabled: {
+        default: true,
+        parseHTML: (element) => {
+          const captions = element.getAttribute('data-captions-enabled')
+          return captions ? captions === 'true' : true
+        },
+        renderHTML: (attributes) => {
+          return {
+            'data-captions-enabled':
+              attributes.captionsEnabled?.toString() || 'true',
           }
         },
       },

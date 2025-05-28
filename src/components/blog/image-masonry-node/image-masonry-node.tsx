@@ -11,7 +11,12 @@ export interface MasonryImage {
 
 export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
   const { node, updateAttributes, deleteNode } = props
-  const { images = [], columns = 3, gap = 'medium' } = node.attrs
+  const {
+    images = [],
+    columns = 3,
+    gap = 'medium',
+    captionsEnabled = true,
+  } = node.attrs
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
@@ -34,16 +39,22 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
   }
 
   const gapClasses = {
-    small: 'gap-1',
-    medium: 'gap-4',
-    large: 'gap-6',
+    small: captionsEnabled ? 'gap-1' : 'gap-px',
+    medium: captionsEnabled ? 'gap-4' : 'gap-1',
+    large: captionsEnabled ? 'gap-6' : 'gap-2',
+  }
+
+  const itemSpacing = {
+    small: captionsEnabled ? 'mb-2' : 'mb-px',
+    medium: captionsEnabled ? 'mb-4' : 'mb-0.5',
+    large: captionsEnabled ? 'mb-6' : 'mb-1',
   }
 
   const columnClasses = {
-    2: 'columns-2',
-    3: 'columns-3',
-    4: 'columns-4',
-    5: 'columns-5',
+    2: 'sm:columns-1 md:columns-2',
+    3: 'sm:columns-1 md:columns-2 lg:columns-3',
+    4: 'sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4',
+    5: 'sm:columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5',
   }
 
   const handleRemoveImage = (imageId: string) => {
@@ -72,25 +83,26 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
       <div className="mx-auto my-6 w-full max-w-6xl">
         <div
           className={cn(
-            'masonry-container',
-            columnClasses[columns as keyof typeof columnClasses] || 'columns-3',
-            gapClasses[gap as keyof typeof gapClasses],
+            'mx-auto max-w-5xl',
+            columnClasses[columns as keyof typeof columnClasses] ||
+              'sm:columns-1 md:columns-2 lg:columns-3',
+            // gapClasses[gap as keyof typeof gapClasses],
           )}
-          style={{
-            columnFill: 'auto',
-          }}
         >
           {images.map((image: MasonryImage, index: number) => (
             <div
               key={image.id}
-              className="relative mb-4 break-inside-avoid"
-              style={{ breakInside: 'avoid' }}
+              className={cn(
+                // 'break-inside-avoid overflow-hidden rounded-md duration-100 hover:scale-[0.97]',
+                'overflow-hidden rounded-md duration-100 hover:scale-[0.97]',
+                itemSpacing[gap as keyof typeof itemSpacing],
+              )}
             >
-              <div className="group relative overflow-hidden rounded-lg shadow-md transition-all hover:shadow-lg">
+              <div className="group relative">
                 <img
                   src={image.src}
                   alt={image.alt || `Masonry image ${index + 1}`}
-                  className="w-full object-cover transition-transform group-hover:scale-105"
+                  className="w-full object-cover"
                   draggable={false}
                   loading="lazy"
                 />
@@ -170,43 +182,61 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
               </div>
 
               {/* Caption */}
-              {image.caption && (
-                <div className="mt-2 text-sm text-gray-600">
+              {captionsEnabled && image.caption && (
+                <div className="mt-2 px-1 text-sm text-gray-600">
                   {image.caption}
                 </div>
               )}
 
               {/* Caption editor (when selected) */}
-              {props.selected && selectedImage === image.id && (
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    value={image.caption || ''}
-                    onChange={(e) =>
-                      handleUpdateCaption(image.id, e.target.value)
-                    }
-                    onBlur={() => setSelectedImage(null)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        setSelectedImage(null)
+              {captionsEnabled &&
+                props.selected &&
+                selectedImage === image.id && (
+                  <div className="mt-2 px-1">
+                    <input
+                      type="text"
+                      value={image.caption || ''}
+                      onChange={(e) =>
+                        handleUpdateCaption(image.id, e.target.value)
                       }
-                    }}
-                    className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
-                    placeholder="Add a caption..."
-                    autoFocus
-                  />
-                </div>
-              )}
+                      onBlur={() => setSelectedImage(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          setSelectedImage(null)
+                        }
+                      }}
+                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                      placeholder="Add a caption..."
+                      autoFocus
+                    />
+                  </div>
+                )}
 
-              {/* Caption click to edit */}
-              {props.selected && selectedImage !== image.id && (
-                <button
-                  onClick={() => setSelectedImage(image.id)}
-                  className="mt-1 w-full rounded border-2 border-dashed border-gray-300 px-2 py-1 text-left text-sm text-gray-500 hover:border-gray-400"
-                >
-                  {image.caption || 'Add caption...'}
-                </button>
-              )}
+              {/* Caption click to edit (only show when selected and no existing caption) */}
+              {captionsEnabled &&
+                props.selected &&
+                selectedImage !== image.id &&
+                !image.caption && (
+                  <button
+                    onClick={() => setSelectedImage(image.id)}
+                    className="mt-1 w-full rounded border-2 border-dashed border-gray-300 px-2 py-1 text-left text-sm text-gray-500 hover:border-gray-400"
+                  >
+                    Add caption...
+                  </button>
+                )}
+
+              {/* Edit caption button for existing captions */}
+              {captionsEnabled &&
+                props.selected &&
+                selectedImage !== image.id &&
+                image.caption && (
+                  <button
+                    onClick={() => setSelectedImage(image.id)}
+                    className="mt-1 w-full rounded border border-gray-300 px-2 py-1 text-left text-sm text-gray-600 hover:border-gray-400"
+                  >
+                    Edit caption
+                  </button>
+                )}
             </div>
           ))}
         </div>
@@ -241,6 +271,18 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
                 <option value="medium">Medium</option>
                 <option value="large">Large</option>
               </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Captions:</label>
+              <input
+                type="checkbox"
+                checked={captionsEnabled}
+                onChange={(e) =>
+                  updateAttributes({ captionsEnabled: e.target.checked })
+                }
+                className="rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
+              />
             </div>
 
             <button

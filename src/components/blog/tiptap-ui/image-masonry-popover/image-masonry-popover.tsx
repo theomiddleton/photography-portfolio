@@ -24,6 +24,7 @@ import { Textarea } from '~/components/ui/textarea'
 import { Label } from '~/components/ui/label'
 import { Input } from '~/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
+import { Switch } from '~/components/ui/switch'
 
 // --- Lib ---
 import { isNodeInSchema } from '~/lib/tiptap-utils'
@@ -68,6 +69,7 @@ const ImageMasonryContent: React.FC<{
   const [images, setImages] = React.useState<MasonryImage[]>([])
   const [columns, setColumns] = React.useState(3)
   const [gap, setGap] = React.useState<'small' | 'medium' | 'large'>('medium')
+  const [captionsEnabled, setCaptionsEnabled] = React.useState(true)
   const [imageUrl, setImageUrl] = React.useState('')
   const [uploadedFiles, setUploadedFiles] = React.useState<
     { id: string; name: string; url: string; file: File }[]
@@ -133,6 +135,7 @@ const ImageMasonryContent: React.FC<{
         images,
         columns,
         gap,
+        captionsEnabled,
       })
       .run()
 
@@ -140,6 +143,7 @@ const ImageMasonryContent: React.FC<{
     setImages([])
     setColumns(3)
     setGap('medium')
+    setCaptionsEnabled(true)
     setImageUrl('')
     clearUploadedFiles()
     closePopover()
@@ -328,6 +332,18 @@ https://example.com/image2.jpg, https://example.com/image3.jpg`}
                 <Label htmlFor="gap-large">Large</Label>
               </div>
             </RadioGroup>
+          </div>
+
+          <Separator />
+
+          {/* Caption Toggle */}
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor="captions-toggle">Enable Captions</Label>
+            <Switch
+              id="captions-toggle"
+              checked={captionsEnabled}
+              onCheckedChange={setCaptionsEnabled}
+            />
           </div>
 
           <Separator />
