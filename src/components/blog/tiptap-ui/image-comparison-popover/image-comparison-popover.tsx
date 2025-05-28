@@ -480,7 +480,7 @@ export function ImageComparisonPopover({
       <PopoverTrigger asChild>
         <ImageComparisonButton {...TipTapButtonProps} />
       </PopoverTrigger>
-      <PopoverContent align="start" side="bottom" className="w-auto p-0">
+      <PopoverContent side="bottom" align="start" className="w-auto p-0">
         <ImageComparisonContent
           editor={editor}
           closePopover={() => setIsOpen(false)}

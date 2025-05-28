@@ -5,7 +5,7 @@ import { type Editor } from '@tiptap/react'
 import { useTiptapEditor } from '~/hooks/use-tiptap-editor'
 
 // --- Icons ---
-import { ImageIcon, Grid3X3, LayoutGrid } from 'lucide-react'
+import { LayoutGrid } from 'lucide-react'
 
 // --- UI Primitives ---
 import {
@@ -58,16 +58,13 @@ export const ImageMasonryButton = React.forwardRef<
     </TipTapButton>
   )
 })
-
 ImageMasonryButton.displayName = 'ImageMasonryButton'
 
-// --- Content Component ---
-export const ImageMasonryContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-  const editor = useTiptapEditor()
-
+// --- Popover Content Component ---
+const ImageMasonryContent: React.FC<{
+  editor: Editor | null
+  closePopover: () => void
+}> = ({ editor, closePopover }) => {
   const [images, setImages] = React.useState<MasonryImage[]>([])
   const [columns, setColumns] = React.useState(3)
   const [gap, setGap] = React.useState<'small' | 'medium' | 'large'>('medium')
@@ -76,61 +73,54 @@ export const ImageMasonryContent = React.forwardRef<
     { id: string; name: string; url: string; file: File }[]
   >([])
 
-  const handleFilesAdded = React.useCallback(
-    (files: { id: string; name: string; url: string; file: File }[]) => {
-      setUploadedFiles((prev) => [...prev, ...files])
+  // Handle uploaded files from AltUpload component
+  const handleFilesUploaded = (
+    files: { id: string; name: string; url: string; file: File }[],
+  ) => {
+    setUploadedFiles((prev) => [...prev, ...files])
 
-      // Add uploaded files to images array
-      const newImages = files.map((file) => ({
-        id: file.id,
-        src: file.url,
-        alt: file.name,
-        caption: '',
-      }))
-      setImages((prev) => [...prev, ...newImages])
-    },
-    [],
-  )
+    // Add uploaded files to images array
+    const newImages = files.map((file) => ({
+      id: file.id,
+      src: file.url,
+      alt: file.name,
+      caption: '',
+    }))
+    setImages((prev) => [...prev, ...newImages])
+  }
 
-  const clearUploadedFiles = React.useCallback(() => {
+  // Clear uploaded files
+  const clearUploadedFiles = () => {
     setUploadedFiles([])
-  }, [])
+  }
 
-  const handleAddUrl = () => {
+  // Remove a specific uploaded file
+  const removeUploadedFile = (id: string) => {
+    setUploadedFiles((prev) => prev.filter((file) => file.id !== id))
+    setImages((prev) => prev.filter((img) => img.id !== id))
+  }
+
+  // Set images from URLs (supports batch input)
+  const addImagesFromUrls = () => {
     if (!imageUrl.trim()) return
 
-    const newImage: MasonryImage = {
-      id: `url-${Date.now()}-${Math.random()}`,
-      src: imageUrl.trim(),
+    // Split by commas or new lines and clean up URLs
+    const urls = imageUrl
+      .split(/[,\n]/)
+      .map((url) => url.trim())
+      .filter((url) => url && /^https?:\/\//.test(url))
+
+    if (urls.length === 0) return
+
+    const newImages: MasonryImage[] = urls.map((url) => ({
+      id: `url-${Date.now()}-${Math.random()}-${Math.random()}`,
+      src: url,
       alt: '',
       caption: '',
-    }
+    }))
 
-    setImages((prev) => [...prev, newImage])
+    setImages((prev) => [...prev, ...newImages])
     setImageUrl('')
-  }
-
-  const handleRemoveImage = (imageId: string) => {
-    setImages((prev) => prev.filter((img) => img.id !== imageId))
-    setUploadedFiles((prev) => prev.filter((file) => file.id !== imageId))
-  }
-
-  const handleUpdateImage = (
-    imageId: string,
-    updates: Partial<MasonryImage>,
-  ) => {
-    setImages((prev) =>
-      prev.map((img) => (img.id === imageId ? { ...img, ...updates } : img)),
-    )
-  }
-
-  const handleReorderImages = (fromIndex: number, toIndex: number) => {
-    setImages((prev) => {
-      const newImages = [...prev]
-      const [movedImage] = newImages.splice(fromIndex, 1)
-      newImages.splice(toIndex, 0, movedImage)
-      return newImages
-    })
   }
 
   const handleInsertMasonry = () => {
@@ -152,265 +142,249 @@ export const ImageMasonryContent = React.forwardRef<
     setGap('medium')
     setImageUrl('')
     clearUploadedFiles()
+    closePopover()
   }
 
   const canInsert = images.length > 0
 
   return (
-    <div ref={ref} className={className} {...props}>
-      <div className="space-y-4">
-        {/* File Upload */}
-        <div>
-          <Label>Upload Images</Label>
-          <AltUpload bucket="blog-images" onFilesAdded={handleFilesAdded} />
+    <div className="flex w-96 flex-col gap-4 p-4">
+      {/* File Upload Section */}
+      <div className="flex flex-col gap-2">
+        <Label>Upload Images</Label>
+        <AltUpload bucket="blog" onFilesAdded={handleFilesUploaded} />
+      </div>
+
+      {/* Show uploaded files */}
+      {uploadedFiles.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Label>Uploaded Images ({uploadedFiles.length})</Label>
+          <div className="max-h-32 space-y-1 overflow-y-auto">
+            {uploadedFiles.map((file) => (
+              <div
+                key={file.id}
+                className="flex items-center justify-between gap-2 rounded border bg-gray-50 p-2"
+              >
+                <div className="flex items-center gap-2">
+                  <img
+                    src={file.url}
+                    alt={file.name}
+                    className="h-8 w-8 rounded object-cover"
+                  />
+                  <span className="truncate text-sm">{file.name}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeUploadedFile(file.id)}
+                  className="h-6 w-6 p-0"
+                >
+                  ×
+                </Button>
+              </div>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearUploadedFiles}
+            className="self-start"
+          >
+            Clear all uploaded images
+          </Button>
         </div>
+      )}
 
-        <Separator />
+      <Separator />
 
-        {/* URL Input */}
-        <div>
-          <Label htmlFor="image-url">Add Image from URL</Label>
-          <div className="flex gap-2">
-            <Input
-              id="image-url"
-              type="url"
-              placeholder="https://example.com/image.jpg"
+      {/* URL Input Section */}
+      <div className="flex flex-col gap-3">
+        <Label>Add Images from URLs</Label>
+        <p className="text-xs text-muted-foreground">
+          Enter multiple URLs separated by commas or on new lines
+        </p>
+
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
+            <Textarea
+              placeholder={`https://example.com/image1.jpg
+https://example.com/image2.jpg, https://example.com/image3.jpg`}
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
+              className="min-h-[80px] text-sm"
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
                   e.preventDefault()
-                  handleAddUrl()
+                  addImagesFromUrls()
                 }
               }}
             />
             <Button
-              type="button"
-              onClick={handleAddUrl}
-              disabled={!imageUrl.trim()}
+              variant="outline"
               size="sm"
+              onClick={addImagesFromUrls}
+              disabled={!imageUrl.trim()}
+              className="self-start"
             >
-              Add
+              Add Images
             </Button>
           </div>
         </div>
+      </div>
 
-        {/* Image Preview and Management */}
-        {images.length > 0 && (
-          <>
-            <Separator />
-            <div>
-              <Label>Images ({images.length})</Label>
-              <div className="mt-2 max-h-60 space-y-2 overflow-y-auto">
-                {images.map((image, index) => (
-                  <div
-                    key={image.id}
-                    className="flex items-start gap-3 rounded-lg border p-3"
-                  >
+      <Separator />
+
+      {/* Selected Images Preview */}
+      {images.length > 0 && (
+        <>
+          <div className="flex flex-col gap-2">
+            <Label>Selected Images ({images.length})</Label>
+
+            <div className="max-h-32 space-y-2 overflow-y-auto">
+              {images.map((image, index) => (
+                <div
+                  key={image.id}
+                  className="flex items-center justify-between gap-2 rounded border p-2"
+                >
+                  <div className="flex items-center gap-2">
                     <img
                       src={image.src}
                       alt={image.alt || `Image ${index + 1}`}
-                      className="h-16 w-16 flex-shrink-0 rounded object-cover"
+                      className="h-8 w-8 rounded object-cover"
                     />
-                    <div className="flex-1 space-y-2">
-                      <Input
-                        placeholder="Alt text"
-                        value={image.alt || ''}
-                        onChange={(e) =>
-                          handleUpdateImage(image.id, { alt: e.target.value })
-                        }
-                        className="text-sm"
-                      />
-                      <Textarea
-                        placeholder="Caption (optional)"
-                        value={image.caption || ''}
-                        onChange={(e) =>
-                          handleUpdateImage(image.id, {
-                            caption: e.target.value,
-                          })
-                        }
-                        className="min-h-[60px] resize-none text-sm"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleReorderImages(index, Math.max(0, index - 1))
-                        }
-                        disabled={index === 0}
-                        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
-                        title="Move up"
-                      >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 15l7-7 7 7"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleReorderImages(
-                            index,
-                            Math.min(images.length - 1, index + 1),
-                          )
-                        }
-                        disabled={index === images.length - 1}
-                        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
-                        title="Move down"
-                      >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(image.id)}
-                        className="rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600"
-                        title="Remove"
-                      >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    </div>
+                    <span className="truncate text-sm">
+                      {image.alt || `Image ${index + 1}`}
+                    </span>
                   </div>
-                ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeUploadedFile(image.id)}
+                    className="h-6 w-6 p-0"
+                  >
+                    ×
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator />
+        </>
+      )}
+
+      {/* Layout Options */}
+      {images.length > 0 && (
+        <>
+          {/* Columns */}
+          <div className="flex flex-col gap-2">
+            <Label>Columns</Label>
+            <RadioGroup
+              value={columns.toString()}
+              onValueChange={(value) => setColumns(parseInt(value, 10))}
+              className="flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="2" id="cols-2" />
+                <Label htmlFor="cols-2">2</Label>
               </div>
-            </div>
-          </>
-        )}
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="3" id="cols-3" />
+                <Label htmlFor="cols-3">3</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="4" id="cols-4" />
+                <Label htmlFor="cols-4">4</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="5" id="cols-5" />
+                <Label htmlFor="cols-5">5</Label>
+              </div>
+            </RadioGroup>
+          </div>
 
-        {/* Layout Options */}
-        {images.length > 0 && (
-          <>
-            <Separator />
+          <Separator />
 
-            {/* Columns */}
-            <div>
-              <Label>Columns</Label>
-              <RadioGroup
-                value={columns.toString()}
-                onValueChange={(value) => setColumns(parseInt(value, 10))}
-                className="mt-2 flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="2" id="cols-2" />
-                  <Label htmlFor="cols-2">2</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="3" id="cols-3" />
-                  <Label htmlFor="cols-3">3</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="4" id="cols-4" />
-                  <Label htmlFor="cols-4">4</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="5" id="cols-5" />
-                  <Label htmlFor="cols-5">5</Label>
-                </div>
-              </RadioGroup>
-            </div>
+          {/* Gap */}
+          <div className="flex flex-col gap-2">
+            <Label>Spacing</Label>
+            <RadioGroup
+              value={gap}
+              onValueChange={(value) =>
+                setGap(value as 'small' | 'medium' | 'large')
+              }
+              className="flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="small" id="gap-small" />
+                <Label htmlFor="gap-small">Small</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="medium" id="gap-medium" />
+                <Label htmlFor="gap-medium">Medium</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="large" id="gap-large" />
+                <Label htmlFor="gap-large">Large</Label>
+              </div>
+            </RadioGroup>
+          </div>
 
-            {/* Gap */}
-            <div>
-              <Label>Spacing</Label>
-              <RadioGroup
-                value={gap}
-                onValueChange={(value) =>
-                  setGap(value as 'small' | 'medium' | 'large')
-                }
-                className="mt-2 flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="small" id="gap-small" />
-                  <Label htmlFor="gap-small">Small</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="medium" id="gap-medium" />
-                  <Label htmlFor="gap-medium">Medium</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="large" id="gap-large" />
-                  <Label htmlFor="gap-large">Large</Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </>
-        )}
+          <Separator />
+        </>
+      )}
 
-        <Separator />
-
-        {/* Action Button */}
-        <Button onClick={handleInsertMasonry} disabled={!canInsert}>
-          Insert Masonry Layout
-        </Button>
-      </div>
+      {/* Action Button */}
+      <Button onClick={handleInsertMasonry} disabled={!canInsert}>
+        Insert Masonry Layout
+      </Button>
     </div>
   )
-})
-
-ImageMasonryContent.displayName = 'ImageMasonryContent'
+}
 
 // --- Main Popover Component ---
-export const ImageMasonryPopover = React.forwardRef<
-  HTMLButtonElement,
-  TipTapButtonProps
->(({ className, ...props }, ref) => {
-  const editor = useTiptapEditor()
-  const [open, setOpen] = React.useState(false)
+export interface ImageMasonryPopoverProps
+  extends Omit<TipTapButtonProps, 'type'> {
+  editor?: Editor | null
+  hideWhenUnavailable?: boolean
+  extensionName?: string
+}
 
-  if (!editor || !isNodeInSchema('imageMasonry', editor)) {
+export function ImageMasonryPopover({
+  editor: providedEditor,
+  hideWhenUnavailable = false,
+  extensionName = 'imageMasonry',
+  ...TipTapButtonProps
+}: ImageMasonryPopoverProps) {
+  const [isOpen, setIsOpen] = React.useState(false)
+  const editor = useTiptapEditor(providedEditor)
+
+  const masonryInSchema = isNodeInSchema(extensionName, editor)
+
+  const show = React.useMemo(() => {
+    if (!masonryInSchema || !editor?.isEditable) {
+      return false
+    }
+    return true
+  }, [masonryInSchema, editor])
+
+  if (!show) {
     return null
   }
 
-  const closePopover = () => setOpen(false)
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <ImageMasonryButton ref={ref} className={className} {...props} />
+        <ImageMasonryButton {...TipTapButtonProps} />
       </PopoverTrigger>
-      <PopoverContent
-        className="max-h-[80vh] w-96 overflow-y-auto"
-        align="start"
-      >
-        <ImageMasonryContent />
+      <PopoverContent side="bottom" align="start" className="w-auto p-0">
+        <ImageMasonryContent
+          editor={editor}
+          closePopover={() => setIsOpen(false)}
+        />
       </PopoverContent>
     </Popover>
   )
-})
-
-ImageMasonryPopover.displayName = 'ImageMasonryPopover'
+}
 
 export default ImageMasonryPopover
