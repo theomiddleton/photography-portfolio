@@ -1,6 +1,6 @@
 import React from 'react'
 import type { ReactNode } from 'react'
-import { ThemeProvider } from '~/components/admin/theme-provider'
+import { ThemeProvider } from '~/components/admin/theme/theme-provider'
 import { AdminHeader } from '~/components/admin/header'
 import { AdminSidebar } from '~/components/admin/sidebar'
 

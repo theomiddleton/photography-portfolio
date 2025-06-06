@@ -4,7 +4,7 @@ import { siteConfig } from '~/config/site'
 import { Icons } from '~/components/ui/icons'
 import { MobileSidebar } from '~/components/admin/mobile-sidebar'
 import { AdminSidebar } from '~/components/admin/sidebar'
-import { ThemeToggle } from '~/components/admin/theme-toggle'
+import { ThemeToggle } from '~/components/admin/theme/theme-toggle'
 
 export function AdminHeader() {
   return (
@@ -16,12 +16,16 @@ export function AdminHeader() {
               <AdminSidebar />
             </MobileSidebar>
           </div>
-          <Link href="/" className="flex items-center gap-2 font-semibold" prefetch={false}>
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-semibold"
+            prefetch={false}
+          >
             <Icons.logo className="h-6 w-6" />
             <span>{siteConfig.title}</span>
           </Link>
           <Link href="/admin">
-            <h1 className="text-lg font-semibold ml-4">Dashboard</h1>
+            <h1 className="ml-4 text-lg font-semibold">Dashboard</h1>
           </Link>
         </div>
         <div>
