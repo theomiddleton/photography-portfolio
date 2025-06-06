@@ -68,8 +68,7 @@ export const HLSVideoExtension = Node.create<HLSVideoOptions>({
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-hls-video': '',
       }),
-      // Render a placeholder or message if needed, actual player is handled by NodeView
-      ['span', 'HLS Video Player'],
+      // No content since this is an atomic node
     ]
   },
 

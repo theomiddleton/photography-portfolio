@@ -59,14 +59,49 @@ export const ImageGalleryExtension = Node.create<ImageGalleryOptions>({
       },
     ]
   },
-
+  
+  // Fix with matching style to dynamic rendering
   renderHTML({ HTMLAttributes, node }) {
+    const { sources = [] } = node.attrs
+
+    // If no sources, return empty div
+    if (!sources || sources.length === 0) {
+      return [
+        'div',
+        mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+          'data-type': 'image-gallery',
+        }),
+      ]
+    }
+
+    // Create image elements for static rendering
+    const imageElements = sources.map((src: string, index: number) => [
+      'div',
+      { class: 'gallery-item' },
+      [
+        'img',
+        {
+          src,
+          alt: `Gallery image ${index + 1}`,
+          class: 'w-full h-auto object-cover rounded-lg',
+          loading: 'lazy',
+        },
+      ],
+    ])
+
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-type': 'image-gallery',
+        class: 'image-gallery-container my-6',
       }),
-      0, // Represents the content hole, gallery is atomic so no content
+      [
+        'div',
+        {
+          class: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4',
+        },
+        ...imageElements,
+      ],
     ]
   },
 

@@ -73,7 +73,10 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
 
   return (
     <div
-      className="tiptap-content"
+      className="tiptap-content prose prose-gray max-w-none dark:prose-invert
+        prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
+        prose-p:text-base prose-p:leading-7 prose-p:text-gray-700 prose-img:rounded-lg
+        prose-img:shadow-md dark:prose-p:text-gray-300"
       dangerouslySetInnerHTML={{ __html: output }}
     />
   )
