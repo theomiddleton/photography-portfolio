@@ -223,6 +223,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
           className={`
             z-50 flex items-center gap-1
             bg-white border border-gray-200
+            dark:bg-gray-900 dark:border-gray-700
             p-1 outline-none overflow-hidden
             shadow-lg rounded-lg
             data-[orientation=horizontal]:p-0.5
@@ -240,7 +241,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
           `.trim()}
           data-side={side}
           data-align={align}
-          data-state={context.context.open ? "open" : "closed"}
+          data-state={context.context.open ? 'open' : 'closed'}
           {...context.getFloatingProps(props)}
         >
           {props.children}

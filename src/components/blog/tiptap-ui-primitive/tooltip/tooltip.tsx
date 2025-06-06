@@ -201,17 +201,17 @@ export const TooltipContent = React.forwardRef<
     <div
       ref={ref}
       style={{
-        ...context.floatingStyles,
-        ...style,
+      ...context.floatingStyles,
+      ...style,
       }}
       {...context.getFloatingProps(props)}
       className={`
-        z-50 overflow-hidden
-        rounded-md bg-white 
-        px-2 py-1.5
-        text-xs font-medium text-gray-700
-        shadow-sm border border-gray-200
-        ${props.className || ''}
+      z-50 overflow-hidden
+      rounded-md bg-white dark:bg-gray-900
+      px-2 py-1.5
+      text-xs font-medium text-gray-700 dark:text-gray-200
+      shadow-sm border border-gray-200 dark:border-gray-700
+      ${props.className || ''}
       `.trim()}
     >
       {children}
