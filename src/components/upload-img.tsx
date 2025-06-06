@@ -241,7 +241,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
           className={`mt-2 flex items-center justify-center rounded-lg border-2 border-dashed 
             ${isDragging 
               ? 'border-primary bg-primary/5 cursor-copy ring-2 ring-primary/50' 
-              : 'border-black/25 hover:border-black/40'
+              : 'border-black/25 dark:border-white/25 hover:border-black/40 dark:hover:border-white/40'
             } px-6 py-10 transition-all duration-200`}
           onDragEnter={handleDragIn}
           onDragLeave={handleDragOut}
@@ -250,13 +250,13 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
         >
           <div className={`text-center flex flex-col items-center justify-center ${isDragging ? 'scale-105' : ''} transition-transform duration-200`}>
             <Icons.imageIcon
-              className={`mx-auto h-12 w-12 ${isDragging ? 'text-primary' : 'text-gray-500'} transition-colors duration-200`}
+              className={`mx-auto h-12 w-12 ${isDragging ? 'text-primary' : 'text-gray-500 dark:text-gray-400'} transition-colors duration-200`}
               aria-hidden="true"
             />
-            <div className="mt-4 text-sm leading-6 text-gray-600">
+            <div className="mt-4 text-sm leading-6 text-gray-600 dark:text-gray-300">
               <label
                 htmlFor="file-upload"
-                className="relative cursor-pointer rounded-md bg-gray-100 font-semibold text-black focus-within:outline-none focus-within:ring-2 focus-within:ring-gray-600 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 hover:text-gray-500"
+                className="relative cursor-pointer rounded-md bg-gray-100 dark:bg-gray-800 font-semibold text-black dark:text-white focus-within:outline-none focus-within:ring-2 focus-within:ring-gray-600 dark:focus-within:ring-gray-300 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 dark:focus-within:ring-offset-gray-900 hover:text-gray-500 dark:hover:text-gray-300"
               >
                 <span>Upload a file</span>
                 <input

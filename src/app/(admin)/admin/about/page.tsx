@@ -130,7 +130,7 @@ export default function AboutEditor() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-4">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               About Title
             </label>
             <Input
@@ -143,7 +143,7 @@ export default function AboutEditor() {
             />
           </div>
           <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               About Me Contents (MDX)
             </label>
             <Textarea
@@ -172,11 +172,11 @@ export default function AboutEditor() {
           </div>
         </div>
         <div className="space-y-4">
-          <div className="border rounded-lg p-4 prose prose-sm max-w-none h-[calc(100vh-400px)] overflow-auto">
+            <div className="border rounded-lg p-4 prose prose-sm max-w-none h-[calc(100vh-400px)] overflow-auto bg-white dark:bg-zinc-900 dark:text-zinc-100 dark:prose-invert">
             {compiledContent && (
               <MDXRemote {...compiledContent} components={components} />
             )}
-          </div>
+            </div>
           <div>
             <h3 className="text-lg font-semibold mb-2">Select Images</h3>
             <ImageSelect 

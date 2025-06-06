@@ -85,7 +85,7 @@ export default function MigratePage() {
   }
 
   return (
-    <div className="container mx-auto min-h-screen space-y-12 py-10 text-black">
+    <div className="container mx-auto min-h-screen space-y-12 py-10 text-black dark:text-white">
       <h1 className="text-3xl font-bold">Image Data Migration</h1>
 
       {error && (

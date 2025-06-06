@@ -4,6 +4,7 @@ import { siteConfig } from '~/config/site'
 import { Icons } from '~/components/ui/icons'
 import { MobileSidebar } from '~/components/admin/mobile-sidebar'
 import { AdminSidebar } from '~/components/admin/sidebar'
+import { ThemeToggle } from '~/components/admin/theme-toggle'
 
 export function AdminHeader() {
   return (
@@ -22,6 +23,9 @@ export function AdminHeader() {
           <Link href="/admin">
             <h1 className="text-lg font-semibold ml-4">Dashboard</h1>
           </Link>
+        </div>
+        <div>
+          <ThemeToggle />
         </div>
       </header>
     </div>

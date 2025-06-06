@@ -1,5 +1,6 @@
 import React from 'react'
 import type { ReactNode } from 'react'
+import { ThemeProvider } from '~/components/admin/theme-provider'
 import { AdminHeader } from '~/components/admin/header'
 import { AdminSidebar } from '~/components/admin/sidebar'
 
@@ -12,16 +13,23 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="flex flex-col h-screen">
-      <AdminHeader />
-      <div className="flex flex-1">
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:block h-full">
-          <AdminSidebar />
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <AdminHeader />
+        <div className="flex flex-1">
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:block h-full">
+            <AdminSidebar />
+          </div>
+          <div className="flex-1 p-5">
+            {children}
+          </div>
         </div>
-        <div className="flex-1 p-5">
-          {children}
-        </div>
-      </div>
+      </ThemeProvider>
     </div>
   )
 }
