@@ -12,24 +12,22 @@ interface AdminLayoutProps {
 // this adds the header and sidebar to the page, for a consistent look and, and navigation experience
 export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
-    <div className="flex flex-col h-screen">
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <div className="flex h-screen flex-col">
         <AdminHeader />
         <div className="flex flex-1">
           {/* Desktop Sidebar */}
-          <div className="hidden lg:block h-full">
+          <div className="hidden h-full lg:block">
             <AdminSidebar />
           </div>
-          <div className="flex-1 p-5">
-            {children}
-          </div>
+          <div className="flex-1 p-5">{children}</div>
         </div>
-      </ThemeProvider>
-    </div>
+      </div>
+    </ThemeProvider>
   )
 }
