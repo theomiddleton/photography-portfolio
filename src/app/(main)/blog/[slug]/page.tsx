@@ -11,9 +11,8 @@ import Link from 'next/link'
 import { Button } from '~/components/ui/button'
 import { siteConfig } from '~/config/site'
 
-// Force static generation for known routes
-export const dynamic = 'force-static'
-// Allow dynamic params for unpublished posts (for admin preview)
+// Remove the force-static export - we'll handle this conditionally
+// export const dynamic = 'force-static'
 export const dynamicParams = true
 
 interface PostPageProps {
@@ -55,6 +54,7 @@ export async function generateMetadata({
       .select({
         title: blogPosts.title,
         description: blogPosts.description,
+        published: blogPosts.published,
       })
       .from(blogPosts)
       .where(eq(blogPosts.slug, resolvedParams.slug))
@@ -65,6 +65,15 @@ export async function generateMetadata({
       return {
         title: 'Post Not Found',
         description: 'The requested blog post could not be found.',
+      }
+    }
+
+    // For unpublished posts, don't generate rich metadata for SEO
+    if (!post.published) {
+      return {
+        title: `${post.title} | Preview`,
+        description: `${post.description} | Preview (unpublished)`,
+        robots: 'noindex, nofollow',
       }
     }
 
@@ -118,12 +127,20 @@ export default async function PostPage({ params }: PostPageProps) {
       notFound()
     }
 
-    const session = await getSession()
     const blogPost = post[0]
     
-    // Check if post should be accessible
-    if (!blogPost.published && (!session || session.role !== 'admin')) {
-      notFound()
+    // For published posts, we can use static generation
+    // For unpublished posts, we need to check auth dynamically
+    let session = null
+    if (!blogPost.published) {
+      session = await getSession()
+      // Only admins can view unpublished posts
+      if (!session || session.role !== 'admin') {
+        notFound()
+      }
+    } else {
+      // For published posts, still get session for edit button
+      session = await getSession()
     }
     
     // Parse the TipTap JSON content safely
@@ -137,6 +154,15 @@ export default async function PostPage({ params }: PostPageProps) {
 
     return (
       <article className="container max-w-4xl mx-auto px-4 py-12 mt-12">
+        {/* Show preview banner for unpublished posts */}
+        {!blogPost.published && (
+          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded-lg">
+            <p className="text-yellow-800 font-medium">
+              📝 This is an unpublished post preview (Admin only)
+            </p>
+          </div>
+        )}
+        
         <div className="space-y-8">
           <div className="mb-8 flex items-center justify-between">
             <Link href="/blog">

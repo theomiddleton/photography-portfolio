@@ -17,6 +17,9 @@ import TaskItem from '@tiptap/extension-task-item'
 import { ImageGalleryExtension } from '~/components/blog/tiptap-extension/image-gallery-extension'
 import { HLSVideoExtension } from '~/components/blog/tiptap-extension/hls-video-extension'
 import { ImageMasonryStaticExtension } from '~/components/blog/tiptap-extension/image-masonry-static-extension'
+import { ImageComparisonStaticExtension } from '~/components/blog/tiptap-extension/image-comparison-static-extension'
+import { ImageMasonryExtension } from '~/components/blog/tiptap-extension/image-masonry-extension'
+import { ImageComparisonExtension } from '~/components/blog/tiptap-extension/image-comparison-extension'
 
 interface TipTapRendererProps {
   content: any
@@ -52,7 +55,10 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
         Placeholder,
         ImageGalleryExtension,
         HLSVideoExtension,
-        ImageMasonryStaticExtension,
+        // ImageMasonryStaticExtension,
+        // ImageComparisonStaticExtension,
+        ImageMasonryExtension,
+        ImageComparisonExtension,
         Link.configure({ openOnClick: false }),
       ])
     } catch (error) {
