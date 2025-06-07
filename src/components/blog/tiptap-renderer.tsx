@@ -204,6 +204,120 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
         window.removeEventListener('keydown', handleKeyDown)
       }
     })
+
+    // Add interactivity to image comparisons
+    const comparisons = containerRef.current.querySelectorAll(
+      '[data-type="image-comparison"]',
+    )
+
+    comparisons.forEach((comparison) => {
+      const displayMode = comparison.getAttribute('data-display-mode')
+      
+      // Only add interactivity to interactive slider mode
+      if (displayMode !== 'interactive') return
+
+      const orientation = comparison.getAttribute('data-orientation') || 'horizontal'
+      const container = comparison.querySelector('.comparison-container') as HTMLElement
+      const afterImage = comparison.querySelector('.comparison-after-image') as HTMLElement
+      const sliderLine = comparison.querySelector('.comparison-slider-line') as HTMLElement
+      const sliderHandle = comparison.querySelector('.comparison-slider-handle') as HTMLElement
+      
+      if (!container || !afterImage || !sliderLine || !sliderHandle) return
+
+      let isDragging = false
+      let position = 50 // Initial position at 50%
+
+      const updateSlider = (newPosition: number) => {
+        position = Math.max(0, Math.min(100, newPosition))
+        
+        // Add transitions if not already present
+        if (!afterImage.style.transition) {
+          afterImage.style.transition = 'clip-path 0.1s ease'
+        }
+        if (!sliderLine.style.transition) {
+          sliderLine.style.transition = 'all 0.1s ease'
+        }
+        if (!sliderHandle.style.transition) {
+          sliderHandle.style.transition = 'all 0.1s ease'
+        }
+        
+        if (orientation === 'horizontal') {
+          // Horizontal slider
+          afterImage.style.clipPath = `inset(0 ${100 - position}% 0 0)`
+          sliderLine.style.left = `${position}%`
+          sliderHandle.style.left = `${position}%`
+        } else {
+          // Vertical slider
+          afterImage.style.clipPath = `inset(0 0 ${100 - position}% 0)`
+          sliderLine.style.top = `${position}%`
+          sliderHandle.style.top = `${position}%`
+        }
+      }
+
+      const getPositionFromEvent = (event: MouseEvent | TouchEvent) => {
+        const rect = container.getBoundingClientRect()
+        
+        let clientX: number
+        let clientY: number
+        
+        if ('touches' in event) {
+          clientX = event.touches[0].clientX
+          clientY = event.touches[0].clientY
+        } else {
+          clientX = event.clientX
+          clientY = event.clientY
+        }
+        
+        if (orientation === 'horizontal') {
+          return ((clientX - rect.left) / rect.width) * 100
+        } else {
+          return ((clientY - rect.top) / rect.height) * 100
+        }
+      }
+
+      const handleStart = (event: MouseEvent | TouchEvent) => {
+        isDragging = true
+        event.preventDefault()
+        
+        const newPosition = getPositionFromEvent(event)
+        updateSlider(newPosition)
+      }
+
+      const handleMove = (event: MouseEvent | TouchEvent) => {
+        if (!isDragging) return
+        
+        event.preventDefault()
+        const newPosition = getPositionFromEvent(event)
+        updateSlider(newPosition)
+      }
+
+      const handleEnd = () => {
+        isDragging = false
+      }
+
+      // Mouse events
+      container.addEventListener('mousedown', handleStart)
+      window.addEventListener('mousemove', handleMove)
+      window.addEventListener('mouseup', handleEnd)
+
+      // Touch events for mobile
+      container.addEventListener('touchstart', handleStart, { passive: false })
+      window.addEventListener('touchmove', handleMove, { passive: false })
+      window.addEventListener('touchend', handleEnd)
+
+      // Initialize slider position
+      updateSlider(50)
+
+      // Cleanup function for this comparison
+      return () => {
+        container.removeEventListener('mousedown', handleStart)
+        window.removeEventListener('mousemove', handleMove)
+        window.removeEventListener('mouseup', handleEnd)
+        container.removeEventListener('touchstart', handleStart)
+        window.removeEventListener('touchmove', handleMove)
+        window.removeEventListener('touchend', handleEnd)
+      }
+    })
   }, [output]) // Re-run when HTML output changes
 
   return (
