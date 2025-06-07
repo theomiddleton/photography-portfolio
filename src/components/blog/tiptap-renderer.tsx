@@ -350,10 +350,10 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
 
       // Add click handlers to all masonry images
       const masonryImages = masonry.querySelectorAll('.masonry-item img')
-      
+
       masonryImages.forEach((img, index) => {
         const imgElement = img as HTMLImageElement
-        
+
         // Add click handler for lightbox functionality
         imgElement.addEventListener('click', () => {
           openImageLightbox(images, index)
@@ -370,91 +370,101 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
         // Make images focusable for accessibility
         imgElement.setAttribute('tabindex', '0')
         imgElement.setAttribute('role', 'button')
-        imgElement.setAttribute('aria-label', `View image ${index + 1} in lightbox`)
+        imgElement.setAttribute(
+          'aria-label',
+          `View image ${index + 1} in lightbox`,
+        )
       })
     })
 
     // Lightbox functionality
     const openImageLightbox = (images: any[], startIndex: number) => {
       let currentIndex = startIndex
-      
+
       // Create lightbox overlay
       const overlay = document.createElement('div')
-      overlay.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4'
+      overlay.className =
+        'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4'
       overlay.style.transition = 'opacity 0.3s ease'
-      
+
       // Create lightbox content container
       const lightboxContent = document.createElement('div')
-      lightboxContent.className = 'relative max-w-full max-h-full flex items-center justify-center'
-      
+      lightboxContent.className =
+        'relative max-w-full max-h-full flex items-center justify-center'
+
       // Create main image
       const lightboxImage = document.createElement('img')
       lightboxImage.className = 'max-w-full max-h-full object-contain'
       lightboxImage.style.transition = 'opacity 0.2s ease'
-      
+
       // Create image counter
       const counter = document.createElement('div')
-      counter.className = 'absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded text-sm'
-      
+      counter.className =
+        'absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded text-sm'
+
       // Create caption
       const caption = document.createElement('div')
-      caption.className = 'absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white px-3 py-2 rounded text-sm text-center'
+      caption.className =
+        'absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white px-3 py-2 rounded text-sm text-center'
       caption.style.display = 'none'
-      
+
       // Create close button
       const closeButton = document.createElement('button')
-      closeButton.className = 'absolute top-4 right-4 bg-black bg-opacity-50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors'
+      closeButton.className =
+        'absolute top-4 right-4 bg-black bg-opacity-50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors'
       closeButton.innerHTML = '×'
       closeButton.style.fontSize = '24px'
       closeButton.setAttribute('aria-label', 'Close lightbox')
-      
+
       // Create navigation buttons
       const prevButton = document.createElement('button')
-      prevButton.className = 'absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors'
+      prevButton.className =
+        'absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors'
       prevButton.innerHTML = '‹'
       prevButton.style.fontSize = '24px'
       prevButton.setAttribute('aria-label', 'Previous image')
       prevButton.style.display = images.length > 1 ? 'flex' : 'none'
-      
+
       const nextButton = document.createElement('button')
-      nextButton.className = 'absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors'
+      nextButton.className =
+        'absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors'
       nextButton.innerHTML = '›'
       nextButton.style.fontSize = '24px'
       nextButton.setAttribute('aria-label', 'Next image')
       nextButton.style.display = images.length > 1 ? 'flex' : 'none'
-      
+
       // Update lightbox content
       const updateLightbox = (index: number) => {
         const image = images[index]
         lightboxImage.style.opacity = '0'
-        
+
         setTimeout(() => {
           lightboxImage.src = image.src
           lightboxImage.alt = image.alt || `Masonry image ${index + 1}`
           counter.textContent = `${index + 1} / ${images.length}`
-          
+
           if (image.caption) {
             caption.textContent = image.caption
             caption.style.display = 'block'
           } else {
             caption.style.display = 'none'
           }
-          
+
           lightboxImage.style.opacity = '1'
         }, 100)
       }
-      
+
       // Navigation functions
       const showPrevious = () => {
         currentIndex = currentIndex > 0 ? currentIndex - 1 : images.length - 1
         updateLightbox(currentIndex)
       }
-      
+
       const showNext = () => {
         currentIndex = currentIndex < images.length - 1 ? currentIndex + 1 : 0
         updateLightbox(currentIndex)
       }
-      
+
       const closeLightbox = () => {
         overlay.style.opacity = '0'
         setTimeout(() => {
@@ -462,18 +472,18 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
           document.body.style.overflow = ''
         }, 300)
       }
-      
+
       // Event listeners
       closeButton.addEventListener('click', closeLightbox)
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) closeLightbox()
       })
-      
+
       if (images.length > 1) {
         prevButton.addEventListener('click', showPrevious)
         nextButton.addEventListener('click', showNext)
       }
-      
+
       // Keyboard navigation
       const handleKeydown = (e: KeyboardEvent) => {
         switch (e.key) {
@@ -488,14 +498,14 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
             break
         }
       }
-      
+
       document.addEventListener('keydown', handleKeydown)
-      
+
       // Cleanup function
       const cleanup = () => {
         document.removeEventListener('keydown', handleKeydown)
       }
-      
+
       // Assemble lightbox
       lightboxContent.appendChild(lightboxImage)
       lightboxContent.appendChild(counter)
@@ -505,14 +515,14 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
         lightboxContent.appendChild(prevButton)
         lightboxContent.appendChild(nextButton)
       }
-      
+
       overlay.appendChild(lightboxContent)
       document.body.appendChild(overlay)
       document.body.style.overflow = 'hidden'
-      
+
       // Initialize
       updateLightbox(currentIndex)
-      
+
       // Add cleanup to overlay
       overlay.addEventListener('transitionend', () => {
         if (overlay.style.opacity === '0') {

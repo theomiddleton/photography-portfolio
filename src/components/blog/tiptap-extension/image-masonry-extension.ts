@@ -118,7 +118,8 @@ export const ImageMasonryExtension = Node.create<ImageMasonryOptions>({
             'data-columns': columns.toString(),
             'data-gap': gap,
             'data-captions-enabled': captionsEnabled ? 'true' : 'false',
-            class: 'my-4 rounded-lg border-2 border-dashed border-gray-300 p-8 text-center text-gray-500',
+            class:
+              'my-4 rounded-lg border-2 border-dashed border-gray-300 p-8 text-center text-gray-500',
           },
           this.options.HTMLAttributes,
           HTMLAttributes,
@@ -176,22 +177,18 @@ export const ImageMasonryExtension = Node.create<ImageMasonryOptions>({
       if (captionsEnabled && image.caption) {
         return [
           'div',
-          { 
+          {
             class: itemClass,
             'data-image-id': image.id,
             'data-image-index': index.toString(),
           },
           ['div', { class: 'relative' }, imgElement],
-          [
-            'div',
-            { class: 'mt-2 px-1 text-sm text-gray-600' },
-            image.caption,
-          ],
+          ['div', { class: 'mt-2 px-1 text-sm text-gray-600' }, image.caption],
         ]
       } else {
         return [
           'div',
-          { 
+          {
             class: itemClass,
             'data-image-id': image.id,
             'data-image-index': index.toString(),
