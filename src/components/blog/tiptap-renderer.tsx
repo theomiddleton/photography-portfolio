@@ -92,21 +92,21 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
         const indices = []
         const displayCount = 7
         const center = Math.floor(displayCount / 2)
-        
+
         for (let i = 0; i < displayCount; i++) {
           let index = currentIndex - center + i
           while (index < 0) index += total
           while (index >= total) index -= total
           indices.push(index)
         }
-        
+
         return indices
       }
 
       const updateGallery = (index: number) => {
         currentIndex = index
         isLoading = true
-        
+
         if (mainImage) {
           // Add fade effect for smoother transitions
           mainImage.style.opacity = '0'
@@ -117,7 +117,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
             isLoading = false
           }, 150)
         }
-        
+
         if (counter) {
           counter.textContent = `${index + 1} / ${sources.length}`
         }
@@ -128,12 +128,15 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
 
       const updateThumbnails = () => {
         if (!thumbnailsContainer) return
-        
-        const visibleIndices = createCircularIndices(currentIndex, sources.length)
-        
+
+        const visibleIndices = createCircularIndices(
+          currentIndex,
+          sources.length,
+        )
+
         // Clear existing thumbnails
         thumbnailsContainer.innerHTML = ''
-        
+
         // Create new thumbnails
         visibleIndices.forEach((index, i) => {
           const isCenter = i === Math.floor(visibleIndices.length / 2)
@@ -141,24 +144,30 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
           thumbnailWrapper.className = `relative mx-1 flex-none p-2 ${isCenter ? 'z-20' : 'z-0'}`
           thumbnailWrapper.style.transform = isCenter ? 'none' : 'scale(0.9)'
           thumbnailWrapper.style.opacity = isCenter ? '1' : '0.6'
-          
+
           const thumbnailButton = document.createElement('button')
           thumbnailButton.className = `relative block h-20 w-32 overflow-hidden rounded-lg transition-all duration-300 ${
             isCenter ? 'outline outline-2 outline-black outline-offset-4' : ''
           }`
-          thumbnailButton.setAttribute('aria-label', `View Gallery image ${index + 1}`)
-          thumbnailButton.setAttribute('aria-current', index === currentIndex ? 'true' : 'false')
-          
+          thumbnailButton.setAttribute(
+            'aria-label',
+            `View Gallery image ${index + 1}`,
+          )
+          thumbnailButton.setAttribute(
+            'aria-current',
+            index === currentIndex ? 'true' : 'false',
+          )
+
           const thumbnailImg = document.createElement('img')
           thumbnailImg.src = sources[index]
           thumbnailImg.alt = `Gallery image ${index + 1}`
           thumbnailImg.className = 'w-full h-full object-cover'
           thumbnailImg.loading = 'lazy'
-          
+
           thumbnailButton.appendChild(thumbnailImg)
           thumbnailWrapper.appendChild(thumbnailButton)
           thumbnailsContainer.appendChild(thumbnailWrapper)
-          
+
           // Add click handler
           thumbnailButton.addEventListener('click', () => {
             updateGallery(index)
@@ -167,12 +176,14 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
       }
 
       const handlePrevious = () => {
-        const newIndex = currentIndex > 0 ? currentIndex - 1 : sources.length - 1
+        const newIndex =
+          currentIndex > 0 ? currentIndex - 1 : sources.length - 1
         updateGallery(newIndex)
       }
 
       const handleNext = () => {
-        const newIndex = currentIndex < sources.length - 1 ? currentIndex + 1 : 0
+        const newIndex =
+          currentIndex < sources.length - 1 ? currentIndex + 1 : 0
         updateGallery(newIndex)
       }
 
@@ -212,16 +223,25 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
 
     comparisons.forEach((comparison) => {
       const displayMode = comparison.getAttribute('data-display-mode')
-      
+
       // Only add interactivity to interactive slider mode
       if (displayMode !== 'interactive') return
 
-      const orientation = comparison.getAttribute('data-orientation') || 'horizontal'
-      const container = comparison.querySelector('.comparison-container') as HTMLElement
-      const afterImage = comparison.querySelector('.comparison-after-image') as HTMLElement
-      const sliderLine = comparison.querySelector('.comparison-slider-line') as HTMLElement
-      const sliderHandle = comparison.querySelector('.comparison-slider-handle') as HTMLElement
-      
+      const orientation =
+        comparison.getAttribute('data-orientation') || 'horizontal'
+      const container = comparison.querySelector(
+        '.comparison-container',
+      ) as HTMLElement
+      const afterImage = comparison.querySelector(
+        '.comparison-after-image',
+      ) as HTMLElement
+      const sliderLine = comparison.querySelector(
+        '.comparison-slider-line',
+      ) as HTMLElement
+      const sliderHandle = comparison.querySelector(
+        '.comparison-slider-handle',
+      ) as HTMLElement
+
       if (!container || !afterImage || !sliderLine || !sliderHandle) return
 
       let isDragging = false
@@ -229,7 +249,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
 
       const updateSlider = (newPosition: number) => {
         position = Math.max(0, Math.min(100, newPosition))
-        
+
         // Add transitions if not already present
         if (!afterImage.style.transition) {
           afterImage.style.transition = 'clip-path 0.1s ease'
@@ -240,7 +260,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
         if (!sliderHandle.style.transition) {
           sliderHandle.style.transition = 'all 0.1s ease'
         }
-        
+
         if (orientation === 'horizontal') {
           // Horizontal slider
           afterImage.style.clipPath = `inset(0 ${100 - position}% 0 0)`
@@ -256,10 +276,10 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
 
       const getPositionFromEvent = (event: MouseEvent | TouchEvent) => {
         const rect = container.getBoundingClientRect()
-        
+
         let clientX: number
         let clientY: number
-        
+
         if ('touches' in event) {
           clientX = event.touches[0].clientX
           clientY = event.touches[0].clientY
@@ -267,7 +287,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
           clientX = event.clientX
           clientY = event.clientY
         }
-        
+
         if (orientation === 'horizontal') {
           return ((clientX - rect.left) / rect.width) * 100
         } else {
@@ -278,14 +298,14 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
       const handleStart = (event: MouseEvent | TouchEvent) => {
         isDragging = true
         event.preventDefault()
-        
+
         const newPosition = getPositionFromEvent(event)
         updateSlider(newPosition)
       }
 
       const handleMove = (event: MouseEvent | TouchEvent) => {
         if (!isDragging) return
-        
+
         event.preventDefault()
         const newPosition = getPositionFromEvent(event)
         updateSlider(newPosition)
@@ -318,6 +338,188 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
         window.removeEventListener('touchend', handleEnd)
       }
     })
+
+    // Add interactivity to image masonry
+    const masonries = containerRef.current.querySelectorAll(
+      '[data-type="image-masonry"]',
+    )
+
+    masonries.forEach((masonry) => {
+      const images = JSON.parse(masonry.getAttribute('data-images') || '[]')
+      if (images.length === 0) return
+
+      // Add click handlers to all masonry images
+      const masonryImages = masonry.querySelectorAll('.masonry-item img')
+      
+      masonryImages.forEach((img, index) => {
+        const imgElement = img as HTMLImageElement
+        
+        // Add click handler for lightbox functionality
+        imgElement.addEventListener('click', () => {
+          openImageLightbox(images, index)
+        })
+
+        // Add keyboard support
+        imgElement.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            openImageLightbox(images, index)
+          }
+        })
+
+        // Make images focusable for accessibility
+        imgElement.setAttribute('tabindex', '0')
+        imgElement.setAttribute('role', 'button')
+        imgElement.setAttribute('aria-label', `View image ${index + 1} in lightbox`)
+      })
+    })
+
+    // Lightbox functionality
+    const openImageLightbox = (images: any[], startIndex: number) => {
+      let currentIndex = startIndex
+      
+      // Create lightbox overlay
+      const overlay = document.createElement('div')
+      overlay.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4'
+      overlay.style.transition = 'opacity 0.3s ease'
+      
+      // Create lightbox content container
+      const lightboxContent = document.createElement('div')
+      lightboxContent.className = 'relative max-w-full max-h-full flex items-center justify-center'
+      
+      // Create main image
+      const lightboxImage = document.createElement('img')
+      lightboxImage.className = 'max-w-full max-h-full object-contain'
+      lightboxImage.style.transition = 'opacity 0.2s ease'
+      
+      // Create image counter
+      const counter = document.createElement('div')
+      counter.className = 'absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded text-sm'
+      
+      // Create caption
+      const caption = document.createElement('div')
+      caption.className = 'absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white px-3 py-2 rounded text-sm text-center'
+      caption.style.display = 'none'
+      
+      // Create close button
+      const closeButton = document.createElement('button')
+      closeButton.className = 'absolute top-4 right-4 bg-black bg-opacity-50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors'
+      closeButton.innerHTML = '×'
+      closeButton.style.fontSize = '24px'
+      closeButton.setAttribute('aria-label', 'Close lightbox')
+      
+      // Create navigation buttons
+      const prevButton = document.createElement('button')
+      prevButton.className = 'absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors'
+      prevButton.innerHTML = '‹'
+      prevButton.style.fontSize = '24px'
+      prevButton.setAttribute('aria-label', 'Previous image')
+      prevButton.style.display = images.length > 1 ? 'flex' : 'none'
+      
+      const nextButton = document.createElement('button')
+      nextButton.className = 'absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors'
+      nextButton.innerHTML = '›'
+      nextButton.style.fontSize = '24px'
+      nextButton.setAttribute('aria-label', 'Next image')
+      nextButton.style.display = images.length > 1 ? 'flex' : 'none'
+      
+      // Update lightbox content
+      const updateLightbox = (index: number) => {
+        const image = images[index]
+        lightboxImage.style.opacity = '0'
+        
+        setTimeout(() => {
+          lightboxImage.src = image.src
+          lightboxImage.alt = image.alt || `Masonry image ${index + 1}`
+          counter.textContent = `${index + 1} / ${images.length}`
+          
+          if (image.caption) {
+            caption.textContent = image.caption
+            caption.style.display = 'block'
+          } else {
+            caption.style.display = 'none'
+          }
+          
+          lightboxImage.style.opacity = '1'
+        }, 100)
+      }
+      
+      // Navigation functions
+      const showPrevious = () => {
+        currentIndex = currentIndex > 0 ? currentIndex - 1 : images.length - 1
+        updateLightbox(currentIndex)
+      }
+      
+      const showNext = () => {
+        currentIndex = currentIndex < images.length - 1 ? currentIndex + 1 : 0
+        updateLightbox(currentIndex)
+      }
+      
+      const closeLightbox = () => {
+        overlay.style.opacity = '0'
+        setTimeout(() => {
+          document.body.removeChild(overlay)
+          document.body.style.overflow = ''
+        }, 300)
+      }
+      
+      // Event listeners
+      closeButton.addEventListener('click', closeLightbox)
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeLightbox()
+      })
+      
+      if (images.length > 1) {
+        prevButton.addEventListener('click', showPrevious)
+        nextButton.addEventListener('click', showNext)
+      }
+      
+      // Keyboard navigation
+      const handleKeydown = (e: KeyboardEvent) => {
+        switch (e.key) {
+          case 'Escape':
+            closeLightbox()
+            break
+          case 'ArrowLeft':
+            if (images.length > 1) showPrevious()
+            break
+          case 'ArrowRight':
+            if (images.length > 1) showNext()
+            break
+        }
+      }
+      
+      document.addEventListener('keydown', handleKeydown)
+      
+      // Cleanup function
+      const cleanup = () => {
+        document.removeEventListener('keydown', handleKeydown)
+      }
+      
+      // Assemble lightbox
+      lightboxContent.appendChild(lightboxImage)
+      lightboxContent.appendChild(counter)
+      lightboxContent.appendChild(caption)
+      lightboxContent.appendChild(closeButton)
+      if (images.length > 1) {
+        lightboxContent.appendChild(prevButton)
+        lightboxContent.appendChild(nextButton)
+      }
+      
+      overlay.appendChild(lightboxContent)
+      document.body.appendChild(overlay)
+      document.body.style.overflow = 'hidden'
+      
+      // Initialize
+      updateLightbox(currentIndex)
+      
+      // Add cleanup to overlay
+      overlay.addEventListener('transitionend', () => {
+        if (overlay.style.opacity === '0') {
+          cleanup()
+        }
+      })
+    }
   }, [output]) // Re-run when HTML output changes
 
   return (
