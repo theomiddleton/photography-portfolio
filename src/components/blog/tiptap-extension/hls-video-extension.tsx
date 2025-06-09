@@ -62,13 +62,49 @@ export const HLSVideoExtension = Node.create<HLSVideoOptions>({
     ]
   },
 
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({ HTMLAttributes, node }) {
+    const { src, poster } = node.attrs
+
+    // If no src, return placeholder
+    if (!src) {
+      return [
+        'div',
+        mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+          'data-hls-video': '',
+          class:
+            'border border-dashed border-gray-300 p-4 text-center text-gray-500 rounded-lg my-4',
+        }),
+        ['p', {}, 'HLS Video: Missing source URL'],
+      ]
+    }
+
+    // Create complete video HTML structure for static rendering
+    const containerClass = 'relative w-full rounded-lg overflow-hidden'
+
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-hls-video': '',
+        'data-src': src,
+        'data-poster': poster || '',
+        class: containerClass,
       }),
-      // No content since this is an atomic node
+      [
+        'video',
+        {
+          class: 'w-full aspect-video object-cover',
+          controls: 'true',
+          preload: 'metadata',
+          poster: poster || '',
+          'data-hls-src': src,
+        },
+        // Fallback content
+        [
+          'p',
+          { class: 'text-gray-500 text-center p-4' },
+          'Your browser does not support HLS video playback.',
+        ],
+      ],
     ]
   },
 

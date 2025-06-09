@@ -377,6 +377,119 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
       })
     })
 
+    // Add interactivity to HLS videos
+    const hlsVideos = containerRef.current.querySelectorAll('[data-hls-video]')
+
+    hlsVideos.forEach((videoContainer) => {
+      const src = videoContainer.getAttribute('data-src')
+      const poster = videoContainer.getAttribute('data-poster')
+
+      if (!src) return
+
+      const videoElement = videoContainer.querySelector(
+        'video',
+      ) as HTMLVideoElement
+      const playButtonOverlay = videoContainer.querySelector(
+        '.play-button-overlay',
+      ) as HTMLElement
+      const playButton = playButtonOverlay?.querySelector('button')
+
+      if (!videoElement) return
+
+      // Initialize HLS if needed
+      let hls: any = null
+
+      const initializeHLS = async () => {
+        // Dynamically import HLS.js to avoid SSR issues
+        const { default: Hls } = await import('hls.js')
+
+        if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+          // Native HLS support (Safari)
+          videoElement.src = src
+        } else if (Hls.isSupported()) {
+          // Use HLS.js for other browsers
+          hls = new Hls({
+            enableWorker: true,
+            lowLatencyMode: true,
+          })
+
+          hls.loadSource(src)
+          hls.attachMedia(videoElement)
+
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            // Video is ready to play
+            console.log('HLS video ready to play')
+          })
+
+          hls.on(Hls.Events.ERROR, (event: any, data: any) => {
+            console.error('HLS error:', data)
+            if (data.fatal) {
+              if (hls) {
+                hls.destroy()
+                hls = null
+              }
+            }
+          })
+        }
+      }
+
+      // Initialize HLS when play button is clicked or video is interacted with
+      const handlePlay = async () => {
+        if (!hls && !videoElement.src) {
+          await initializeHLS()
+        }
+
+        try {
+          await videoElement.play()
+          if (playButtonOverlay) {
+            playButtonOverlay.style.display = 'none'
+          }
+        } catch (error) {
+          console.error('Failed to play video:', error)
+        }
+      }
+
+      // Add click handler to play button
+      if (playButton) {
+        playButton.addEventListener('click', handlePlay)
+      }
+
+      // Add click handler to video itself (when overlay is not present)
+      if (!poster || !playButtonOverlay) {
+        videoElement.addEventListener('click', () => {
+          if (videoElement.paused) {
+            handlePlay()
+          } else {
+            videoElement.pause()
+          }
+        })
+      }
+
+      // Show play button overlay when video is paused (if poster exists)
+      if (playButtonOverlay) {
+        videoElement.addEventListener('pause', () => {
+          if (poster) {
+            playButtonOverlay.style.display = 'flex'
+          }
+        })
+
+        videoElement.addEventListener('play', () => {
+          playButtonOverlay.style.display = 'none'
+        })
+      }
+
+      // Cleanup function for HLS instance
+      const cleanup = () => {
+        if (hls) {
+          hls.destroy()
+          hls = null
+        }
+      }
+
+      // Store cleanup function for later use
+      ;(videoContainer as any).hlsCleanup = cleanup
+    })
+
     // Lightbox functionality
     const openImageLightbox = (images: any[], startIndex: number) => {
       let currentIndex = startIndex
@@ -529,6 +642,20 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
           cleanup()
         }
       })
+    }
+
+    // Cleanup function to destroy HLS instances when component unmounts
+    return () => {
+      if (containerRef.current) {
+        const hlsVideos =
+          containerRef.current.querySelectorAll('[data-hls-video]')
+        hlsVideos.forEach((videoContainer) => {
+          const cleanup = (videoContainer as any).hlsCleanup
+          if (cleanup) {
+            cleanup()
+          }
+        })
+      }
     }
   }, [output]) // Re-run when HTML output changes
 
