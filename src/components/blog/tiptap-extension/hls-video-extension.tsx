@@ -79,7 +79,8 @@ export const HLSVideoExtension = Node.create<HLSVideoOptions>({
     }
 
     // Create complete video HTML structure for static rendering
-    const containerClass = 'relative w-full rounded-lg overflow-hidden'
+    const containerClass =
+      'relative w-full my-6 rounded-lg overflow-hidden bg-black'
 
     return [
       'div',
@@ -90,19 +91,57 @@ export const HLSVideoExtension = Node.create<HLSVideoOptions>({
         class: containerClass,
       }),
       [
-        'video',
-        {
-          class: 'w-full aspect-video object-cover',
-          controls: 'true',
-          preload: 'metadata',
-          poster: poster || '',
-          'data-hls-src': src,
-        },
-        // Fallback content
+        'div',
+        { class: 'relative aspect-video w-full' },
+        // Video element for HLS playback
         [
-          'p',
-          { class: 'text-gray-500 text-center p-4' },
-          'Your browser does not support HLS video playback.',
+          'video',
+          {
+            class: 'w-full h-full object-cover',
+            controls: 'true',
+            preload: 'metadata',
+            poster: poster || '',
+            'data-hls-src': src,
+          },
+          // Fallback content
+          [
+            'p',
+            { class: 'text-white text-center p-4' },
+            'Your browser does not support HLS video playback.',
+          ],
+        ],
+        // Play button overlay (will be hidden when video loads)
+        [
+          'div',
+          {
+            class:
+              'absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 play-button-overlay transition-opacity',
+            style: poster ? 'display: flex;' : 'display: none;',
+          },
+          [
+            'button',
+            {
+              class:
+                'w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all transform hover:scale-105',
+              'aria-label': 'Play video',
+            },
+            [
+              'svg',
+              {
+                class: 'w-8 h-8 text-black ml-1',
+                fill: 'currentColor',
+                viewBox: '0 0 20 20',
+              },
+              [
+                'path',
+                {
+                  'fill-rule': 'evenodd',
+                  d: 'M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z',
+                  'clip-rule': 'evenodd',
+                },
+              ],
+            ],
+          ],
         ],
       ],
     ]
