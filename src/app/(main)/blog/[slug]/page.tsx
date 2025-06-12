@@ -144,7 +144,6 @@ export default async function StaticPostPage({ params }: PostPageProps) {
 
     return (
       <article className="container mx-auto mt-12 max-w-4xl px-4 py-12">
-        {/* No unpublished banner needed here */}
         <div className="space-y-8">
           <div className="mb-8 flex items-center justify-between">
             <Link href="/blog">
@@ -154,7 +153,7 @@ export default async function StaticPostPage({ params }: PostPageProps) {
               </Button>
             </Link>
             {/* Edit button for admins, handled client-side for static pages */}
-            <EditPostButtonClient slug={blogPost.slug} />
+            {/* <EditPostButtonClient slug={blogPost.slug} /> */}
           </div>
           
           {/* Post Header */}

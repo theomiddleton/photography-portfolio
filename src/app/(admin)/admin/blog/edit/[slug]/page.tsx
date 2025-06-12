@@ -6,7 +6,8 @@ import { db } from '~/server/db'
 import { blogPosts } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { Button } from '~/components/ui/button'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Eye } from 'lucide-react'
+import Link from 'next/link'
 
 interface EditBlogPageProps {
   params: Promise<{
@@ -34,19 +35,30 @@ export default async function EditBlogPage({ params }: EditBlogPageProps) {
   }
 
   return (
-    <main className="container mx-auto px-4 py-10">
+    <main className="mx-auto px-4 py-10">
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <a href="/admin/blog" className="flex items-center gap-2">
+          <Link href="/admin/blog">
             <Button variant="outline" size="icon" className="h-7 w-7">
               <ChevronLeft className="h-4 w-4" />
               <span className="sr-only">Back</span>
             </Button>
-          </a>
-          <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+          </Link>
+          <h1 className="flex-1 text-xl font-semibold tracking-tight">
             Edit Blog Post
           </h1>
+          <Link
+            href={`/blog${post.published ? '' : '/p'}/${post.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Preview
+            </Button>
+          </Link>
         </div>
+
         <Suspense
           fallback={
             <div className="w-full animate-pulse space-y-4">
