@@ -156,7 +156,7 @@ const ImageMasonryContent: React.FC<{
       {/* File Upload Section */}
       <div className="flex flex-col gap-2">
         <Label>Upload Images</Label>
-        <AltUpload bucket="blog" onFilesAdded={handleFilesUploaded} />
+        <AltUpload bucket='blog' onFilesAdded={handleFilesUploaded} />
       </div>
 
       {/* Show uploaded files */}

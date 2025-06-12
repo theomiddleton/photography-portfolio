@@ -1,65 +1,69 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft, CalendarIcon } from 'lucide-react'
 import { db } from '~/server/db'
 import { blogPosts } from '~/server/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { getSession } from '~/lib/auth/auth'
 import { TipTapRenderer } from '~/components/blog/tiptap-renderer'
 import { formatDate } from '~/lib/utils'
-import { CalendarIcon, ArrowLeft, Edit } from 'lucide-react'
-import Link from 'next/link'
 import { Button } from '~/components/ui/button'
 import { siteConfig } from '~/config/site'
+import { EditPostButtonClient } from '~/components/blog/edit-post-button-client' // For edit button on static page
 
-// Remove the force-static export - we'll handle this conditionally
-// export const dynamic = 'force-static'
-export const dynamicParams = true
+export const dynamicParams = true // Keep this if you want to allow slugs not generated at build time to try and render (will 404 if not published)
 
 interface PostPageProps {
   params: Promise<{ slug: string }>
 }
 
-// Generate static params for all blog posts
+// Generate static params for all PUBLISHED blog posts
 export async function generateStaticParams() {
   try {
-    // Only generate static params for PUBLISHED blog posts
     const publishedPosts = await db
       .select({ slug: blogPosts.slug })
       .from(blogPosts)
       .where(eq(blogPosts.published, true))
 
-    // Log the results for debugging
-    console.log('Generated static params for blog posts:', publishedPosts.length)
-    
-    // Ensure we return an array of valid slug objects
+    console.log(
+      '[Static] Generated static params for blog posts:',
+      publishedPosts.length,
+    )
     return publishedPosts
-      .filter(post => post.slug && typeof post.slug === 'string' && post.slug.trim() !== '')
+      .filter(
+        (post) =>
+          post.slug && typeof post.slug === 'string' && post.slug.trim() !== '',
+      )
       .map((post) => ({
         slug: post.slug,
       }))
   } catch (error) {
-    console.error('Error generating static params for blog posts:', error)
-    // Return empty array if database is not available during build
+    console.error(
+      '[Static] Error generating static params for blog posts:',
+      error,
+    )
     return []
   }
 }
 
-// Generate metadata for SEO
+// Generate metadata for PUBLISHED SEO
 export async function generateMetadata({
   params,
 }: PostPageProps): Promise<Metadata> {
   try {
-    const resolvedParams = await params
+    // Fetch only published post for metadata
     const post = await db
       .select({
         title: blogPosts.title,
         description: blogPosts.description,
-        published: blogPosts.published,
+        // published: blogPosts.published, // No longer needed to check here, query ensures it
       })
       .from(blogPosts)
-      .where(eq(blogPosts.slug, resolvedParams.slug))
+      .where(
+        and(eq(blogPosts.slug, (await params).slug), eq(blogPosts.published, true)),
+      ) // Ensure published
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     if (!post) {
       return {
@@ -68,15 +72,7 @@ export async function generateMetadata({
       }
     }
 
-    // For unpublished posts, don't generate rich metadata for SEO
-    if (!post.published) {
-      return {
-        title: `${post.title} | Preview`,
-        description: `${post.description} | Preview (unpublished)`,
-        robots: 'noindex, nofollow',
-      }
-    }
-
+    // Metadata for published posts
     return {
       title: post.title,
       description: post.description || '',
@@ -94,7 +90,7 @@ export async function generateMetadata({
       },
     }
   } catch (error) {
-    console.error('Error generating metadata:', error)
+    console.error('[Static] Error generating metadata:', error)
     return {
       title: 'Blog Post',
       description: 'A blog post',
@@ -102,67 +98,53 @@ export async function generateMetadata({
   }
 }
 
-export default async function PostPage({ params }: PostPageProps) {
-  const resolvedParams = await params
-  
+export default async function StaticPostPage({ params }: PostPageProps) {
+  const { slug } = await params
+
   try {
+    // Fetch ONLY published posts
     const postResults = await db
       .select({
         id: blogPosts.id,
         title: blogPosts.title,
         content: blogPosts.content,
         description: blogPosts.description,
-        published: blogPosts.published,
+        // published: blogPosts.published, // Not needed in select, assumed true
         slug: blogPosts.slug,
         publishedAt: blogPosts.publishedAt,
         updatedAt: blogPosts.updatedAt,
         authorId: blogPosts.authorId,
       })
       .from(blogPosts)
-      .where(eq(blogPosts.slug, resolvedParams.slug))
+      .where(and(eq(blogPosts.slug, slug), eq(blogPosts.published, true))) // Crucial: only published
       .limit(1)
 
-    // If post not found, return 404
     if (!postResults.length) {
-      notFound()
+      notFound() // Will 404 if post not found OR not published
     }
 
     const blogPost = postResults[0]
-    
-    let session = null
-    if (!blogPost.published) {
-      // For unpublished posts, which are not statically generated by generateStaticParams,
-      // it's okay to call getSession() as they will be dynamically rendered.
-      session = await getSession()
-      // Only admins can view unpublished posts
-      if (!session || session.role !== 'admin') {
-        notFound()
-      }
-    } 
-    // For published posts that ARE statically generated:
-    // We do NOT call getSession() here. `session` will remain `null`.
-    // This prevents `cookies()` from being used during static generation.
-    
-    // Parse the TipTap JSON content safely
+    // No serverSession logic needed here, this page is for static published content.
+
     let content
     try {
       content = JSON.parse(blogPost.content)
     } catch (parseError) {
-      console.error('Error parsing blog post content:', parseError)
-      content = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Error loading content.' }] }] }
+      console.error('[Static] Error parsing blog post content:', parseError)
+      content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: 'Error loading content.' }],
+          },
+        ],
+      }
     }
 
     return (
-      <article className="container max-w-4xl mx-auto px-4 py-12 mt-12">
-        {/* Show preview banner for unpublished posts */}
-        {!blogPost.published && (
-          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded-lg">
-            <p className="text-yellow-800 font-medium">
-              📝 This is an unpublished post preview (Admin only)
-            </p>
-          </div>
-        )}
-        
+      <article className="container mx-auto mt-12 max-w-4xl px-4 py-12">
+        {/* No unpublished banner needed here */}
         <div className="space-y-8">
           <div className="mb-8 flex items-center justify-between">
             <Link href="/blog">
@@ -171,21 +153,8 @@ export default async function PostPage({ params }: PostPageProps) {
                 Back to posts
               </Button>
             </Link>
-            {/*
-              For published posts, `session` is `null` during static generation,
-              so this button will not be rendered server-side.
-              For unpublished posts, `session` is fetched, and the button renders if the user is an admin.
-              To show this button for admins on statically generated published pages,
-              a client component would be needed.
-            */}
-            {session && session.role === 'admin' && (
-              <Link href={`/admin/blog/edit/${blogPost.slug}`}>
-                <Button variant="outline" size="sm">
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit post
-                </Button>
-              </Link>
-            )}
+            {/* Edit button for admins, handled client-side for static pages */}
+            <EditPostButtonClient slug={blogPost.slug} />
           </div>
           
           {/* Post Header */}
@@ -218,7 +187,7 @@ export default async function PostPage({ params }: PostPageProps) {
       </article>
     )
   } catch (error) {
-    console.error('Error loading blog post:', error)
+    console.error('[Static] Error loading blog post:', error)
     notFound()
   }
 }

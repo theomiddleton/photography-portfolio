@@ -11,7 +11,7 @@ import { Button } from '~/components/ui/button'
 const initialFiles = []
 
 interface AltUploadProps {
-  bucket: string
+  bucket: 'image' | 'blog' | 'about' | 'custom'
   onFilesAdded?: (files: { id: string, name: string, url: string, file: File }[]) => void
 }
 
