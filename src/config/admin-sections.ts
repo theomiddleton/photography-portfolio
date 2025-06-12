@@ -1,12 +1,14 @@
-import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon, HomeIcon, LogOutIcon, BookOpenText, ImagesIcon, FilmIcon, FileVideoIcon, BookOpenIcon, BookOpenTextIcon } from 'lucide-react'
+import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon, HomeIcon, LogOutIcon, BookOpenText, ImagesIcon, FilmIcon, FileVideoIcon, BookOpenIcon, BookOpenTextIcon, ReceiptPoundSterlingIcon, DownloadIcon } from 'lucide-react'
 
 export const adminSections = [
   { title: 'Image Upload', description: 'Manage and upload images', icon: ImageIcon, href: '/admin/upload' },
   { title: 'Image Management', description: 'Delete, hide, and reorder images', icon: ImagesIcon, href: '/admin/manage'},
+  { title: 'Image Migration', description: 'Export and import image data', icon: DownloadIcon, href: '/admin/migrate'},
   { title: 'Blogs', description: 'View and edit blog posts', icon: BookOpenText, href: '/admin/blog' },
-  { title: 'New Blog Post', description: 'Create a new blog posts', icon: PenIcon, href: '/admin/blog/newpost' },
+  { title: 'New Blog Post', description: 'Create a new blog posts', icon: PenIcon, href: '/admin/blog/new' },
   { title: 'About', description: 'Edit about page content', icon: InfoIcon, href: '/admin/about' },
-  { title: 'Store', description: 'Manage store items and inventory', icon: StoreIcon, href: '/admin/store' },
+  { title: 'Store', description: 'Manage orders and store items', icon: StoreIcon, href: '/admin/store' },
+  { title: 'Costs', description: 'Manage shipping, tax rates, and print sizes', icon: ReceiptPoundSterlingIcon, href: '/admin/store/costs' },
   { title: 'Users', description: 'Manage user accounts and permissions', icon: UserIcon, href: '/admin/users'},
   { title: 'Videos', description: 'Manage HLS videos', icon: FilmIcon, href: '/admin/videos'  },
   { title: 'Video Upload', description: 'Upload a new Video', icon: FileVideoIcon, href: '/admin/videos/new'  }, 

@@ -12,7 +12,7 @@ import type { customPages } from '~/server/db/schema'
 import { MDXPreview } from '~/components/pages/mdx-preview'
 import { UploadImg } from '~/components/upload-img'
 import { ImageSelect } from '~/components/image-select'
-import { slugify } from '~/lib/slugify'
+import { slugify } from '~/lib/utils'
 
 export type CustomPage = typeof customPages.$inferSelect
 
@@ -162,9 +162,11 @@ export function PageForm({ page, action }: PageFormProps) {
         </div>
       </form>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Preview</h3>
-        <MDXPreview content={content} />
+      <div className="space-y-4 bg-white dark:bg-zinc-900 rounded-lg p-4 shadow">
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Preview</h3>
+        <div className="prose prose-zinc dark:prose-invert max-w-none">
+          <MDXPreview content={content} />
+        </div>
       </div>
     </div>
   )

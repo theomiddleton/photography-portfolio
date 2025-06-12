@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from 'tailwindcss'
 
 const config: Config = {
   darkMode: ["class"],
@@ -18,6 +18,10 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "sans-serif"],
+        serif: ["var(--font-serif)", "serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -76,7 +80,15 @@ const config: Config = {
   },
   plugins: [
     require('@tailwindcss/typography'),
+    require('tailwind-scrollbar'),
     require("tailwindcss-animate")
+  ],
+  safelist: [
+    'data-[style=ghost]:bg-transparent',
+    'data-[style=primary]:bg-blue-500',
+    'data-[active-state=on]:bg-gray-200',
+    'data-[state=open]:bg-gray-200',
+    'data-[highlighted=true]:bg-gray-100',
   ],
 }
 

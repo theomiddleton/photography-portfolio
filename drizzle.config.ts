@@ -1,23 +1,11 @@
-import { type Config } from "drizzle-kit";
-
-import { env } from "~/env";
-
-// export default {
-  // schema: "./src/server/db/schema.ts",
-  // dbCredentials: {
-    // connectionString: env.DATABASE_URL,
-  // },
-  // dialect: "pg",
-  // tablesFilter: ["portfolio-project_*"],
-// } satisfies Config;
-
+import { type Config } from 'drizzle-kit'
 
 export default {
-  schema: "./src/server/db/schema.ts",
+  schema: './src/server/db/schema.ts',
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url: env.DATABASE_URL,
+    url: process.env.DATABASE_URL,
   },
   verbose: true,
   strict: true,

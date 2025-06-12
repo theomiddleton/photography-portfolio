@@ -1,7 +1,26 @@
-import { serial, varchar, timestamp, pgTableCreator, integer, text, boolean } from 'drizzle-orm/pg-core'
+import {
+  serial,
+  varchar,
+  timestamp,
+  pgTableCreator,
+  integer,
+  text,
+  boolean,
+  uuid,
+  json,
+} from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
-export const pgTable = pgTableCreator((name) => `portfolio-project_${name}`)
+export const pgTable = pgTableCreator((name) => `pp_${name}`)
+
+export const orderStatuses = [
+  'pending',
+  'processing',
+  'shipped',
+  'delivered',
+  'cancelled',
+] as const
+export type OrderStatus = (typeof orderStatuses)[number]
 
 export const imageData = pgTable('imageData', {
   id: serial('id').primaryKey(),
@@ -15,26 +34,6 @@ export const imageData = pgTable('imageData', {
   order: integer('order').default(0).notNull(),
   uploadedAt: timestamp('uploadedAt').defaultNow(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
-})
-
-export const blogs = pgTable('blogs', {
-  id: serial('id').primaryKey(),
-  title: varchar('title', { length: 256 }).notNull(),
-  content: text('content').notNull(),
-  isDraft: boolean('draft').notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  modifiedAt: timestamp('modifiedAt').defaultNow(),
-})
-
-export const blogImgData = pgTable('blogImgData', {
-  id: serial('id').primaryKey(),
-  blogId: integer('blogId').references(() => blogs.id),
-  draftId: varchar('draftId', { length: 36 }),
-  uuid: varchar('uuid', { length: 36 }).notNull(),
-  fileName: varchar('fileName', { length: 256 }).notNull(),
-  fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
-  name: varchar('name', { length: 256 }).notNull(),
-  uploadedAt: timestamp('uploadedAt').defaultNow(),
 })
 
 export const aboutImgData = pgTable('aboutImgData', {
@@ -57,36 +56,11 @@ export const about = pgTable('about', {
 
 export const aboutImages = pgTable('aboutImages', {
   id: serial('id').primaryKey(),
-  aboutId: integer('about_id').notNull().references(() => about.id),
+  aboutId: integer('about_id')
+    .notNull()
+    .references(() => about.id),
   name: varchar('name', { length: 256 }).notNull(),
   url: varchar('url', { length: 512 }).notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-})
-
-export const storeImages = pgTable('storeImages', {
-  id: serial('id').primaryKey(),
-  imageId: integer('imageId'),
-  imageUuid: varchar('uuid', { length: 36 }),
-  fileUrl: varchar('fileUrl', { length: 256 }),
-  price: integer('price').notNull(),
-  stock: integer('stock').notNull(),
-  visible: boolean('visible').default(false).notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-})
-
-export const storeOrders = pgTable('storeOrders', {
-  id: serial('id').primaryKey(),
-  customerName: varchar('customerName', { length: 256 }).notNull(),
-  imageId: integer('imageId').references(() => imageData.id).notNull(),
-  storeImageId: integer('storeImageId').references(() => storeImages.id).notNull(),
-  address: varchar('address', { length: 256 }).notNull(),
-  city: varchar('city', { length: 256 }).notNull(),
-  postCode: varchar('postCode', { length: 256 }).notNull(),
-  country: varchar('country', { length: 2 }).notNull(),
-  status: varchar('status', { length: 256 }).notNull(),
-  paymentMethod: varchar('paymentMethod', { length: 256 }).notNull(),
-  quantity: integer('quantity').notNull(),
-  total: integer('total').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 })
 
@@ -140,8 +114,189 @@ export const customImgData = pgTable('customImgData', {
   uploadedAt: timestamp('uploadedAt').defaultNow(),
 })
 
+export const products = pgTable('products', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  slug: text('slug').notNull().unique(),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  imageUrl: text('imageUrl').notNull(),
+  active: boolean('active').default(true),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
+export const productSizes = pgTable('productSizes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  productId: uuid('productId').references(() => products.id),
+  name: text('name').notNull(), // e.g., '8x10', '11x14'
+  width: integer('width').notNull(), // in inches
+  height: integer('height').notNull(), // in inches
+  basePrice: integer('basePrice').notNull(), // in pennies
+  stripeProductId: text('stripeProductId').notNull(),
+  stripePriceId: text('stripePriceId').notNull(),
+  active: boolean('active').default(true),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
+export const basePrintSizes = pgTable('basePrintSizes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  width: integer('width').notNull(),
+  height: integer('height').notNull(),
+  basePrice: integer('basePrice').notNull(),
+  sellAtPrice: integer('sellAtPrice'),
+  active: boolean('active').default(true),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
+export const orders = pgTable('orders', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orderNumber: serial('orderNumber').notNull(),
+  productId: uuid('productId').references(() => products.id),
+  sizeId: uuid('sizeId').references(() => productSizes.id),
+  shippingMethodId: uuid('shippingMethodId').references(
+    () => shippingMethods.id,
+  ),
+  stripeSessionId: text('stripeSessionId').notNull(),
+  status: text('status', { enum: orderStatuses }).notNull().default('pending'),
+  customerName: text('customerName').notNull(),
+  email: text('email').notNull(),
+  subtotal: integer('subtotal').notNull(),
+  shippingCost: integer('shippingCost').notNull(),
+  tax: integer('tax').notNull(),
+  total: integer('total').notNull(),
+  currency: text('currency').notNull().default('gbp'),
+  shippingAddress: json('shippingAddress').$type<{
+    name: string
+    line1: string
+    line2?: string
+    city: string
+    state: string
+    postal_code: string
+    country: string
+    phone?: string
+  }>(),
+  trackingNumber: text('trackingNumber'),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+  statusUpdatedAt: timestamp('statusUpdatedAt').defaultNow(),
+})
+
+export const orderStatusHistory = pgTable('orderStatusHistory', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orderId: uuid('orderId').references(() => orders.id),
+  status: text('status', { enum: orderStatuses }).notNull(),
+  note: text('note'),
+  createdAt: timestamp('createdAt').defaultNow(),
+  createdBy: integer('createdBy').references(() => users.id),
+})
+
+export const shippingMethods = pgTable('shippingMethods', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  price: integer('price').notNull(), // Stored in pence
+  estimatedDays: integer('estimatedDays'),
+  active: boolean('active').default(true),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
+export const storeCosts = pgTable('storeCosts', {
+  id: serial('id').primaryKey(),
+  taxRate: integer('taxRate').notNull(), // Stored as percentage * 10000 (e.g., 20.55% = 205500)
+  stripeTaxRate: integer('stripeTaxRate').notNull(), // Stored as percentage * 10000 (e.g., 1.45% = 14500)
+  profitPercentage: integer('profitPercentage'), // Stored as percentage * 10000 (e.g., 20.55% = 205500)
+  active: boolean('active').default(true).notNull(),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
+export const blogPosts = pgTable('blogPosts', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  description: text('description'),
+  content: text('content').notNull(),
+  published: boolean('published').default(false).notNull(),
+  publishedAt: timestamp('publishedAt'),
+  authorId: integer('authorId').references(() => users.id),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+export const blogDrafts = pgTable('blogDrafts', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  postId: uuid('postId').references(() => blogPosts.id),
+  title: text('title').notNull(),
+  description: text('description'),
+  content: text('content').notNull(),
+  authorId: integer('authorId').references(() => users.id),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+export const blogVersions = pgTable('blogVersions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  postId: uuid('postId').references(() => blogPosts.id),
+  title: text('title').notNull(),
+  description: text('description'),
+  content: text('content').notNull(),
+  authorId: integer('authorId').references(() => users.id),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+})
+
+export const blogImages = pgTable('blogImages', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  postId: uuid('postId').references(() => blogPosts.id),
+  fileName: text('fileName').notNull(),
+  fileUrl: text('fileUrl').notNull(),
+  alt: text('alt'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+})
+
+export const orderRelations = relations(orders, ({ one, many }) => ({
+  product: one(products, {
+    fields: [orders.productId],
+    references: [products.id],
+  }),
+  size: one(productSizes, {
+    fields: [orders.sizeId],
+    references: [productSizes.id],
+  }),
+  shippingMethod: one(shippingMethods, {
+    fields: [orders.shippingMethodId],
+    references: [shippingMethods.id],
+  }),
+  statusHistory: many(orderStatusHistory),
+}))
+
+export const orderStatusHistoryRelations = relations(
+  orderStatusHistory,
+  ({ one }) => ({
+    order: one(orders, {
+      fields: [orderStatusHistory.orderId],
+      references: [orders.id],
+    }),
+    user: one(users, {
+      fields: [orderStatusHistory.createdBy],
+      references: [users.id],
+    }),
+  }),
+)
+
+export type Product = typeof products.$inferSelect
+export type ProductSize = typeof productSizes.$inferSelect
+export type BasePrintSize = typeof basePrintSizes.$inferSelect
+export type Order = typeof orders.$inferSelect
+export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect
+export type ShippingMethod = typeof shippingMethods.$inferSelect
+export type StoreCosts = typeof storeCosts.$inferSelect
+
 export const aboutRelations = relations(about, ({ many }) => ({
-  images: many(aboutImages)
+  images: many(aboutImages),
 }))
 
 export const aboutImagesRelations = relations(aboutImages, ({ one }) => ({
@@ -150,3 +305,48 @@ export const aboutImagesRelations = relations(aboutImages, ({ one }) => ({
     references: [about.id],
   }),
 }))
+
+
+export const blogRelations = relations(blogPosts, ({ one, many }) => ({
+  author: one(users, {
+    fields: [blogPosts.authorId],
+    references: [users.id],
+  }),
+  drafts: many(blogDrafts),
+  versions: many(blogVersions),
+  images: many(blogImages),
+}))
+
+export const blogDraftRelations = relations(blogDrafts, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogDrafts.postId],
+    references: [blogPosts.id],
+  }),
+  author: one(users, {
+    fields: [blogDrafts.authorId],
+    references: [users.id],
+  }),
+}))
+
+export const blogVersionRelations = relations(blogVersions, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogVersions.postId],
+    references: [blogPosts.id],
+  }),
+  author: one(users, {
+    fields: [blogVersions.authorId],
+    references: [users.id],
+  }),
+}))
+
+export const blogImageRelations = relations(blogImages, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogImages.postId],
+    references: [blogPosts.id],
+  }),
+}))
+
+export type BlogPost = typeof blogPosts.$inferSelect
+export type BlogDraft = typeof blogDrafts.$inferSelect
+export type BlogVersion = typeof blogVersions.$inferSelect
+export type BlogImage = typeof blogImages.$inferSelect

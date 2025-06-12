@@ -1,7 +1,6 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
-import { useFormState } from 'react-dom'
+import { useRef, useEffect, useActionState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -17,7 +16,7 @@ const initialState = {
 export default function LogoutPage() {
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
-  const [state, formAction] = useFormState(logout, initialState)
+  const [state, formAction] = useActionState(logout, initialState)
 
   useEffect(() => {
     if (state.success) {

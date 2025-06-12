@@ -3,7 +3,7 @@ import { adminSections } from '~/config/admin-sections'
 
 export function AdminSidebar() {
   return (  
-    <div className="flex flex-col gap-4 border-r bg-muted/40 p-4">
+    <div className="flex flex-col gap-4 border-r bg-muted/40 p-4 h-full">
       <nav className="grid gap-2">
         {adminSections.map((section, index) => {
           const Icon = section.icon

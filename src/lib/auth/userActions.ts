@@ -76,14 +76,20 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
     return { message: 'Invalid password' }
   }
   
-  const session = await createSession({ email: user.email, role: user.role })
-  
-  cookies().set('session', session, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    expires: new Date(Date.now() + JWT_EXPIRATION_MS)
-  })
+  try {
+    const session = await createSession({ email: user.email, role: user.role, id: user.id })
+    
+    const cookieStore = await cookies()
+    cookieStore.set('session', session, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      expires: new Date(Date.now() + JWT_EXPIRATION_MS)
+    })
+  } catch (error) {
+    console.error('Error setting session:', error)
+    return { message: 'Error during login process' }
+  }
   
   // Return redirect path based on role
   const redirectPath = user.role === 'admin' ? '/admin' : '/'
@@ -143,25 +149,36 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     }
   }
   
-  const session = await createSession({ email: email, role: role })
-  
-  cookies().set('session', session, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    expires: new Date(Date.now() + JWT_EXPIRATION_MS)
-  })
-  
-  // Create the user
+  // Create the user first to get the id
   try {
-    type NewUser = typeof users.$inferInsert;
+    type NewUser = typeof users.$inferInsert
     
     const insertUser = async (user: NewUser) => {
-      return db.insert(users).values(user)
+      return db.insert(users).values(user).returning({ id: users.id })
     }
     
     const newUser: NewUser = { name: name, email: email, password: hashedPassword, role: role }
-    await insertUser(newUser)
+    const [createdUser] = await insertUser(newUser)
+    
+    // Now create session with the new user's ID
+    try {
+      const session = await createSession({ 
+        email: email, 
+        role: role, 
+        id: createdUser.id 
+      })
+      
+      const cookieStore = await cookies()
+      cookieStore.set('session', session, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        expires: new Date(Date.now() + JWT_EXPIRATION_MS)
+      })
+    } catch (error) {
+      console.error('Error setting session:', error)
+      return { message: 'Error during registration process' }
+    }
     
     return { message: 'User created' }
   } catch (error) {
@@ -171,7 +188,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
 }
 
 export async function logout(_prevState: LogoutState): Promise<LogoutState> {
-  const sessionCookie = cookies().get('session')
+  const sessionCookie = (await cookies()).get('session')
 
   if (!sessionCookie) {
     return { 
@@ -182,7 +199,7 @@ export async function logout(_prevState: LogoutState): Promise<LogoutState> {
   }
 
   try {
-    cookies().set('session', '', { expires: new Date(0) })
+    (await cookies()).set('session', '', { expires: new Date(0) })
     return {
       success: true,
       message: 'Logged out successfully, wait to be redirected.',

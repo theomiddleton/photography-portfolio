@@ -1,15 +1,20 @@
 export const siteConfig = {
-  //title: 'Portfolio Project',
   title: 'Portfolio',
   description: 'Photography portfolio of Theo Middleton',
+  storeName: 'T Middleton Store',
+  ownerName: 'Theo Middleton',
   imageBucketUrl: 'https://img.theomiddleton.me',
   blogBucketUrl: 'https://blog-img.theomiddleton.me',
   aboutBucketUrl: 'https://about-img.theomiddleton.me',
   customBucketUrl: 'https://custom-img.theomiddleton.me',
-  url: 'https://theomiddleton.me',
+  url: 'https://theoo.ooo',
+  altUrl: 'https://theomiddleton.me',
   links: {
-    github: 'https://github.com/theomiddleton/portfolio-project',
-    website: 'https://theomiddleton.me'
+    github: '',
+    website: 'https://theoo.ooo',
+    instagram: 'https://www.instagram.com/theomiddleton_/',
+    twitter: '',
+    facebook: ''
   },
   headers: {
     main: '',
@@ -29,7 +34,10 @@ export const siteConfig = {
       ],
     },  
   },
+  emails: {
+    order: 'orders@email.theoo.ooo',
+    support: 'support@theoo.ooo',
+    replyTo: 'reply@theoo.ooo'
+  }
 }
-
-
 export type SiteConfig = typeof siteConfig

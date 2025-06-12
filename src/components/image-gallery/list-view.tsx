@@ -1,0 +1,206 @@
+'use client'
+
+import { useState } from 'react'
+import Image from 'next/image'
+import { ArrowDown, ArrowUp, Eye, EyeOff, Trash2 } from 'lucide-react'
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '~/components/ui/table'
+import { Button } from '~/components/ui/button'
+import { Switch } from '~/components/ui/switch'
+import { Input } from '~/components/ui/input'
+import type { PortfolioImageData } from '~/lib/types/image'
+
+interface ListViewProps {
+  isProcessing?: boolean
+  images: PortfolioImageData[]
+  selectedImage: string | null
+  onSelect: (id: string) => void
+  onToggleVisibility: (id: string) => void
+  onDelete: (id: string) => void
+  onMove: (id: string, toPosition: number) => void
+}
+
+export function ListView({
+  images,
+  selectedImage,
+  onSelect,
+  onToggleVisibility,
+  onDelete,
+  onMove,
+  isProcessing = false,
+}: ListViewProps) {
+  const [editingPosition, setEditingPosition] = useState<{
+    id: string
+    value: string
+  } | null>(null)
+
+  const handlePositionChange = (id: string, position: number) => {
+    // Convert to zero-based index
+    const targetPosition = Math.max(
+      0,
+      Math.min(position - 1, images.length - 1),
+    )
+    onMove(id, targetPosition)
+    setEditingPosition(null)
+  }
+
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[80px]">Position</TableHead>
+            <TableHead className="w-[100px]">Preview</TableHead>
+            <TableHead>Title</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead className="w-[100px]">Visibility</TableHead>
+            <TableHead className="w-[120px]">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {images.map((image, index) => (
+            <TableRow
+              key={image.id}
+              className={selectedImage === String(image.id) ? 'bg-muted/50' : undefined}
+              onClick={() => onSelect(String(image.id))}
+            >
+              <TableCell>
+                {editingPosition && editingPosition.id === String(image.id) ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      const newPosition = Number.parseInt(editingPosition.value)
+                      if (!isNaN(newPosition)) {
+                        handlePositionChange(String(image.id), newPosition)
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Input
+                      type="number"
+                      min="1"
+                      max={images.length}
+                      value={editingPosition.value}
+                      onChange={(e) =>
+                        setEditingPosition({
+                          id: String(image.id),
+                          value: e.target.value,
+                        })
+                      }
+                      disabled={isProcessing}
+                      className="h-8 w-16"
+                      autoFocus
+                      onBlur={() => {
+                        const newPosition = Number.parseInt(
+                          editingPosition.value,
+                        )
+                        if (!isNaN(newPosition)) {
+                          handlePositionChange(String(image.id), newPosition)
+                        } else {
+                          setEditingPosition(null)
+                        }
+                      }}
+                    />
+                  </form>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setEditingPosition({
+                        id: String(image.id),
+                        value: (index + 1).toString(),
+                      })
+                    }}
+                    disabled={isProcessing}
+                  >
+                    {index + 1}
+                  </Button>
+                )}
+              </TableCell>
+              <TableCell>
+                <div className="relative h-12 w-16">
+                  <Image
+                    src={image.fileUrl || '/placeholder.svg'}
+                    alt={image.description}
+                    fill
+                    className="rounded-sm object-cover"
+                  />
+                </div>
+              </TableCell>
+              <TableCell>{image.name}</TableCell>
+              <TableCell>{image.tags}</TableCell>
+              <TableCell>
+                <div
+                  className="flex items-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Switch
+                    id={`list-visibility-${image.id}`}
+                    checked={image.visible}
+                    onCheckedChange={() => onToggleVisibility(String(image.id))}
+                    disabled={isProcessing}
+                  />
+                  <span className="ml-2 text-xs">
+                    {image.visible ? (
+                      <span className="flex items-center">
+                        <Eye className="mr-1 h-3 w-3" /> Visible
+                      </span>
+                    ) : (
+                      <span className="flex items-center">
+                        <EyeOff className="mr-1 h-3 w-3" /> Hidden
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div
+                  className="flex space-x-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={index === 0 || isProcessing}
+                    onClick={() => onMove(String(image.id), index - 1)}
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={index === images.length - 1 || isProcessing}
+                    onClick={() => onMove(String(image.id), index + 1)}
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => onDelete(String(image.id))}
+                    disabled={isProcessing}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}

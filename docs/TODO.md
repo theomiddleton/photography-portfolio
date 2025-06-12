@@ -15,27 +15,97 @@
 - [ ] Infinte scroll
 - [x] rethink auth
 
+
+- [ ] audit security - https://youtu.be/0EVB5LAtlDQ, https://nextjs.org/blog/security-nextjs-server-components-actions
+
 When uploading in batches check order id works properly, is currently broken when rearagning ui
 Also fix that linking is broken - it uses the order id rather than the image id
 Make hide buttons show when hidden, change message so fits in the row
 
+- [ ] Optimise for mobile - 37% of visitors are on mobile
+  - [x] mobile admin page - set sidebar to sheet
+
+## Rework store
+
+- [x] FIX 3000% increase on each charge
+  - [x] actually fix it
+    - [ ] Fix shipping always being 1st option
+  - [x] change shipping implementation
+
+- [ ] Add profit / sell at prices
+- [ ] Fix product delete
+  
+- [ ] Fully upgrade to next 15
+
+- [x] Public store page
+  - [ ] Filterable by categories, price, date
+  - [x] Each image displays preview, title, price if for sale
+  - [x] Lightbox view for detailed image inspection
+  - [ ] "Add to Cart" button only appears on for-sale items
+- [ ] Cart System
+  - [ ] Persistent cart using local storage
+  - [ ] Cart sidebar/modal
+  - [x] Checkout flow integrated with Stripe
+- [ ] User Account Area
+
+  - [ ] Order history
+  - [ ] Order status
+  - [ ] Save favorites
+
+- [x] Admin Interface
+
+  - [x] Image Management Form
+    - [x] Toggle "For Sale" status
+    - [x] Set pricing
+    - [ ] Add metadata (title, description, categories)
+  - [x] Order Management
+    - [x] View/track orders
+    - [ ] Download sales reports
+    - [ ] Customer communication system
+
+  Services Layer
+
+  - [x] ImageService
+    - [x] Creates thumbnails
+      - [x] Frame images
+        - [x] dynamicaly create using sharp / css (darkroom implementation)
+    - [x] Manages cloud storage (R2)
+      - [x] update delete 
+
+  StripeService
+
+  - [x] Payment processing
+  - [ ] Webhook handling
+  - [x] Receipt generation
+
+  OrderService
+
+  - [ ] Order fulfillment
+  - [x] Email notifications
+
+  - [ ] SEO & Sharing
+    - [x] Dynamic OG images
+    - [ ] Structured data for products
+    - [ ] Sitemap generation
+    - [ ] Social sharing metadata
+
+## Change Editors
+
+- [ ] Change to Lexical / Slate / MDXEditor
+
 ## Security
 
-- [] audit security <https://youtu.be/yUm-ET8w_28>
-
-## Security
-
-- [] audit security <https://youtu.be/yUm-ET8w_28>
+- [ ] audit security <https://youtu.be/yUm-ET8w_28>
 
 ## UI
 
 - [ ] Main page
   - [x] Image Gallery
     - [x] Gallery order - within admin
-      - [ ] Colour based order (adv)
+      - [x] Colour based order (adv)
     - [x] Image page
       - [x] revisit for responsiveness on smaller screens
-  - [ ] Infinite scroll  
+  - [ ] Infinite scroll
   - [x] Auto update
   - [x] Image Select
     - [ ] Metadata
@@ -55,11 +125,11 @@ Make hide buttons show when hidden, change message so fits in the row
     - [x] have title and image header
     - [x] work with markdown
   - [x] Update without redeploy
-- [ ] Film release with mux
+- [x] Film release with hls
 - [ ] Admin
   - [ ] Page views
     - [ ] Rework
-  - [ ] Upload
+  - [x] Upload
     - [x] cloudflare
       - [x] upload
         - [x] upload file info to database
@@ -73,7 +143,7 @@ Make hide buttons show when hidden, change message so fits in the row
     - [ ] Metadata
     - [x] Tags
     - [ ] Location
-  - [ ] Sales
+  - [x] Sales
   - [ ] Dashboard
 
 ## Store
@@ -97,4 +167,4 @@ Make hide buttons show when hidden, change message so fits in the row
 ## Auth / purchase
 
 - [x] Rework auth
-- [ ] Revisit store
+- [x] Revisit store

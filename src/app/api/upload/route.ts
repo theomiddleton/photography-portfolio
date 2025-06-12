@@ -6,17 +6,17 @@ import { siteConfig } from '~/config/site'
 
 import { eq, sql, max } from 'drizzle-orm'
 import { db } from '~/server/db'
-import {
-  imageData,
-  storeImages,
-  blogImgData,
-  aboutImgData,
-  customImgData,
-} from '~/server/db/schema'
+import { imageData, aboutImgData, customImgData } from '~/server/db/schema'
 import { NextResponse } from 'next/server'
+
+import { products, productSizes } from '~/server/db/schema'
+import { slugify } from '~/lib/utils'
+
+import { revalidatePath } from 'next/cache'
 
 import { logAction } from '~/lib/logging'
 import { getSession } from '~/lib/auth/auth'
+import { stripe } from '~/lib/stripe'
 
 export async function POST(request: Request) {
   const session = await getSession()
@@ -28,27 +28,10 @@ export async function POST(request: Request) {
       { status: 401 },
     )
   }
-
-  const { filename, name, description, tags, isSale, bucket } =
-    await request.json()
-  console.log(
-    'Passed to API route:',
-    filename,
-    ',',
-    name,
-    ',',
-    description,
-    ',',
-    tags,
-    ',',
-    isSale,
-    ',',
-    bucket,
-  )
-  logAction(
-    'upload',
-    `Uploading image: ${filename}, name: ${name}, description: ${description}, tags: ${tags}, isSale: ${isSale}, bucket: ${bucket}`,
-  )
+  
+  const { filename, name, description, tags, isSale, bucket, printSizes } = await request.json()
+  console.log('Passed to API route:', filename, ',', name, ',', description, ',', tags, ',', isSale, ',', bucket, ',', printSizes)
+  logAction('upload', `Uploading image: ${filename}, name: ${name}, description: ${description}, tags: ${tags}, isSale: ${isSale}, bucket: ${bucket} printSizes: ${printSizes}`)
 
   try {
     // take the file extention from the filename
@@ -92,7 +75,7 @@ export async function POST(request: Request) {
               : ''
     }/${newFileName}`
 
-    console.log('fileUrl:', fileUrl)
+    const slug = slugify(name)
 
     if (bucket === 'image') {
       // Get the current maximum order
@@ -115,6 +98,7 @@ export async function POST(request: Request) {
         order: newOrder,
       })
 
+
       const result = await db
         .select({
           id: imageData.id,
@@ -123,26 +107,46 @@ export async function POST(request: Request) {
         .from(imageData)
         .where(eq(imageData.uuid, sql.placeholder('uuid')))
         .execute({ uuid: keyName })
-
-      if (isSale) {
-        await db.insert(storeImages).values({
-          imageId: result[0].id,
-          imageUuid: keyName,
-          fileUrl: fileUrl,
-          price: 100,
-          stock: 10,
-          visible: true,
+      
+      const [product] = await db
+        .insert(products)
+        .values({
+          name,
+          slug,
+          description,
+          imageUrl: fileUrl,
+          active: isSale,
         })
+        .returning()
+      
+      if (isSale) {
+        for (const size of printSizes) {
+          const stripeProduct = await stripe.products.create({
+            name: `${name} - ${size.name}`,
+            description: `${size.width}'x${size.height}' print of ${name}`,
+            images: [fileUrl],
+          })
+            
+          const stripePrice = await stripe.prices.create({
+            product: stripeProduct.id,
+            unit_amount: size.basePrice,
+            currency: 'gbp',
+          })
+            
+          await db.insert(productSizes).values({
+            productId: product.id,
+            name: size.name,
+            width: size.width,
+            height: size.height,
+            basePrice: size.basePrice,
+            stripeProductId: stripeProduct.id,
+            stripePriceId: stripePrice.id,
+          })
+        }
       }
     } else if (bucket === 'blog') {
       console.log('Inserting blog image data')
       logAction('upload', 'Inserting blog image data')
-      await db.insert(blogImgData).values({
-        uuid: keyName,
-        fileName: newFileName,
-        fileUrl: fileUrl,
-        name: name,
-      })
     } else if (bucket === 'about') {
       console.log('Inserting about image data')
       logAction('upload', 'Inserting about image data')
@@ -162,6 +166,9 @@ export async function POST(request: Request) {
         name: name,
       })
     }
+
+    revalidatePath('/store')
+    revalidatePath(`/store/${slug}`)
 
     // Revalidate paths after successful upload
     if (bucket === 'image') {
@@ -191,7 +198,8 @@ export async function POST(request: Request) {
 
     return Response.json({ url, fileUrl })
   } catch (error) {
-    console.error(error)
-    return Response.json({ error: error.message })
+    console.error('Upload Error:', error)
+    return Response.json({ error: error.message }, { status: 500 })
   }
 }
+

@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { getSession } from '~/lib/auth/auth'
 
-// This API route handles on-demand revalidation for images
-// It can be called when images are uploaded, updated, or deleted
-// to trigger revalidation of affected pages without waiting for time-based revalidation
-
 export async function POST(request: NextRequest) {
   // Verify the request is authenticated
   const session = await getSession()

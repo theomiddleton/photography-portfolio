@@ -10,11 +10,11 @@ const JWT_EXPIRATION_HOURS = parseInt(process.env.JWT_EXPIRATION_HOURS || '720')
 const JWT_EXPIRATION_MS = JWT_EXPIRATION_HOURS * 60 * 60 * 1000
 
 export async function getSession(): Promise<any | null> {
-  const session = cookies().get('session')?.value
+  const session = (await cookies()).get('session')?.value
   if (!session) return null
   try {
     const { payload } = await jwtVerify(session, key, { algorithms: ['HS256'] })
-    return payload as { email: string, role: string, exp: number }
+    return payload as { email: string, role: string, id: number, exp: number }
   } catch (error) {
     console.error('Failed to verify session:', error)
     return null

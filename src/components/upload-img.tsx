@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Icons } from '~/components/ui/icons'
 import { Button } from '~/components/ui/button'
 import {
@@ -27,6 +27,13 @@ interface UploadedImage {
   copied: boolean
 }
 
+interface PrintSize {
+  name: string
+  width: number
+  height: number
+  basePrice: number
+}
+
 export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -34,10 +41,60 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState('')
   const [isSale, setIsSale] = useState<boolean>(false)
+  const [printSizes, setPrintSizes] = useState<PrintSize[]>([{ name: '8x10', width: 8, height: 10, basePrice: 2500 }])
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
 
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }, [])
+
+  const handleDragIn = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true)
+    }
+  }, [])
+
+  const handleDragOut = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const droppedFile = e.dataTransfer.files[0]
+      if (droppedFile.type.startsWith('image/')) {
+        setFile(droppedFile)
+      } else {
+        alert('Please upload an image file')
+      }
+      e.dataTransfer.clearData()
+    }
+  }, [])
+
+  const handleAddSize = () => {
+    setPrintSizes([...printSizes, { name: '', width: 0, height: 0, basePrice: 0 }])
+  }
+
+  const handleSizeChange = (index: number, field: keyof PrintSize, value: string | number) => {
+    const newSizes = [...printSizes]
+    newSizes[index] = {
+      ...newSizes[index],
+      [field]: field === 'basePrice' ? Number(value) * 100 : value,
+    }
+    setPrintSizes(newSizes)
+  }
+  
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       setFile(event.target.files[0])
@@ -78,6 +135,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
           description: bucket === 'image' ? description : '', 
           tags: bucket === 'image' ? tags : '', 
           isSale: bucket === 'image' ? isSale : false,
+          printSizes: bucket === 'image' ? printSizes : [],
           bucket,
           draftId
         }),
@@ -114,6 +172,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
           setDescription('')
           setTags('')
           setIsSale(false)
+          setPrintSizes([{ name: '8x10', width: 8, height: 10, basePrice: 2500 }])
           setUploadProgress(0)
         } else {
           console.error('R2 Upload Error:', xhr.statusText)
@@ -175,19 +234,29 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   return (
     <Card className="mt-2 justify-center w-full">
       <CardHeader>
-        <CardTitle>Upload {bucket === 'image' ? 'Image' : bucket === 'blog' ? 'Blog Image' : bucket === 'about' ? 'About Image' : 'Custom Page Images'}</CardTitle> 
+        <CardTitle>Upload {bucket === 'image' ? 'Image' : bucket === 'blog' ? 'Blog Image' : bucket === 'about' ? 'About Image' : 'Custom Page Images'}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mt-2 flex justify-center rounded-lg border border-dashed border-black/25 px-6 py-10">
-          <div className="text-center">
+        <div 
+          className={`mt-2 flex items-center justify-center rounded-lg border-2 border-dashed 
+            ${isDragging 
+              ? 'border-primary bg-primary/5 cursor-copy ring-2 ring-primary/50' 
+              : 'border-black/25 dark:border-white/25 hover:border-black/40 dark:hover:border-white/40'
+            } px-6 py-10 transition-all duration-200`}
+          onDragEnter={handleDragIn}
+          onDragLeave={handleDragOut}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <div className={`text-center flex flex-col items-center justify-center ${isDragging ? 'scale-105' : ''} transition-transform duration-200`}>
             <Icons.imageIcon
-              className="mx-auto h-12 w-12 text-gray-500"
+              className={`mx-auto h-12 w-12 ${isDragging ? 'text-primary' : 'text-gray-500 dark:text-gray-400'} transition-colors duration-200`}
               aria-hidden="true"
             />
-            <div className="mt-4 text-sm leading-6 text-gray-600">
+            <div className="mt-4 text-sm leading-6 text-gray-600 dark:text-gray-300">
               <label
                 htmlFor="file-upload"
-                className="relative cursor-pointer rounded-md bg-gray-100 font-semibold text-black focus-within:outline-none focus-within:ring-2 focus-within:ring-gray-600 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 hover:text-gray-500"
+                className="relative cursor-pointer rounded-md bg-gray-100 dark:bg-gray-800 font-semibold text-black dark:text-white focus-within:outline-none focus-within:ring-2 focus-within:ring-gray-600 dark:focus-within:ring-gray-300 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 dark:focus-within:ring-offset-gray-900 hover:text-gray-500 dark:hover:text-gray-300"
               >
                 <span>Upload a file</span>
                 <input
@@ -199,6 +268,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
                   onChange={handleFileChange}
                 />
               </label>
+              <p className="mt-2">or drag and drop</p>
             </div>
             <p className="text-xs leading-5 text-gray-600">
               {file?.name ? file.name : 'JPEG or PNG up to 100MB'}
@@ -223,14 +293,16 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
                   <Input id="tags" placeholder="Tags" value={tags} onChange={(e) => setTags(e.target.value)} />
                 </div>
                 <div className="flex items-center space-x-2 space-y-1.5">
-                  <Label htmlFor="sale">For Sale?</Label>
-                  <input 
-                    className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                    type="checkbox" 
-                    id="sale" 
-                    checked={isSale} 
-                    onChange={(e) => setIsSale(e.target.checked)}
-                  />
+                  <Label htmlFor="sale" className="flex items-center">For Sale?</Label>
+                  <span className="inline-block align-middle">
+                    <input 
+                      className="peer size-6 shrink-0 rounded-sm border border-primary shadow accent-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                      type="checkbox" 
+                      id="sale" 
+                      checked={isSale} 
+                      onChange={(e) => setIsSale(e.target.checked)}
+                    />
+                  </span>
                 </div>
               </>
             )}
@@ -257,6 +329,55 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
           {uploading ? 'Uploading...' : 'Upload'}
         </Button>
       </CardFooter>      
+      
+      {isSale && (
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Print Sizes</h3>
+              <Button onClick={handleAddSize} variant="outline" size="sm">
+                Add Size
+              </Button>
+            </div>
+            {printSizes.map((size, index) => (
+              <div key={index} className="grid grid-cols-4 gap-4">
+                <div>
+                  <Label>Size Name</Label>
+                  <Input
+                    value={size.name}
+                    onChange={(e) => handleSizeChange(index, 'name', e.target.value)}
+                    placeholder="e.g., 8x10"
+                  />
+                </div>
+                <div>
+                  <Label>Width (inches)</Label>
+                  <Input
+                    type="number"
+                    value={size.width}
+                    onChange={(e) => handleSizeChange(index, 'width', Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label>Height (inches)</Label>
+                  <Input
+                    type="number"
+                    value={size.height}
+                    onChange={(e) => handleSizeChange(index, 'height', Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label>Base Price (£)</Label>
+                  <Input
+                    type="number"
+                    value={size.basePrice / 100}
+                    onChange={(e) => handleSizeChange(index, 'basePrice', e.target.value)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      )}
       
       {uploadSuccess && (
         <div className="px-6 pb-2">

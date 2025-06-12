@@ -18,7 +18,7 @@ import { Textarea } from '~/components/ui/textarea'
 import type { videos } from '~/server/db/schema'
 import { useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { slugify } from '~/lib/slugify'
+import { slugify } from '~/lib/utils'
 
 type Video = typeof videos.$inferSelect
 
