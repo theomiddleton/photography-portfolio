@@ -98,6 +98,7 @@ export async function POST(request: Request) {
         order: newOrder,
       })
 
+
       const result = await db
         .select({
           id: imageData.id,
@@ -201,3 +202,4 @@ export async function POST(request: Request) {
     return Response.json({ error: error.message }, { status: 500 })
   }
 }
+

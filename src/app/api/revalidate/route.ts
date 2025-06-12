@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { getSession } from '~/lib/auth/auth'
 
-
 export async function POST(request: NextRequest) {
   // Verify the request is authenticated
   const session = await getSession()
