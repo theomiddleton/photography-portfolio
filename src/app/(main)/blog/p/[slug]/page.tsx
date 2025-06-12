@@ -48,8 +48,7 @@ export default async function PreviewPostPage({
 }: PreviewPostPageProps) {
   const session = await getSession()
 
-  if (!session || session.user?.role !== 'admin') {
-    // Only admins can access preview pages
+  if (!session?.role || session.role !== 'admin') {
     notFound()
   }
 

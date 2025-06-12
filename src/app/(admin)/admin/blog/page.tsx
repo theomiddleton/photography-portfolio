@@ -95,7 +95,7 @@ export default async function AdminBlogPage() {
                       Edit
                     </Link>
                     <Link
-                      href={`/blog/${post.slug}`}
+                      href={post.published ? `/blog/${post.slug}` : `/blog/p/${post.slug}`}
                       className="text-gray-600 hover:text-gray-900"
                       target="_blank"
                     >
