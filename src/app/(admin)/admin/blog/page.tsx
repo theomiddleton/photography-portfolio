@@ -1,7 +1,7 @@
 import React from 'react'
 import { db } from '~/server/db'
 import { desc } from 'drizzle-orm'
-import { blogPosts } from '~/server/db/schema'  
+import { blogPosts } from '~/server/db/schema'
 import Link from 'next/link'
 import { Button } from '~/components/ui/button'
 import { PlusCircle } from 'lucide-react'
@@ -13,23 +13,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card"
+} from '~/components/ui/table'
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
+import type { Metadata } from 'next'
 
 // Set revalidation to 0 for real-time updates
 export const revalidate = 0
 
+export const metadata: Metadata = {
+  title: 'Blog Management - Admin',
+  description: 'Manage blog posts and content',
+}
+
 export default async function AdminBlogPage() {
   const posts = await db
     .select({
-      id: blogPosts.id,   
+      id: blogPosts.id,
       title: blogPosts.title,
-      slug: blogPosts.slug, 
+      slug: blogPosts.slug,
       excerpt: blogPosts.description,
       published: blogPosts.published,
       publishedAt: blogPosts.publishedAt,
@@ -95,7 +96,11 @@ export default async function AdminBlogPage() {
                       Edit
                     </Link>
                     <Link
-                      href={post.published ? `/blog/${post.slug}` : `/blog/p/${post.slug}`}
+                      href={
+                        post.published
+                          ? `/blog/${post.slug}`
+                          : `/blog/p/${post.slug}`
+                      }
                       className="text-gray-600 hover:text-gray-900"
                       target="_blank"
                     >

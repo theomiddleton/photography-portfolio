@@ -10,6 +10,12 @@ import { UploadImg } from '~/components/upload-img'
 import { readAbout, saveAbout } from '~/lib/actions/about'
 import { ImageSelect } from '~/components/image-select'
 import { components } from '~/components/pages/mdx-components/mdx-components'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'About Page Editor - Admin',
+  description: 'Edit about page content and manage assets'
+}
 
 interface FeedbackState {
   type: 'success' | 'error' | null

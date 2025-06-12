@@ -6,6 +6,12 @@ import { Button } from '~/components/ui/button'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Video Management - Admin',
+  description: 'Manage HLS videos and visibility settings'
+}
 
 export const revalidate = 3600
 

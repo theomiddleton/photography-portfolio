@@ -6,6 +6,12 @@ import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useState } from 'react'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Email Testing - Admin',
+  description: 'Test email templates and delivery',
+}
 
 export default function TestEmailPage() {
   const [sending, setSending] = useState(false)

@@ -3,6 +3,15 @@ import type { ReactNode } from 'react'
 import { ThemeProvider } from '~/components/admin/theme/theme-provider'
 import { AdminHeader } from '~/components/admin/header'
 import { AdminSidebar } from '~/components/admin/sidebar'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: {
+    template: '%s | Admin Dashboard',
+    default: 'Admin Dashboard'
+  },
+  description: 'Administrative dashboard for portfolio management'
+}
 
 interface AdminLayoutProps {
   children: ReactNode

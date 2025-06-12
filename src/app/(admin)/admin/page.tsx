@@ -1,6 +1,11 @@
 import { AdminTitle } from '~/components/admin/titles'
-
 import { adminSections } from '~/config/admin-sections'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Admin Dashboard',
+  description: 'Administrative dashboard for managing the portfolio'
+}
 
 export default function Admin() {
   return (
