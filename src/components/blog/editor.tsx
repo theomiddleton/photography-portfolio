@@ -198,7 +198,7 @@ export const SimpleEditor = React.forwardRef<{ editor: ReturnType<typeof useEdit
         </Toolbar>
       )}
 
-      <div className="h-[calc(100%-2.75rem)] overflow-y-auto scrollbar scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300">
+      <div className="h-[calc(100%-2.75rem)] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300">
         {!isEditorReady ? (
           <div className="mx-auto w-full max-w-2xl px-12 py-12 sm:px-6 sm:py-4">
             <div className="space-y-4">
