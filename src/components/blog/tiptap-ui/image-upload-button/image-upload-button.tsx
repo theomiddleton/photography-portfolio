@@ -14,6 +14,7 @@ export interface ImageUploadButtonProps extends ButtonProps {
   editor?: Editor | null
   text?: string
   extensionName?: string
+  bucket: string
 }
 
 export function isImageActive(

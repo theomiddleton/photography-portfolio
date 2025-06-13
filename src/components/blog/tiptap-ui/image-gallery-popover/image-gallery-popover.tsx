@@ -54,7 +54,8 @@ ImageGalleryButton.displayName = 'ImageGalleryButton'
 const ImageGalleryContent: React.FC<{
   editor: Editor | null
   closePopover: () => void
-}> = ({ editor, closePopover }) => {
+  bucket?: 'about' | 'image' | 'custom' | 'blog'
+}> = ({ editor, closePopover, bucket }) => {
   const [urlInput, setUrlInput] = React.useState('')
   const [uploadedFiles, setUploadedFiles] = React.useState<{ id: string, name: string, url: string, file: File }[]>([])
 
@@ -104,7 +105,7 @@ const ImageGalleryContent: React.FC<{
       <div className="flex flex-col gap-2">
         <Label htmlFor="gallery-file-upload">Upload Images</Label>
         <AltUpload 
-          bucket="blog" 
+          bucket={bucket} 
           onFilesAdded={handleFilesUploaded}
         />
       </div>
@@ -185,12 +186,14 @@ export interface ImageGalleryPopoverProps extends Omit<TipTapButtonProps, 'type'
   editor?: Editor | null
   hideWhenUnavailable?: boolean
   extensionName?: string
+  bucket?: 'about' | 'image' | 'custom' | 'blog'
 }
 
 export function ImageGalleryPopover({
   editor: providedEditor,
   hideWhenUnavailable = false,
   extensionName = 'imageGallery',
+  bucket,
   ...TipTapButtonProps
 }: ImageGalleryPopoverProps) {
   const [isOpen, setIsOpen] = React.useState(false)
@@ -219,6 +222,7 @@ export function ImageGalleryPopover({
         <ImageGalleryContent
           editor={editor}
           closePopover={() => setIsOpen(false)}
+          bucket={bucket}
         />
       </PopoverContent>
     </Popover>

@@ -79,10 +79,13 @@ import { useWindowSize } from '~/hooks/use-window-size'
 // --- Lib ---
 import { handleImageUpload, MAX_FILE_SIZE } from '~/lib/tiptap-utils'
 
-export const SimpleEditor = React.forwardRef<
-  { editor: ReturnType<typeof useEditor> },
-  { initialContent: any }
->(({ initialContent }, ref) => {
+type SimpleEditorProps = {
+  initialContent: unknown
+  scope: 'blog' | 'about' | 'custom'
+}
+
+export const SimpleEditor = React.forwardRef<{ editor: ReturnType<typeof useEditor> }, SimpleEditorProps>(
+  ({ initialContent, scope }, ref) => {
   const isMobile = useMobile()
   const windowSize = useWindowSize()
   const [mobileView, setMobileView] = React.useState<
@@ -184,6 +187,7 @@ export const SimpleEditor = React.forwardRef<
               onHighlighterClick={() => setMobileView('highlighter')}
               onLinkClick={() => setMobileView('link')}
               isMobile={isMobile}
+              scope={scope}
             />
           ) : (
             <MobileToolbarContent
@@ -253,16 +257,19 @@ export const SimpleEditor = React.forwardRef<
 })
 
 SimpleEditor.displayName = 'SimpleEditor'
+type MainToolbarContentProps = {
+  onHighlighterClick: () => void
+  onLinkClick: () => void
+  isMobile: boolean
+  scope: 'blog' | 'about' | 'custom'
+}
 
 const MainToolbarContent = ({
   onHighlighterClick,
   onLinkClick,
   isMobile,
-}: {
-  onHighlighterClick: () => void
-  onLinkClick: () => void
-  isMobile: boolean
-}) => {
+  scope,
+}: MainToolbarContentProps) => {
   return (
     <>
       <Spacer />
@@ -313,10 +320,11 @@ const MainToolbarContent = ({
       <ToolbarSeparator />
 
       <ToolbarGroup>
-        <ImageUploadButton text="Add" />
-        <ImageGalleryPopover />
-        <HLSVideoPopover />
-        <ImageComparisonPopover /> <ImageMasonryPopover />
+        <ImageUploadButton text="Add" bucket={scope} />
+        <ImageGalleryPopover bucket={scope} />
+        <HLSVideoPopover bucket={scope} />
+        <ImageComparisonPopover bucket={scope} />
+        <ImageMasonryPopover bucket={scope} />
       </ToolbarGroup>
 
       <Spacer />

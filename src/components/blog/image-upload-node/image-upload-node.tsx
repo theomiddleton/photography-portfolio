@@ -17,6 +17,7 @@ interface UploadOptions {
   maxSize: number
   limit: number
   accept: string
+  bucket?: string
   upload: (
     file: File,
     onProgress: (event: { progress: number }) => void,
@@ -310,7 +311,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
     >
       {!fileItem && (
         <AltUpload
-          bucket='blog'
+          bucket={extension.options.bucket}
           onFilesAdded={(uploadedFiles) => {
             // Handle the uploaded files - insert the first one into the editor
             if (uploadedFiles.length > 0) {

@@ -65,7 +65,8 @@ ImageMasonryButton.displayName = 'ImageMasonryButton'
 const ImageMasonryContent: React.FC<{
   editor: Editor | null
   closePopover: () => void
-}> = ({ editor, closePopover }) => {
+  bucket?: 'about' | 'image' | 'custom' | 'blog'
+}> = ({ editor, closePopover, bucket }) => {
   const [images, setImages] = React.useState<MasonryImage[]>([])
   const [columns, setColumns] = React.useState(3)
   const [gap, setGap] = React.useState<'small' | 'medium' | 'large'>('medium')
@@ -156,7 +157,7 @@ const ImageMasonryContent: React.FC<{
       {/* File Upload Section */}
       <div className="flex flex-col gap-2">
         <Label>Upload Images</Label>
-        <AltUpload bucket='blog' onFilesAdded={handleFilesUploaded} />
+        <AltUpload bucket={bucket} onFilesAdded={handleFilesUploaded} />
       </div>
 
       {/* Show uploaded files */}
@@ -370,8 +371,9 @@ export function ImageMasonryPopover({
   editor: providedEditor,
   hideWhenUnavailable = false,
   extensionName = 'imageMasonry',
+  bucket,
   ...TipTapButtonProps
-}: ImageMasonryPopoverProps) {
+}: ImageMasonryPopoverProps & { bucket?: 'about' | 'image' | 'custom' | 'blog' }) {
   const [isOpen, setIsOpen] = React.useState(false)
   const editor = useTiptapEditor(providedEditor)
 
@@ -397,6 +399,7 @@ export function ImageMasonryPopover({
         <ImageMasonryContent
           editor={editor}
           closePopover={() => setIsOpen(false)}
+          bucket={bucket}
         />
       </PopoverContent>
     </Popover>

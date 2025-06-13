@@ -75,7 +75,8 @@ HLSVideoButton.displayName = 'HLSVideoButton'
 export const HLSVideoContent: React.FC<{
   editor: Editor | null
   closePopover: () => void
-}> = ({ editor, closePopover }) => {
+  bucket?: 'about' | 'image' | 'custom' | 'blog'
+}> = ({ editor, closePopover, bucket }) => {
   const [srcUrl, setSrcUrl] = React.useState('')
   const [posterUrl, setPosterUrl] = React.useState('')
 
@@ -163,7 +164,7 @@ export const HLSVideoContent: React.FC<{
 
       {/* Thumbnail Upload Section */}
       <div className="flex flex-col gap-2">
-        <AltUpload bucket='blog' />
+        <AltUpload bucket={bucket} />
       </div>
 
       <Separator />
@@ -185,12 +186,14 @@ export interface HLSVideoPopoverProps extends Omit<TipTapButtonProps, 'type'> {
   editor?: Editor | null
   hideWhenUnavailable?: boolean
   onOpenChange?: (isOpen: boolean) => void
+  bucket?: 'about' | 'image' | 'custom' | 'blog'
 }
 
 export function HLSVideoPopover({
   editor: providedEditor,
   hideWhenUnavailable = false,
   onOpenChange,
+  bucket,
   ...props
 }: HLSVideoPopoverProps) {
   const [isOpen, setIsOpen] = React.useState(false)
