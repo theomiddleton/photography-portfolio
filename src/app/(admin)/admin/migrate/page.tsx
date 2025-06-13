@@ -7,12 +7,12 @@ import { Textarea } from '~/components/ui/textarea'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Icons } from '~/components/ui/icons'
 import { CopyIcon } from 'lucide-react'
-import type { Metadata } from 'next'
+// import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-  title: 'Migrate Images - Admin', 
-  description: 'Import and export image data',
-}
+// export const metadata: Metadata = {
+//   title: 'Migrate Images - Admin', 
+//   description: 'Import and export image data',
+// }
 
 export default function MigratePage() {
   const [exportedData, setExportedData] = useState('')

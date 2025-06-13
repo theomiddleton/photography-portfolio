@@ -1,12 +1,61 @@
 import React from 'react'
-import { MDXRemote } from 'next-mdx-remote/rsc'
 import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
 import { about } from '~/server/db/schema'
 import { notFound } from 'next/navigation'
-import { components } from '~/components/pages/mdx-components/mdx-components'
+import { TipTapRenderer } from '~/components/blog/tiptap-renderer'
+import type { Metadata } from 'next'
 
-export const revalidate = 60 // Revalidate every 60 seconds
+export const revalidate = 3600 // Revalidate every hour
+
+export async function generateMetadata(): Promise<Metadata> {
+  const result = await db
+    .select({
+      title: about.title,
+      content: about.content,
+    })
+    .from(about)
+    .where(eq(about.current, true))
+    .limit(1)
+
+  const aboutData = result[0]
+
+  if (!aboutData) {
+    return {
+      title: 'About',
+      description: 'About page not found',
+    }
+  }
+
+  let contentText = ''
+  try {
+    const parsed = JSON.parse(aboutData.content) as { content?: unknown[] }
+    // Extract first paragraph text if possible
+    if (
+      parsed &&
+      Array.isArray(parsed.content) &&
+      parsed.content.length > 0 &&
+      typeof parsed.content[0] === 'object' &&
+      parsed.content[0] !== null &&
+      'content' in parsed.content[0]
+    ) {
+      const para = parsed.content[0] as { content?: { text?: string }[] }
+      if (Array.isArray(para.content) && para.content.length > 0) {
+        contentText = para.content
+          .map((c) => (typeof c.text === 'string' ? c.text : ''))
+          .join(' ')
+          .trim()
+      }
+    }
+  } catch {
+    contentText = ''
+  }
+
+  return {
+    title: aboutData.title,
+    description: contentText || 'About page',
+  }
+}
 
 export default async function About() {
   const result = await db
@@ -26,6 +75,22 @@ export default async function About() {
     notFound()
   }
 
+  let content
+  try {
+    content = JSON.parse(aboutData.content)
+  } catch (parseError) {
+    console.error('[About] Error parsing about page content:', parseError)
+    content = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Error loading content.' }],
+        },
+      ],
+    }
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
@@ -33,11 +98,8 @@ export default async function About() {
           {aboutData.title}
         </h1>
         <section className="flex min-h-screen flex-col items-center">
-          <div className="prose max-w-none overflow-auto">
-            <MDXRemote 
-              source={aboutData.content}
-              components={components}
-            />
+          <div className="prose prose-lg max-w-none dark:prose-invert">
+            <TipTapRenderer content={content} />
           </div>
         </section>
       </div>
