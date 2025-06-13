@@ -5,7 +5,6 @@ import { EditorContent, EditorContext, useEditor } from '@tiptap/react'
 
 // --- Tiptap Core Extensions ---
 import { StarterKit } from '@tiptap/starter-kit'
-import { Image } from '@tiptap/extension-image'
 import { TaskItem } from '@tiptap/extension-task-item'
 import { TaskList } from '@tiptap/extension-task-list'
 import { TextAlign } from '@tiptap/extension-text-align'
@@ -19,6 +18,7 @@ import { Underline } from '@tiptap/extension-underline'
 import { Link } from '~/components/blog/tiptap-extension/link-extension'
 import { Selection } from '~/components/blog/tiptap-extension/selection-extension'
 import { TrailingNode } from '~/components/blog/tiptap-extension/trailing-node-extension'
+import { ResizableImageExtension } from '~/components/blog/tiptap-extension/resizable-image-extension'
 
 // --- UI Primitives ---
 import { Button } from '~/components/blog/tiptap-ui-primitive/button'
@@ -84,8 +84,10 @@ type SimpleEditorProps = {
   scope: 'blog' | 'about' | 'custom'
 }
 
-export const SimpleEditor = React.forwardRef<{ editor: ReturnType<typeof useEditor> }, SimpleEditorProps>(
-  ({ initialContent, scope }, ref) => {
+export const SimpleEditor = React.forwardRef<
+  { editor: ReturnType<typeof useEditor> },
+  SimpleEditorProps
+>(({ initialContent, scope }, ref) => {
   const isMobile = useMobile()
   const windowSize = useWindowSize()
   const [mobileView, setMobileView] = React.useState<
@@ -126,7 +128,7 @@ export const SimpleEditor = React.forwardRef<{ editor: ReturnType<typeof useEdit
         },
       }),
       Highlight.configure({ multicolor: true }),
-      Image,
+      ResizableImageExtension,
       Typography,
       Superscript,
       Subscript,
@@ -216,33 +218,33 @@ export const SimpleEditor = React.forwardRef<{ editor: ReturnType<typeof useEdit
               simple-editor-content prose prose-sm
               mx-auto w-full max-w-2xl px-12
               py-12
-              outline-none sm:prose lg:prose-lg xl:prose-xl prose-headings:font-bold
-              prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-h1:mt-12
+              outline-none dark:prose-invert sm:prose lg:prose-lg xl:prose-xl
+              prose-headings:font-bold prose-headings:text-gray-900 prose-h1:mt-12
               prose-h1:text-2xl prose-h2:mt-10
               prose-h2:text-xl prose-h3:mt-8
               prose-h3:text-lg prose-h4:mt-8
               prose-h4:text-base prose-p:mt-5
               prose-p:text-base prose-p:leading-relaxed first:prose-p:mt-0 prose-a:text-blue-500
-              dark:prose-a:text-blue-400 prose-a:underline prose-blockquote:my-6 prose-blockquote:border-l-4 prose-blockquote:border-gray-900 dark:prose-blockquote:border-gray-100 prose-blockquote:py-1.5 prose-blockquote:pl-4
-              prose-code:rounded prose-code:border prose-code:border-gray-200 dark:prose-code:border-gray-700 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-sm prose-code:text-gray-700 dark:prose-code:text-gray-200
-              prose-pre:my-6 prose-pre:rounded-md prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-700 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900
-              prose-pre:p-4 prose-ol:mb-6 prose-ol:mt-6 prose-ol:list-decimal
-              prose-ol:pl-6 prose-ul:mb-6 prose-ul:mt-6 prose-ul:list-disc
-              prose-ul:pl-6
-              prose-li:mt-2 prose-img:my-8
-              prose-img:h-auto prose-img:max-w-full prose-img:rounded-sm
-              prose-hr:my-12 prose-hr:border-gray-200 dark:prose-hr:border-gray-700
-              sm:px-6 sm:py-4
-              dark:prose-invert
+              prose-a:underline prose-blockquote:my-6 prose-blockquote:border-l-4 prose-blockquote:border-gray-900 prose-blockquote:py-1.5 prose-blockquote:pl-4 prose-code:rounded prose-code:border
+              prose-code:border-gray-200 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-sm prose-code:text-gray-700 prose-pre:my-6 prose-pre:rounded-md prose-pre:border prose-pre:border-gray-200 prose-pre:bg-gray-50
+              prose-pre:p-4 prose-ol:mb-6 prose-ol:mt-6 prose-ol:list-decimal prose-ol:pl-6 prose-ul:mb-6 prose-ul:mt-6
+              prose-ul:list-disc prose-ul:pl-6 prose-li:mt-2 prose-img:my-8
+              prose-img:h-auto prose-img:max-w-full prose-img:rounded-sm prose-hr:my-12
+              prose-hr:border-gray-200
+              dark:prose-headings:text-gray-100 dark:prose-a:text-blue-400
+              dark:prose-blockquote:border-gray-100 dark:prose-code:border-gray-700 dark:prose-code:bg-gray-800
+              dark:prose-code:text-gray-200 dark:prose-pre:border-gray-700 dark:prose-pre:bg-gray-900
+              dark:prose-hr:border-gray-700 sm:px-6
+              sm:py-4
               [&_.ProseMirror-gapcursor]:pointer-events-none [&_.ProseMirror-gapcursor]:absolute
               [&_.ProseMirror-gapcursor]:hidden
               [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500
               [&_.collaboration-cursor__caret]:border-l [&_.collaboration-cursor__caret]:border-r
               [&_.collaboration-cursor__caret]:border-transparent [&_.is-editor-empty]:before:pointer-events-none [&_.is-editor-empty]:before:float-left [&_.is-editor-empty]:before:h-0
-              [&_.is-editor-empty]:before:text-gray-400 dark:[&_.is-editor-empty]:before:text-gray-500 [&_.is-editor-empty]:before:content-[attr(data-placeholder)]
+              [&_.is-editor-empty]:before:text-gray-400 [&_.is-editor-empty]:before:content-[attr(data-placeholder)] dark:[&_.is-editor-empty]:before:text-gray-500
               [&_.task-item]:mt-2 [&_.task-item]:flex [&_.task-item]:items-start
-              [&_.task-item]:gap-2 [&_.task-item]:pl-0 [&_.task-item]:text-base [&_.task-item]:text-gray-900 dark:[&_.task-item]:text-gray-100
-              [&_.task-item]:before:content-none [&_.task-item_input[type="checkbox"]]:mr-1
+              [&_.task-item]:gap-2 [&_.task-item]:pl-0 [&_.task-item]:text-base [&_.task-item]:text-gray-900 [&_.task-item]:before:content-none
+              dark:[&_.task-item]:text-gray-100 [&_.task-item_input[type="checkbox"]]:mr-1
               [&_.task-item_input[type="checkbox"]]:mt-1 [&_.task-list]:list-none
               [&_.task-list]:pl-0 [&_.tiptap-thread--selected]:border-transparent [&_.tiptap-thread--selected]:bg-yellow-50 dark:[&_.tiptap-thread--selected]:bg-yellow-900/20 [&_.tiptap-thread--unresolved]:border-b-2
               [&_.tiptap-thread--unresolved]:border-dashed [&_.tiptap-thread--unresolved]:border-yellow-400 dark:[&_.tiptap-thread--unresolved]:border-yellow-600 [&_.tiptap-thread]:transition-colors

@@ -91,3 +91,34 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Resizable image styles for both editor and rendered output */
+@layer components {
+  img[data-type='resizable-image'] {
+    @apply mx-auto block h-auto max-w-full;
+    image-rendering: auto;
+  }
+
+  /* Ensure images in TipTap content respect width/height attributes */
+  .tiptap img[data-type='resizable-image'],
+  .tiptap-content img[data-type='resizable-image'] {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* When width is specified, use it but maintain responsiveness */
+  .tiptap img[data-type='resizable-image'][width],
+  .tiptap-content img[data-type='resizable-image'][width] {
+    width: var(--image-width, auto);
+    max-width: 100%;
+  }
+
+  /* Smooth transitions for resize interactions */
+  .tiptap img[data-type='resizable-image'] {
+    transition: none;
+  }
+
+  .tiptap img[data-type='resizable-image']:hover {
+    transition: box-shadow 0.2s ease;
+  }
+}

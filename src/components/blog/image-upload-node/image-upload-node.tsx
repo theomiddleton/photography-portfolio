@@ -328,7 +328,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
                 .deleteRange({ from: pos, to: pos + 1 })
                 .insertContentAt(pos, [
                   {
-                    type: 'image',
+                    type: 'resizableImage',
                     attrs: {
                       src: firstFile.url,
                       alt: firstFile.name,
