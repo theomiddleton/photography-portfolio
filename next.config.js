@@ -15,17 +15,12 @@ const nextConfig = {
     imageSizes: [16, 32, 64, 96, 128, 256], // Reduced number of image sizes
     formats: ['image/webp'], // Prefer WebP format for better compression
   },
-  experimental: {
-    serverActions: {
-      allowedOrigins: ['.app.github.dev', 'http://localhost:3000'],
-    },
-  },
   serverExternalPackages: [
     '@aws/sdk/client-s3',
     '@aws-sdk/s3-request-presigner',
   ],
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   // compiler: {
   //   removeConsole: process.env.NODE_ENV === 'production',
