@@ -1,9 +1,10 @@
-import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon, HomeIcon, LogOutIcon, BookOpenText, ImagesIcon, FilmIcon, FileVideoIcon, BookOpenIcon, BookOpenTextIcon, ReceiptPoundSterlingIcon, DownloadIcon } from 'lucide-react'
+import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon, HomeIcon, LogOutIcon, BookOpenText, ImagesIcon, FilmIcon, FileVideoIcon, BookOpenIcon, BookOpenTextIcon, ReceiptPoundSterlingIcon, DownloadIcon, GalleryThumbnailsIcon } from 'lucide-react'
 
 export const adminSections = [
   { title: 'Image Upload', description: 'Manage and upload images', icon: ImageIcon, href: '/admin/upload' },
   { title: 'Image Management', description: 'Delete, hide, and reorder images', icon: ImagesIcon, href: '/admin/manage'},
   { title: 'Image Migration', description: 'Export and import image data', icon: DownloadIcon, href: '/admin/migrate'},
+  { title: 'Gallery Management', description: 'Manage the layout of the gallery', icon: GalleryThumbnailsIcon, href: '/admin/gallery'},
   { title: 'Blogs', description: 'View and edit blog posts', icon: BookOpenText, href: '/admin/blog' },
   { title: 'New Blog Post', description: 'Create a new blog posts', icon: PenIcon, href: '/admin/blog/new' },
   { title: 'About', description: 'Edit about page content', icon: InfoIcon, href: '/admin/about' },

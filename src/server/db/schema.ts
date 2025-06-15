@@ -257,6 +257,17 @@ export const blogImages = pgTable('blogImages', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 })
 
+export const galleryConfig = pgTable('galleryConfig', {
+  id: integer('id').primaryKey().default(1),
+  columnsMobile: integer('columnsMobile').notNull().default(1),
+  columnsTablet: integer('columnsTablet').notNull().default(2),
+  columnsDesktop: integer('columnsDesktop').notNull().default(3),
+  columnsLarge: integer('columnsLarge').notNull().default(4),
+  galleryStyle: varchar('galleryStyle', { length: 50 }).notNull().default('masonry'),
+  gapSize: varchar('gapSize', { length: 20 }).notNull().default('medium'),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
 export const orderRelations = relations(orders, ({ one, many }) => ({
   product: one(products, {
     fields: [orders.productId],
