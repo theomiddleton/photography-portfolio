@@ -36,15 +36,6 @@ export const imageData = pgTable('imageData', {
   modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
 
-export const aboutImgData = pgTable('aboutImgData', {
-  id: serial('id').primaryKey(),
-  uuid: varchar('uuid', { length: 36 }).notNull(),
-  fileName: varchar('fileName', { length: 256 }).notNull(),
-  fileUrl: varchar('fileUrl', { length: 256 }).notNull(),
-  name: varchar('name', { length: 256 }),
-  uploadedAt: timestamp('uploadedAt').defaultNow(),
-})
-
 export const about = pgTable('about', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 256 }).notNull(),
@@ -52,16 +43,6 @@ export const about = pgTable('about', {
   current: boolean('current').default(false).notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
-})
-
-export const aboutImages = pgTable('aboutImages', {
-  id: serial('id').primaryKey(),
-  aboutId: integer('about_id')
-    .notNull()
-    .references(() => about.id),
-  name: varchar('name', { length: 256 }).notNull(),
-  url: varchar('url', { length: 512 }).notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
 })
 
 export const users = pgTable('users', {
@@ -227,36 +208,6 @@ export const blogPosts = pgTable('blogPosts', {
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 })
 
-export const blogDrafts = pgTable('blogDrafts', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  postId: uuid('postId').references(() => blogPosts.id),
-  title: text('title').notNull(),
-  description: text('description'),
-  content: text('content').notNull(),
-  authorId: integer('authorId').references(() => users.id),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
-})
-
-export const blogVersions = pgTable('blogVersions', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  postId: uuid('postId').references(() => blogPosts.id),
-  title: text('title').notNull(),
-  description: text('description'),
-  content: text('content').notNull(),
-  authorId: integer('authorId').references(() => users.id),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-})
-
-export const blogImages = pgTable('blogImages', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  postId: uuid('postId').references(() => blogPosts.id),
-  fileName: text('fileName').notNull(),
-  fileUrl: text('fileUrl').notNull(),
-  alt: text('alt'),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-})
-
 export const galleryConfig = pgTable('galleryConfig', {
   id: integer('id').primaryKey().default(1),
   columnsMobile: integer('columnsMobile').notNull().default(1),
@@ -266,6 +217,57 @@ export const galleryConfig = pgTable('galleryConfig', {
   galleryStyle: varchar('galleryStyle', { length: 50 }).notNull().default('masonry'),
   gapSize: varchar('gapSize', { length: 20 }).notNull().default('medium'),
   updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
+export const galleries = pgTable('galleries', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  title: text('title').notNull(),
+  slug: text('slug').notNull().unique(),
+  description: text('description'),
+  layout: text('layout', {
+    enum: ['masonry', 'grid', 'square', 'list']
+  }).notNull().default('masonry'),
+  columns: json('columns').$type<{
+    mobile: number
+    tablet: number
+    desktop: number
+  }>().default({ mobile: 1, tablet: 2, desktop: 3 }),
+  isPublic: boolean('isPublic').default(true).notNull(),
+  coverImageId: uuid('coverImageId'),
+  viewCount: integer('viewCount').default(0).notNull(),
+  category: text('category').default('general'),
+  tags: text('tags'), // Comma-separated tags
+  template: text('template', {
+    enum: ['portfolio', 'wedding', 'landscape', 'street', 'product', 'event', 'custom']
+  }).default('custom'),
+  allowEmbedding: boolean('allowEmbedding').default(true).notNull(),
+  embedPassword: text('embedPassword'), // Optional password for embedded galleries
+  shareableLink: text('shareableLink').unique(), // UUID for sharing
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+export const galleryImages = pgTable('galleryImages', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  galleryId: uuid('galleryId').references(() => galleries.id, { onDelete: 'cascade' }).notNull(),
+  uuid: varchar('uuid', { length: 36 }).notNull(),
+  fileName: varchar('fileName', { length: 256 }).notNull(),
+  fileUrl: varchar('fileUrl', { length: 512 }).notNull(),
+  name: varchar('name', { length: 256 }).notNull(),
+  description: text('description'),
+  alt: text('alt'),
+  caption: text('caption'), // New field for image captions
+  tags: text('tags'), // Comma-separated tags specific to this image
+  metadata: json('metadata').$type<{
+    camera?: string
+    lens?: string
+    settings?: string
+    location?: string
+    date?: string
+    [key: string]: any
+  }>(), // Flexible metadata storage
+  order: integer('order').default(0).notNull(),
+  uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),
 })
 
 export const orderRelations = relations(orders, ({ one, many }) => ({
@@ -306,58 +308,21 @@ export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect
 export type ShippingMethod = typeof shippingMethods.$inferSelect
 export type StoreCosts = typeof storeCosts.$inferSelect
 
-export const aboutRelations = relations(about, ({ many }) => ({
-  images: many(aboutImages),
+export const galleryRelations = relations(galleries, ({ one, many }) => ({
+  coverImage: one(galleryImages, {
+    fields: [galleries.coverImageId],
+    references: [galleryImages.id],
+  }),
+  images: many(galleryImages),
 }))
 
-export const aboutImagesRelations = relations(aboutImages, ({ one }) => ({
-  about: one(about, {
-    fields: [aboutImages.aboutId],
-    references: [about.id],
-  }),
-}))
-
-
-export const blogRelations = relations(blogPosts, ({ one, many }) => ({
-  author: one(users, {
-    fields: [blogPosts.authorId],
-    references: [users.id],
-  }),
-  drafts: many(blogDrafts),
-  versions: many(blogVersions),
-  images: many(blogImages),
-}))
-
-export const blogDraftRelations = relations(blogDrafts, ({ one }) => ({
-  post: one(blogPosts, {
-    fields: [blogDrafts.postId],
-    references: [blogPosts.id],
-  }),
-  author: one(users, {
-    fields: [blogDrafts.authorId],
-    references: [users.id],
-  }),
-}))
-
-export const blogVersionRelations = relations(blogVersions, ({ one }) => ({
-  post: one(blogPosts, {
-    fields: [blogVersions.postId],
-    references: [blogPosts.id],
-  }),
-  author: one(users, {
-    fields: [blogVersions.authorId],
-    references: [users.id],
-  }),
-}))
-
-export const blogImageRelations = relations(blogImages, ({ one }) => ({
-  post: one(blogPosts, {
-    fields: [blogImages.postId],
-    references: [blogPosts.id],
+export const galleryImageRelations = relations(galleryImages, ({ one }) => ({
+  gallery: one(galleries, {
+    fields: [galleryImages.galleryId],
+    references: [galleries.id],
   }),
 }))
 
 export type BlogPost = typeof blogPosts.$inferSelect
-export type BlogDraft = typeof blogDrafts.$inferSelect
-export type BlogVersion = typeof blogVersions.$inferSelect
-export type BlogImage = typeof blogImages.$inferSelect
+export type Gallery = typeof galleries.$inferSelect
+export type GalleryImage = typeof galleryImages.$inferSelect

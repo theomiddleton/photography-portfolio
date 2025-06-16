@@ -5,6 +5,7 @@ export const adminSections = [
   { title: 'Image Management', description: 'Delete, hide, and reorder images', icon: ImagesIcon, href: '/admin/manage'},
   { title: 'Image Migration', description: 'Export and import image data', icon: DownloadIcon, href: '/admin/migrate'},
   { title: 'Gallery Management', description: 'Manage the layout of the gallery', icon: GalleryThumbnailsIcon, href: '/admin/gallery'},
+  { title: 'Custom Galleries', description: 'Create and manage custom galleries', icon: GalleryThumbnailsIcon, href: '/admin/galleries'},
   { title: 'Blogs', description: 'View and edit blog posts', icon: BookOpenText, href: '/admin/blog' },
   { title: 'New Blog Post', description: 'Create a new blog posts', icon: PenIcon, href: '/admin/blog/new' },
   { title: 'About', description: 'Edit about page content', icon: InfoIcon, href: '/admin/about' },
