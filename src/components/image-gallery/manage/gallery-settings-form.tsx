@@ -42,6 +42,7 @@ interface Gallery {
   layout: string
   columns: { mobile: number; tablet: number; desktop: number }
   isPublic: boolean
+  showInNav: boolean
   category: string
   tags: string | null
   template: string
@@ -85,6 +86,7 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
       layout: gallery.layout as 'masonry' | 'grid' | 'square' | 'list',
       columns: gallery.columns,
       isPublic: gallery.isPublic,
+      showInNav: gallery.showInNav,
       category: gallery.category || 'general',
       tags: gallery.tags || '',
       template: gallery.template as any || 'custom',
@@ -443,6 +445,27 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                     <FormLabel className="text-base">Public Gallery</FormLabel>
                     <FormDescription>
                       Make this gallery publicly viewable at /g/{form.watch('slug') || 'gallery-slug'}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="showInNav"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Show in Navigation</FormLabel>
+                    <FormDescription>
+                      Include this gallery in the main navigation menu
                     </FormDescription>
                   </div>
                   <FormControl>

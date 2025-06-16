@@ -17,6 +17,7 @@ export const gallerySchema = z.object({
   template: z.enum(['portfolio', 'wedding', 'landscape', 'street', 'product', 'event', 'custom']).default('custom'),
   allowEmbedding: z.boolean().default(true),
   embedPassword: z.string().optional(),
+  showInNav: z.boolean().default(false),
 })
 
 export const galleryImageSchema = z.object({

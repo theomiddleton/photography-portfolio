@@ -50,6 +50,7 @@ export function GalleryForm() {
         desktop: 3,
       },
       isPublic: true,
+      showInNav: false,
       category: 'general',
       tags: '',
       template: 'custom',
@@ -324,6 +325,27 @@ export function GalleryForm() {
                 <FormLabel className="text-base">Public Gallery</FormLabel>
                 <FormDescription>
                   Make this gallery publicly viewable at /g/{form.watch('slug') || 'gallery-slug'}
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="showInNav"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">Show in Navigation</FormLabel>
+                <FormDescription>
+                  Include this gallery in the main navigation menu
                 </FormDescription>
               </div>
               <FormControl>

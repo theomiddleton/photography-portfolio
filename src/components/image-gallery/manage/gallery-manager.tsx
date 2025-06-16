@@ -49,6 +49,7 @@ interface Gallery {
   layout: string
   columns: { mobile: number; tablet: number; desktop: number }
   isPublic: boolean
+  showInNav: boolean
   category: string
   tags: string | null
   template: string

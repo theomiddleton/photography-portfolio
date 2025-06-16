@@ -145,12 +145,14 @@ export async function createGallery(data: z.infer<typeof gallerySchema>) {
         allowEmbedding: validatedData.allowEmbedding,
         embedPassword: validatedData.embedPassword,
         shareableLink: crypto.randomUUID(), // Generate initial shareable link
+        showInNav: validatedData.showInNav,
       })
       .returning()
 
     logAction('Gallery', `Created gallery: ${newGallery.title}`)
     revalidatePath('/admin/galleries')
     revalidatePath(`/g/${newGallery.slug}`)
+    revalidatePath('/') // Revalidate home page to update navigation
 
     return { gallery: newGallery, error: null }
   } catch (error) {
@@ -184,6 +186,7 @@ export async function updateGallery(id: string, data: Partial<z.infer<typeof gal
     logAction('Gallery', `Updated gallery: ${updatedGallery.title}`)
     revalidatePath('/admin/galleries')
     revalidatePath(`/g/${updatedGallery.slug}`)
+    revalidatePath('/') // Revalidate home page to update navigation
 
     return { gallery: updatedGallery, error: null }
   } catch (error) {
@@ -203,6 +206,7 @@ export async function deleteGallery(id: string) {
     logAction('Gallery', `Deleted gallery: ${deletedGallery.title}`)
     revalidatePath('/admin/galleries')
     revalidatePath(`/g/${deletedGallery.slug}`)
+    revalidatePath('/') // Revalidate home page to update navigation
 
     return { success: true, error: null }
   } catch (error) {
@@ -550,5 +554,25 @@ export async function getGalleriesWithPreviews(includePrivate = false) {
   } catch (error) {
     console.error('Error fetching galleries with previews:', error)
     throw new Error('Failed to fetch galleries with previews')
+  }
+}
+
+// Get galleries that should be shown in navigation
+export async function getNavigationGalleries() {
+  try {
+    const result = await db
+      .select({
+        id: galleries.id,
+        title: galleries.title,
+        slug: galleries.slug,
+      })
+      .from(galleries)
+      .where(eq(galleries.showInNav, true))
+      .orderBy(asc(galleries.title))
+
+    return result
+  } catch (error) {
+    console.error('Error fetching navigation galleries:', error)
+    return []
   }
 }
