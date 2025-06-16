@@ -22,6 +22,7 @@ import { Badge } from '~/components/ui/badge'
 import { AltUpload } from '~/components/alt-upload-img'
 import { 
   getGalleryById, 
+  getGalleryBySlug,
   updateGallery, 
   deleteGallery, 
   addImagesToGallery,
@@ -36,7 +37,8 @@ import { GalleryImageGrid } from '~/components/image-gallery/manage/gallery-imag
 import { ImageEditDialog } from '~/components/image-gallery/manage/image-edit-dialog'
 
 interface GalleryManagerProps {
-  galleryId: string
+  galleryId?: string
+  gallerySlug?: string
 }
 
 interface Gallery {
@@ -73,7 +75,7 @@ interface Gallery {
   }>
 }
 
-export function GalleryManager({ galleryId }: GalleryManagerProps) {
+export function GalleryManager({ galleryId, gallerySlug }: GalleryManagerProps) {
   const [gallery, setGallery] = useState<Gallery | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -85,14 +87,15 @@ export function GalleryManager({ galleryId }: GalleryManagerProps) {
   useEffect(() => {
     loadGallery()
     loadAvailableGalleries()
-  }, [galleryId])
+  }, [galleryId, gallerySlug])
 
   const loadAvailableGalleries = async () => {
     try {
       const galleries = await getGalleries(true) // Include private galleries
+      const currentGalleryId = gallery?.id || (galleryId || null)
       setAvailableGalleries(
         galleries
-          .filter(g => g.id !== galleryId) // Exclude current gallery
+          .filter(g => g.id !== currentGalleryId) // Exclude current gallery
           .map(g => ({ id: g.id, title: g.title }))
       )
     } catch (error) {
@@ -103,7 +106,16 @@ export function GalleryManager({ galleryId }: GalleryManagerProps) {
   const loadGallery = async () => {
     try {
       setLoading(true)
-      const result = await getGalleryById(galleryId)
+      let result
+      if (gallerySlug) {
+        result = await getGalleryBySlug(gallerySlug, true) // Include private galleries in admin
+      } else if (galleryId) {
+        result = await getGalleryById(galleryId)
+      } else {
+        setError('No gallery identifier provided')
+        return
+      }
+      
       if (!result) {
         setError('Gallery not found')
       } else {

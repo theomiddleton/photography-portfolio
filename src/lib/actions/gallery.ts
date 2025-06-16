@@ -240,7 +240,19 @@ export async function addImagesToGallery(galleryId: string, images: { id: string
       .returning()
 
     logAction('Gallery', `Added ${images.length} images to gallery`)
-    revalidatePath(`/admin/galleries/${galleryId}`)
+    
+    // Get gallery slug for revalidation
+    const gallery = await db
+      .select({ slug: galleries.slug })
+      .from(galleries)
+      .where(eq(galleries.id, galleryId))
+      .limit(1)
+    
+    if (gallery[0]) {
+      revalidatePath(`/admin/galleries/${gallery[0].slug}`)
+      revalidatePath(`/g/${gallery[0].slug}`)
+    }
+    revalidatePath('/admin/galleries')
 
     return { images: insertedImages, error: null }
   } catch (error) {
@@ -260,7 +272,19 @@ export async function removeImageFromGallery(imageId: string) {
       // delete from r2 as well
 
     logAction('Gallery', `Removed image from gallery: ${deletedImage.name}`)
-    revalidatePath(`/admin/galleries`)
+    
+    // Get gallery slug for revalidation
+    const gallery = await db
+      .select({ slug: galleries.slug })
+      .from(galleries)
+      .where(eq(galleries.id, deletedImage.galleryId))
+      .limit(1)
+    
+    if (gallery[0]) {
+      revalidatePath(`/admin/galleries/${gallery[0].slug}`)
+      revalidatePath(`/g/${gallery[0].slug}`)
+    }
+    revalidatePath('/admin/galleries')
 
     return { success: true, error: null }
   } catch (error) {
@@ -280,7 +304,19 @@ export async function updateGalleryImageOrder(galleryId: string, imageOrders: { 
     }
 
     logAction('Gallery', `Updated image order in gallery`)
-    revalidatePath(`/admin/galleries/${galleryId}`)
+    
+    // Get gallery slug for revalidation
+    const gallery = await db
+      .select({ slug: galleries.slug })
+      .from(galleries)
+      .where(eq(galleries.id, galleryId))
+      .limit(1)
+    
+    if (gallery[0]) {
+      revalidatePath(`/admin/galleries/${gallery[0].slug}`)
+      revalidatePath(`/g/${gallery[0].slug}`)
+    }
+    revalidatePath('/admin/galleries')
 
     return { success: true, error: null }
   } catch (error) {

@@ -91,7 +91,7 @@ export function GalleryForm() {
         toast.error(typeof result.error === 'string' ? result.error : 'Failed to create gallery')
       } else {
         toast.success('Gallery created successfully')
-        router.push(`/admin/galleries/${result.gallery?.id}`)
+        router.push(`/admin/galleries/${result.gallery?.slug}`)
       }
     } catch (error) {
       toast.error('Failed to create gallery')

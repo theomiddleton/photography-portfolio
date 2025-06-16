@@ -209,7 +209,7 @@ export function GalleriesPageClient({ galleries: initialGalleries }: GalleriesPa
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link href={`/admin/galleries/${gallery.id}`}>
+                    <Link href={`/admin/galleries/${gallery.slug}`}>
                       <PencilIcon className="mr-2 h-4 w-4" />
                       Edit
                     </Link>
@@ -250,7 +250,7 @@ export function GalleriesPageClient({ galleries: initialGalleries }: GalleriesPa
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <Link href={`/admin/galleries/${gallery.id}`}>
+            <Link href={`/admin/galleries/${gallery.slug}`}>
               <GalleryPreview gallery={gallery} />
             </Link>
             
