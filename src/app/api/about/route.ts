@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '~/server/db'
-import { about, aboutImages } from '~/server/db/schema'
+import { about } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { getSession } from '~/lib/auth/auth'
 
@@ -35,17 +35,6 @@ async function saveAbout(data: AboutData) {
       content: validatedData.content,
       current: true,
     }).returning({ id: about.id })
-
-    // Insert images
-    if (validatedData.images && validatedData.images.length > 0) {
-      await db.insert(aboutImages).values(
-        validatedData.images.map(image => ({
-          aboutId: newAbout.id,
-          name: image.name,
-          url: image.url,
-        }))
-      )
-    }
 
     return { 
       success: true, 
@@ -121,16 +110,10 @@ export async function GET() {
       )
     }
 
-    // Fetch images for the current about entry
-    const images = await db.select()
-      .from(aboutImages)
-      .where(eq(aboutImages.aboutId, currentAbout[0].id))
-
     return NextResponse.json({
       success: true,
       data: {
         ...currentAbout[0],
-        images
       }
     })
     

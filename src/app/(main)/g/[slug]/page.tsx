@@ -4,9 +4,9 @@ import { getGalleryBySlug, incrementGalleryViews } from '~/lib/actions/gallery'
 import { GalleryViewer } from '~/components/image-gallery/gallery-viewer'
 
 interface GalleryPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export async function generateMetadata({ params }: GalleryPageProps): Promise<Metadata> {
