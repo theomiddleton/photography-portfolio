@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { PlusIcon, GalleryThumbnailsIcon, EyeIcon, EyeOffIcon, ImageIcon } from 'lucide-react'
 
-import { getGalleries } from '~/lib/actions/gallery'
+import { getGalleriesWithPreviews } from '~/lib/actions/gallery'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -51,7 +51,7 @@ export default async function GalleriesPage() {
 }
 
 async function GalleriesContent() {
-  const galleries = await getGalleries(true) // Include private galleries in admin
+  const galleries = await getGalleriesWithPreviews(true) // Include private galleries in admin
 
   if (galleries.length === 0) {
     return (

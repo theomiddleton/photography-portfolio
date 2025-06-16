@@ -471,3 +471,48 @@ export async function updateImageMetadata(imageId: string, data: {
     return { success: false, error: 'Failed to update image metadata' }
   }
 }
+
+// Get all galleries with preview images (for admin page)
+export async function getGalleriesWithPreviews(includePrivate = false) {
+  try {
+    const galleriesData = await db
+      .select()
+      .from(galleries)
+      .where(includePrivate ? undefined : eq(galleries.isPublic, true))
+      .orderBy(desc(galleries.createdAt))
+
+    const galleriesWithPreviews = await Promise.all(
+      galleriesData.map(async (gallery) => {
+        // Get image count
+        const imageCount = await db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(galleryImages)
+          .where(eq(galleryImages.galleryId, gallery.id))
+        
+        // Get first 5 images for preview
+        const previewImages = await db
+          .select({
+            id: galleryImages.id,
+            fileUrl: galleryImages.fileUrl,
+            name: galleryImages.name,
+            alt: galleryImages.alt,
+          })
+          .from(galleryImages)
+          .where(eq(galleryImages.galleryId, gallery.id))
+          .orderBy(asc(galleryImages.order), asc(galleryImages.uploadedAt))
+          .limit(5)
+
+        return {
+          ...gallery,
+          imageCount: imageCount[0].count,
+          images: previewImages,
+        }
+      })
+    )
+
+    return galleriesWithPreviews
+  } catch (error) {
+    console.error('Error fetching galleries with previews:', error)
+    throw new Error('Failed to fetch galleries with previews')
+  }
+}

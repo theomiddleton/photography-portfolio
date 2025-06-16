@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { formatDistanceToNow } from 'date-fns'
 import { 
   EyeIcon, 
@@ -39,6 +40,12 @@ interface Gallery {
   createdAt: Date
   updatedAt: Date
   imageCount: number
+  images?: Array<{
+    id: string
+    fileUrl: string
+    name: string
+    alt: string | null
+  }>
 }
 
 interface GalleriesPageClientProps {
@@ -48,6 +55,8 @@ interface GalleriesPageClientProps {
 export function GalleriesPageClient({ galleries: initialGalleries }: GalleriesPageClientProps) {
   const [galleries, setGalleries] = useState(initialGalleries)
   const [loading, setLoading] = useState<string | null>(null)
+  const [hoveredGallery, setHoveredGallery] = useState<string | null>(null)
+  const [currentImageIndex, setCurrentImageIndex] = useState<Record<string, number>>({})
   const router = useRouter()
 
   const handleToggleVisibility = async (gallery: Gallery) => {
@@ -94,6 +103,85 @@ export function GalleriesPageClient({ galleries: initialGalleries }: GalleriesPa
     } finally {
       setLoading(null)
     }
+  }
+
+  const handleGalleryMouseEnter = (galleryId: string) => {
+    setHoveredGallery(galleryId)
+    if (!currentImageIndex[galleryId]) {
+      setCurrentImageIndex(prev => ({ ...prev, [galleryId]: 0 }))
+    }
+  }
+
+  const handleGalleryMouseLeave = () => {
+    setHoveredGallery(null)
+  }
+
+  const handleImageHover = (galleryId: string, imageIndex: number) => {
+    setCurrentImageIndex(prev => ({ ...prev, [galleryId]: imageIndex }))
+  }
+
+  const GalleryPreview = ({ gallery }: { gallery: Gallery }) => {
+    const hasImages = gallery.images && gallery.images.length > 0
+    const isHovered = hoveredGallery === gallery.id
+    const currentIndex = currentImageIndex[gallery.id] || 0
+    
+    if (!hasImages) {
+      return (
+        <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center group-hover:bg-muted/80 transition-colors cursor-pointer">
+          <ImageIcon className="h-8 w-8 text-muted-foreground" />
+        </div>
+      )
+    }
+
+    return (
+      <div 
+        className="aspect-video bg-muted rounded-lg mb-4 relative overflow-hidden cursor-pointer group"
+        onMouseEnter={() => handleGalleryMouseEnter(gallery.id)}
+        onMouseLeave={handleGalleryMouseLeave}
+      >
+        <Image
+          src={gallery.images[currentIndex].fileUrl}
+          alt={gallery.images[currentIndex].alt || gallery.images[currentIndex].name}
+          fill
+          className="object-cover transition-opacity duration-300"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
+        
+        {/* Hover indicators for multiple images */}
+        {gallery.images.length > 1 && isHovered && (
+          <div className="absolute inset-0 flex">
+            {gallery.images.map((_, index) => (
+              <div
+                key={index}
+                className="flex-1 h-full cursor-pointer"
+                onMouseEnter={() => handleImageHover(gallery.id, index)}
+              />
+            ))}
+          </div>
+        )}
+        
+        {/* Image counter */}
+        {gallery.images.length > 1 && (
+          <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+            {currentIndex + 1}/{gallery.images.length}
+          </div>
+        )}
+        
+        {/* Hover dots indicator */}
+        {gallery.images.length > 1 && isHovered && (
+          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+            {gallery.images.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  index === currentIndex ? 'bg-white' : 'bg-white/50'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -163,9 +251,7 @@ export function GalleriesPageClient({ galleries: initialGalleries }: GalleriesPa
           </CardHeader>
           <CardContent className="pt-0">
             <Link href={`/admin/galleries/${gallery.id}`}>
-              <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center group-hover:bg-muted/80 transition-colors cursor-pointer">
-                <ImageIcon className="h-8 w-8 text-muted-foreground" />
-              </div>
+              <GalleryPreview gallery={gallery} />
             </Link>
             
             <div className="flex items-center justify-between text-sm">
