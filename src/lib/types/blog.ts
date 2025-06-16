@@ -1,8 +1,4 @@
-import { type BlogPost, type BlogImage } from '~/server/db/schema'
-
-export interface BlogPostWithImages extends BlogPost {
-  images?: BlogImage[]
-}
+import { type BlogPost } from '~/server/db/schema'
 
 export interface BlogPostPreview {
   id: string

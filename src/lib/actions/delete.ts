@@ -5,7 +5,7 @@ import { r2 } from '~/lib/r2'
 import { eq } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { revalidatePath } from 'next/cache'
-import { imageData, aboutImgData, products, productSizes } from '~/server/db/schema'
+import { imageData, products, productSizes } from '~/server/db/schema'
 import { logAction } from '~/lib/logging'
 
 // type definitions
@@ -42,7 +42,6 @@ export async function deleteImage({ uuid, fileName }: DeleteImageParams) {
     
     // delete image data from database
     await db.delete(imageData).where(eq(imageData.uuid, uuid))
-    await db.delete(aboutImgData).where(eq(aboutImgData.uuid, uuid))
     
     // Revalidate all necessary paths
     revalidatePath('/admin/mangage')
