@@ -51,6 +51,21 @@ interface Gallery {
   viewCount: number
   createdAt: Date
   updatedAt: Date
+  images: Array<{
+    id: string
+    galleryId: string
+    uuid: string
+    fileName: string
+    fileUrl: string
+    name: string
+    description: string | null
+    alt: string | null
+    caption: string | null
+    tags: string | null
+    metadata: Record<string, any> | null
+    order: number
+    uploadedAt: Date
+  }>
 }
 
 interface GallerySettingsFormProps {

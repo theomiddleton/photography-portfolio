@@ -47,6 +47,12 @@ interface Gallery {
   layout: string
   columns: { mobile: number; tablet: number; desktop: number }
   isPublic: boolean
+  category: string
+  tags: string | null
+  template: string
+  allowEmbedding: boolean
+  embedPassword: string | null
+  shareableLink: string | null
   viewCount: number
   createdAt: Date
   updatedAt: Date
