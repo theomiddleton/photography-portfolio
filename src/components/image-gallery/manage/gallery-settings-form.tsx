@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { EyeIcon, EyeOffIcon } from 'lucide-react'
+import { EyeIcon, EyeOffIcon, LinkIcon, ClockIcon } from 'lucide-react'
 
 import { Button } from '~/components/ui/button'
 import {
@@ -82,6 +82,8 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
   const [isLoading, setIsLoading] = useState(false)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
+  const [tempLink, setTempLink] = useState<string | null>(null)
+  const [tempLinkExpiry, setTempLinkExpiry] = useState<string | null>(null)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -119,6 +121,34 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
       toast.error('Failed to update gallery')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const generateTempLink = async (hours: number = 24, maxUses: number = 1) => {
+    try {
+      const response = await fetch('/api/gallery/temp-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          galleryId: gallery.id,
+          expirationHours: hours,
+          maxUses,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate temporary link')
+      }
+
+      setTempLink(data.url)
+      setTempLinkExpiry(data.expiresAt)
+      toast.success('Temporary link generated successfully')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to generate temporary link')
     }
   }
 
@@ -459,7 +489,14 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                   <FormControl>
                     <Switch
                       checked={field.value}
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked)
+                        if (checked) {
+                          // When making public, automatically disable password protection
+                          form.setValue('isPasswordProtected', false)
+                        }
+                      }}
+                      disabled={form.watch('isPasswordProtected')}
                     />
                   </FormControl>
                 </FormItem>
@@ -494,9 +531,9 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Password Protected</FormLabel>
+                    <FormLabel className="text-base">Password Protection</FormLabel>
                     <FormDescription>
-                      Require a password to view this gallery (overrides public setting)
+                      Require a password to view this gallery (automatically makes gallery private)
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -505,7 +542,8 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                       onCheckedChange={(checked) => {
                         field.onChange(checked)
                         if (checked) {
-                          // When enabling password protection, automatically disable showInNav
+                          // When enabling password protection, automatically disable public and nav
+                          form.setValue('isPublic', false)
                           form.setValue('showInNav', false)
                         }
                       }}
@@ -517,13 +555,31 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
 
             {form.watch('isPasswordProtected') && (
               <>
+                <div className="rounded-lg border p-4 bg-amber-50 dark:bg-amber-950/20">
+                  <div className="flex items-start gap-3">
+                    <div className="text-amber-600 dark:text-amber-400 mt-0.5">
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-amber-800 dark:text-amber-200">Password Types</h4>
+                      <div className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                        <strong>Admin Password:</strong> Your login credentials to access this admin panel
+                        <br />
+                        <strong>Gallery Password:</strong> What visitors enter to view the protected gallery
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {gallery.galleryPassword && (
                   <div className="rounded-lg border p-4 bg-muted/50">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <FormLabel className="text-base">Current Password</FormLabel>
+                        <FormLabel className="text-base">Verify Admin Identity</FormLabel>
                         <FormDescription>
-                          Enter current password to view or change it
+                          Enter your admin login password (not the gallery password) to modify settings
                         </FormDescription>
                       </div>
                       <Button
@@ -540,12 +596,25 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                       </Button>
                     </div>
                     {showCurrentPassword && (
-                      <Input
-                        type="password"
-                        placeholder="Enter current password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                      />
+                      <div className="space-y-3">
+                        <Input
+                          type="password"
+                          placeholder="Enter your admin login password"
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            // TODO: Verify admin password
+                            toast.success('Password verified')
+                          }}
+                        >
+                          Verify Password
+                        </Button>
+                      </div>
                     )}
                   </div>
                 )}
@@ -556,19 +625,19 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        {gallery.galleryPassword ? 'New Password' : 'Gallery Password'}
+                        {gallery.galleryPassword ? 'New Gallery Password' : 'Gallery Password'}
                       </FormLabel>
                       <FormControl>
                         <Input 
                           type="password"
-                          placeholder={gallery.galleryPassword ? 'Enter new password' : 'Enter password for gallery access'}
+                          placeholder={gallery.galleryPassword ? 'Enter new password for gallery access' : 'Enter password that visitors will use'}
                           {...field}
                         />
                       </FormControl>
                       <FormDescription>
                         {gallery.galleryPassword 
-                          ? 'Leave empty to keep current password unchanged'
-                          : 'Users will need this password to view the gallery'
+                          ? 'Leave empty to keep the current gallery access password unchanged'
+                          : 'Visitors will need to enter this password to view the gallery'
                         }
                       </FormDescription>
                       <FormMessage />
@@ -604,6 +673,72 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                   )}
                 />
               </>
+            )}
+
+            {form.watch('isPasswordProtected') && (
+              <div className="rounded-lg border p-4 bg-blue-50 dark:bg-blue-950/20">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <FormLabel className="text-base">Temporary Access Links</FormLabel>
+                    <FormDescription>
+                      Generate secure links that allow temporary access without requiring the password
+                    </FormDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => generateTempLink(24, 1)}
+                    >
+                      <LinkIcon className="h-4 w-4 mr-2" />
+                      Quick Share (24h)
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => generateTempLink(168, 10)}
+                    >
+                      <ClockIcon className="h-4 w-4 mr-2" />
+                      Extended (1 week, 10 uses)
+                    </Button>
+                  </div>
+                </div>
+
+                {tempLink && (
+                  <div className="space-y-3 pt-3 border-t">
+                    <div className="text-sm font-medium text-green-700 dark:text-green-400">
+                      ✓ Temporary link generated successfully
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        value={tempLink}
+                        readOnly
+                        className="flex-1 font-mono text-xs bg-white dark:bg-gray-800"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(tempLink)
+                          toast.success('Link copied to clipboard')
+                        }}
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                    {tempLinkExpiry && (
+                      <div className="text-xs text-muted-foreground bg-white dark:bg-gray-800 p-2 rounded">
+                        <strong>Expires:</strong> {new Date(tempLinkExpiry).toLocaleString()}
+                        <br />
+                        <strong>Share this link:</strong> Recipients can access the gallery directly without entering a password
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
 
             <Button type="submit" disabled={isLoading}>

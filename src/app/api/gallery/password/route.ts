@@ -5,6 +5,11 @@ import { galleries } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { verifyPassword, createGalleryPasswordCookie } from '~/lib/auth/authHelpers'
 import { getSession } from '~/lib/auth/auth'
+import { 
+  checkRateLimit, 
+  logFailedAttempt, 
+  logGalleryAccess 
+} from '~/lib/actions/gallery/access-control'
 
 const passwordSchema = z.object({
   gallerySlug: z.string().min(1),
@@ -15,6 +20,15 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { gallerySlug, password } = passwordSchema.parse(body)
+
+    // Check rate limit first
+    const isRateLimited = await checkRateLimit(gallerySlug)
+    if (isRateLimited) {
+      return NextResponse.json(
+        { error: 'Too many failed attempts. Please try again later.' },
+        { status: 429 }
+      )
+    }
 
     // Check if user is admin (admins can access any gallery)
     const session = await getSession()
@@ -38,11 +52,15 @@ export async function POST(request: NextRequest) {
 
     // If not password protected, return success
     if (!galleryData.isPasswordProtected) {
+      if (isAdmin) {
+        await logGalleryAccess(galleryData.id, 'admin_access')
+      }
       return NextResponse.json({ success: true })
     }
 
-    // If admin, allow access
+    // If admin, allow access and log
     if (isAdmin) {
+      await logGalleryAccess(galleryData.id, 'admin_access')
       return NextResponse.json({ success: true })
     }
 
@@ -58,11 +76,18 @@ export async function POST(request: NextRequest) {
     const isValidPassword = await verifyPassword(password, galleryData.galleryPassword)
 
     if (!isValidPassword) {
+      // Log failed attempt and increment rate limiting
+      await logFailedAttempt(gallerySlug)
+      await logGalleryAccess(galleryData.id, 'password_fail')
+      
       return NextResponse.json(
         { error: 'Invalid password' },
         { status: 401 }
       )
     }
+
+    // Log successful access
+    await logGalleryAccess(galleryData.id, 'password_success')
 
     // Create cookie for successful authentication
     const cookieData = await createGalleryPasswordCookie(

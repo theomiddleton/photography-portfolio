@@ -274,6 +274,33 @@ export const galleryImages = pgTable('galleryImages', {
   uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),
 })
 
+export const galleryAccessLogs = pgTable('galleryAccessLogs', {
+  id: serial('id').primaryKey(),
+  galleryId: uuid('galleryId').references(() => galleries.id, { onDelete: 'cascade' }).notNull(),
+  ipAddress: varchar('ipAddress', { length: 45 }).notNull(),
+  userAgent: text('userAgent'),
+  accessType: varchar('accessType', { length: 20 }).notNull(), // 'password_success', 'password_fail', 'temp_link', 'admin_access'
+  accessedAt: timestamp('accessedAt').defaultNow().notNull(),
+})
+
+export const galleryTempLinks = pgTable('galleryTempLinks', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  galleryId: uuid('galleryId').references(() => galleries.id, { onDelete: 'cascade' }).notNull(),
+  token: varchar('token', { length: 64 }).notNull().unique(),
+  expiresAt: timestamp('expiresAt').notNull(),
+  maxUses: integer('maxUses').default(1).notNull(),
+  currentUses: integer('currentUses').default(0).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+})
+
+export const galleryFailedAttempts = pgTable('galleryFailedAttempts', {
+  id: serial('id').primaryKey(),
+  gallerySlug: varchar('gallerySlug', { length: 255 }).notNull(),
+  ipAddress: varchar('ipAddress', { length: 45 }).notNull(),
+  attemptedAt: timestamp('attemptedAt').defaultNow().notNull(),
+  userAgent: text('userAgent'),
+})
+
 export const orderRelations = relations(orders, ({ one, many }) => ({
   product: one(products, {
     fields: [orders.productId],
