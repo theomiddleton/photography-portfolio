@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { getNavigationGalleries } from '~/lib/actions/gallery'
+import { getNavigationGalleries } from '~/lib/actions/gallery/gallery'
 
 interface MainNavProps {
   isAdmin?: boolean

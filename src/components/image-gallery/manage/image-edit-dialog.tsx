@@ -27,7 +27,7 @@ import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
-import { updateImageMetadata } from '~/lib/actions/gallery'
+import { updateImageMetadata } from '~/lib/actions/gallery/gallery'
 
 interface GalleryImage {
   id: string

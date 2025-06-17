@@ -28,7 +28,7 @@ import {
 import { Switch } from '~/components/ui/switch'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
-import { updateGallery } from '~/lib/actions/gallery'
+import { updateGallery } from '~/lib/actions/gallery/gallery'
 import { gallerySchema } from '~/lib/types/galleryType'
 import { galleryTemplates } from '~/config/gallery-templates'
 

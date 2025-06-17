@@ -24,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { deleteGallery, updateGallery } from '~/lib/actions/gallery'
+import { deleteGallery, updateGallery } from '~/lib/actions/gallery/gallery'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 

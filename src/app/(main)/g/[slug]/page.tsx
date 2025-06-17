@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getGalleryBySlug, incrementGalleryViews } from '~/lib/actions/gallery'
+import { getGalleryBySlug, incrementGalleryViews } from '~/lib/actions/gallery/gallery'
 import { GalleryViewer } from '~/components/image-gallery/gallery-viewer'
 
 interface GalleryPageProps {

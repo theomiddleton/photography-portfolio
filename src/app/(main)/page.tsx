@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { imageData, galleryConfig } from '~/server/db/schema'
 import { siteConfig } from '~/config/site'
 import { ImageGallery } from '~/components/image-gallery-grid'
-import type { GalleryConfigData } from '~/lib/actions/gallery-config'
+import type { GalleryConfigData } from '~/lib/actions/gallery/gallery-config'
 
 export const revalidate = 3600 // Set to 1 hour as a fallback, primarily using on-demand revalidation
 

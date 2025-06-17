@@ -31,7 +31,7 @@ import {
   bulkDeleteImages,
   moveImagesBetweenGalleries,
   getGalleries
-} from '~/lib/actions/gallery'
+} from '~/lib/actions/gallery/gallery'
 import { GallerySettingsForm } from '~/components/image-gallery/manage/gallery-settings-form'
 import { GalleryImageGrid } from '~/components/image-gallery/manage/gallery-image-grid'
 import { ImageEditDialog } from '~/components/image-gallery/manage/image-edit-dialog'

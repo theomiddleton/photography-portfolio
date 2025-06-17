@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { logAction } from '~/lib/logging'
 import { gallerySchema } from '~/lib/types/galleryType'
+import { deleteFileFromStorage, deleteFilesFromStorage } from '~/lib/actions/gallery/delete'
 
 // Get all galleries
 export async function getGalleries(includePrivate = false) {
@@ -198,10 +199,29 @@ export async function updateGallery(id: string, data: Partial<z.infer<typeof gal
 // Delete gallery
 export async function deleteGallery(id: string) {
   try {
+    // First, get all images associated with this gallery for storage cleanup
+    const imagesToDelete = await db
+      .select({ fileUrl: galleryImages.fileUrl })
+      .from(galleryImages)
+      .where(eq(galleryImages.galleryId, id))
+
+    // Delete the gallery (this will cascade delete gallery images due to foreign key constraints)
     const [deletedGallery] = await db
       .delete(galleries)
       .where(eq(galleries.id, id))
       .returning()
+
+    // Clean up storage files
+    if (imagesToDelete.length > 0) {
+      const fileUrls = imagesToDelete.map(img => img.fileUrl).filter(Boolean)
+      if (fileUrls.length > 0) {
+        const storageResult = await deleteFilesFromStorage(fileUrls)
+        if (storageResult.failed.length > 0) {
+          console.warn(`Failed to delete ${storageResult.failed.length} files from storage for gallery: ${deletedGallery.title}`)
+        }
+        logAction('Gallery', `Deleted ${storageResult.success.length} files from storage for gallery: ${deletedGallery.title}`)
+      }
+    }
 
     logAction('Gallery', `Deleted gallery: ${deletedGallery.title}`)
     revalidatePath('/admin/galleries')
@@ -273,7 +293,15 @@ export async function removeImageFromGallery(imageId: string) {
       .where(eq(galleryImages.id, imageId))
       .returning()
 
-      // delete from r2 as well
+    // Delete from storage
+    if (deletedImage.fileUrl) {
+      const storageDeleted = await deleteFileFromStorage(deletedImage.fileUrl)
+      if (!storageDeleted) {
+        console.warn(`Failed to delete file from storage: ${deletedImage.fileUrl}`)
+      } else {
+        logAction('Gallery', `Deleted file from storage: ${deletedImage.fileName}`)
+      }
+    }
 
     logAction('Gallery', `Removed image from gallery: ${deletedImage.name}`)
     
@@ -434,11 +462,28 @@ export async function moveImagesBetweenGalleries(imageIds: string[], targetGalle
 // Bulk delete images from gallery
 export async function bulkDeleteImages(imageIds: string[]) {
   try {
-    // Note: This only removes from gallery, doesn't delete from storage
-    // You might want to add storage cleanup if needed
+    // First get the file URLs for storage cleanup
+    const imagesToDelete = await db
+      .select({ fileUrl: galleryImages.fileUrl })
+      .from(galleryImages)
+      .where(sql`${galleryImages.id} = ANY(${imageIds})`)
+
+    // Delete from database
     await db
       .delete(galleryImages)
       .where(sql`${galleryImages.id} = ANY(${imageIds})`)
+
+    // Clean up storage files
+    if (imagesToDelete.length > 0) {
+      const fileUrls = imagesToDelete.map(img => img.fileUrl).filter(Boolean)
+      if (fileUrls.length > 0) {
+        const storageResult = await deleteFilesFromStorage(fileUrls)
+        if (storageResult.failed.length > 0) {
+          console.warn(`Failed to delete ${storageResult.failed.length} files from storage during bulk delete`)
+        }
+        logAction('Gallery', `Bulk deleted ${storageResult.success.length} files from storage`)
+      }
+    }
 
     logAction('Gallery', `Bulk deleted ${imageIds.length} images from galleries`)
     revalidatePath('/admin/galleries')

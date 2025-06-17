@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { Switch } from '~/components/ui/switch'
-import { createGallery } from '~/lib/actions/gallery'
+import { createGallery } from '~/lib/actions/gallery/gallery'
 import { gallerySchema } from '~/lib/types/galleryType'
 import { galleryTemplates, getTemplateById, getAllCategories } from '~/config/gallery-templates'
 

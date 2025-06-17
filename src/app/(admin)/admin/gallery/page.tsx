@@ -1,4 +1,4 @@
-import { getGalleryConfig } from '~/lib/actions/gallery-config'
+import { getGalleryConfig } from '~/lib/actions/gallery/gallery-config'
 import { GalleryConfigForm } from '~/components/image-gallery/gallery-config-form'
 
 export default async function GalleryConfigPage() {
