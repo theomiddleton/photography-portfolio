@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { validateTempLink, logGalleryAccess } from '~/lib/actions/gallery/access-control'
+import { checkTempLinkValidity, logGalleryAccess } from '~/lib/actions/gallery/access-control'
 import { getGalleryById } from '~/lib/actions/gallery/gallery'
 
 interface TempLinkPageProps {
@@ -13,8 +13,8 @@ export default async function TempLinkPage({ params }: TempLinkPageProps) {
   
   console.log('Temp link validation for token:', token)
   
-  // Validate the temporary link
-  const validation = await validateTempLink(token)
+  // Check the temporary link validity (don't increment usage yet)
+  const validation = await checkTempLinkValidity(token)
   
   console.log('Validation result:', validation)
   

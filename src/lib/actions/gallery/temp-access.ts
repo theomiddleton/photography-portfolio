@@ -1,28 +1,16 @@
 'use server'
 
-import { cookies } from 'next/headers'
 import { checkTempLinkValidity } from './access-control'
 
-export async function setTempAccessCookie(gallerySlug: string, token: string) {
+// Note: Cookie setting is now handled by the /api/gallery/temp-access route handler
+// This file can be used for other temp access related server actions if needed
+
+export async function validateTempAccess(token: string) {
   try {
-    // Validate the token first
     const validation = await checkTempLinkValidity(token)
-    if (!validation.isValid) {
-      return { success: false, error: 'Invalid token' }
-    }
-
-    const cookieStore = await cookies()
-    cookieStore.set(`temp_access_${gallerySlug}`, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days max (will be limited by temp link expiry)
-      path: '/',
-    })
-
-    return { success: true }
+    return { success: validation.isValid, error: validation.isValid ? null : 'Invalid or expired token' }
   } catch (error) {
-    console.error('Failed to set temp access cookie:', error)
-    return { success: false, error: 'Failed to set cookie' }
+    console.error('Failed to validate temp access:', error)
+    return { success: false, error: 'Failed to validate token' }
   }
 }

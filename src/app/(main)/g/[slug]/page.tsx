@@ -19,7 +19,7 @@ interface GalleryPageProps {
 
 export async function generateMetadata({ params }: GalleryPageProps): Promise<Metadata> {
   const { slug } = await params
-  const gallery = await getGalleryBySlug(slug)
+  const gallery = await getGalleryBySlug(slug, true)
   
   if (!gallery) {
     return {
@@ -109,10 +109,18 @@ export default async function GalleryPage({ params, searchParams }: GalleryPageP
     const tempValidation = await checkTempLinkValidity(tempToken)
     hasTempAccess = tempValidation.isValid
     
-    // If we have valid temp access via URL and no cookie yet, set the cookie
+    console.log('Temp access check:', {
+      tempToken,
+      temp_access,
+      tempAccessCookie,
+      hasTempAccess
+    })
+    
+    // If we have valid temp access via URL and no cookie yet, redirect to set the cookie
     if (hasTempAccess && temp_access && !tempAccessCookie) {
-      const { setTempAccessCookie } = await import('~/lib/actions/gallery/temp-access')
-      await setTempAccessCookie(slug, temp_access)
+      const { redirect } = await import('next/navigation')
+      console.log('Redirecting to set cookie for temp access')
+      redirect(`/api/gallery/temp-access?token=${temp_access}&gallery=${slug}&redirect=${encodeURIComponent(`/g/${slug}`)}`)
     }
   }
   
@@ -123,6 +131,18 @@ export default async function GalleryPage({ params, searchParams }: GalleryPageP
     const gallery = await getGalleryBySlug(slug, true)
     if (!gallery) {
       notFound()
+    }
+    
+    // Increment temp link usage count when user actually accesses the gallery content
+    if (tempToken) {
+      console.log('About to increment temp link usage for token:', tempToken)
+      const { incrementTempLinkUsage } = await import('~/lib/actions/gallery/access-control')
+      try {
+        const result = await incrementTempLinkUsage(tempToken)
+        console.log('Temp link usage increment result:', result)
+      } catch (error) {
+        console.error('Failed to increment temp link usage:', error)
+      }
     }
     
     // Increment view count (non-blocking)

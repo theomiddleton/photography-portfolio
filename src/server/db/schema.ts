@@ -288,7 +288,7 @@ export const galleryTempLinks = pgTable('galleryTempLinks', {
   galleryId: uuid('galleryId').references(() => galleries.id, { onDelete: 'cascade' }).notNull(),
   token: varchar('token', { length: 64 }).notNull().unique(),
   expiresAt: timestamp('expiresAt').notNull(),
-  maxUses: integer('maxUses').default(1).notNull(),
+  maxUses: integer('maxUses').default(10).notNull(),
   currentUses: integer('currentUses').default(0).notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 })

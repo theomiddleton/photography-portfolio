@@ -6,7 +6,7 @@ import { createTempGalleryLink } from '~/lib/actions/gallery/access-control'
 const tempLinkSchema = z.object({
   galleryId: z.string().uuid(),
   expirationHours: z.number().min(1).max(168).default(24), // 1 hour to 1 week
-  maxUses: z.number().min(1).max(100).default(1),
+  maxUses: z.number().min(1).max(100).default(10),
 })
 
 export async function POST(request: NextRequest) {

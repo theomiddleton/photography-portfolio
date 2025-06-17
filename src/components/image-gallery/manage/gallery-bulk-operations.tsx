@@ -197,12 +197,18 @@ export function GalleryBulkOperations({ galleries, onUpdate }: BulkOperationsPro
             </div>
             <div className="flex items-center space-x-2">
               {gallery.isPasswordProtected && (
-                <ShieldIcon className="h-4 w-4 text-amber-500" title="Password Protected" />
+                <ShieldIcon className="h-4 w-4 text-amber-500">
+                  <title>Password Protected</title>
+                </ShieldIcon>
               )}
               {gallery.isPublic ? (
-                <EyeIcon className="h-4 w-4 text-green-500" title="Public" />
+                <EyeIcon className="h-4 w-4 text-green-500">
+                  <title>Public</title>
+                </EyeIcon>
               ) : (
-                <EyeOffIcon className="h-4 w-4 text-gray-500" title="Private" />
+                <EyeOffIcon className="h-4 w-4 text-gray-500">
+                  <title>Private</title>
+                </EyeOffIcon>
               )}
               {gallery.showInNav && (
                 <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">

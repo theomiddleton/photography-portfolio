@@ -210,3 +210,53 @@ export async function getGalleryAccessLogs(galleryId: string, limit = 50) {
     return []
   }
 }
+
+export async function incrementTempLinkUsage(token: string): Promise<{
+  success: boolean
+  galleryId?: string
+}> {
+  try {
+    console.log('Incrementing temp link usage for token:', token)
+    
+    const [tempLink] = await db
+      .select()
+      .from(galleryTempLinks)
+      .where(eq(galleryTempLinks.token, token))
+      .limit(1)
+
+    console.log('Temp link found for increment:', tempLink)
+
+    if (!tempLink) {
+      console.log('No temp link found for usage increment')
+      return { success: false }
+    }
+
+    const now = new Date()
+    console.log('Current time:', now)
+    console.log('Link expires at:', tempLink.expiresAt)
+    console.log('Current uses before increment:', tempLink.currentUses, 'Max uses:', tempLink.maxUses)
+    
+    if (tempLink.expiresAt < now) {
+      console.log('Temp link expired, cannot increment usage')
+      return { success: false }
+    }
+
+    if (tempLink.currentUses >= tempLink.maxUses) {
+      console.log('Temp link max uses already reached, cannot increment')
+      return { success: false }
+    }
+
+    // Increment usage count
+    const result = await db
+      .update(galleryTempLinks)
+      .set({ currentUses: tempLink.currentUses + 1 })
+      .where(eq(galleryTempLinks.id, tempLink.id))
+      .returning()
+
+    console.log('Temp link usage incremented successfully. New usage:', tempLink.currentUses + 1)
+    return { success: true, galleryId: tempLink.galleryId }
+  } catch (error) {
+    console.error('Failed to increment temp link usage:', error)
+    return { success: false }
+  }
+}
