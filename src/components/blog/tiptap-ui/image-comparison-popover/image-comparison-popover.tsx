@@ -5,7 +5,7 @@ import { type Editor } from '@tiptap/react'
 import { useTiptapEditor } from '~/hooks/use-tiptap-editor'
 
 // --- Icons ---
-import { ImageIcon, GalleryThumbnailsIcon, ArrowLeftRight } from 'lucide-react'
+import { ArrowLeftRight } from 'lucide-react'
 
 // --- UI Primitives ---
 import {
@@ -20,7 +20,6 @@ import {
 } from '~/components/blog/tiptap-ui-primitive/popover'
 import { AltUpload } from '~/components/alt-upload-img'
 import { Separator } from '~/components/ui/separator'
-import { Textarea } from '~/components/ui/textarea'
 import { Label } from '~/components/ui/label'
 import { Input } from '~/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
@@ -56,7 +55,8 @@ ImageComparisonButton.displayName = 'ImageComparisonButton'
 const ImageComparisonContent: React.FC<{
   editor: Editor | null
   closePopover: () => void
-}> = ({ editor, closePopover }) => {
+  bucket?: 'about' | 'image' | 'custom' | 'blog'
+}> = ({ editor, closePopover, bucket }) => {
   const [beforeImage, setBeforeImage] = React.useState<{
     src: string
     alt: string
@@ -170,7 +170,7 @@ const ImageComparisonContent: React.FC<{
       {/* File Upload Section */}
       <div className="flex flex-col gap-2">
         <Label>Upload Images</Label>
-        <AltUpload bucket="blog" onFilesAdded={handleFilesUploaded} />
+        <AltUpload bucket={bucket} onFilesAdded={handleFilesUploaded} />
       </div>
 
       {/* Show uploaded files */}
@@ -451,12 +451,14 @@ export interface ImageComparisonPopoverProps
   editor?: Editor | null
   hideWhenUnavailable?: boolean
   extensionName?: string
+  bucket?: 'about' | 'image' | 'custom' | 'blog'
 }
 
 export function ImageComparisonPopover({
   editor: providedEditor,
   hideWhenUnavailable = false,
   extensionName = 'imageComparison',
+  bucket,
   ...TipTapButtonProps
 }: ImageComparisonPopoverProps) {
   const [isOpen, setIsOpen] = React.useState(false)
@@ -484,6 +486,7 @@ export function ImageComparisonPopover({
         <ImageComparisonContent
           editor={editor}
           closePopover={() => setIsOpen(false)}
+          bucket={bucket}
         />
       </PopoverContent>
     </Popover>

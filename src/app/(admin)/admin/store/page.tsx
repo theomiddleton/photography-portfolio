@@ -5,6 +5,12 @@ import { AdminOrders } from '~/components/store/admin/orders'
 import { AdminProducts } from '~/components/store/admin/products'
 import { AdminActions } from '~/components/store/admin/actions' 
 import { getSession } from '~/lib/auth/auth'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Store Management - Admin',
+  description: 'Manage products, orders, and store settings'
+}
 
 export const revalidate = 30 
 

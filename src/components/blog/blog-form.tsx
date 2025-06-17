@@ -150,7 +150,7 @@ export function BlogForm({ initialContent, post }: BlogFormProps) {
 
       <Card>
         <CardContent>
-          <SimpleEditor ref={editorRef} initialContent={initialContent} />
+          <SimpleEditor ref={editorRef} initialContent={initialContent} scope='blog' />
         </CardContent>
       </Card>
 

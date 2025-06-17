@@ -9,6 +9,12 @@ import { toast } from 'sonner'
 import { getInitialPortfolioImages, savePortfolioImagesOrder } from './action'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import type { PortfolioImageData } from '~/lib/types/image'
+// import type { Metadata } from 'next'
+
+// export const metadata: Metadata = {
+//   title: 'Manage - Admin',
+//   description: 'Manage portfolio images and their order',
+// }
 
 // Define a type that represents ImageData after JSON serialization (Dates become strings)
 type SerializedImageData = Omit<

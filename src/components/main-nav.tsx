@@ -6,9 +6,16 @@ import { usePathname } from 'next/navigation'
 import { cn } from '~/lib/utils'
 import { siteConfig } from '~/config/site'
 import { Icons } from '~/components/ui/icons'
-import { MenuIcon } from 'lucide-react'
+import { MenuIcon, ChevronDownIcon } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '~/components/ui/sheet'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
+import { getNavigationGalleries } from '~/lib/actions/gallery/gallery'
 
 interface MainNavProps {
   isAdmin?: boolean
@@ -17,6 +24,7 @@ interface MainNavProps {
 export function MainNav({ isAdmin }: MainNavProps) {
   const pathname = usePathname()
   const [open, setOpen] = React.useState(false)
+  const [galleries, setGalleries] = React.useState<Array<{ id: string; title: string; slug: string }>>([])
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)')
@@ -26,6 +34,19 @@ export function MainNav({ isAdmin }: MainNavProps) {
     
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+
+  React.useEffect(() => {
+    const loadGalleries = async () => {
+      try {
+        const navGalleries = await getNavigationGalleries()
+        setGalleries(navGalleries)
+      } catch (error) {
+        console.error('Failed to load navigation galleries:', error)
+      }
+    }
+    
+    loadGalleries()
   }, [])
 
   const MainNavItems = () => (
@@ -55,6 +76,31 @@ export function MainNav({ isAdmin }: MainNavProps) {
       >
         Store
       </Link>
+      {galleries.length > 0 && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                "h-auto p-0 text-sm font-normal text-foreground/60 hover:text-foreground/80 hover:bg-transparent",
+                pathname?.startsWith("/g/") ? "text-foreground" : "text-foreground/60"
+              )}
+            >
+              Galleries
+              <ChevronDownIcon className="ml-1 h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {galleries.map((gallery) => (
+              <DropdownMenuItem key={gallery.id} asChild>
+                <Link href={`/g/${gallery.slug}`}>
+                  {gallery.title}
+                </Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
       {isAdmin && (
         <Link
           href="/admin"
@@ -77,6 +123,7 @@ export function MainNav({ isAdmin }: MainNavProps) {
           "transition-colors hover:text-foreground/80",
           pathname === "/blog" ? "text-foreground" : "text-foreground/60"
         )}
+        onClick={() => setOpen(false)}
       >
         Blog
       </Link>
@@ -85,6 +132,7 @@ export function MainNav({ isAdmin }: MainNavProps) {
         className={cn(
           "text-foreground/60 transition-colors hover:text-foreground/80"
         )}
+        onClick={() => setOpen(false)}
       >
         About
       </Link>
@@ -93,9 +141,28 @@ export function MainNav({ isAdmin }: MainNavProps) {
         className={cn(
           "text-foreground/60 transition-colors hover:text-foreground/80"
         )}
+        onClick={() => setOpen(false)}
       >
         Store
       </Link>
+      {galleries.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-foreground/60 font-medium">Galleries</span>
+          {galleries.map((gallery) => (
+            <Link
+              key={gallery.id}
+              href={`/g/${gallery.slug}`}
+              className={cn(
+                "pl-4 text-foreground/60 transition-colors hover:text-foreground/80",
+                pathname === `/g/${gallery.slug}` ? "text-foreground" : "text-foreground/60"
+              )}
+              onClick={() => setOpen(false)}
+            >
+              {gallery.title}
+            </Link>
+          ))}
+        </div>
+      )}
       {isAdmin && (
         <Link
           href="/admin"
@@ -103,6 +170,7 @@ export function MainNav({ isAdmin }: MainNavProps) {
             "text-foreground/60 transition-colors hover:text-foreground/80",
             pathname?.startsWith("/admin") ? "text-foreground" : "text-foreground/60"
           )}
+          onClick={() => setOpen(false)}
         >
           Admin
         </Link>

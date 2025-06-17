@@ -1,7 +1,5 @@
 import * as React from "react"
 import { Separator } from "~/components/blog/tiptap-ui-primitive/separator"
-// Remove this import
-// import "@/components/tiptap-ui-primitive/toolbar/toolbar.scss"
 
 type BaseProps = React.HTMLAttributes<HTMLDivElement>
 
@@ -289,6 +287,8 @@ export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
     )
   }
 )
+
+Toolbar.displayName = 'Toolbar'
 
 export const ToolbarGroup = React.forwardRef<HTMLDivElement, BaseProps>(
   ({ children, className, ...props }, ref) => {

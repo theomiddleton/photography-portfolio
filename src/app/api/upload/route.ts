@@ -6,7 +6,7 @@ import { siteConfig } from '~/config/site'
 
 import { eq, sql, max } from 'drizzle-orm'
 import { db } from '~/server/db'
-import { imageData, aboutImgData, customImgData } from '~/server/db/schema'
+import { imageData, customImgData } from '~/server/db/schema'
 import { NextResponse } from 'next/server'
 
 import { products, productSizes } from '~/server/db/schema'
@@ -150,12 +150,6 @@ export async function POST(request: Request) {
     } else if (bucket === 'about') {
       console.log('Inserting about image data')
       logAction('upload', 'Inserting about image data')
-      await db.insert(aboutImgData).values({
-        uuid: keyName,
-        fileName: newFileName,
-        fileUrl: fileUrl,
-        name: name,
-      })
     } else if (bucket === 'custom') {
       console.log('Inserting custom image data')
       logAction('upload', 'Inserting custom image data')
@@ -196,7 +190,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return Response.json({ url, fileUrl })
+    return Response.json({ url, fileUrl, id: keyName, fileName: newFileName })
   } catch (error) {
     console.error('Upload Error:', error)
     return Response.json({ error: error.message }, { status: 500 })
