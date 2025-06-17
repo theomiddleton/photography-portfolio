@@ -304,18 +304,18 @@ export function GalleryManager({ galleryId, gallerySlug }: GalleryManagerProps) 
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center py-8 sm:py-12">
+        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-primary"></div>
       </div>
     )
   }
 
   if (error || !gallery) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-semibold mb-2">Gallery not found</h3>
-        <p className="text-muted-foreground mb-4">{error}</p>
-        <Button asChild>
+      <div className="text-center py-8 sm:py-12 px-4">
+        <h3 className="text-base sm:text-lg font-semibold mb-2">Gallery not found</h3>
+        <p className="text-muted-foreground mb-4 text-sm sm:text-base">{error}</p>
+        <Button asChild size="sm">
           <Link href="/admin/galleries">
             <ArrowLeftIcon className="mr-2 h-4 w-4" />
             Back to Galleries
@@ -326,53 +326,56 @@ export function GalleryManager({ galleryId, gallerySlug }: GalleryManagerProps) 
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
+      <div className="space-y-4 lg:space-y-0 lg:flex lg:items-center lg:justify-between">
+        {/* Title Section */}
+        <div className="flex items-start gap-3 sm:gap-4">
+          <Button variant="ghost" size="sm" asChild className="shrink-0 mt-1">
             <Link href="/admin/galleries">
-              <ArrowLeftIcon className="h-4 w-4 mr-2" />
-              Back
+              <ArrowLeftIcon className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden xs:inline">Back</span>
             </Link>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{gallery.title}</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant={gallery.isPublic ? 'default' : 'secondary'}>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold truncate">{gallery.title}</h1>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <Badge variant={gallery.isPublic ? 'default' : 'secondary'} className="text-xs">
                 {gallery.isPublic ? 'Public' : 'Private'}
               </Badge>
-              <Badge variant="outline" className="capitalize">
+              <Badge variant="outline" className="capitalize text-xs">
                 {gallery.layout}
               </Badge>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs sm:text-sm text-muted-foreground">
                 {gallery.images.length} images • {gallery.viewCount} views
               </span>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" asChild>
+        {/* Action Buttons */}
+        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-1">
+          <Button variant="outline" size="sm" asChild className="shrink-0">
             <Link href={`/g/${gallery.slug}`} target="_blank">
-              <ExternalLinkIcon className="h-4 w-4 mr-2" />
-              View Gallery
+              <ExternalLinkIcon className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">View Gallery</span>
             </Link>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleToggleVisibility}
+            className="shrink-0"
           >
             {gallery.isPublic ? (
               <>
-                <EyeOffIcon className="h-4 w-4 mr-2" />
-                Make Private
+                <EyeOffIcon className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Make Private</span>
               </>
             ) : (
               <>
-                <EyeIcon className="h-4 w-4 mr-2" />
-                Make Public
+                <EyeIcon className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Make Public</span>
               </>
             )}
           </Button>
@@ -380,32 +383,33 @@ export function GalleryManager({ galleryId, gallerySlug }: GalleryManagerProps) 
             variant="destructive"
             size="sm"
             onClick={handleDeleteGallery}
+            className="shrink-0"
           >
-            <TrashIcon className="h-4 w-4 mr-2" />
-            Delete
+            <TrashIcon className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Delete</span>
           </Button>
         </div>
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="images" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="images">
-            <ImageIcon className="h-4 w-4 mr-2" />
-            Images ({gallery.images.length})
+      <Tabs defaultValue="images" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-2 h-auto p-1">
+          <TabsTrigger value="images" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2">
+            <ImageIcon className="h-4 w-4" />
+            <span>Images ({gallery.images.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="settings">
-            <SettingsIcon className="h-4 w-4 mr-2" />
-            Settings
+          <TabsTrigger value="settings" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2">
+            <SettingsIcon className="h-4 w-4" />
+            <span>Settings</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="images" className="space-y-6">
+        <TabsContent value="images" className="space-y-4 sm:space-y-6">
           {/* Upload Section */}
           <Card>
-            <CardHeader>
-              <CardTitle>Upload Images</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg sm:text-xl">Upload Images</CardTitle>
+              <CardDescription className="text-sm">
                 Add new images to this gallery. You can upload multiple images at once.
               </CardDescription>
             </CardHeader>
@@ -430,10 +434,10 @@ export function GalleryManager({ galleryId, gallerySlug }: GalleryManagerProps) 
             />
           ) : (
             <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <ImageIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No images yet</h3>
-                <p className="text-muted-foreground text-center mb-4">
+              <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 px-4">
+                <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold mb-2">No images yet</h3>
+                <p className="text-muted-foreground text-center mb-4 text-sm sm:text-base max-w-sm">
                   Upload your first images to start building this gallery
                 </p>
               </CardContent>
