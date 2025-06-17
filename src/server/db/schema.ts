@@ -242,6 +242,9 @@ export const galleries = pgTable('galleries', {
   }).default('custom'),
   allowEmbedding: boolean('allowEmbedding').default(true).notNull(),
   embedPassword: text('embedPassword'), // Optional password for embedded galleries
+  isPasswordProtected: boolean('isPasswordProtected').default(false).notNull(),
+  galleryPassword: text('galleryPassword'), // Hashed password for gallery access
+  passwordCookieDuration: integer('passwordCookieDuration').default(30).notNull(), // Duration in days
   shareableLink: text('shareableLink').unique(), // UUID for sharing
   showInNav: boolean('showInNav').default(false).notNull(), // Show in navigation menu
   createdAt: timestamp('createdAt').defaultNow().notNull(),

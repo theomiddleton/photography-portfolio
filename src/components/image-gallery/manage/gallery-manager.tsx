@@ -55,6 +55,9 @@ interface Gallery {
   template: string
   allowEmbedding: boolean
   embedPassword: string | null
+  isPasswordProtected: boolean
+  galleryPassword: string | null
+  passwordCookieDuration: number
   shareableLink: string | null
   viewCount: number
   createdAt: Date

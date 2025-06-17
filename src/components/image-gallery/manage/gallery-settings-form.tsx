@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { EyeIcon, EyeOffIcon } from 'lucide-react'
 
 import { Button } from '~/components/ui/button'
 import {
@@ -48,6 +49,9 @@ interface Gallery {
   template: string
   allowEmbedding: boolean
   embedPassword: string | null
+  isPasswordProtected: boolean
+  galleryPassword: string | null
+  passwordCookieDuration: number
   shareableLink: string | null
   viewCount: number
   createdAt: Date
@@ -76,6 +80,8 @@ interface GallerySettingsFormProps {
 
 export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -92,6 +98,9 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
       template: gallery.template as any || 'custom',
       allowEmbedding: gallery.allowEmbedding ?? true,
       embedPassword: gallery.embedPassword || '',
+      isPasswordProtected: gallery.isPasswordProtected ?? false,
+      galleryPassword: '', // Always empty for security
+      passwordCookieDuration: gallery.passwordCookieDuration || 30,
     },
   })
 
@@ -465,18 +474,137 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Show in Navigation</FormLabel>
                     <FormDescription>
-                      Include this gallery in the main navigation menu
+                      Include this gallery in the main navigation menu (disabled for password-protected galleries)
                     </FormDescription>
                   </div>
                   <FormControl>
                     <Switch
-                      checked={field.value}
+                      checked={field.value && !form.watch('isPasswordProtected')}
                       onCheckedChange={field.onChange}
+                      disabled={form.watch('isPasswordProtected')}
                     />
                   </FormControl>
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="isPasswordProtected"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Password Protected</FormLabel>
+                    <FormDescription>
+                      Require a password to view this gallery (overrides public setting)
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked)
+                        if (checked) {
+                          // When enabling password protection, automatically disable showInNav
+                          form.setValue('showInNav', false)
+                        }
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {form.watch('isPasswordProtected') && (
+              <>
+                {gallery.galleryPassword && (
+                  <div className="rounded-lg border p-4 bg-muted/50">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <FormLabel className="text-base">Current Password</FormLabel>
+                        <FormDescription>
+                          Enter current password to view or change it
+                        </FormDescription>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      >
+                        {showCurrentPassword ? (
+                          <EyeOffIcon className="h-4 w-4" />
+                        ) : (
+                          <EyeIcon className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    {showCurrentPassword && (
+                      <Input
+                        type="password"
+                        placeholder="Enter current password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                      />
+                    )}
+                  </div>
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="galleryPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {gallery.galleryPassword ? 'New Password' : 'Gallery Password'}
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="password"
+                          placeholder={gallery.galleryPassword ? 'Enter new password' : 'Enter password for gallery access'}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {gallery.galleryPassword 
+                          ? 'Leave empty to keep current password unchanged'
+                          : 'Users will need this password to view the gallery'
+                        }
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="passwordCookieDuration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password Cookie Duration (Days)</FormLabel>
+                      <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">1 Day</SelectItem>
+                          <SelectItem value="7">1 Week</SelectItem>
+                          <SelectItem value="30">1 Month</SelectItem>
+                          <SelectItem value="90">3 Months</SelectItem>
+                          <SelectItem value="365">1 Year</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        How long users stay logged in after entering the correct password
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
             <Button type="submit" disabled={isLoading}>
               {isLoading ? 'Saving...' : 'Save Changes'}

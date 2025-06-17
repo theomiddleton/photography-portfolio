@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { logAction } from '~/lib/logging'
 import { gallerySchema } from '~/lib/types/galleryType'
 import { deleteFileFromStorage, deleteFilesFromStorage } from '~/lib/actions/gallery/delete'
+import { hashPassword } from '~/lib/auth/authHelpers'
 
 // Get all galleries
 export async function getGalleries(includePrivate = false) {
@@ -171,6 +172,25 @@ export async function updateGallery(id: string, data: Partial<z.infer<typeof gal
     const updateData: any = {
       ...data,
       updatedAt: new Date(),
+    }
+    
+    // Hash password if provided
+    if (data.galleryPassword && data.galleryPassword.length > 0) {
+      updateData.galleryPassword = await hashPassword(data.galleryPassword)
+    } else if (data.galleryPassword === '') {
+      // If empty string is provided, keep the existing password
+      delete updateData.galleryPassword
+    }
+    
+    // If password protection is disabled, clear the password
+    if (data.isPasswordProtected === false) {
+      updateData.galleryPassword = null
+      updateData.showInNav = data.showInNav !== undefined ? data.showInNav : false
+    }
+    
+    // If password protection is enabled, ensure showInNav is false
+    if (data.isPasswordProtected === true) {
+      updateData.showInNav = false
     }
     
     // Ensure columns has correct type if provided
@@ -619,5 +639,86 @@ export async function getNavigationGalleries() {
   } catch (error) {
     console.error('Error fetching navigation galleries:', error)
     return []
+  }
+}
+
+// Check if user has access to a gallery
+export async function checkGalleryAccess(slug: string, cookieValue?: string): Promise<{
+  hasAccess: boolean
+  needsPassword: boolean
+  gallery: any | null
+}> {
+  try {
+    const [gallery] = await db
+      .select()
+      .from(galleries)
+      .where(eq(galleries.slug, slug))
+      .limit(1)
+
+    if (!gallery) {
+      return { hasAccess: false, needsPassword: false, gallery: null }
+    }
+
+    // If not password protected, check if public
+    if (!gallery.isPasswordProtected) {
+      return { 
+        hasAccess: gallery.isPublic, 
+        needsPassword: false, 
+        gallery: gallery.isPublic ? gallery : null 
+      }
+    }
+
+    // Check if user has valid cookie for this gallery
+    if (cookieValue) {
+      const { verifyGalleryPasswordCookie } = await import('~/lib/auth/authHelpers')
+      const hasValidCookie = await verifyGalleryPasswordCookie(slug, cookieValue)
+      if (hasValidCookie) {
+        return { hasAccess: true, needsPassword: false, gallery }
+      }
+    }
+
+    // Password protected and no valid cookie
+    return { hasAccess: false, needsPassword: true, gallery }
+  } catch (error) {
+    console.error('Error checking gallery access:', error)
+    return { hasAccess: false, needsPassword: false, gallery: null }
+  }
+}
+
+// Get gallery by slug with access control
+export async function getGalleryBySlugWithAccess(slug: string, cookieValue?: string, isAdmin = false) {
+  try {
+    if (isAdmin) {
+      // Admins can access any gallery
+      return await getGalleryBySlug(slug, true)
+    }
+
+    const accessCheck = await checkGalleryAccess(slug, cookieValue)
+    
+    if (!accessCheck.hasAccess) {
+      return {
+        gallery: null,
+        needsPassword: accessCheck.needsPassword,
+        galleryTitle: accessCheck.gallery?.title || null
+      }
+    }
+
+    const images = await db
+      .select()
+      .from(galleryImages)
+      .where(eq(galleryImages.galleryId, accessCheck.gallery.id))
+      .orderBy(asc(galleryImages.order), asc(galleryImages.uploadedAt))
+
+    return {
+      gallery: {
+        ...accessCheck.gallery,
+        images,
+      },
+      needsPassword: false,
+      galleryTitle: null
+    }
+  } catch (error) {
+    console.error('Error fetching gallery with access control:', error)
+    throw new Error('Failed to fetch gallery')
   }
 }
