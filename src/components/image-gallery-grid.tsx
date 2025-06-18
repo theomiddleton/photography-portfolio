@@ -58,7 +58,7 @@ export const ImageGallery = ({ images, config }: ImageGalleryProps) => {
   }
 
   const getImageContainerClasses = () => {
-    const baseClasses = 'cursor-pointer overflow-hidden rounded-md duration-100 hover:scale-[0.97]'
+    const baseClasses = 'cursor-pointer overflow-hidden rounded-md hover:scale-[0.97] transition-transform duration-300 ease-[cubic-bezier(0.65,0,0.35,1)]'
     
     if (config.galleryStyle === 'masonry') {
       return `${baseClasses} mb-${config.gapSize === 'small' ? '2' : config.gapSize === 'medium' ? '4' : '6'} break-inside-avoid`

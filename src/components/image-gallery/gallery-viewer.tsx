@@ -88,21 +88,21 @@ export function GalleryViewer({ gallery }: GalleryViewerProps) {
               className="relative cursor-pointer rounded-lg overflow-hidden group hover:shadow-lg transition-shadow"
               onClick={() => handleImageClick(index)}
             >
-              {!imageLoadErrors.has(image.id) ? (
+                {!imageLoadErrors.has(image.id) ? (
                 <Image
                   src={image.fileUrl}
                   alt={image.alt || image.name}
                   width={600}
                   height={400}
-                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300 ease-[cubic-bezier(0.65,0,0.35,1)]"
                   onError={() => handleImageError(image.id)}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
-              ) : (
+                ) : (
                 <div className="w-full h-64 bg-muted flex items-center justify-center">
                   <span className="text-muted-foreground">Failed to load image</span>
                 </div>
-              )}
+                )}
               
               {/* Image overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors">
@@ -144,7 +144,7 @@ export function GalleryViewer({ gallery }: GalleryViewerProps) {
                   src={image.fileUrl}
                   alt={image.alt || image.name}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300 ease-[cubic-bezier(0.65,0,0.35,1)]"
                   onError={() => handleImageError(image.id)}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
@@ -193,7 +193,7 @@ export function GalleryViewer({ gallery }: GalleryViewerProps) {
                 src={image.fileUrl}
                 alt={image.alt || image.name}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300 ease-[cubic-bezier(0.65,0,0.35,1)]"
                 onError={() => handleImageError(image.id)}
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               />
