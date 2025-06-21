@@ -121,4 +121,14 @@
   .tiptap img[data-type='resizable-image']:hover {
     transition: box-shadow 0.2s ease;
   }
+
+  /* Shimmer animation for skeleton loading states */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
 }

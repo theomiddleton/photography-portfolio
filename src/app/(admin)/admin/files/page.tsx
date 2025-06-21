@@ -1,6 +1,11 @@
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import { getSession } from '~/lib/auth/auth'
 import { FileBrowser } from '~/components/file-browser'
+import {
+  FileBrowserSkeleton,
+  ResponsiveFileBrowserSkeleton,
+} from '~/components/skeletons'
 
 export default async function FileBrowserPage() {
   const session = await getSession()
@@ -12,7 +17,26 @@ export default async function FileBrowserPage() {
 
   return (
     <div className="h-screen">
-      <FileBrowser />
+      {/* Main Suspense boundary with responsive skeleton */}
+      <Suspense
+        fallback={
+          <ResponsiveFileBrowserSkeleton viewMode="list" isMobile={false} />
+        }
+      >
+        <FileBrowserWithProgressiveLoading />
+      </Suspense>
+    </div>
+  )
+}
+
+// Component with nested Suspense boundaries for progressive loading
+function FileBrowserWithProgressiveLoading() {
+  return (
+    <div className="h-full">
+      {/* Nested Suspense for even better perceived performance */}
+      <Suspense fallback={<FileBrowserSkeleton viewMode="list" />}>
+        <FileBrowser />
+      </Suspense>
     </div>
   )
 }

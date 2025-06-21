@@ -677,9 +677,7 @@ export function FileBrowser() {
       {/* File List */}
       <div className="flex-1 overflow-auto p-4">
         {loading ? (
-          <div className="flex h-32 items-center justify-center">
-            <div className="text-muted-foreground">Loading...</div>
-          </div>
+          <FileBrowserContentSkeleton viewMode={viewMode} />
         ) : processedFiles.length === 0 ? (
           <div className="flex h-32 items-center justify-center">
             <div className="text-muted-foreground">No files found</div>
@@ -1223,6 +1221,48 @@ function FileThumbnailItem({
           {file.type === 'file' ? formatFileSize(file.size) : 'Folder'}
         </div>
       </div>
+    </div>
+  )
+}
+
+// Skeleton component for file browser content loading
+function FileBrowserContentSkeleton({ viewMode }: { viewMode: 'list' | 'grid' | 'thumbnail' }) {
+  if (viewMode === 'list') {
+    return (
+      <div className="space-y-1">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-4 p-3">
+            <div className="h-6 w-6 animate-pulse bg-muted rounded" />
+            <div className="flex-1 h-5 animate-pulse bg-muted rounded" />
+            <div className="w-20 h-4 animate-pulse bg-muted rounded" />
+            <div className="w-24 h-4 animate-pulse bg-muted rounded" />
+            <div className="w-8 h-8 animate-pulse bg-muted rounded" />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (viewMode === 'grid') {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <div className="aspect-square animate-pulse bg-muted rounded-lg" />
+            <div className="h-4 animate-pulse bg-muted rounded w-3/4" />
+            <div className="h-3 animate-pulse bg-muted rounded w-1/2" />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // Thumbnail view
+  return (
+    <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2">
+      {Array.from({ length: 16 }).map((_, i) => (
+        <div key={i} className="aspect-square animate-pulse bg-muted rounded-lg" />
+      ))}
     </div>
   )
 }
