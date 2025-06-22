@@ -45,6 +45,7 @@ import {
   Archive,
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
+import Image from 'next/image'
 
 // Types
 interface S3File {
@@ -1204,15 +1205,19 @@ function FileThumbnailItem({
       </div>
       <div className="flex flex-col items-center gap-2">
         <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-md bg-muted">
-          {file.thumbnail ? (
-            <img
-              src={file.thumbnail || '/placeholder.svg'}
-              alt={file.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <Icon className="h-12 w-12 text-muted-foreground" />
-          )}
+            {file.thumbnail ? (
+              <Image
+                src={file.thumbnail || '/placeholder.svg'}
+                alt={file.name}
+                className="h-full w-full object-cover"
+                loading="lazy"
+                width={64}
+                height={64}
+                style={{ aspectRatio: '1 / 1' }}
+              />
+            ) : (
+              <Icon className="h-12 w-12 text-muted-foreground" />
+            )}
         </div>
         <div className="w-full truncate text-center text-sm font-medium">
           {file.name}
@@ -1226,17 +1231,21 @@ function FileThumbnailItem({
 }
 
 // Skeleton component for file browser content loading
-function FileBrowserContentSkeleton({ viewMode }: { viewMode: 'list' | 'grid' | 'thumbnail' }) {
+function FileBrowserContentSkeleton({
+  viewMode,
+}: {
+  viewMode: 'list' | 'grid' | 'thumbnail'
+}) {
   if (viewMode === 'list') {
     return (
       <div className="space-y-1">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="flex items-center gap-4 p-3">
-            <div className="h-6 w-6 animate-pulse bg-muted rounded" />
-            <div className="flex-1 h-5 animate-pulse bg-muted rounded" />
-            <div className="w-20 h-4 animate-pulse bg-muted rounded" />
-            <div className="w-24 h-4 animate-pulse bg-muted rounded" />
-            <div className="w-8 h-8 animate-pulse bg-muted rounded" />
+            <div className="h-6 w-6 animate-pulse rounded bg-muted" />
+            <div className="h-5 flex-1 animate-pulse rounded bg-muted" />
+            <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+            <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+            <div className="h-8 w-8 animate-pulse rounded bg-muted" />
           </div>
         ))}
       </div>
@@ -1245,12 +1254,12 @@ function FileBrowserContentSkeleton({ viewMode }: { viewMode: 'list' | 'grid' | 
 
   if (viewMode === 'grid') {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
         {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className="space-y-2">
-            <div className="aspect-square animate-pulse bg-muted rounded-lg" />
-            <div className="h-4 animate-pulse bg-muted rounded w-3/4" />
-            <div className="h-3 animate-pulse bg-muted rounded w-1/2" />
+            <div className="aspect-square animate-pulse rounded-lg bg-muted" />
+            <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+            <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
           </div>
         ))}
       </div>
@@ -1259,9 +1268,12 @@ function FileBrowserContentSkeleton({ viewMode }: { viewMode: 'list' | 'grid' | 
 
   // Thumbnail view
   return (
-    <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2">
+    <div className="grid grid-cols-3 gap-2 md:grid-cols-5 lg:grid-cols-8">
       {Array.from({ length: 16 }).map((_, i) => (
-        <div key={i} className="aspect-square animate-pulse bg-muted rounded-lg" />
+        <div
+          key={i}
+          className="aspect-square animate-pulse rounded-lg bg-muted"
+        />
       ))}
     </div>
   )
