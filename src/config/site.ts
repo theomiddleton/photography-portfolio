@@ -7,6 +7,8 @@ export const siteConfig = {
   blogBucketUrl: 'https://blog-img.theomiddleton.me',
   aboutBucketUrl: 'https://about-img.theomiddleton.me',
   customBucketUrl: 'https://custom-img.theomiddleton.me',
+  streamBucketUrl: 'https://stream-files.theomiddleton.me',
+  filesBucketUrl: 'https://files.theomiddleton.me',
   url: 'https://theoo.ooo',
   altUrl: 'https://theomiddleton.me',
   links: {

@@ -43,9 +43,11 @@ import {
   FileVideo,
   FileAudio,
   Archive,
+  Copy,
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import Image from 'next/image'
+import { siteConfig } from '~/config/site'
 
 // Types
 interface S3File {
@@ -506,6 +508,47 @@ export function FileBrowser() {
     setSelectedFiles(new Set(allKeys))
   }
 
+  const copyFileUrls = async (files: S3File[]) => {
+    try {
+      const urls = files.map((file) => {
+        // Exact bucket name to URL mapping
+        const bucketUrlMap: Record<string, string> = {
+          // Exact bucket name matches
+          'about': siteConfig.aboutBucketUrl,
+          'blog': siteConfig.blogBucketUrl,
+          'img-custom': siteConfig.customBucketUrl,
+          'img-public': siteConfig.imageBucketUrl,
+          'files': siteConfig.filesBucketUrl,
+          'stream': siteConfig.streamBucketUrl,
+        }
+
+        // Get the exact bucket URL, case-insensitive match
+        const bucketKey = Object.keys(bucketUrlMap).find(
+          key => key.toLowerCase() === currentBucket.toLowerCase()
+        )
+        const baseUrl = bucketKey 
+          ? bucketUrlMap[bucketKey] 
+          : siteConfig.customBucketUrl || ''
+        
+        console.log(`Current bucket: "${currentBucket}"`)
+        console.log(`Matched bucket key: "${bucketKey}"`)
+        console.log(`Mapped to URL: "${baseUrl}"`)
+        console.log(`File key: "${file.key}"`)
+        console.log(`Full URL: "${baseUrl}/${file.key}"`)
+        
+        return `${baseUrl}/${file.key}`
+      })
+
+      const urlText = urls.map(url => encodeURI(url)).join('\n')
+      await navigator.clipboard.writeText(urlText)
+
+      // You might want to show a toast notification here
+      console.log(`Copied ${files.length} file URL(s) to clipboard`)
+    } catch (error) {
+      console.error('Failed to copy URLs to clipboard:', error)
+    }
+  }
+
   return (
     <div
       className="file-browser-container flex h-screen flex-col bg-background"
@@ -654,6 +697,12 @@ export function FileBrowser() {
                       <Download className="mr-2 h-4 w-4" />
                       Download
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => copyFileUrls(selectedFileObjects)}
+                    >
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy URL{selectedFiles.size > 1 ? 's' : ''}
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() =>
@@ -698,6 +747,7 @@ export function FileBrowser() {
             }}
             onMove={(files) => setMoveDialog({ open: true, files })}
             onDelete={(files) => setDeleteDialog({ open: true, files })}
+            onCopyUrls={copyFileUrls}
           />
         )}
       </div>
@@ -873,6 +923,7 @@ interface FileViewProps {
   onRename: (file: S3File) => void
   onMove: (files: S3File[]) => void
   onDelete: (files: S3File[]) => void
+  onCopyUrls: (files: S3File[]) => void
 }
 
 function FileView({
@@ -886,6 +937,7 @@ function FileView({
   onRename,
   onMove,
   onDelete,
+  onCopyUrls,
 }: FileViewProps) {
   if (viewMode === 'list') {
     return (
@@ -912,6 +964,7 @@ function FileView({
             onRename={() => onRename(file)}
             onMove={() => onMove([file])}
             onDelete={() => onDelete([file])}
+            onCopyUrls={() => onCopyUrls([file])}
           />
         ))}
       </div>
@@ -921,6 +974,7 @@ function FileView({
   if (viewMode === 'grid') {
     return (
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+        {' '}
         {files.map((file, index) => (
           <FileGridItem
             key={file.key}
@@ -933,6 +987,7 @@ function FileView({
             onRename={() => onRename(file)}
             onMove={() => onMove([file])}
             onDelete={() => onDelete([file])}
+            onCopyUrls={() => onCopyUrls([file])}
           />
         ))}
       </div>
@@ -953,6 +1008,7 @@ function FileView({
           onRename={() => onRename(file)}
           onMove={() => onMove([file])}
           onDelete={() => onDelete([file])}
+          onCopyUrls={() => onCopyUrls([file])}
         />
       ))}
     </div>
@@ -970,6 +1026,7 @@ interface FileItemProps {
   onRename: () => void
   onMove: () => void
   onDelete: () => void
+  onCopyUrls: () => void
 }
 
 function FileListItem({
@@ -982,6 +1039,7 @@ function FileListItem({
   onRename,
   onMove,
   onDelete,
+  onCopyUrls,
 }: FileItemProps) {
   const Icon = getFileIcon(file)
 
@@ -1039,6 +1097,10 @@ function FileListItem({
           <DropdownMenuItem>
             <Download className="mr-2 h-4 w-4" />
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={onCopyUrls}>
+            <Copy className="mr-2 h-4 w-4" />
+            Copy URL
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={onDelete} className="text-destructive">
             <Trash2 className="mr-2 h-4 w-4" />
@@ -1061,6 +1123,7 @@ function FileGridItem({
   onRename,
   onMove,
   onDelete,
+  onCopyUrls,
 }: FileItemProps) {
   const Icon = getFileIcon(file)
 
@@ -1112,6 +1175,10 @@ function FileGridItem({
               <Download className="mr-2 h-4 w-4" />
               Download
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={onCopyUrls}>
+              <Copy className="mr-2 h-4 w-4" />
+              Copy URL
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onDelete} className="text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
@@ -1144,6 +1211,7 @@ function FileThumbnailItem({
   onRename,
   onMove,
   onDelete,
+  onCopyUrls,
 }: FileItemProps) {
   const Icon = getFileIcon(file)
 
@@ -1195,6 +1263,10 @@ function FileThumbnailItem({
               <Download className="mr-2 h-4 w-4" />
               Download
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={onCopyUrls}>
+              <Copy className="mr-2 h-4 w-4" />
+              Copy URL
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onDelete} className="text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
@@ -1205,19 +1277,19 @@ function FileThumbnailItem({
       </div>
       <div className="flex flex-col items-center gap-2">
         <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-md bg-muted">
-            {file.thumbnail ? (
-              <Image
-                src={file.thumbnail || '/placeholder.svg'}
-                alt={file.name}
-                className="h-full w-full object-cover"
-                loading="lazy"
-                width={64}
-                height={64}
-                style={{ aspectRatio: '1 / 1' }}
-              />
-            ) : (
-              <Icon className="h-12 w-12 text-muted-foreground" />
-            )}
+          {file.thumbnail ? (
+            <Image
+              src={file.thumbnail || '/placeholder.svg'}
+              alt={file.name}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              width={64}
+              height={64}
+              style={{ aspectRatio: '1 / 1' }}
+            />
+          ) : (
+            <Icon className="h-12 w-12 text-muted-foreground" />
+          )}
         </div>
         <div className="w-full truncate text-center text-sm font-medium">
           {file.name}
