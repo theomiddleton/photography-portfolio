@@ -7,8 +7,7 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    DATABASE_URL: z
-      .string().url(),
+    DATABASE_URL: z.string().url(),
     NODE_ENV: z
       .enum(['development', 'test', 'production'])
       .default('development'),
@@ -28,6 +27,7 @@ export const env = createEnv({
     SITE_URL: z.string().url(),
     ADMIN_EMAIL: z.string().email(),
     RESEND_API_KEY: z.string(),
+    GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
   },
 
   client: {
@@ -54,6 +54,7 @@ export const env = createEnv({
     SITE_URL: process.env.SITE_URL,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
+    GOOGLE_GENERATIVE_AI_API_KEY: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
