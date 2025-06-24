@@ -1,4 +1,4 @@
-import { db } from '~/server/db'
+import { db, dbWithTx } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 import { eq, desc, asc, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
@@ -191,7 +191,7 @@ export async function updateImagesOrder(
 ) {
   try {
     // Use a transaction to ensure all updates succeed or fail together
-    const result = await db.transaction(async (tx) => {
+    const result = await dbWithTx.transaction(async (tx) => {
       const updatedImages = []
 
       for (const { id, order } of imageOrders) {
