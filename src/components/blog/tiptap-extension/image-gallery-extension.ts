@@ -84,7 +84,7 @@ export const ImageGalleryExtension = Node.create<ImageGalleryOptions>({
       [
         // Main image container
         'div',
-        { class: 'relative aspect-[16/9] w-full overflow-hidden rounded-lg' },
+        { class: 'relative aspect-video w-full overflow-hidden rounded-lg' },
         [
           'div',
           { class: 'absolute inset-0 flex items-center justify-center' },
@@ -105,7 +105,7 @@ export const ImageGalleryExtension = Node.create<ImageGalleryOptions>({
           [
             'button',
             {
-              class: 'gallery-prev h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white/90 border border-gray-200 flex items-center justify-center transition-all duration-200',
+              class: 'gallery-prev h-8 w-8 rounded-full bg-white/80 backdrop-blur-xs hover:bg-white/90 border border-gray-200 flex items-center justify-center transition-all duration-200',
               'aria-label': 'Previous image',
             },
             ['span', { class: 'text-lg font-bold text-gray-700' }, '‹'],
@@ -113,7 +113,7 @@ export const ImageGalleryExtension = Node.create<ImageGalleryOptions>({
           [
             'button',
             {
-              class: 'gallery-next h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white/90 border border-gray-200 flex items-center justify-center transition-all duration-200',
+              class: 'gallery-next h-8 w-8 rounded-full bg-white/80 backdrop-blur-xs hover:bg-white/90 border border-gray-200 flex items-center justify-center transition-all duration-200',
               'aria-label': 'Next image',
             },
             ['span', { class: 'text-lg font-bold text-gray-700' }, '›'],

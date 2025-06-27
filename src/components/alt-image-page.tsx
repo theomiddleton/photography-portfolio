@@ -26,7 +26,7 @@ export async function AltImagePage({
 }: AltImagePageProps) {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="relative aspect-[4/3] w-full max-w-4xl overflow-hidden rounded-lg">
+      <div className="relative aspect-4/3 w-full max-w-4xl overflow-hidden rounded-lg">
         <Suspense fallback={<ImageSkeleton />}>
           <Image
             src={data.fileUrl}

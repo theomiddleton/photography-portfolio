@@ -376,7 +376,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
             <div className="mt-4 text-sm leading-6 text-gray-600 dark:text-gray-300">
               <label
                 htmlFor="file-upload"
-                className="relative cursor-pointer rounded-md bg-gray-100 font-semibold text-black focus-within:outline-none focus-within:ring-2 focus-within:ring-gray-600 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 hover:text-gray-500 dark:bg-gray-800 dark:text-white dark:focus-within:ring-gray-300 dark:focus-within:ring-offset-gray-900 dark:hover:text-gray-300"
+                className="relative cursor-pointer rounded-md bg-gray-100 font-semibold text-black focus-within:outline-hidden focus-within:ring-2 focus-within:ring-gray-600 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 hover:text-gray-500 dark:bg-gray-800 dark:text-white dark:focus-within:ring-gray-300 dark:focus-within:ring-offset-gray-900 dark:hover:text-gray-300"
               >
                 <span>Upload a file</span>
                 <input
@@ -511,7 +511,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
                   </Label>
                   <span className="inline-block align-middle">
                     <input
-                      className="peer size-6 shrink-0 rounded-sm border border-primary accent-black shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                      className="peer size-6 shrink-0 rounded-sm border border-primary accent-black shadow-sm focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                       type="checkbox"
                       id="sale"
                       checked={isSale}

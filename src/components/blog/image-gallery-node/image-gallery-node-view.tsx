@@ -79,7 +79,7 @@ export const ImageGalleryNodeView: React.FC<NodeViewProps> = ({
   return (
     <NodeViewWrapper className="w-full max-w-5xl mx-auto px-4 py-8">
       {/* Main image container */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg">
+      <div className="relative aspect-video w-full overflow-hidden rounded-lg">
         <div className="absolute inset-0 flex items-center justify-center">
           <Image
             src={images[currentIndex].src}
@@ -99,7 +99,7 @@ export const ImageGalleryNodeView: React.FC<NodeViewProps> = ({
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white/90"
+            className="h-8 w-8 rounded-full bg-white/80 backdrop-blur-xs hover:bg-white/90"
             onClick={handlePrevious}
             aria-label="Previous image"
           >
@@ -108,7 +108,7 @@ export const ImageGalleryNodeView: React.FC<NodeViewProps> = ({
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white/90"
+            className="h-8 w-8 rounded-full bg-white/80 backdrop-blur-xs hover:bg-white/90"
             onClick={handleNext}
             aria-label="Next image"
           >
@@ -137,7 +137,7 @@ export const ImageGalleryNodeView: React.FC<NodeViewProps> = ({
                   onClick={() => handleThumbnailClick(index)}
                   className={cn(
                     "relative block h-20 w-32 overflow-hidden rounded-lg transition-all duration-300",
-                    i === Math.floor(visibleIndices.length / 2) && "outline outline-2 outline-black outline-offset-4"
+                    i === Math.floor(visibleIndices.length / 2) && "outline-solid outline-2 outline-black outline-offset-4"
                   )}
                   aria-label={`View ${images[index].alt}`}
                   aria-current={index === currentIndex}

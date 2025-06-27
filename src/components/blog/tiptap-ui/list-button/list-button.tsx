@@ -223,7 +223,7 @@ export const ListButton = React.forwardRef<HTMLButtonElement, ListButtonProps>(
       >
         {children || (
           <div className="flex items-center gap-2 w-full">
-            <Icon className="tiptap-button-icon flex-shrink-0" />
+            <Icon className="tiptap-button-icon shrink-0" />
             {text && <span className="tiptap-button-text text-left">{text}</span>}
           </div>
         )}

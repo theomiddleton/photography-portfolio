@@ -33,7 +33,7 @@ export default async function SuccessPage(props: {
   return (
     <main className="min-h-screen bg-white py-24 text-black">
       <div className="container max-w-lg">
-        <div className="rounded-lg border bg-card p-8 text-card-foreground shadow">
+        <div className="rounded-lg border bg-card p-8 text-card-foreground shadow-sm">
           <div className="flex flex-col items-center space-y-4 text-center">
             <CheckCircle className="h-12 w-12 text-green-500" />
             <h1 className="text-2xl font-semibold">

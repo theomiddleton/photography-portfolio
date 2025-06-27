@@ -29,7 +29,7 @@ export function ImageNavigation({ currentId }: ImageNavigationProps) {
         onClick={goToPrevious}
         variant="ghost"
         size="icon"
-        className="pointer-events-auto h-12 w-12 rounded-full bg-black/20 text-white backdrop-blur-sm hover:bg-black/40"
+        className="pointer-events-auto h-12 w-12 rounded-full bg-black/20 text-white backdrop-blur-xs hover:bg-black/40"
         aria-label="Previous image"
       >
         <svg
@@ -51,7 +51,7 @@ export function ImageNavigation({ currentId }: ImageNavigationProps) {
         onClick={goToNext}
         variant="ghost"
         size="icon"
-        className="pointer-events-auto h-12 w-12 rounded-full bg-black/20 text-white backdrop-blur-sm hover:bg-black/40"
+        className="pointer-events-auto h-12 w-12 rounded-full bg-black/20 text-white backdrop-blur-xs hover:bg-black/40"
         aria-label="Next image"
       >
         <svg

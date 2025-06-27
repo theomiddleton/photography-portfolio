@@ -143,7 +143,7 @@ export function FrameDemo() {
               />
 
               {/* Wall Preview */}
-              <div className="relative w-full aspect-[3/2] rounded-lg overflow-hidden shadow-xl">
+              <div className="relative w-full aspect-3/2 rounded-lg overflow-hidden shadow-xl">
                 <div 
                   className="absolute inset-0 bg-cover bg-center"
                   style={{

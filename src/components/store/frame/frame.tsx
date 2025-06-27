@@ -109,7 +109,7 @@ export function Frame({
           {isWooden && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
               <div className="absolute inset-0 shadow-[inset_0_0_30px_rgba(0,0,0,0.2)]" />
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.05),transparent)] bg-[length:4px_100%]" />
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.05),transparent)] bg-size-[4px_100%]" />
             </div>
           )}
 

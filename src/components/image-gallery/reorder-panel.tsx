@@ -94,15 +94,15 @@ function SortableImageThumbnail({ image, index }) {
       <Card
         className={`flex items-center p-2 ${isDragging ? "ring-2 ring-primary" : ""} ${!image.visible ? "opacity-60" : ""}`}
       >
-        <Badge variant="outline" className="mr-3 flex-shrink-0 w-8 h-8 flex items-center justify-center">
+        <Badge variant="outline" className="mr-3 shrink-0 w-8 h-8 flex items-center justify-center">
           {index + 1}
         </Badge>
 
-        <div className="flex-shrink-0 relative w-16 h-12 mr-3">
+        <div className="shrink-0 relative w-16 h-12 mr-3">
           <Image src={image.fileUrl || "/placeholder.svg"} alt={image.name} fill className="object-cover rounded-sm" />
         </div>
 
-        <div className="flex-grow min-w-0">
+        <div className="grow min-w-0">
           <h4 className="text-sm font-medium truncate">{image.name}</h4>
           <p className="text-xs text-muted-foreground truncate">{image.visible ? "Visible" : "Hidden"}</p>
         </div>
@@ -110,7 +110,7 @@ function SortableImageThumbnail({ image, index }) {
         <button
           {...attributes}
           {...listeners}
-          className="ml-2 p-1.5 rounded-md hover:bg-muted flex-shrink-0"
+          className="ml-2 p-1.5 rounded-md hover:bg-muted shrink-0"
           aria-label="Drag to reorder"
         >
           <GripVertical className="h-5 w-5 text-muted-foreground" />
