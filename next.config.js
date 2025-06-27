@@ -19,9 +19,6 @@ const nextConfig = {
     '@aws/sdk/client-s3',
     '@aws-sdk/s3-request-presigner',
   ],
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   // compiler: {
   //   removeConsole: process.env.NODE_ENV === 'production',
   // },
