@@ -2,7 +2,7 @@
 
 import { db } from '~/server/db'
 import { galleries, galleryImages } from '~/server/db/schema'
-import { eq, desc, asc, sql } from 'drizzle-orm'
+import { eq, desc, asc, sql, inArray } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { logAction } from '~/lib/logging'
@@ -486,12 +486,12 @@ export async function bulkDeleteImages(imageIds: string[]) {
     const imagesToDelete = await db
       .select({ fileUrl: galleryImages.fileUrl })
       .from(galleryImages)
-      .where(sql`${galleryImages.id} = ANY(${imageIds})`)
+      .where(inArray(galleryImages.id, imageIds))
 
     // Delete from database
     await db
       .delete(galleryImages)
-      .where(sql`${galleryImages.id} = ANY(${imageIds})`)
+      .where(inArray(galleryImages.id, imageIds))
 
     // Clean up storage files
     if (imagesToDelete.length > 0) {
