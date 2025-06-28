@@ -1,10 +1,11 @@
-import Link from 'next/link'
-import { Home } from 'lucide-react'
+'use client'
 
+import { Home } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 
-export default function NotFound() {
+export function NotFound() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <Card className="w-full max-w-md mx-4">
