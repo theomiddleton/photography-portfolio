@@ -1,21 +1,2 @@
 version: 2
-updates:
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      dependencies:
-        patterns:
-          - "*" 
-    target-branch: main
-
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      dependencies:
-        patterns:
-          - "*" 
-    target-branch: oss
+updates: []
