@@ -8,7 +8,7 @@ interface UseImagesOptions {
   initialImages?: PortfolioImageData[]
   visibleOnly?: boolean
   sortBy?: string
-  sortDirection?: "asc" | "desc"
+  sortDirection?: 'asc' | 'desc'
   limit?: number
   refreshInterval?: number | null
   onOrderChange?: (updatedImages: PortfolioImageData[]) => Promise<void> | void
@@ -17,8 +17,8 @@ interface UseImagesOptions {
 export function useImages({
   initialImages = [],
   visibleOnly,
-  sortBy = "order",
-  sortDirection = "asc",
+  sortBy = 'order',
+  sortDirection = 'asc',
   limit,
   refreshInterval = 10000, // Default to 10 seconds, null to disable
   onOrderChange,
@@ -40,19 +40,19 @@ export function useImages({
         // Build query parameters
         const params = new URLSearchParams()
         if (visibleOnly !== undefined) {
-          params.append("visible", visibleOnly.toString())
+          params.append('visible', visibleOnly.toString())
         }
-        params.append("sortBy", sortBy)
-        params.append("sortDirection", sortDirection)
+        params.append('sortBy', sortBy)
+        params.append('sortDirection', sortDirection)
         if (limit !== undefined) {
-          params.append("limit", limit.toString())
+          params.append('limit', limit.toString())
         }
 
         const response = await fetch(`/api/images/?${params.toString()}`)
 
         if (!response.ok) {
           const errorData = await response.json()
-          throw new Error(errorData.error || "Failed to fetch images")
+          throw new Error(errorData.error || 'Failed to fetch images')
         }
 
         const data = await response.json()
@@ -62,9 +62,9 @@ export function useImages({
           setImages(data.images)
         })
       } catch (err) {
-        console.error("Error fetching images:", err)
-        setError(err instanceof Error ? err.message : "An unknown error occurred")
-        toast(err instanceof Error ? err.message : "Failed to load images")
+        console.error('Error fetching images:', err)
+        setError(err instanceof Error ? err.message : 'An unknown error occurred')
+        toast(err instanceof Error ? err.message : 'Failed to load images')
       } finally {
         if (showLoading) {
           setIsLoading(false)
@@ -110,10 +110,10 @@ export function useImages({
           await onOrderChange(updatedImages)
           // Parent component is responsible for success feedback (e.g., toast)
         } catch (err) {
-          console.error("Error in onOrderChange callback:", err)
+          console.error('Error in onOrderChange callback:', err)
           setImages(oldImages) // Revert optimistic update
           toast.error(
-            err instanceof Error ? err.message : "Failed to save order via callback.",
+            err instanceof Error ? err.message : 'Failed to save order via callback.',
           )
         }
       } else {
@@ -124,27 +124,27 @@ export function useImages({
             order: index,
           }))
 
-          const response = await fetch("/api/images", {
-            method: "PATCH",
+          const response = await fetch('/api/images', {
+            method: 'PATCH',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify(orderUpdates),
           })
 
           if (!response.ok) {
             const errorData = await response.json()
-            throw new Error(errorData.error || "Failed to update image order via API")
+            throw new Error(errorData.error || 'Failed to update image order via API')
           }
 
           // Refresh images to ensure we have the latest data if API is source of truth
           // fetchImages(false) // Consider if this is needed or if parent handles data refresh
-          toast.success("Success: Image order updated successfully via API")
+          toast.success('Success: Image order updated successfully via API')
         } catch (err) {
-          console.error("Error updating image order via API:", err)
+          console.error('Error updating image order via API:', err)
           setImages(oldImages) // Revert to previous state on error
           toast.error(
-            err instanceof Error ? err.message : "Failed to update image order via API",
+            err instanceof Error ? err.message : 'Failed to update image order via API',
           )
         }
       }
@@ -159,7 +159,7 @@ export function useImages({
       const imageToUpdate = images.find((img) => img.id === id)
 
       if (!imageToUpdate) {
-        toast("Error: Image not found")
+        toast('Error: Image not found')
         return
       }
 
@@ -168,29 +168,29 @@ export function useImages({
 
       try {
         const response = await fetch(`/api/images/${id}`, {
-          method: "PATCH",
+          method: 'PATCH',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({ toggleVisibility: true }),
         })
 
         if (!response.ok) {
           const errorData = await response.json()
-          throw new Error(errorData.error || "Failed to toggle image visibility")
+          throw new Error(errorData.error || 'Failed to toggle image visibility')
         }
 
         // Refresh images to ensure we have the latest data
         fetchImages(false)
 
-        toast(`Success: Image ${imageToUpdate.visible ? "hidden" : "shown"} successfully`)
+        toast(`Success: Image ${imageToUpdate.visible ? 'hidden' : 'shown'} successfully`)
       } catch (err) {
-        console.error("Error toggling image visibility:", err)
+        console.error('Error toggling image visibility:', err)
 
         // Revert to previous state on error
         fetchImages()
 
-        toast("Failed to update image visibility")
+        toast('Failed to update image visibility')
       }
     },
     [images, fetchImages, toast],
@@ -204,22 +204,22 @@ export function useImages({
 
       try {
         const response = await fetch(`/api/images/${id}`, {
-          method: "DELETE",
+          method: 'DELETE',
         })
 
         if (!response.ok) {
           const errorData = await response.json()
-          throw new Error(errorData.error || "Failed to delete image")
+          throw new Error(errorData.error || 'Failed to delete image')
         }
 
-        toast("Success: Image deleted successfully")
+        toast('Success: Image deleted successfully')
       } catch (err) {
-        console.error("Error deleting image:", err)
+        console.error('Error deleting image:', err)
 
         // Revert to previous state on error
         fetchImages()
 
-        toast(err instanceof Error ? err.message : "Failed to delete image")
+        toast(err instanceof Error ? err.message : 'Failed to delete image')
       }
     },
     [fetchImages, toast],
@@ -233,29 +233,29 @@ export function useImages({
 
       try {
         const response = await fetch(`/api/images/${id}`, {
-          method: "PATCH",
+          method: 'PATCH',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
         })
 
         if (!response.ok) {
           const errorData = await response.json()
-          throw new Error(errorData.error || "Failed to update image")
+          throw new Error(errorData.error || 'Failed to update image')
         }
 
         // Refresh images to ensure we have the latest data
         fetchImages(false)
 
-        toast("Success: Image updated successfully")
+        toast('Success: Image updated successfully')
       } catch (err) {
-        console.error("Error updating image:", err)
+        console.error('Error updating image:', err)
 
         // Revert to previous state on error
         fetchImages()
 
-        toast(err instanceof Error ? err.message : "Failed to update image")
+        toast(err instanceof Error ? err.message : 'Failed to update image')
       }
     },
     [fetchImages, toast],

@@ -18,7 +18,7 @@ import { formatDistanceToNow } from 'date-fns'
 
 type Video = typeof videos.$inferSelect
 
-type VideoTableProps = {
+interface VideoTableProps {
   videos: Video[]
   onVisibilityChange: (id: string, isVisible: boolean) => Promise<void>
 }

@@ -79,7 +79,7 @@ import { useWindowSize } from '~/hooks/use-window-size'
 // --- Lib ---
 import { handleImageUpload, MAX_FILE_SIZE } from '~/lib/tiptap-utils'
 
-type SimpleEditorProps = {
+interface SimpleEditorProps {
   initialContent: unknown
   scope: 'blog' | 'about' | 'custom'
 }
@@ -259,7 +259,7 @@ export const SimpleEditor = React.forwardRef<
 })
 
 SimpleEditor.displayName = 'SimpleEditor'
-type MainToolbarContentProps = {
+interface MainToolbarContentProps {
   onHighlighterClick: () => void
   onLinkClick: () => void
   isMobile: boolean

@@ -355,7 +355,7 @@ export async function updateGalleryImageOrder(galleryId: string, imageOrders: { 
         .where(eq(galleryImages.id, id))
     }
 
-    logAction('Gallery', `Updated image order in gallery`)
+    logAction('Gallery', 'Updated image order in gallery')
     
     // Get gallery slug for revalidation
     const gallery = await db

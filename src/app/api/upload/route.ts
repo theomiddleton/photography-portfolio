@@ -163,8 +163,8 @@ export async function POST(request: Request) {
 
     revalidatePath('/store')
     revalidatePath(`/store/${slug}`)
-    revalidatePath(`/`)
-    revalidatePath(`/admin/manage`)
+    revalidatePath('/')
+    revalidatePath('/admin/manage')
 
     return Response.json({ url, fileUrl, id: keyName, fileName: newFileName })
   } catch (error) {
