@@ -51,7 +51,7 @@ export const ShortcutDisplay: React.FC<{ shortcuts: string[] }> = ({
       {shortcuts.map((key, index) => (
         <React.Fragment key={index}>
           {index > 0 && <kbd className="mx-0.5">+</kbd>}
-            <kbd className="min-w-[1.25rem] px-1 py-0.5 text-xs font-sans font-medium bg-gray-100 border border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700">
+            <kbd className="min-w-5 px-1 py-0.5 text-xs font-sans font-medium bg-gray-100 border border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700">
             {key}
             </kbd>
         </React.Fragment>
@@ -92,10 +92,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       transition-all duration-200
       disabled:bg-gray-50 disabled:text-gray-400
       dark:disabled:bg-gray-800 dark:disabled:text-gray-500
-      focus:outline-none
+      focus:outline-hidden
       data-[highlighted=true]:bg-gray-100 data-[highlighted=true]:text-gray-900
       dark:data-[highlighted=true]:bg-gray-700 dark:data-[highlighted=true]:text-gray-100
-      data-[size=large]:text-[0.9375rem] data-[size=large]:h-[2.375rem] data-[size=large]:min-w-[2.375rem] data-[size=large]:p-2.5
+      data-[size=large]:text-[0.9375rem] data-[size=large]:h-9.5 data-[size=large]:min-w-9.5 data-[size=large]:p-2.5
       data-[size=small]:text-xs data-[size=small]:h-6 data-[size=small]:min-w-6 data-[size=small]:p-1.5 data-[size=small]:rounded-lg
       data-[style=ghost]:bg-transparent data-[style=ghost]:hover:bg-gray-100
       dark:data-[style=ghost]:hover:bg-gray-800

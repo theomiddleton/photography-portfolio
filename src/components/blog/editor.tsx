@@ -218,13 +218,13 @@ export const SimpleEditor = React.forwardRef<
               simple-editor-content prose prose-sm
               mx-auto w-full max-w-2xl px-12
               py-12
-              outline-none dark:prose-invert sm:prose lg:prose-lg xl:prose-xl
+              outline-hidden dark:prose-invert sm:prose lg:prose-lg xl:prose-xl
               prose-headings:font-bold prose-headings:text-gray-900 prose-h1:mt-12
               prose-h1:text-2xl prose-h2:mt-10
               prose-h2:text-xl prose-h3:mt-8
               prose-h3:text-lg prose-h4:mt-8
               prose-h4:text-base prose-p:mt-5
-              prose-p:text-base prose-p:leading-relaxed first:prose-p:mt-0 prose-a:text-blue-500
+              prose-p:text-base prose-p:leading-relaxed prose-p:first:mt-0 prose-a:text-blue-500
               prose-a:underline prose-blockquote:my-6 prose-blockquote:border-l-4 prose-blockquote:border-gray-900 prose-blockquote:py-1.5 prose-blockquote:pl-4 prose-code:rounded prose-code:border
               prose-code:border-gray-200 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-sm prose-code:text-gray-700 prose-pre:my-6 prose-pre:rounded-md prose-pre:border prose-pre:border-gray-200 prose-pre:bg-gray-50
               prose-pre:p-4 prose-ol:mb-6 prose-ol:mt-6 prose-ol:list-decimal prose-ol:pl-6 prose-ul:mb-6 prose-ul:mt-6
@@ -248,8 +248,8 @@ export const SimpleEditor = React.forwardRef<
               [&_.task-item_input[type="checkbox"]]:mt-1 [&_.task-list]:list-none
               [&_.task-list]:pl-0 [&_.tiptap-thread--selected]:border-transparent [&_.tiptap-thread--selected]:bg-yellow-50 dark:[&_.tiptap-thread--selected]:bg-yellow-900/20 [&_.tiptap-thread--unresolved]:border-b-2
               [&_.tiptap-thread--unresolved]:border-dashed [&_.tiptap-thread--unresolved]:border-yellow-400 dark:[&_.tiptap-thread--unresolved]:border-yellow-600 [&_.tiptap-thread]:transition-colors
-              [&_[data-type="emoji"]_img]:inline-block [&_[data-type="emoji"]_img]:h-5 [&_[data-type="emoji"]_img]:w-5 [&_[data-type="emoji"]_img]:cursor-text [&_[data-type="mention"]]:inline-block
-              [&_[data-type="mention"]]:text-blue-500 dark:[&_[data-type="mention"]]:text-blue-400
+              [&_[data-type="emoji"]_img]:inline-block [&_[data-type="emoji"]_img]:h-5 [&_[data-type="emoji"]_img]:w-5 [&_[data-type="emoji"]_img]:cursor-text **:data-[type="mention"]:inline-block
+              **:data-[type="mention"]:text-blue-500 dark:**:data-[type="mention"]:text-blue-400
             `}
           />
         )}

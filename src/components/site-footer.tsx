@@ -7,8 +7,8 @@ import { Instagram, Twitter, Facebook } from 'lucide-react'
 
 export function SiteFooter() {
   return (
-    <footer className="fixed bottom-0 left-0 z-40 w-full border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 max-w-screen-2xl items-center">
+    <footer className="fixed bottom-0 left-0 z-40 w-full border-t border-border/40 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
+      <div className="container flex h-14 max-w-(--breakpoint-2xl) items-center">
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none"></div>
           <nav className="flex items-center">

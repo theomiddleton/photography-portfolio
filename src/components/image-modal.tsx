@@ -90,7 +90,7 @@ export const ImageModal = ({
     >
       {/* Header with close button and counter */}
       <div className="absolute left-4 right-4 top-4 z-50 flex items-center justify-between">
-        <div className="rounded bg-black/60 px-3 py-1 text-sm font-medium text-white backdrop-blur-sm">
+        <div className="rounded bg-black/60 px-3 py-1 text-sm font-medium text-white backdrop-blur-xs">
           {currentIndex + 1} / {images.length}
         </div>
 
@@ -98,7 +98,7 @@ export const ImageModal = ({
           onClick={onClose}
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-full bg-black/60 text-white backdrop-blur-sm hover:bg-black/80 focus:ring-2 focus:ring-white"
+          className="h-10 w-10 rounded-full bg-black/60 text-white backdrop-blur-xs hover:bg-black/80 focus:ring-2 focus:ring-white"
           aria-label="Close modal"
         >
           <X className="h-5 w-5" />
@@ -147,7 +147,7 @@ export const ImageModal = ({
             onClick={goToPrevious}
             variant="ghost"
             size="icon"
-            className="absolute left-4 top-1/2 z-40 h-12 w-12 -translate-y-1/2 rounded-full bg-black/60 text-white opacity-60 backdrop-blur-sm transition-opacity hover:bg-black/80 hover:opacity-100 focus:ring-2 focus:ring-white"
+            className="absolute left-4 top-1/2 z-40 h-12 w-12 -translate-y-1/2 rounded-full bg-black/60 text-white opacity-60 backdrop-blur-xs transition-opacity hover:bg-black/80 hover:opacity-100 focus:ring-2 focus:ring-white"
             aria-label="Previous image"
           >
             <ChevronLeft className="h-6 w-6" />
@@ -157,7 +157,7 @@ export const ImageModal = ({
             onClick={goToNext}
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-1/2 z-40 h-12 w-12 -translate-y-1/2 rounded-full bg-black/60 text-white opacity-60 backdrop-blur-sm transition-opacity hover:bg-black/80 hover:opacity-100 focus:ring-2 focus:ring-white"
+            className="absolute right-4 top-1/2 z-40 h-12 w-12 -translate-y-1/2 rounded-full bg-black/60 text-white opacity-60 backdrop-blur-xs transition-opacity hover:bg-black/80 hover:opacity-100 focus:ring-2 focus:ring-white"
             aria-label="Next image"
           >
             <ChevronRight className="h-6 w-6" />
@@ -168,7 +168,7 @@ export const ImageModal = ({
       {/* Optional image info at bottom */}
       {(currentImage?.description || currentImage?.name) && (
         <div className="absolute bottom-4 left-4 right-4 z-50">
-          <div className="mx-auto max-w-2xl rounded-lg bg-black/60 px-4 py-2 text-center text-sm text-white backdrop-blur-sm">
+          <div className="mx-auto max-w-2xl rounded-lg bg-black/60 px-4 py-2 text-center text-sm text-white backdrop-blur-xs">
             <p className="font-medium">
               {currentImage.description || currentImage.name}
             </p>

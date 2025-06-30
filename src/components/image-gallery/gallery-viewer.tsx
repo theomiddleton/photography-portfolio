@@ -106,7 +106,7 @@ export function GalleryViewer({ gallery }: GalleryViewerProps) {
               
               {/* Image overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors">
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                   <h3 className="text-white font-medium text-sm mb-1">{image.name}</h3>
                   {image.description && (
                     <p className="text-white/80 text-xs line-clamp-2">{image.description}</p>
@@ -157,7 +157,7 @@ export function GalleryViewer({ gallery }: GalleryViewerProps) {
             
             {/* Image overlay */}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors">
-              <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute bottom-0 left-0 right-0 p-3 bg-linear-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                 <h3 className="text-white font-medium text-sm mb-1 truncate">{image.name}</h3>
                 {image.description && (
                   <p className="text-white/80 text-xs truncate">{image.description}</p>
@@ -205,7 +205,7 @@ export function GalleryViewer({ gallery }: GalleryViewerProps) {
             
             {/* Image overlay */}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors">
-              <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute bottom-0 left-0 right-0 p-3 bg-linear-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                 <h3 className="text-white font-medium text-sm mb-1 truncate">{image.name}</h3>
                 {image.description && (
                   <p className="text-white/80 text-xs truncate">{image.description}</p>

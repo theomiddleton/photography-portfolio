@@ -20,7 +20,7 @@ export const Separator = React.forwardRef<HTMLDivElement, SeparatorProps>(
     return (
       <div
         className={`
-          flex-shrink-0 bg-gray-200
+          shrink-0 bg-gray-200
           ${orientation === "horizontal" ? "h-px w-full" : "h-6 w-px"}
           ${className}
         `.trim()}

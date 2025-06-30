@@ -67,7 +67,7 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                 </Button>
                 {/* Main preview - wrapped in DialogTrigger */}
                 {currentView === 'image' ? (
-                  <div className="relative w-full aspect-[3/2] rounded-lg overflow-hidden">
+                  <div className="relative w-full aspect-3/2 rounded-lg overflow-hidden">
                     <Image
                       src={product.imageUrl}
                       alt={product.name}
@@ -77,7 +77,7 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                     />
                   </div>
                 ) : (
-                  <div className="relative w-full aspect-[3/2] rounded-lg overflow-hidden">
+                  <div className="relative w-full aspect-3/2 rounded-lg overflow-hidden">
                     <div 
                       className="absolute inset-0 bg-cover bg-center"
                       style={{
@@ -142,10 +142,10 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                 </div>
               </div>
             </DialogTrigger>
-            <DialogContent className="max-w-screen-lg">
+            <DialogContent className="max-w-(--breakpoint-lg)">
               <div className="relative">
                 {currentView === 'image' ? (
-                  <div className="relative w-full aspect-[3/2] rounded-lg overflow-hidden">
+                  <div className="relative w-full aspect-3/2 rounded-lg overflow-hidden">
                     <Image
                       src={product.imageUrl}
                       alt={product.name}
@@ -155,7 +155,7 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                     />
                   </div>
                 ) : (
-                  <div className="relative w-full aspect-[3/2] rounded-lg overflow-hidden">
+                  <div className="relative w-full aspect-3/2 rounded-lg overflow-hidden">
                     <div 
                       className="absolute inset-0 bg-cover bg-center"
                       style={{
