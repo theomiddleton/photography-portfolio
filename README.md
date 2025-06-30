@@ -2,7 +2,7 @@
 
 A full-featured photography portfolio and e-commerce platform built with Next.js 15, featuring an image gallery, blog, print store, and comprehensive admin dashboard.
 
-## � Table of Contents
+## 📖 Table of Contents
 
 - [Demo](#️-demo)
 - [Features](#-features)
@@ -23,7 +23,7 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 - [Contributing](#-contributing)
 - [License](#-license)
 
-## �🖼️ Demo
+## 🖼️ Demo
 
 [Live Demo](https://theoo.ooo)
 
