@@ -761,7 +761,7 @@ export function FileBrowser() {
           <DialogHeader>
             <DialogTitle>Rename File</DialogTitle>
             <DialogDescription>
-              Enter a new name for "{renameDialog.file?.name}"
+              Enter a new name for &quot;{renameDialog.file?.name}&quot;
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
