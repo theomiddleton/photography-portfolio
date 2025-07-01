@@ -1,4 +1,4 @@
-import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon, HomeIcon, LogOutIcon, BookOpenText, ImagesIcon, FilmIcon, FileVideoIcon, BookOpenIcon, BookOpenTextIcon, ReceiptPoundSterlingIcon, DownloadIcon, GalleryThumbnailsIcon, FolderOpenIcon } from 'lucide-react'
+import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon, HomeIcon, LogOutIcon, BookOpenText, ImagesIcon, FilmIcon, FileVideoIcon, BookOpenIcon, BookOpenTextIcon, ReceiptPoundSterlingIcon, DownloadIcon, GalleryThumbnailsIcon, FolderOpenIcon, PaletteIcon } from 'lucide-react'
 
 export const adminSections = [
   { title: 'Image Upload', description: 'Manage and upload images', icon: ImageIcon, href: '/admin/upload' },
@@ -9,6 +9,7 @@ export const adminSections = [
   { title: 'Blogs', description: 'View and edit blog posts', icon: BookOpenText, href: '/admin/blog' },
   { title: 'New Blog Post', description: 'Create a new blog posts', icon: PenIcon, href: '/admin/blog/new' },
   { title: 'About', description: 'Edit about page content', icon: InfoIcon, href: '/admin/about' },
+  { title: 'Themes', description: 'Manage site themes and appearance', icon: PaletteIcon, href: '/admin/themes' },
   { title: 'Store', description: 'Manage orders and store items', icon: StoreIcon, href: '/admin/store' },
   { title: 'Costs', description: 'Manage shipping, tax rates, and print sizes', icon: ReceiptPoundSterlingIcon, href: '/admin/store/costs' },
   { title: 'Users', description: 'Manage user accounts and permissions', icon: UserIcon, href: '/admin/users'},

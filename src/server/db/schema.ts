@@ -301,6 +301,16 @@ export const galleryFailedAttempts = pgTable('galleryFailedAttempts', {
   userAgent: text('userAgent'),
 })
 
+export const siteThemes = pgTable('site_themes', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  cssVariables: text('css_variables').notNull(),
+  isActive: boolean('is_active').default(false).notNull(),
+  isCustom: boolean('is_custom').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
 export const orderRelations = relations(orders, ({ one, many }) => ({
   product: one(products, {
     fields: [orders.productId],
@@ -357,3 +367,4 @@ export const galleryImageRelations = relations(galleryImages, ({ one }) => ({
 export type BlogPost = typeof blogPosts.$inferSelect
 export type Gallery = typeof galleries.$inferSelect
 export type GalleryImage = typeof galleryImages.$inferSelect
+export type SiteTheme = typeof siteThemes.$inferSelect
