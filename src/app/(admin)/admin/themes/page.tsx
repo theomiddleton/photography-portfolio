@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { ThemeManagementClient } from '~/components/theme-management-client'
+import { ThemeManagementClient } from '~/components/theme/theme-management-client'
 import { getActiveTheme, getAllThemes } from '~/lib/theme/theme-service'
 import {
   Card,

@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ActiveThemeDisplay } from '~/components/active-theme-display'
-import { ThemeSelector } from '~/components/theme-selector'
+import { ActiveThemeDisplay } from '~/components/theme/active-theme-display'
+import { ThemeSelector } from '~/components/theme/theme-selector'
 import { CustomThemeImport } from '~/components/custom-theme-import'
-import { PresetThemeSelector } from '~/components/preset-theme-selector'
+import { PresetThemeSelector } from '~/components/theme/preset-theme-selector'
 import { Separator } from '~/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import {

@@ -11,7 +11,7 @@ import {
 } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
 import { createCustomThemeAction } from '~/lib/actions/theme-actions'
-import { THEME_PRESETS } from '~/lib/theme/presets'
+import { THEME_PRESETS } from '~/config/theme-presets'
 import { toast } from 'sonner'
 import { Check, Eye } from 'lucide-react'
 import type { SiteTheme } from '~/server/db/schema'
