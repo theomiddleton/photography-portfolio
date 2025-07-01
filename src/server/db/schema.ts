@@ -301,7 +301,7 @@ export const galleryFailedAttempts = pgTable('galleryFailedAttempts', {
   userAgent: text('userAgent'),
 })
 
-export const siteThemes = pgTable('site_themes', {
+export const siteThemes = pgTable('siteThemes', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   cssVariables: text('css_variables').notNull(),
