@@ -1,45 +1,47 @@
 /**
- * Parse CSS variables from various input formats
+ * Parse CSS variables from various input formats including Tailwind v4 themes
  */
 export function parseCSS(input: string): {
   success: boolean
   variables: Record<string, string>
   errors: string[]
+  hasDarkMode?: boolean
 } {
   const errors: string[] = []
   const variables: Record<string, string> = {}
+  let hasDarkMode = false
 
   try {
-    // Clean up the input
+    // Clean up the input but preserve structure for complex themes
     let cleanInput = input
       .replace(/\/\*[\s\S]*?\*\//g, '') // Remove comments
-      .replace(/\n|\r/g, ' ') // Replace newlines with spaces
-      .replace(/\s+/g, ' ') // Normalize whitespace
       .trim()
 
-    // Handle different input formats
-    if (cleanInput.includes(':root')) {
-      // Extract from :root block
-      const rootMatch = cleanInput.match(/:root\s*{([^}]+)}/i)
+    // Handle Tailwind v4 format with multiple selectors
+    if (cleanInput.includes(':root') || cleanInput.includes('.dark')) {
+      // Extract from :root block first
+      const rootMatch = cleanInput.match(/:root\s*{([^}]+)}/is)
       if (rootMatch) {
-        cleanInput = rootMatch[1]!
+        parseVariablesFromBlock(rootMatch[1]!, variables)
       }
-    }
 
-    // Parse CSS variable declarations
-    const variablePattern = /--([\w-]+)\s*:\s*([^;]+)/g
-    let match
-
-    while ((match = variablePattern.exec(cleanInput)) !== null) {
-      const [, name, value] = match
-      if (name && value) {
-        const variableName = `--${name.trim()}`
-        const variableValue = value.trim().replace(/;$/, '')
-
-        if (variableValue) {
-          variables[variableName] = variableValue
-        }
+      // Check for dark mode variables
+      const darkMatch = cleanInput.match(/\.dark\s*{([^}]+)}/is)
+      if (darkMatch) {
+        hasDarkMode = true
+        // For now, we'll use the root variables as the base
+        // In the future, we could store dark mode variables separately
       }
+
+      // Handle @theme inline blocks (Tailwind v4)
+      const themeMatch = cleanInput.match(/@theme\s+inline\s*{([^}]+)}/is)
+      if (themeMatch) {
+        // Extract variables from @theme block
+        parseVariablesFromBlock(themeMatch[1]!, variables)
+      }
+    } else {
+      // Fallback: treat entire input as variable declarations
+      parseVariablesFromBlock(cleanInput, variables)
     }
 
     if (Object.keys(variables).length === 0) {
@@ -55,6 +57,54 @@ export function parseCSS(input: string): {
     success: errors.length === 0 && Object.keys(variables).length > 0,
     variables,
     errors,
+    hasDarkMode,
+  }
+}
+
+/**
+ * Parse CSS variables from a block of CSS declarations
+ */
+function parseVariablesFromBlock(
+  block: string,
+  variables: Record<string, string>,
+) {
+  // Handle both formats:
+  // 1. --variable: value;
+  // 2. --variable: hsl(value);
+  // 3. --variable: calc(expression);
+  // 4. --variable: var(--other-variable);
+
+  const variablePattern = /--([\w-]+)\s*:\s*([^;]+)/g
+  let match
+
+  while ((match = variablePattern.exec(block)) !== null) {
+    const [, name, value] = match
+    if (name && value) {
+      const variableName = `--${name.trim()}`
+      let variableValue = value.trim().replace(/;$/, '')
+
+      // Clean up Tailwind v4 HSL format - convert hsl() to raw values
+      if (variableValue.startsWith('hsl(') && variableValue.endsWith(')')) {
+        // Extract the HSL values from hsl(150.0000 8.3333% 95.2941%)
+        const hslMatch = variableValue.match(/hsl\(([^)]+)\)/)
+        if (hslMatch) {
+          variableValue = hslMatch[1]!.trim()
+        }
+      }
+
+      // Skip variables that reference other variables or complex calculations for now
+      // These will be preserved as-is
+      if (
+        variableValue &&
+        !variableValue.includes('var(--') &&
+        !variableValue.includes('calc(')
+      ) {
+        variables[variableName] = variableValue
+      } else if (variableValue) {
+        // Store complex values as-is (calc, var references, etc.)
+        variables[variableName] = variableValue
+      }
+    }
   }
 }
 

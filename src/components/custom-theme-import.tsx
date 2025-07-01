@@ -110,22 +110,39 @@ export function CustomThemeImport({ onThemeCreated }: CustomThemeImportProps) {
 
   const handlePasteExample = () => {
     const exampleCSS = `:root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --primary: 262.1 83.3% 57.8%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 262.1 83.3% 57.8%;
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(222.2 84% 4.9%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222.2 84% 4.9%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222.2 84% 4.9%);
+  --primary: hsl(262.1 83.3% 57.8%);
+  --primary-foreground: hsl(0 0% 98%);
+  --secondary: hsl(240 4.8% 95.9%);
+  --secondary-foreground: hsl(240 5.9% 10%);
+  --muted: hsl(240 4.8% 95.9%);
+  --muted-foreground: hsl(240 3.8% 46.1%);
+  --accent: hsl(240 4.8% 95.9%);
+  --accent-foreground: hsl(240 5.9% 10%);
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --border: hsl(240 5.9% 90%);
+  --input: hsl(240 5.9% 90%);
+  --ring: hsl(262.1 83.3% 57.8%);
+  --chart-1: hsl(262.1 83.3% 57.8%);
+  --chart-2: hsl(262.1 70% 60%);
+  --chart-3: hsl(262.1 60% 70%);
+  --chart-4: hsl(262.1 50% 80%);
+  --chart-5: hsl(240 4.8% 95.9%);
   --radius: 0.5rem;
+}
+
+.dark {
+  --background: hsl(222.2 84% 4.9%);
+  --foreground: hsl(210 40% 98%);
+  --card: hsl(222.2 84% 4.9%);
+  --card-foreground: hsl(210 40% 98%);
+  /* ... more dark mode variables */
 }`
     setCssInput(exampleCSS)
     setThemeName('Custom Purple Theme')
@@ -141,8 +158,8 @@ export function CustomThemeImport({ onThemeCreated }: CustomThemeImportProps) {
           Import Custom Theme
         </CardTitle>
         <CardDescription>
-          Paste CSS variables from tweakcn, shadcn/ui generators, or create your
-          own
+          Paste CSS variables from tweakcn, shadcn/ui generators, Tailwind v4
+          themes, or create your own
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -163,11 +180,18 @@ export function CustomThemeImport({ onThemeCreated }: CustomThemeImportProps) {
             placeholder={`Paste your CSS variables here:
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(222.2 84% 4.9%);
+  --primary: hsl(221.2 83.2% 53.3%);
+  --primary-foreground: hsl(210 40% 98%);
   /* ... more variables */
+}
+
+/* Tailwind v4 format also supported */
+.dark {
+  --background: hsl(222.2 84% 4.9%);
+  --foreground: hsl(210 40% 98%);
+  /* ... dark mode variables */
 }`}
             value={cssInput}
             onChange={(e) => handleCssChange(e.target.value)}
@@ -270,7 +294,9 @@ export function CustomThemeImport({ onThemeCreated }: CustomThemeImportProps) {
             >
               tweakcn.com
             </a>{' '}
-            to generate custom themes, then copy the CSS variables here.
+            to generate custom themes. Also supports Tailwind v4 themes with
+            hsl() format and enhanced variables like charts, sidebar, fonts, and
+            shadows.
           </p>
         </div>
       </CardContent>

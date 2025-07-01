@@ -2,6 +2,7 @@ import { db, dbWithTx } from '~/server/db'
 import { siteThemes } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { cache } from 'react'
+import { parseCSS } from './css-parser'
 import type { SiteTheme } from '~/server/db/schema'
 
 /**
@@ -126,12 +127,13 @@ export function validateThemeCSS(cssString: string): {
   isValid: boolean
   errors: string[]
   variables: Record<string, string>
+  hasDarkMode?: boolean
 } {
   const errors: string[] = []
   const variables: Record<string, string> = {}
 
-  // Required CSS variables for a complete theme
-  const requiredVariables = [
+  // Core required CSS variables for a complete theme
+  const coreRequiredVariables = [
     '--background',
     '--foreground',
     '--primary',
@@ -147,47 +149,64 @@ export function validateThemeCSS(cssString: string): {
     '--border',
     '--input',
     '--ring',
+  ]
+
+  // Optional but recommended variables for enhanced themes
+  const optionalVariables = [
+    '--card',
+    '--card-foreground',
+    '--popover',
+    '--popover-foreground',
     '--radius',
+    // Tailwind v4 chart colors
+    '--chart-1',
+    '--chart-2',
+    '--chart-3',
+    '--chart-4',
+    '--chart-5',
+    // Sidebar variables
+    '--sidebar',
+    '--sidebar-foreground',
+    '--sidebar-primary',
+    '--sidebar-primary-foreground',
+    '--sidebar-accent',
+    '--sidebar-accent-foreground',
+    '--sidebar-border',
+    '--sidebar-ring',
+    // Font variables
+    '--font-sans',
+    '--font-serif',
+    '--font-mono',
+    // Shadow variables
+    '--shadow',
+    '--shadow-sm',
+    '--shadow-md',
+    '--shadow-lg',
+    '--shadow-xl',
+    '--shadow-2xl',
   ]
 
   try {
-    // Remove comments and normalize whitespace
-    const cleanCSS = cssString
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
+    // Use the updated parseCSS function
+    const parseResult = parseCSS(cssString)
 
-    // Extract variables from :root block or standalone variables
-    const rootMatch = cleanCSS.match(/:root\s*{([^}]+)}/i)
-    const variableBlock = rootMatch ? rootMatch[1] : cleanCSS
-
-    if (!variableBlock) {
-      errors.push('No CSS variables found')
+    if (!parseResult.success) {
+      errors.push(...parseResult.errors)
       return { isValid: false, errors, variables }
     }
 
-    // Parse individual variable declarations
-    const variableMatches = variableBlock.match(/--[\w-]+\s*:\s*[^;]+/g) || []
+    Object.assign(variables, parseResult.variables)
 
-    variableMatches.forEach((match) => {
-      const [name, ...valueParts] = match.split(':')
-      const value = valueParts.join(':').trim().replace(/;$/, '')
-
-      if (name && value) {
-        variables[name.trim()] = value
-      }
-    })
-
-    // Check for required variables
-    const missingVariables = requiredVariables.filter(
+    // Check for core required variables
+    const missingCore = coreRequiredVariables.filter(
       (required) => !variables[required],
     )
 
-    if (missingVariables.length > 0) {
-      errors.push(`Missing required variables: ${missingVariables.join(', ')}`)
+    if (missingCore.length > 0) {
+      errors.push(`Missing core variables: ${missingCore.join(', ')}`)
     }
 
-    // Validate variable format (should be HSL values or valid CSS)
+    // Validate variable values
     Object.entries(variables).forEach(([name, value]) => {
       // Basic validation - ensure value is not empty and doesn't contain dangerous content
       if (
@@ -197,17 +216,24 @@ export function validateThemeCSS(cssString: string): {
       ) {
         errors.push(`Invalid value for ${name}: ${value}`)
       }
+
+      // Allow longer values for complex CSS like shadows and fonts
+      if (value.length > 500) {
+        errors.push(`Value too long for ${name}: ${value.substring(0, 50)}...`)
+      }
     })
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      variables,
+      hasDarkMode: parseResult.hasDarkMode,
+    }
   } catch (error) {
     errors.push(
       `CSS parsing error: ${error instanceof Error ? error.message : 'Unknown error'}`,
     )
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors,
-    variables,
+    return { isValid: false, errors, variables }
   }
 }
 
