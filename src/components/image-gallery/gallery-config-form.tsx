@@ -35,7 +35,7 @@ export function GalleryConfigForm({ initialConfig }: GalleryConfigFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader className="text-center">
@@ -52,7 +52,7 @@ export function GalleryConfigForm({ initialConfig }: GalleryConfigFormProps) {
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Column Configuration */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
                   Column Layout
                 </h3>
                 <div className="grid grid-cols-2 gap-6">
@@ -128,7 +128,7 @@ export function GalleryConfigForm({ initialConfig }: GalleryConfigFormProps) {
 
               {/* Style Configuration */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
                   Style Settings
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -189,8 +189,8 @@ export function GalleryConfigForm({ initialConfig }: GalleryConfigFormProps) {
 
               {/* Message Display */}
               {message && (
-                <Alert className={message.includes('success') ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
-                  <AlertDescription className={message.includes('success') ? 'text-green-700' : 'text-red-700'}>
+                <Alert className={message.includes('success') ? 'border-green-500/20 bg-green-500/10' : 'border-destructive/20 bg-destructive/10'}>
+                  <AlertDescription className={message.includes('success') ? 'text-green-600 dark:text-green-400' : 'text-destructive'}>
                     {message}
                   </AlertDescription>
                 </Alert>
