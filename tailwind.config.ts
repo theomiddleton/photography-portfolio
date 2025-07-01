@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
-  darkMode: ["class"],
+  darkMode: "class",
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
@@ -106,13 +106,6 @@ const config: Config = {
     require('@tailwindcss/typography'),
     require('tailwind-scrollbar'),
     require("tailwindcss-animate")
-  ],
-  safelist: [
-    'data-[style=ghost]:bg-transparent',
-    'data-[style=primary]:bg-blue-500',
-    'data-[active-state=on]:bg-gray-200',
-    'data-[state=open]:bg-gray-200',
-    'data-[highlighted=true]:bg-gray-100',
   ],
 }
 
