@@ -143,8 +143,7 @@
       "@vercel/speed-insights",
       "bcrypt",
       "es5-ext",
-      "esbuild",
-      "sharp"
+      "esbuild"
     ]
   }
 }

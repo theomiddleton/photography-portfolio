@@ -520,12 +520,14 @@ Simply visit [tweakcn.com/editor/theme](https://tweakcn.com/editor/theme), custo
 ### Design Philosophy
 For optimal photo viewing experience, dark mode is intentionally only available in the admin dashboard. The public gallery maintains a clean, light interface to ensure your photography remains the focus without visual distractions.
 
-### Image Processing
-The application uses Sharp for image processing and supports:
-- Automatic WebP conversion
-- Responsive image generation
-- Dynamic resizing
+### Image Processing & Optimization
+The application includes comprehensive image handling capabilities:
+- Automatic optimization
+- Responsive delivery
+- Smart resizing
 - Frame mockups for store items
+- WebP conversion
+- Progressive loading
 
 ### Analytics
 Built-in support for:
