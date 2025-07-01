@@ -25,7 +25,7 @@ const accessTypeColors = {
   password_success: 'default',
   password_fail: 'destructive',
   temp_link: 'secondary',
-  admin_access: 'outline-solid',
+  admin_access: 'outline',
 } as const
 
 const accessTypeLabels = {
