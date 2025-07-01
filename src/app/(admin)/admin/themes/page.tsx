@@ -4,9 +4,7 @@ import { getActiveTheme, getAllThemes } from '~/lib/theme/theme-service'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from '~/components/ui/card'
 import { Skeleton } from '~/components/ui/skeleton'
 import type { Metadata } from 'next'

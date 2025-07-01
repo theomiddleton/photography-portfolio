@@ -15,6 +15,7 @@ import { THEME_PRESETS } from '~/lib/theme/presets'
 import { toast } from 'sonner'
 import { Check, Eye } from 'lucide-react'
 import type { SiteTheme } from '~/server/db/schema'
+import { extractHslColor } from '~/lib/theme/utils'
 
 interface PresetThemeSelectorProps {
   existingThemes: SiteTheme[]
@@ -66,18 +67,11 @@ export function PresetThemeSelector({
   }
 
   const getPreviewColors = (cssVariables: string) => {
-    const getColorValue = (varName: string) => {
-      const match = cssVariables.match(
-        new RegExp(`${varName}:\\s*([^;]+)`, 'i'),
-      )
-      return match ? `hsl(${match[1]!.trim()})` : '#000'
-    }
-
     return [
-      getColorValue('--primary'),
-      getColorValue('--secondary'),
-      getColorValue('--accent'),
-      getColorValue('--muted'),
+      extractHslColor(cssVariables, '--primary'),
+      extractHslColor(cssVariables, '--secondary'),
+      extractHslColor(cssVariables, '--accent'),
+      extractHslColor(cssVariables, '--muted'),
     ]
   }
 
@@ -192,20 +186,28 @@ function PresetPreviewModal({
   onApply: (activate: boolean) => void
 }) {
   const getPreviewColors = () => {
-    const getColorValue = (varName: string) => {
-      const match = preset.cssVariables.match(
-        new RegExp(`${varName}:\\s*([^;]+)`, 'i'),
-      )
-      return match ? `hsl(${match[1]!.trim()})` : '#000'
-    }
-
     return [
-      { name: 'Primary', value: getColorValue('--primary') },
-      { name: 'Secondary', value: getColorValue('--secondary') },
-      { name: 'Accent', value: getColorValue('--accent') },
-      { name: 'Muted', value: getColorValue('--muted') },
-      { name: 'Background', value: getColorValue('--background') },
-      { name: 'Foreground', value: getColorValue('--foreground') },
+      {
+        name: 'Primary',
+        value: extractHslColor(preset.cssVariables, '--primary'),
+      },
+      {
+        name: 'Secondary',
+        value: extractHslColor(preset.cssVariables, '--secondary'),
+      },
+      {
+        name: 'Accent',
+        value: extractHslColor(preset.cssVariables, '--accent'),
+      },
+      { name: 'Muted', value: extractHslColor(preset.cssVariables, '--muted') },
+      {
+        name: 'Background',
+        value: extractHslColor(preset.cssVariables, '--background'),
+      },
+      {
+        name: 'Foreground',
+        value: extractHslColor(preset.cssVariables, '--foreground'),
+      },
     ]
   }
 

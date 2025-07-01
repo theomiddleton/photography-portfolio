@@ -109,7 +109,7 @@ export function ThemeManagementClient({
         <h4 className="mb-2 font-medium">How to use themes</h4>
         <ul className="space-y-1 text-sm text-muted-foreground">
           <li>
-            • <strong>Presets:</strong> Choose from 10 pre-built themes with
+            • <strong>Presets:</strong> Choose from 6 pre-built themes with
             different color schemes
           </li>
           <li>

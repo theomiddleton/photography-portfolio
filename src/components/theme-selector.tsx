@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '~/components/ui/alert-dialog'
+import { extractHslColor } from '~/lib/theme/utils'
 
 interface ThemeSelectorProps {
   themes: SiteTheme[]
@@ -197,17 +198,11 @@ export function ThemeSelector({
 }
 
 function ThemePreviewSwatch({ cssVariables }: { cssVariables: string }) {
-  // Extract key color variables for preview
-  const getColorValue = (varName: string) => {
-    const match = cssVariables.match(new RegExp(`${varName}:\\s*([^;]+)`, 'i'))
-    return match ? `hsl(${match[1]!.trim()})` : '#000'
-  }
-
   const colors = [
-    getColorValue('--primary'),
-    getColorValue('--secondary'),
-    getColorValue('--accent'),
-    getColorValue('--muted'),
+    extractHslColor(cssVariables, '--primary'),
+    extractHslColor(cssVariables, '--secondary'),
+    extractHslColor(cssVariables, '--accent'),
+    extractHslColor(cssVariables, '--muted'),
   ]
 
   return (
@@ -232,6 +227,27 @@ function ThemePreviewModal({
   onClose: () => void
   onApply: () => void
 }) {
+  const colors = [
+    {
+      name: 'Primary',
+      value: extractHslColor(theme.cssVariables, '--primary'),
+    },
+    {
+      name: 'Secondary',
+      value: extractHslColor(theme.cssVariables, '--secondary'),
+    },
+    { name: 'Accent', value: extractHslColor(theme.cssVariables, '--accent') },
+    { name: 'Muted', value: extractHslColor(theme.cssVariables, '--muted') },
+    {
+      name: 'Background',
+      value: extractHslColor(theme.cssVariables, '--background'),
+    },
+    {
+      name: 'Foreground',
+      value: extractHslColor(theme.cssVariables, '--foreground'),
+    },
+  ]
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-lg border bg-background">
@@ -246,7 +262,22 @@ function ThemePreviewModal({
           <div className="space-y-4">
             <div>
               <h4 className="mb-2 font-medium">Color Palette</h4>
-              <ThemePreviewSwatch cssVariables={theme.cssVariables} />
+              <div className="grid grid-cols-3 gap-3">
+                {colors.map((color) => (
+                  <div key={color.name} className="flex items-center gap-2">
+                    <div
+                      className="h-8 w-8 rounded border"
+                      style={{ backgroundColor: color.value }}
+                    />
+                    <div>
+                      <div className="text-sm font-medium">{color.name}</div>
+                      <div className="font-mono text-xs text-muted-foreground">
+                        {color.value}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div>
