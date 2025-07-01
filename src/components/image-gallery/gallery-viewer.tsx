@@ -88,25 +88,25 @@ export function GalleryViewer({ gallery }: GalleryViewerProps) {
               className="relative cursor-pointer rounded-lg overflow-hidden group hover:shadow-lg transition-shadow"
               onClick={() => handleImageClick(index)}
             >
-              {!imageLoadErrors.has(image.id) ? (
+                {!imageLoadErrors.has(image.id) ? (
                 <Image
                   src={image.fileUrl}
                   alt={image.alt || image.name}
                   width={600}
                   height={400}
-                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300 ease-[cubic-bezier(0.65,0,0.35,1)]"
                   onError={() => handleImageError(image.id)}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
-              ) : (
+                ) : (
                 <div className="w-full h-64 bg-muted flex items-center justify-center">
                   <span className="text-muted-foreground">Failed to load image</span>
                 </div>
-              )}
+                )}
               
               {/* Image overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors">
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                   <h3 className="text-white font-medium text-sm mb-1">{image.name}</h3>
                   {image.description && (
                     <p className="text-white/80 text-xs line-clamp-2">{image.description}</p>
@@ -144,7 +144,7 @@ export function GalleryViewer({ gallery }: GalleryViewerProps) {
                   src={image.fileUrl}
                   alt={image.alt || image.name}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300 ease-[cubic-bezier(0.65,0,0.35,1)]"
                   onError={() => handleImageError(image.id)}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
@@ -157,7 +157,7 @@ export function GalleryViewer({ gallery }: GalleryViewerProps) {
             
             {/* Image overlay */}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors">
-              <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute bottom-0 left-0 right-0 p-3 bg-linear-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                 <h3 className="text-white font-medium text-sm mb-1 truncate">{image.name}</h3>
                 {image.description && (
                   <p className="text-white/80 text-xs truncate">{image.description}</p>
@@ -193,7 +193,7 @@ export function GalleryViewer({ gallery }: GalleryViewerProps) {
                 src={image.fileUrl}
                 alt={image.alt || image.name}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300 ease-[cubic-bezier(0.65,0,0.35,1)]"
                 onError={() => handleImageError(image.id)}
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               />
@@ -205,7 +205,7 @@ export function GalleryViewer({ gallery }: GalleryViewerProps) {
             
             {/* Image overlay */}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors">
-              <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute bottom-0 left-0 right-0 p-3 bg-linear-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                 <h3 className="text-white font-medium text-sm mb-1 truncate">{image.name}</h3>
                 {image.description && (
                   <p className="text-white/80 text-xs truncate">{image.description}</p>

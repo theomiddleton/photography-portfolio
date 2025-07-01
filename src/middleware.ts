@@ -5,9 +5,9 @@ import { getSession } from '~/lib/auth/auth'
 export async function middleware(request: NextRequest) {
   // Extract the base path (first segment of the URL path)
   const basePath = '/' + request.nextUrl.pathname.split('/')[1]
-  
+
   // Check if the base path matches any of our protected routes
-  if (config.matcher.some(path => basePath === path.split('/:')[0])) {
+  if (config.matcher.some((path) => basePath === path.split('/:')[0])) {
     const session = await getSession()
 
     // If there's no session or the user is not an admin, redirect to the home page
@@ -20,8 +20,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/admin/:path*',
-    '/store/:path*'
-  ]
+  matcher: ['/admin/:path*', '/store/:path*', '/api/files/:path*'],
 }

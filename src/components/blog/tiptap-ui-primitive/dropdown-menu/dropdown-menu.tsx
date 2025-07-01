@@ -241,7 +241,7 @@ export const DropdownMenuContent = React.forwardRef<
             z-50 min-w-[220px]
             bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700
             rounded-lg p-1
-            shadow-lg outline-none
+            shadow-lg outline-hidden
             overflow-hidden flex flex-col gap-0.5
             data-[orientation=horizontal]:p-0.5
             animate-in fade-in-0 zoom-in-95
@@ -355,7 +355,7 @@ export const DropdownMenuItem = React.forwardRef<
       w-full px-2 py-1.5
       text-sm text-gray-700 dark:text-gray-200
       rounded-md select-none
-      outline-none cursor-default
+      outline-hidden cursor-default
       transition-colors
       data-[disabled=true]:pointer-events-none
       data-[disabled=true]:opacity-50

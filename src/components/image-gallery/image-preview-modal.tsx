@@ -16,7 +16,7 @@ interface ImagePreviewModalProps {
 export function ImagePreviewModal({ image, isOpen, onClose }: ImagePreviewModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background/95 backdrop-blur-sm">
+      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background/95 backdrop-blur-xs">
         <div className="relative">
           <Button
             variant="ghost"

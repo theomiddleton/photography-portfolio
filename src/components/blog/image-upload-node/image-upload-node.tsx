@@ -343,7 +343,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
       )}
 
       {fileItem && (
-        <div className="relative overflow-hidden rounded-[--tt-radius-md,0.5rem]">
+        <div className="relative overflow-hidden rounded-(--tt-radius-md,0.5rem)">
           <ImageUploadPreview
             file={fileItem.file}
             progress={fileItem.progress}

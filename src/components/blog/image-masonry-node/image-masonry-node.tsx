@@ -205,7 +205,7 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
                           setSelectedImage(null)
                         }
                       }}
-                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-hidden"
                       placeholder="Add a caption..."
                       autoFocus
                     />
@@ -251,7 +251,7 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
                 onChange={(e) =>
                   updateAttributes({ columns: parseInt(e.target.value, 10) })
                 }
-                className="rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                className="rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-hidden"
               >
                 <option value={2}>2</option>
                 <option value={3}>3</option>
@@ -265,7 +265,7 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
               <select
                 value={gap}
                 onChange={(e) => updateAttributes({ gap: e.target.value })}
-                className="rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                className="rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-hidden"
               >
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
@@ -281,7 +281,7 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
                 onChange={(e) =>
                   updateAttributes({ captionsEnabled: e.target.checked })
                 }
-                className="rounded border border-gray-300 focus:border-blue-500 focus:outline-none"
+                className="rounded border border-gray-300 focus:border-blue-500 focus:outline-hidden"
               />
             </div>
 

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession } from '~/lib/auth/auth'
 import { db } from '~/server/db'
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    let updateData: any = {}
+    const updateData: any = {}
 
     switch (action) {
       case 'enable_password':

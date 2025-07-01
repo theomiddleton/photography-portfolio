@@ -75,7 +75,7 @@ export function ImageItem({
           {showOrderControls && typeof index === 'number' && (
             <Badge
               variant="secondary"
-              className="absolute left-2 top-2 bg-background/80 backdrop-blur-sm"
+              className="absolute left-2 top-2 bg-background/80 backdrop-blur-xs"
             >
               {index + 1}
             </Badge>

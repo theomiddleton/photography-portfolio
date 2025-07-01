@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from 'date-fns'
-import { videos } from '~/server/db/schema'
+import { type videos } from '~/server/db/schema'
 
 type Video = typeof videos.$inferSelect
 

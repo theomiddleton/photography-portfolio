@@ -6,7 +6,7 @@ import { products, productSizes, orders } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
-export type DeleteStoreResult = {
+export interface DeleteStoreResult {
   success: boolean
   message?: string
   error?: string

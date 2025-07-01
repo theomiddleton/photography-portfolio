@@ -163,32 +163,8 @@ export async function POST(request: Request) {
 
     revalidatePath('/store')
     revalidatePath(`/store/${slug}`)
-
-    // Revalidate paths after successful upload
-    if (bucket === 'image') {
-      // Use fetch to call the revalidation API
-      try {
-        // Revalidate the homepage and photo pages
-        const revalidateResponse = await fetch(
-          `/api/revalidate`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              path: '/',
-            }),
-          },
-        )
-
-        if (!revalidateResponse.ok) {
-          console.error('Failed to revalidate paths')
-        }
-      } catch (revalidateError) {
-        console.error('Error revalidating paths:', revalidateError)
-      }
-    }
+    revalidatePath('/')
+    revalidatePath('/admin/manage')
 
     return Response.json({ url, fileUrl, id: keyName, fileName: newFileName })
   } catch (error) {

@@ -3,18 +3,25 @@
 ## Features
 
 - [x] Main image gallery
-- [x] Main image gallery
 - [x] Admin page
 - [x] Print store
   - [ ] Analytics
 - [x] Metadata store
 - [x] Blob store
-- [x] Metadata store
-- [x] Blob store
 - [x] Blog
-- [ ] Infinte scroll
-- [x] rethink auth
-
+- [x] AI-assisted image metadata generation
+  - [x] Automatic image upload on selection
+  - [x] AI-powered title generation
+  - [x] AI-powered description generation
+  - [x] AI-powered tags generation
+  - [x] Smart first-press vs subsequent-press logic
+  - [x] Individual field regeneration
+  - [x] Mock implementation for development
+  - [ ] Real AI SDK integration (requires: pnpm add ai @ai-sdk/google)
+  - [ ] SHA-256 caching for duplicate images
+  - [ ] Streaming response implementation
+- [ ] Infinite scroll
+- [x] Rethink auth
 
 - [ ] audit security - https://youtu.be/0EVB5LAtlDQ, https://nextjs.org/blog/security-nextjs-server-components-actions
 
@@ -28,13 +35,13 @@ Make hide buttons show when hidden, change message so fits in the row
 ## Rework store
 
 - [x] FIX 3000% increase on each charge
+
   - [x] actually fix it
     - [ ] Fix shipping always being 1st option
   - [x] change shipping implementation
 
 - [ ] Add profit / sell at prices
 - [ ] Fix product delete
-  
 - [ ] Fully upgrade to next 15
 
 - [x] Public store page
@@ -70,7 +77,7 @@ Make hide buttons show when hidden, change message so fits in the row
       - [x] Frame images
         - [x] dynamicaly create using sharp / css (darkroom implementation)
     - [x] Manages cloud storage (R2)
-      - [x] update delete 
+      - [x] update delete
 
   StripeService
 

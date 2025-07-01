@@ -210,7 +210,7 @@ export const TooltipContent = React.forwardRef<
       rounded-md bg-white dark:bg-gray-900
       px-2 py-1.5
       text-xs font-medium text-gray-700 dark:text-gray-200
-      shadow-sm border border-gray-200 dark:border-gray-700
+      shadow-xs border border-gray-200 dark:border-gray-700
       ${props.className || ''}
       `.trim()}
     >

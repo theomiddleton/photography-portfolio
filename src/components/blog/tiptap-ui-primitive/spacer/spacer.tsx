@@ -22,7 +22,7 @@ export const Spacer = React.forwardRef<HTMLDivElement, SpacerProps>(
       <div
         ref={ref}
         className={`
-          flex-shrink-0
+          shrink-0
           ${orientation === "horizontal" ? "w-full" : "h-full"}
           ${className || ""}
         `.trim()}

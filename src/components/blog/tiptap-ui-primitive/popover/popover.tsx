@@ -224,7 +224,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
             z-50 flex items-center gap-1
             bg-white border border-gray-200
             dark:bg-gray-900 dark:border-gray-700
-            p-1 outline-none overflow-hidden
+            p-1 outline-hidden overflow-hidden
             shadow-lg rounded-lg
             data-[orientation=horizontal]:p-0.5
             data-[state=open]:animate-in

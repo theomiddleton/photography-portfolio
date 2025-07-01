@@ -2,7 +2,7 @@
 
 import { db } from '~/server/db'
 import { galleries, galleryImages } from '~/server/db/schema'
-import { eq, desc, asc, sql } from 'drizzle-orm'
+import { eq, desc, asc, sql, inArray } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { logAction } from '~/lib/logging'
@@ -355,7 +355,7 @@ export async function updateGalleryImageOrder(galleryId: string, imageOrders: { 
         .where(eq(galleryImages.id, id))
     }
 
-    logAction('Gallery', `Updated image order in gallery`)
+    logAction('Gallery', 'Updated image order in gallery')
     
     // Get gallery slug for revalidation
     const gallery = await db
@@ -486,12 +486,12 @@ export async function bulkDeleteImages(imageIds: string[]) {
     const imagesToDelete = await db
       .select({ fileUrl: galleryImages.fileUrl })
       .from(galleryImages)
-      .where(sql`${galleryImages.id} = ANY(${imageIds})`)
+      .where(inArray(galleryImages.id, imageIds))
 
     // Delete from database
     await db
       .delete(galleryImages)
-      .where(sql`${galleryImages.id} = ANY(${imageIds})`)
+      .where(inArray(galleryImages.id, imageIds))
 
     // Clean up storage files
     if (imagesToDelete.length > 0) {

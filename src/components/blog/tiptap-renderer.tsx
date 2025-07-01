@@ -147,7 +147,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
 
           const thumbnailButton = document.createElement('button')
           thumbnailButton.className = `relative block h-20 w-32 overflow-hidden rounded-lg transition-all duration-300 ${
-            isCenter ? 'outline outline-2 outline-black outline-offset-4' : ''
+            isCenter ? 'outline-solid outline-2 outline-black outline-offset-4' : ''
           }`
           thumbnailButton.setAttribute(
             'aria-label',

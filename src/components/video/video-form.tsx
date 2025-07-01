@@ -34,7 +34,7 @@ const videoSchema = z.object({
 
 export type VideoFormData = z.infer<typeof videoSchema>
 
-type VideoFormProps = {
+interface VideoFormProps {
   video?: Video,
     action: (data: VideoFormData) => Promise<void>
 }

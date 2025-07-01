@@ -172,11 +172,11 @@ const LinkMain: React.FC<LinkMainProps> = ({
         autoCorrect="off"
         autoCapitalize="off"
         className="
-          block w-full h-8 min-w-[12rem] pr-0
+          block w-full h-8 min-w-48 pr-0
           text-base leading-6 
           rounded-md bg-transparent
           px-3 py-1.5
-          focus:outline-none
+          focus:outline-hidden
           text-ellipsis whitespace-nowrap
           focus:text-clip focus:overflow-visible
         "

@@ -238,7 +238,7 @@ export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
       flex items-center gap-1
       ${variant === "fixed" ? `
         sticky top-0 z-10 w-full
-        min-h-[2.75rem]
+        min-h-11
         bg-white dark:bg-black
         border-b border-gray-100 dark:border-gray-800
         px-2
@@ -258,7 +258,7 @@ export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
         border border-gray-100 dark:border-gray-800
         bg-white dark:bg-black
         shadow-md
-        outline-none
+        outline-hidden
         overflow-hidden
         data-[plain=true]:p-0
         data-[plain=true]:rounded-none

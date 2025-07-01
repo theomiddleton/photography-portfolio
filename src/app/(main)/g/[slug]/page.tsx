@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import { type Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { getGalleryBySlug, checkGalleryAccess, incrementGalleryViews } from '~/lib/actions/gallery/gallery'
@@ -102,7 +102,7 @@ export default async function GalleryPage({ params, searchParams }: GalleryPageP
   
   // Check for temp access (URL parameter takes precedence over cookie)
   let hasTempAccess = false
-  let tempToken = temp_access || tempAccessCookie
+  const tempToken = temp_access || tempAccessCookie
   
   if (tempToken) {
     const { checkTempLinkValidity } = await import('~/lib/actions/gallery/access-control')

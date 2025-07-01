@@ -152,7 +152,7 @@ export function HighlightContent({
   return (
     <div 
       ref={containerRef} 
-      className="flex items-center gap-1 outline-none" 
+      className="flex items-center gap-1 outline-hidden" 
       tabIndex={0}
     >
       <div className="flex items-center" data-orientation="horizontal">

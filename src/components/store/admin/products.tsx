@@ -15,7 +15,7 @@ interface AdminProductsProps {
 const ProductRow = memo(({ product }: { product: Product }) => (
   <TableRow key={product.id}>
     <TableCell>
-      <div className="relative w-20 aspect-[3/2]">
+      <div className="relative w-20 aspect-3/2">
         <Image
           src={product.imageUrl}
           alt={product.name}

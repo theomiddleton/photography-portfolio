@@ -1,20 +1,20 @@
-import { Selection } from '@tiptap/pm/state'
+import { type Selection } from '@tiptap/pm/state'
 import {
-  JSONContent,
-  Editor,
+  type JSONContent,
+  type Editor,
   isTextSelection,
   isNodeSelection,
   posToDOMRect,
 } from '@tiptap/react'
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
-export type OverflowPosition = "none" | "top" | "bottom" | "both"
+export type OverflowPosition = 'none' | 'top' | 'bottom' | 'both'
 
 /**
  * Utility function to get URL parameters
  */
 export const getUrlParam = (param: string): string | null => {
-  if (typeof window === "undefined") return null
+  if (typeof window === 'undefined') return null
   const params = new URLSearchParams(window.location.search)
   return params.get(param)
 }
@@ -46,8 +46,8 @@ export const removeEmptyParagraphs = (content: JSONContent) => ({
   ...content,
   content: content.content?.filter(
     (node) =>
-      node.type !== "paragraph" ||
-      node.content?.some((child) => child.text?.trim() || child.type !== "text")
+      node.type !== 'paragraph' ||
+      node.content?.some((child) => child.text?.trim() || child.type !== 'text')
   ),
 })
 
@@ -67,10 +67,10 @@ export function getElementOverflowPosition(
   const isOverflowingTop = targetBounds.top < containerBounds.top
   const isOverflowingBottom = targetBounds.bottom > containerBounds.bottom
 
-  if (isOverflowingTop && isOverflowingBottom) return "both"
-  if (isOverflowingTop) return "top"
-  if (isOverflowingBottom) return "bottom"
-  return "none"
+  if (isOverflowingTop && isOverflowingBottom) return 'both'
+  if (isOverflowingTop) return 'top'
+  if (isOverflowingBottom) return 'bottom'
+  return 'none'
 }
 
 /**
@@ -83,7 +83,7 @@ export function getElementOverflowPosition(
 export const isSelectionValid = (
   editor: Editor | null,
   selection?: Selection,
-  excludedNodeTypes: string[] = ["imageUpload"]
+  excludedNodeTypes: string[] = ['imageUpload']
 ): boolean => {
   if (!editor) return false
   if (!selection) selection = editor.state.selection
@@ -140,7 +140,7 @@ export const getAvatar = (name: string) => {
   const randomFraction = (Math.abs(hash) % 1000000) / 1000000
   const id = 1 + Math.floor(randomFraction * 20)
 
-  const idString = id.toString().padStart(2, "0")
+  const idString = id.toString().padStart(2, '0')
 
   return `/avatars/memoji_${idString}.png`
 }
@@ -156,13 +156,13 @@ export const handleImageUpload = async (
   // Simulate upload progress
   for (let progress = 0; progress <= 100; progress += 10) {
     if (abortSignal?.aborted) {
-      throw new Error("Upload cancelled")
+      throw new Error('Upload cancelled')
     }
     await new Promise((resolve) => setTimeout(resolve, 500))
     onProgress?.({ progress })
   }
 
-  return "/images/placeholder-image.png"
+  return '/images/placeholder-image.png'
 
   // Uncomment to use actual file conversion:
   // return convertFileToBase64(file, abortSignal)
@@ -180,22 +180,22 @@ export const convertFileToBase64 = (
 
     const abortHandler = () => {
       reader.abort()
-      reject(new Error("Upload cancelled"))
+      reject(new Error('Upload cancelled'))
     }
 
     if (abortSignal) {
-      abortSignal.addEventListener("abort", abortHandler)
+      abortSignal.addEventListener('abort', abortHandler)
     }
 
     reader.onloadend = () => {
       if (abortSignal) {
-        abortSignal.removeEventListener("abort", abortHandler)
+        abortSignal.removeEventListener('abort', abortHandler)
       }
 
-      if (typeof reader.result === "string") {
+      if (typeof reader.result === 'string') {
         resolve(reader.result)
       } else {
-        reject(new Error("Failed to convert File to base64"))
+        reject(new Error('Failed to convert File to base64'))
       }
     }
 
@@ -209,10 +209,10 @@ export const convertFileToBase64 = (
  */
 export const fetchCollabToken = async (): Promise<string | null> => {
   try {
-    const response = await fetch(`/api/collaboration`, {
-      method: "POST",
+    const response = await fetch('/api/collaboration', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     })
 
@@ -223,7 +223,7 @@ export const fetchCollabToken = async (): Promise<string | null> => {
     const data = await response.json()
     return data.token
   } catch (error) {
-    console.error("Failed to fetch collaboration token:", error)
+    console.error('Failed to fetch collaboration token:', error)
     return null
   }
 }
