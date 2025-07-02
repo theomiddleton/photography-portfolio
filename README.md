@@ -318,8 +318,7 @@ docker run -p 3000:3000 portfolio-project
 
 ```bash
 # Sign up at planetscale.com
-# Create database
-# Note: Requires schema adjustments for MySQL
+# Create a PostgreSQL database
 ```
 
 ### Option 4: Railway
