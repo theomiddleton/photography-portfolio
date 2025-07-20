@@ -517,7 +517,11 @@ You can easily customize the look and feel of your portfolio using the **[tweakc
 Simply visit [tweakcn.com/editor/theme](https://tweakcn.com/editor/theme), customize your theme, and copy the generated CSS variables to your `globals.css` file.
 
 ### Design Philosophy
-For optimal photo viewing experience, dark mode is intentionally only available in the admin dashboard. The public gallery maintains a clean, light interface to ensure your photography remains the focus without visual distractions.
+The application features two independent theme systems:
+- **Site Themes**: Custom color schemes applied to the public portfolio site, managed through `/admin/themes`
+- **Admin Dark Mode**: Light/dark mode toggle available exclusively in the admin dashboard for better ergonomics
+
+This separation ensures that custom site themes don't interfere with admin functionality, while providing maximum flexibility for site appearance and administrative comfort.
 
 ### Image Processing & Optimization
 The application includes comprehensive image handling capabilities:

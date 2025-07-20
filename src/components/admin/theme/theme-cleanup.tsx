@@ -7,10 +7,14 @@ export function ThemeCleanup() {
   const pathname = usePathname()
 
   useEffect(() => {
-    // Cleanup when leaving admin routes
-    if (!pathname.startsWith('/admin')) {
-      document.documentElement.classList.remove('dark', 'light')
-      document.documentElement.removeAttribute('data-theme')
+    const html = document.documentElement
+    
+    if (pathname.startsWith('/admin')) {
+      // Mark as admin page
+      html.setAttribute('data-admin', 'true')
+    } else {
+      // Mark as public page
+      html.removeAttribute('data-admin')
     }
   }, [pathname])
 

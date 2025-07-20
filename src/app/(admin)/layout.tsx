@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { ThemeProvider } from '~/components/admin/theme/theme-provider'
 import { AdminHeader } from '~/components/admin/header'
 import { AdminSidebar } from '~/components/admin/sidebar'
+import { AdminDebugPanel } from '~/components/admin/admin-debug-panel'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -27,7 +28,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       enableSystem
       disableTransitionOnChange
     >
-      <div className="flex h-screen flex-col">
+      <div className="admin-theme flex h-screen flex-col">
         <AdminHeader />
         <div className="flex flex-1">
           {/* Desktop Sidebar */}
@@ -36,6 +37,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
           <div className="flex-1 p-5">{children}</div>
         </div>
+        <AdminDebugPanel />
       </div>
     </ThemeProvider>
   )

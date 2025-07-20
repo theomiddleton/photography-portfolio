@@ -4,11 +4,15 @@
 
 The theme management system allows site administrators to:
 
-- Select from 6 pre-built theme options
+- Select from 6 pre-built theme options for the public site
 - Import custom themes by pasting CSS variables (supports Tailwind v4 format)
-- Apply themes site-wide for all users
+- Apply themes site-wide for all public pages
 - Preview themes before applying them
 - Support for both traditional and Tailwind v4 CSS variable formats
+
+**Note:** This system is separate from the admin dashboard dark mode toggle. Site themes apply to public pages only, while admin dark mode is available independently in the admin dashboard.
+
+For detailed information about the theme architecture, see [THEME_ARCHITECTURE.md](./THEME_ARCHITECTURE.md).
 
 ## Supported Theme Formats
 

@@ -1,23 +1,13 @@
 import { getActiveTheme } from '~/lib/theme/theme-service'
 
 /**
- * Server component that injects the active theme CSS variables
+ * Component for previewing themes in modals/components
  */
-export async function ThemeInjector() {
-  const activeTheme = await getActiveTheme()
-
-  if (!activeTheme) {
-    return null
-  }
-
-  // Convert CSS variables to inline styles
-  const cssContent = activeTheme.cssVariables
-
+export function ThemePreview({ cssVariables }: { cssVariables: string }) {
   return (
     <style
-      id="theme-variables"
       dangerouslySetInnerHTML={{
-        __html: cssContent,
+        __html: cssVariables,
       }}
     />
   )
