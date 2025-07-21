@@ -52,6 +52,8 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
+  const [uploadController, setUploadController] = useState<AbortController | null>(null)
+  const [uploadMetadata, setUploadMetadata] = useState<{ uuid?: string, fileName?: string, stripeProductIds?: string[] }>({})
 
   // AI metadata generation state
   const [imageUrl, setImageUrl] = useState<string | null>(null)
@@ -216,78 +218,139 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
     setUploading(true)
     setUploadProgress(0)
 
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        filename: file.name,
-        contentType: file.type,
-        name,
-        description: bucket === 'image' ? description : '',
-        tags: bucket === 'image' ? tags : '',
-        isSale: bucket === 'image' ? isSale : false,
-        printSizes: bucket === 'image' ? printSizes : [],
-        bucket,
-        draftId,
-      }),
-    })
+    // Create AbortController for cancellation support
+    const controller = new AbortController()
+    setUploadController(controller)
 
-    if (response.ok) {
-      const { url, fileUrl } = await response.json()
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+          name,
+          description: bucket === 'image' ? description : '',
+          tags: bucket === 'image' ? tags : '',
+          isSale: bucket === 'image' ? isSale : false,
+          printSizes: bucket === 'image' ? printSizes : [],
+          bucket,
+          draftId,
+        }),
+        signal: controller.signal,
+      })
 
-      // Store the image URL for AI processing
-      setImageUrl(fileUrl)
+      if (response.ok) {
+        const { url, fileUrl, id: uuid, fileName } = await response.json()
 
-      // Use XMLHttpRequest for upload to track progress
-      const xhr = new XMLHttpRequest()
-      xhr.open('PUT', url)
-      xhr.setRequestHeader('Content-Type', file.type)
+        // Store metadata for potential cleanup
+        setUploadMetadata({ uuid, fileName })
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100
-          setUploadProgress(percentComplete)
-        }
-      }
+        // Store the image URL for AI processing
+        setImageUrl(fileUrl)
 
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const newImage = { name, url: fileUrl, copied: false }
-          setUploadedImages((prev) => [...prev, newImage])
-          setUploadSuccess(true)
-          if (onImageUpload) {
-            onImageUpload({ name, url: fileUrl })
+        // Use XMLHttpRequest for upload to track progress
+        const xhr = new XMLHttpRequest()
+        xhr.open('PUT', url)
+        xhr.setRequestHeader('Content-Type', file.type)
+
+        // Handle abort signal
+        controller.signal.addEventListener('abort', () => {
+          xhr.abort()
+          // Schedule cleanup using waitUntil pattern
+          if ('scheduler' in window && 'postTask' in (window as any).scheduler) {
+            ;(window as any).scheduler.postTask(() => {
+              fetch('/api/upload/cleanup', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  uuid,
+                  fileName,
+                  bucket,
+                  stripeProductIds: uploadMetadata.stripeProductIds || [],
+                }),
+              }).catch(console.error)
+            }, { priority: 'background' })
+          } else {
+            setTimeout(() => {
+              fetch('/api/upload/cleanup', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  uuid,
+                  fileName,
+                  bucket,
+                  stripeProductIds: uploadMetadata.stripeProductIds || [],
+                }),
+              }).catch(console.error)
+            }, 0)
           }
-          // Clear the form but keep imageUrl for AI processing if successful
-          setFile(null)
-          setName('')
-          setDescription('')
-          setTags('')
-          setIsSale(false)
-          setPrintSizes([
-            { name: '8x10', width: 8, height: 10, basePrice: 2500 },
-          ])
-          setUploadProgress(0)
-          setAiGenerated(false) // Reset AI state for new upload
-        } else {
-          console.error('R2 Upload Error:', xhr.statusText)
-          alert('Upload failed.')
+        })
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100
+            setUploadProgress(percentComplete)
+          }
         }
-        setUploading(false)
-      }
 
-      xhr.onerror = () => {
-        console.error('XHR Error')
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            const newImage = { name, url: fileUrl, copied: false }
+            setUploadedImages((prev) => [...prev, newImage])
+            setUploadSuccess(true)
+            if (onImageUpload) {
+              onImageUpload({ name, url: fileUrl })
+            }
+            // Clear the form but keep imageUrl for AI processing if successful
+            setFile(null)
+            setName('')
+            setDescription('')
+            setTags('')
+            setIsSale(false)
+            setPrintSizes([
+              { name: '8x10', width: 8, height: 10, basePrice: 2500 },
+            ])
+            setUploadProgress(0)
+            setAiGenerated(false) // Reset AI state for new upload
+            setUploadMetadata({}) // Clear metadata on success
+          } else {
+            console.error('R2 Upload Error:', xhr.statusText)
+            alert('Upload failed.')
+          }
+          setUploading(false)
+          setUploadController(null)
+        }
+
+        xhr.onerror = () => {
+          console.error('XHR Error')
+          alert('Upload failed.')
+          setUploading(false)
+          setUploadController(null)
+        }
+
+        xhr.send(file)
+      } else {
+        alert('Failed to get pre-signed URL.')
+        setUploading(false)
+        setUploadController(null)
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Upload error:', error)
         alert('Upload failed.')
-        setUploading(false)
       }
-
-      xhr.send(file)
-    } else {
-      alert('Failed to get pre-signed URL.')
       setUploading(false)
+      setUploadController(null)
+    }
+  }
+
+  const cancelUpload = () => {
+    if (uploadController) {
+      uploadController.abort()
+      toast.info('Upload cancelled')
     }
   }
 
@@ -534,6 +597,11 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
         <Button
           variant="outline"
           onClick={() => {
+            // Cancel upload if in progress
+            if (uploadController) {
+              cancelUpload()
+            }
+            
             setFile(null)
             setName('')
             setDescription('')
@@ -543,9 +611,10 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
             setAiGenerated(false)
             setUploadSuccess(false)
             setUploadedImages([])
+            setUploadMetadata({})
           }}
         >
-          Clear
+          {uploading ? 'Cancel' : 'Clear'}
         </Button>
         <Button type="submit" onClick={handleUpload} disabled={uploading}>
           {uploading ? 'Uploading...' : 'Upload'}
