@@ -34,66 +34,66 @@ const MetadataSchema = z.object({
     ),
 })
 
-async function generateAIMetadataInBackground(
-  imageUrl: string,
-  uuid: string,
-  tasks: string[]
-): Promise<void> {
-  try {
-    await logAction('ai-background', `Starting background AI generation for ${uuid}`)
+// async function generateAIMetadataInBackground(
+//   imageUrl: string,
+//   uuid: string,
+//   tasks: string[]
+// ): Promise<void> {
+//   try {
+//     await logAction('ai-background', `Starting background AI generation for ${uuid}`)
 
-    // Create the prompt
-    let prompt = `Analyze this image and provide the following information:\n`
-    if (tasks.includes('title')) {
-      prompt += `- A creative, descriptive title\n`
-    }
-    if (tasks.includes('description')) {
-      prompt += `- A detailed description of what is shown in the image\n`
-    }
-    if (tasks.includes('tags')) {
-      prompt += `- Relevant tags (comma-separated) that describe the content, style, and mood\n`
-    }
-    prompt += `\nFocus on being descriptive, engaging, and accurate. Consider the artistic elements, composition, lighting, mood, and subject matter.`
+//     // Create the prompt
+//     let prompt = `Analyze this image and provide the following information:\n`
+//     if (tasks.includes('title')) {
+//       prompt += `- A creative, descriptive title\n`
+//     }
+//     if (tasks.includes('description')) {
+//       prompt += `- A detailed description of what is shown in the image\n`
+//     }
+//     if (tasks.includes('tags')) {
+//       prompt += `- Relevant tags (comma-separated) that describe the content, style, and mood\n`
+//     }
+//     prompt += `\nFocus on being descriptive, engaging, and accurate. Consider the artistic elements, composition, lighting, mood, and subject matter.`
 
-    // Generate AI metadata
-    const result = await generateObject({
-      model: google('gemini-2.0-flash-exp'),
-      schema: MetadataSchema,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            { type: 'image', image: imageUrl },
-          ],
-        },
-      ],
-      temperature: 0.7,
-    })
+//     // Generate AI metadata
+//     const result = await generateObject({
+//       model: google('gemini-2.0-flash'),
+//       schema: MetadataSchema,
+//       messages: [
+//         {
+//           role: 'user',
+//           content: [
+//             { type: 'text', text: prompt },
+//             { type: 'image', image: imageUrl },
+//           ],
+//         },
+//       ],
+//       temperature: 0.7,
+//     })
 
-    // Update the database with generated metadata
-    const updates: any = {}
-    if (tasks.includes('title') && result.object.title) {
-      updates.name = result.object.title
-    }
-    if (tasks.includes('description') && result.object.description) {
-      updates.description = result.object.description
-    }
-    if (tasks.includes('tags') && result.object.tags) {
-      updates.tags = result.object.tags
-    }
+//     // Update the database with generated metadata
+//     const updates: any = {}
+//     if (tasks.includes('title') && result.object.title) {
+//       updates.name = result.object.title
+//     }
+//     if (tasks.includes('description') && result.object.description) {
+//       updates.description = result.object.description
+//     }
+//     if (tasks.includes('tags') && result.object.tags) {
+//       updates.tags = result.object.tags
+//     }
 
-    if (Object.keys(updates).length > 0) {
-      await db.update(imageData)
-        .set(updates)
-        .where(eq(imageData.uuid, uuid))
-    }
+//     if (Object.keys(updates).length > 0) {
+//       await db.update(imageData)
+//         .set(updates)
+//         .where(eq(imageData.uuid, uuid))
+//     }
 
-    await logAction('ai-background', `Successfully generated AI metadata for ${uuid}`)
-  } catch (error) {
-    await logAction('ai-background', `Failed to generate AI metadata for ${uuid}: ${error.message}`)
-  }
-}
+//     await logAction('ai-background', `Successfully generated AI metadata for ${uuid}`)
+//   } catch (error) {
+//     await logAction('ai-background', `Failed to generate AI metadata for ${uuid}: ${error.message}`)
+//   }
+// }
 
 export async function POST(request: Request) {
   const session = await getSession()
@@ -105,12 +105,29 @@ export async function POST(request: Request) {
       { status: 401 },
     )
   }
-  
-  const { filename, name, description, tags, isSale, bucket, printSizes, temporary, generateAI } = await request.json()
-  
+
+  const {
+    filename,
+    name,
+    description,
+    tags,
+    isSale,
+    bucket,
+    printSizes,
+    temporary,
+    generateAI,
+  } = await request.json()
+
+  console.log(
+    'upload',
+    `Uploading image: ${filename}, name: ${name}, description: ${description}, tags: ${tags}, isSale: ${isSale}, bucket: ${bucket} printSizes: ${printSizes}`,
+  )
   // Use waitUntil for non-critical logging
   waitUntil(
-    logAction('upload', `Uploading image: ${filename}, name: ${name}, description: ${description}, tags: ${tags}, isSale: ${isSale}, bucket: ${bucket} printSizes: ${printSizes}`)
+    logAction(
+      'upload',
+      `Uploading image: ${filename}, name: ${name}, description: ${description}, tags: ${tags}, isSale: ${isSale}, bucket: ${bucket} printSizes: ${printSizes}`,
+    ),
   )
 
   try {
@@ -191,7 +208,7 @@ export async function POST(request: Request) {
         .from(imageData)
         .where(eq(imageData.uuid, keyName))
         .execute()
-      
+
       const [product] = await db
         .insert(products)
         .values({
@@ -202,24 +219,24 @@ export async function POST(request: Request) {
           active: isSale,
         })
         .returning()
-      
+
       if (isSale) {
         // Use waitUntil for Stripe operations since they can happen after response
         const stripeProductIds: string[] = []
-        
+
         for (const size of printSizes) {
           const stripeProduct = await stripe.products.create({
             name: `${name} - ${size.name}`,
             description: `${size.width}'x${size.height}' print of ${name}`,
             images: [fileUrl],
           })
-            
+
           const stripePrice = await stripe.prices.create({
             product: stripeProduct.id,
             unit_amount: size.basePrice,
             currency: 'gbp',
           })
-            
+
           await db.insert(productSizes).values({
             productId: product.id,
             name: size.name,
@@ -229,7 +246,7 @@ export async function POST(request: Request) {
             stripeProductId: stripeProduct.id,
             stripePriceId: stripePrice.id,
           })
-          
+
           stripeProductIds.push(stripeProduct.id)
         }
       }
@@ -242,7 +259,7 @@ export async function POST(request: Request) {
     } else if (bucket === 'custom') {
       // Use waitUntil for non-critical logging
       waitUntil(logAction('upload', 'Inserting custom image data'))
-      
+
       await db.insert(customImgData).values({
         uuid: keyName,
         fileName: newFileName,
@@ -258,20 +275,20 @@ export async function POST(request: Request) {
         revalidatePath(`/store/${slug}`),
         revalidatePath('/'),
         revalidatePath('/admin/manage'),
-      ])
+      ]),
     )
 
     // Use waitUntil for background AI metadata generation if requested
-    if (generateAI && bucket === 'image' && !temporary) {
-      waitUntil(
-        generateAIMetadataInBackground(fileUrl, keyName, ['title', 'description', 'tags'])
-      )
-    }
+    // if (generateAI && bucket === 'image' && !temporary) {
+    //   waitUntil(
+    //     generateAIMetadataInBackground(fileUrl, keyName, ['title', 'description', 'tags'])
+    //   )
+    // }
 
+    console.log(`Successfully uploaded ${newFileName} to ${bucket} bucket`)
     return Response.json({ url, fileUrl, id: keyName, fileName: newFileName })
   } catch (error) {
     console.error('Upload Error:', error)
     return Response.json({ error: error.message }, { status: 500 })
   }
 }
-

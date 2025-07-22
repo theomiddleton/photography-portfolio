@@ -5,6 +5,7 @@ import { generateObject } from 'ai'
 import { google } from '@ai-sdk/google'
 import { waitUntil } from '@vercel/functions'
 import { logAction } from '~/lib/logging'
+import { AI_PROMPTS } from '~/config/ai-prompts'
 
 export const runtime = 'edge'
 
@@ -20,19 +21,19 @@ const MetadataSchema = z.object({
     ),
 })
 
-async function generateMetadataWithAI(
-  imageUrl: string,
-  prompt: string,
-  tasks: string[],
-) {
+async function generateMetadataWithAI(imageUrl: string, tasks: string[]) {
   const result = await generateObject({
-    model: google('gemini-2.0-flash-exp'),
+    model: google('gemini-2.0-flash'),
     schema: MetadataSchema,
     messages: [
       {
+        role: 'system',
+        content: AI_PROMPTS.imageAnalysis.system,
+      },
+      {
         role: 'user',
         content: [
-          { type: 'text', text: prompt },
+          { type: 'text', text: AI_PROMPTS.imageAnalysis.user(tasks) },
           { type: 'image', image: imageUrl },
         ],
       },
@@ -42,7 +43,7 @@ async function generateMetadataWithAI(
 
   // Filter response based on requested tasks
   const filteredResponse: Partial<typeof result.object> = {}
-  
+
   if (tasks.includes('title')) {
     filteredResponse.title = result.object.title
   }
@@ -58,7 +59,7 @@ async function generateMetadataWithAI(
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now()
-  
+
   try {
     // Check authentication
     const session = await getSession()
@@ -80,45 +81,42 @@ export async function POST(req: NextRequest) {
 
     // Use waitUntil for logging the request
     waitUntil(
-      logAction('ai-metadata', `Generating metadata for image: ${imageUrl}, tasks: ${tasks.join(', ')}`)
+      logAction(
+        'ai-metadata',
+        `Generating metadata for image: ${imageUrl}, tasks: ${tasks.join(', ')}`,
+      ),
     )
 
-    // Create the prompt based on requested tasks
-    let prompt = `Analyze this image and provide the following information:\n`
-
-    if (tasks.includes('title')) {
-      prompt += `- A creative, descriptive title\n` 
-    }
-    if (tasks.includes('description')) {
-      prompt += `- A detailed description of what is shown in the image\n`
-    }
-    if (tasks.includes('tags')) {
-      prompt += `- Relevant tags (comma-separated) that describe the content, style, and mood\n`
-    }
-
-    prompt += `\nFocus on being descriptive, engaging, and accurate. Consider the artistic elements, composition, lighting, mood, and subject matter.`
-
-    const result = await generateMetadataWithAI(imageUrl, prompt, tasks)
+    const result = await generateMetadataWithAI(imageUrl, tasks)
 
     // Use waitUntil for success logging and performance metrics
     const duration = Date.now() - startTime
     waitUntil(
       Promise.all([
-        logAction('ai-metadata', `Successfully generated metadata in ${duration}ms. Tasks: ${tasks.join(', ')}`),
-        logAction('ai-performance', `AI generation took ${duration}ms for ${tasks.length} tasks`)
-      ])
+        logAction(
+          'ai-metadata',
+          `Successfully generated metadata in ${duration}ms. Tasks: ${tasks.join(', ')}`,
+        ),
+        logAction(
+          'ai-performance',
+          `AI generation took ${duration}ms for ${tasks.length} tasks`,
+        ),
+      ]),
     )
 
     return NextResponse.json(result)
   } catch (error) {
     console.error('Metadata generation error:', error)
-    
+
     // Use waitUntil for error logging
     const duration = Date.now() - startTime
     waitUntil(
-      logAction('ai-metadata', `Failed to generate metadata after ${duration}ms. Error: ${error.message}`)
+      logAction(
+        'ai-metadata',
+        `Failed to generate metadata after ${duration}ms. Error: ${error.message}`,
+      ),
     )
-    
+
     return NextResponse.json(
       { error: 'Failed to generate metadata' },
       { status: 500 },

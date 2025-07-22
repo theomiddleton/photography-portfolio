@@ -77,6 +77,7 @@ export function BatchUpload({ bucket, draftId, onImageUpload }: BatchUploadProps
 
     // Auto-upload images for AI processing
     for (const image of newImages) {
+      console.log('Auto-uploading image for AI processing:', image.file.name)
       uploadImageForAI(image)
     }
   }
@@ -92,7 +93,7 @@ export function BatchUpload({ bucket, draftId, onImageUpload }: BatchUploadProps
           filename: imageData.file.name,
           contentType: imageData.file.type,
           name: tempId,
-          bucket: 'custom',
+          bucket: bucket,
           temporary: true,
         }),
       })
@@ -533,13 +534,24 @@ export function BatchUpload({ bucket, draftId, onImageUpload }: BatchUploadProps
                               </div>
                             </div>
                           )}
-                          {image.uploading && (
-                            <div className="absolute inset-0 bg-black/20 rounded-md flex items-center justify-center">
-                              <div className="bg-white text-black text-xs px-2 py-1 rounded">
-                                {uploadProgress[image.id] || 0}%
+                            {image.uploading && (
+                            <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black/40 backdrop-blur-sm transition-all">
+                              <div className="flex flex-col items-center gap-2">
+                              <Loader2 className="h-5 w-5 animate-spin text-white" />
+                              <div className="relative w-20 h-2 bg-white/30 rounded-full overflow-hidden">
+                                <div
+                                className="absolute left-0 top-0 h-full bg-white transition-all"
+                                style={{
+                                  width: `${uploadProgress[image.id] || 0}%`
+                                }}
+                                />
+                              </div>
+                              <span className="text-xs text-white font-medium drop-shadow">
+                                {Math.round(uploadProgress[image.id] || 0)}%
+                              </span>
                               </div>
                             </div>
-                          )}
+                            )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1 truncate">
                           {formatBytes(image.file.size)}

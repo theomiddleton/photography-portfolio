@@ -8,6 +8,7 @@ import { waitUntil } from '@vercel/functions'
 import { generateObject } from 'ai'
 import { google } from '@ai-sdk/google'
 import { z } from 'zod'
+import { AI_PROMPTS } from '~/config/ai-prompts'
 
 export const runtime = 'edge'
 
@@ -34,7 +35,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { imageUrl, uuid, tasks, updateDatabase = true } = await request.json()
+    const {
+      imageUrl,
+      uuid,
+      tasks,
+      updateDatabase = true,
+    } = await request.json()
 
     if (!imageUrl || !tasks || !Array.isArray(tasks)) {
       return NextResponse.json(
@@ -45,33 +51,25 @@ export async function POST(request: Request) {
 
     // Use waitUntil for logging
     waitUntil(
-      logAction('ai-background', `Starting background AI generation for ${uuid || 'unknown'}`)
+      logAction(
+        'ai-background',
+        `Starting background AI generation for ${uuid || 'unknown'}`,
+      ),
     )
-
-    // Create the prompt based on requested tasks
-    let prompt = `Analyze this image and provide the following information:\n`
-
-    if (tasks.includes('title')) {
-      prompt += `- A creative, descriptive title\n`
-    }
-    if (tasks.includes('description')) {
-      prompt += `- A detailed description of what is shown in the image\n`
-    }
-    if (tasks.includes('tags')) {
-      prompt += `- Relevant tags (comma-separated) that describe the content, style, and mood\n`
-    }
-
-    prompt += `\nFocus on being descriptive, engaging, and accurate. Consider the artistic elements, composition, lighting, mood, and subject matter.`
 
     // Generate AI metadata immediately (this is the critical part)
     const result = await generateObject({
-      model: google('gemini-2.0-flash-exp'),
+      model: google('gemini-2.0-flash'),
       schema: MetadataSchema,
       messages: [
         {
+          role: 'system',
+          content: AI_PROMPTS.imageAnalysis.system,
+        },
+        {
           role: 'user',
           content: [
-            { type: 'text', text: prompt },
+            { type: 'text', text: AI_PROMPTS.imageAnalysis.user(tasks) },
             { type: 'image', image: imageUrl },
           ],
         },
@@ -96,7 +94,8 @@ export async function POST(request: Request) {
       waitUntil(
         Promise.all([
           // Update database with generated metadata
-          db.update(imageData)
+          db
+            .update(imageData)
             .set({
               name: filteredResponse.title || undefined,
               description: filteredResponse.description || undefined,
@@ -104,24 +103,33 @@ export async function POST(request: Request) {
             })
             .where(eq(imageData.uuid, uuid)),
           // Log success
-          logAction('ai-background', `Successfully generated and saved AI metadata for ${uuid}`)
-        ])
+          logAction(
+            'ai-background',
+            `Successfully generated and saved AI metadata for ${uuid}`,
+          ),
+        ]),
       )
     } else {
       waitUntil(
-        logAction('ai-background', `Successfully generated AI metadata for ${uuid || 'request'} (no database update)`)
+        logAction(
+          'ai-background',
+          `Successfully generated AI metadata for ${uuid || 'request'} (no database update)`,
+        ),
       )
     }
 
     return NextResponse.json(filteredResponse)
   } catch (error) {
     console.error('Background AI generation error:', error)
-    
+
     // Use waitUntil for error logging
     waitUntil(
-      logAction('ai-background', `Failed to generate AI metadata: ${error.message}`)
+      logAction(
+        'ai-background',
+        `Failed to generate AI metadata: ${error.message}`,
+      ),
     )
-    
+
     return NextResponse.json(
       { error: 'Failed to generate metadata' },
       { status: 500 },
