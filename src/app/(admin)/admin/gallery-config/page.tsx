@@ -1,54 +1,14 @@
-import React from 'react'
+import { Suspense } from 'react'
 import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
 import { imageData, mainGalleryConfig } from '~/server/db/schema'
-import { siteConfig } from '~/config/site'
-import { EnhancedImageGallery } from '~/components/image-gallery/enhanced-image-gallery'
 import { DEFAULT_GALLERY_CONFIG } from '~/lib/types/gallery-config'
+import { GalleryConfigurationPage } from './gallery-config-page'
 import type { MainGalleryConfig } from '~/lib/types/gallery-config'
 import type { PortfolioImageData } from '~/lib/types/image'
 
-export const revalidate = 3600 // Set to 1 hour as a fallback, primarily using on-demand revalidation
-
-export default async function Home() {
-  // Get only visible image data from the database, ordered by the 'order' field
-  const result = await db
-    .select({
-      id: imageData.id,
-      uuid: imageData.uuid,
-      fileName: imageData.fileName,
-      fileUrl: imageData.fileUrl,
-      name: imageData.name,
-      description: imageData.description,
-      tags: imageData.tags,
-      visible: imageData.visible,
-      order: imageData.order,
-      priority: imageData.priority,
-      isHero: imageData.isHero,
-      uploadedAt: imageData.uploadedAt,
-      modifiedAt: imageData.modifiedAt,
-    })
-    .from(imageData)
-    .where(eq(imageData.visible, true))
-    .orderBy(imageData.order)
-
-  const images: PortfolioImageData[] = result.map((item) => ({
-    id: item.id,
-    uuid: item.uuid,
-    fileName: item.fileName,
-    fileUrl: item.fileUrl,
-    name: item.name,
-    description: item.description || undefined,
-    tags: item.tags || undefined,
-    visible: item.visible,
-    order: item.order,
-    priority: item.priority || undefined,
-    isHero: item.isHero || undefined,
-    uploadedAt: item.uploadedAt || new Date(),
-    modifiedAt: item.modifiedAt || new Date(),
-  }))
-
-  // Fetch main gallery configuration
+export default async function AdminGalleryConfigPage() {
+  // Fetch current configuration
   const getMainGalleryConfig = async (): Promise<MainGalleryConfig> => {
     try {
       const config = await db
@@ -105,20 +65,64 @@ export default async function Home() {
     }
   }
 
-  const galleryConfig = await getMainGalleryConfig()
+  // Fetch sample images for preview
+  const getSampleImages = async (): Promise<PortfolioImageData[]> => {
+    try {
+      const result = await db
+        .select({
+          id: imageData.id,
+          uuid: imageData.uuid,
+          fileName: imageData.fileName,
+          fileUrl: imageData.fileUrl,
+          name: imageData.name,
+          description: imageData.description,
+          tags: imageData.tags,
+          visible: imageData.visible,
+          order: imageData.order,
+          priority: imageData.priority,
+          isHero: imageData.isHero,
+          uploadedAt: imageData.uploadedAt,
+          modifiedAt: imageData.modifiedAt,
+        })
+        .from(imageData)
+        .where(eq(imageData.visible, true))
+        .orderBy(imageData.order)
+        .limit(20) // Limit for preview
+
+      return result.map((item) => ({
+        id: item.id,
+        uuid: item.uuid,
+        fileName: item.fileName,
+        fileUrl: item.fileUrl,
+        name: item.name,
+        description: item.description || undefined,
+        tags: item.tags || undefined,
+        visible: item.visible,
+        order: item.order,
+        priority: item.priority || undefined,
+        isHero: item.isHero || undefined,
+        uploadedAt: item.uploadedAt || new Date(),
+        modifiedAt: item.modifiedAt || new Date(),
+      }))
+    } catch (error) {
+      console.error('Failed to fetch sample images:', error)
+      return []
+    }
+  }
+
+  const [galleryConfig, sampleImages] = await Promise.all([
+    getMainGalleryConfig(),
+    getSampleImages()
+  ])
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center">      
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-        <h1 className="font-serif text-5xl tracking-tight sm:text-[5rem]">
-          {siteConfig.headers.main && <div>{siteConfig.headers.main}</div>}
-        </h1>
-        <EnhancedImageGallery
-          initialImages={images}
-          config={galleryConfig}
-          className="w-full"
+    <div className="container mx-auto py-8">
+      <Suspense fallback={<div>Loading configuration...</div>}>
+        <GalleryConfigurationPage
+          initialConfig={galleryConfig}
+          sampleImages={sampleImages}
         />
-      </div>
-    </main>
+      </Suspense>
+    </div>
   )
 }

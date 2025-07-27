@@ -32,6 +32,8 @@ export const imageData = pgTable('imageData', {
   tags: varchar('tags', { length: 256 }),
   visible: boolean('visible').default(true).notNull(),
   order: integer('order').default(0).notNull(),
+  priority: integer('priority').default(0).notNull(), // For priority-based sorting
+  isHero: boolean('isHero').default(false).notNull(), // Mark as hero image
   uploadedAt: timestamp('uploadedAt').defaultNow(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
@@ -208,15 +210,60 @@ export const blogPosts = pgTable('blogPosts', {
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 })
 
-export const galleryConfig = pgTable('galleryConfig', {
+export const mainGalleryConfig = pgTable('mainGalleryConfig', {
   id: integer('id').primaryKey().default(1),
+  // Layout Configuration
+  layout: varchar('layout', { length: 50 }).notNull().default('masonry'), // masonry, grid, list, horizontal-masonry
+  gridVariant: varchar('gridVariant', { length: 50 }).default('standard'), // standard, compact, wide, square
+  
+  // Column Configuration
   columnsMobile: integer('columnsMobile').notNull().default(1),
   columnsTablet: integer('columnsTablet').notNull().default(2),
   columnsDesktop: integer('columnsDesktop').notNull().default(3),
   columnsLarge: integer('columnsLarge').notNull().default(4),
-  galleryStyle: varchar('galleryStyle', { length: 50 }).notNull().default('masonry'),
-  gapSize: varchar('gapSize', { length: 20 }).notNull().default('medium'),
+  
+  // Spacing and Visual Configuration
+  gapSize: varchar('gapSize', { length: 20 }).notNull().default('medium'), // small, medium, large, xl
+  borderRadius: varchar('borderRadius', { length: 20 }).default('medium'), // none, small, medium, large, full
+  aspectRatio: varchar('aspectRatio', { length: 20 }).default('auto'), // auto, square, portrait, landscape, golden
+  
+  // Hero Image Configuration
+  enableHeroImage: boolean('enableHeroImage').default(false).notNull(),
+  heroImageId: integer('heroImageId'),
+  heroImagePosition: varchar('heroImagePosition', { length: 20 }).default('top'), // top, center, bottom
+  heroImageSize: varchar('heroImageSize', { length: 20 }).default('large'), // small, medium, large, xl, full
+  heroImageStyle: varchar('heroImageStyle', { length: 20 }).default('featured'), // featured, banner, showcase
+  
+  // Advanced Layout Options
+  enableStaggered: boolean('enableStaggered').default(false).notNull(), // For masonry layouts
+  enablePrioritySort: boolean('enablePrioritySort').default(false).notNull(), // Sort by image priority/weight
+  priorityMode: varchar('priorityMode', { length: 20 }).default('order'), // order, size, views, recent
+  
+  // Display Options
+  showImageTitles: boolean('showImageTitles').default(true).notNull(),
+  showImageDescriptions: boolean('showImageDescriptions').default(false).notNull(),
+  showImageMetadata: boolean('showImageMetadata').default(false).notNull(),
+  enableLightbox: boolean('enableLightbox').default(true).notNull(),
+  enableInfiniteScroll: boolean('enableInfiniteScroll').default(false).notNull(),
+  imagesPerPage: integer('imagesPerPage').default(50).notNull(),
+  
+  // Animation and Transitions
+  enableAnimations: boolean('enableAnimations').default(true).notNull(),
+  animationType: varchar('animationType', { length: 20 }).default('fade'), // fade, slide, scale, none
+  hoverEffect: varchar('hoverEffect', { length: 20 }).default('zoom'), // zoom, overlay, lift, none
+  
+  // Color and Theme
+  backgroundColor: varchar('backgroundColor', { length: 20 }).default('default'), // default, dark, light, custom
+  overlayColor: varchar('overlayColor', { length: 20 }).default('black'), // black, white, dark, light
+  overlayOpacity: integer('overlayOpacity').default(50).notNull(), // 0-100
+  
+  // Performance and Loading
+  enableLazyLoading: boolean('enableLazyLoading').default(true).notNull(),
+  imageQuality: varchar('imageQuality', { length: 20 }).default('auto'), // low, medium, high, auto
+  enableProgressiveLoading: boolean('enableProgressiveLoading').default(true).notNull(),
+  
   updatedAt: timestamp('updatedAt').defaultNow(),
+  updatedBy: integer('updatedBy').references(() => users.id),
 })
 
 export const galleries = pgTable('galleries', {
