@@ -229,7 +229,7 @@ export function ListView({
                 <TableCell>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
-                    {formatDate(image.uploadedAt)}
+                    {formatDate(image.uploadedAt.toISOString())}
                   </div>
                 </TableCell>
                 
@@ -249,7 +249,6 @@ export function ListView({
                       checked={image.visible}
                       onCheckedChange={() => onToggleVisibility(String(image.id))}
                       disabled={isProcessing}
-                      size="sm"
                     />
                     <div className="flex items-center gap-1">
                       {image.visible ? (

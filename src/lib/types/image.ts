@@ -16,4 +16,5 @@ export interface PortfolioImageData {
   isHero?: boolean // Mark as hero image
   uploadedAt: Date
   modifiedAt: Date
+  fileSize?: number // File size in bytes
 }
