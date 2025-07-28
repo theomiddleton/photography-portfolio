@@ -23,7 +23,7 @@ export function GridLayout({ images, config, renderImage }: GridLayoutProps) {
       case 'wide':
         return 'gap-6 md:gap-8 lg:gap-12'
       case 'square':
-        return 'gap-4 [&>*]:aspect-square'
+        return 'gap-4'
       default: // standard
         return 'gap-4'
     }
@@ -71,7 +71,7 @@ export function GridLayout({ images, config, renderImage }: GridLayoutProps) {
   )
 
   const itemClass = cn(
-    'overflow-hidden',
+    'overflow-hidden relative',
     getAspectRatioClass(),
     getBorderRadiusClass(),
     config.enableAnimations && 'transition-transform duration-200',

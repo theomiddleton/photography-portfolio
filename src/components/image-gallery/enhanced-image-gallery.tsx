@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Image from 'next/image'
 import Masonry from 'react-masonry-css'
 
 import { ImageItem } from '~/components/image-gallery/image-item'
@@ -125,23 +126,40 @@ export function EnhancedImageGallery({
       config.hoverEffect === 'zoom' && 'hover:scale-102',
     )
 
+    // Get the aspect ratio classes
+    const getAspectRatioClass = () => {
+      switch (config.aspectRatio) {
+        case 'square':
+          return 'aspect-square'
+        case 'portrait':
+          return 'aspect-[3/4]'
+        case 'landscape':
+          return 'aspect-[4/3]'
+        case 'golden':
+          return 'aspect-[1.618/1]'
+        default:
+          return ''
+      }
+    }
+
+    const aspectRatioClass = getAspectRatioClass()
+
     return (
-      <div className={cn(imageClass, 'relative')}>
-        <img
+      <div className={cn(imageClass, 'relative', aspectRatioClass)}>
+        <Image
           src={image.fileUrl}
           alt={image.name}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className={cn(
-            'h-full w-full object-cover',
-            config.aspectRatio === 'square' && 'aspect-square',
-            config.aspectRatio === 'portrait' && 'aspect-[3/4]',
-            config.aspectRatio === 'landscape' && 'aspect-[4/3]',
-            config.aspectRatio === 'golden' && 'aspect-[1.618/1]',
+            'object-cover',
             config.enableLazyLoading && 'lazy',
             config.hoverEffect === 'zoom' &&
               config.enableAnimations &&
               'transition-transform duration-300 hover:scale-110',
           )}
-          loading={config.enableLazyLoading ? 'lazy' : 'eager'}
+          priority={index < 4} // Priority for first 4 images
+          loading={config.enableLazyLoading && index >= 4 ? 'lazy' : 'eager'}
           onClick={() => handleImageSelect(image.id.toString())}
           style={{ cursor: config.enableLightbox ? 'pointer' : 'default' }}
         />
