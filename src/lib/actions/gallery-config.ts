@@ -11,7 +11,28 @@ import type { MainGalleryConfig } from '~/lib/types/gallery-config'
 export async function getMainGalleryConfig(): Promise<MainGalleryConfig | null> {
   try {
     const config = await db.select().from(mainGalleryConfig).where(eq(mainGalleryConfig.id, 1)).limit(1)
-    return config[0] || null
+    if (!config[0]) return null
+
+    // Map fields to correct types if necessary
+    const mappedConfig: MainGalleryConfig = {
+      ...config[0],
+      layout: config[0].layout as MainGalleryConfig['layout'],
+      gridVariant: config[0].gridVariant as MainGalleryConfig['gridVariant'],
+      gapSize: config[0].gapSize as MainGalleryConfig['gapSize'],
+      borderRadius: config[0].borderRadius as MainGalleryConfig['borderRadius'],
+      aspectRatio: config[0].aspectRatio as MainGalleryConfig['aspectRatio'],
+      heroImagePosition: config[0].heroImagePosition as MainGalleryConfig['heroImagePosition'],
+      heroImageSize: config[0].heroImageSize as MainGalleryConfig['heroImageSize'],
+      heroImageStyle: config[0].heroImageStyle as MainGalleryConfig['heroImageStyle'],
+      priorityMode: config[0].priorityMode as MainGalleryConfig['priorityMode'],
+      animationType: config[0].animationType as MainGalleryConfig['animationType'],
+      hoverEffect: config[0].hoverEffect as MainGalleryConfig['hoverEffect'],
+      backgroundColor: config[0].backgroundColor as MainGalleryConfig['backgroundColor'],
+      overlayColor: config[0].overlayColor as MainGalleryConfig['overlayColor'],
+      imageQuality: config[0].imageQuality as MainGalleryConfig['imageQuality'],
+    }
+
+    return mappedConfig
   } catch (error) {
     console.error('Error fetching main gallery config:', error)
     return null
