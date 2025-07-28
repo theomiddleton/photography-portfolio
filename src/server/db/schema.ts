@@ -404,3 +404,124 @@ export const galleryImageRelations = relations(galleryImages, ({ one }) => ({
 export type BlogPost = typeof blogPosts.$inferSelect
 export type Gallery = typeof galleries.$inferSelect
 export type GalleryImage = typeof galleryImages.$inferSelect
+
+// Multi-Gallery Page System
+export const multiGalleryPages = pgTable('multiGalleryPages', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  description: text('description'),
+  isPublic: boolean('isPublic').default(false).notNull(),
+  showInNav: boolean('showInNav').default(false).notNull(),
+  seoTitle: text('seoTitle'),
+  seoDescription: text('seoDescription'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+export const multiGallerySections = pgTable('multiGallerySections', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  pageId: uuid('pageId').notNull().references(() => multiGalleryPages.id, { onDelete: 'cascade' }),
+  order: integer('order').notNull().default(0),
+  title: text('title'),
+  description: text('description'),
+  
+  // Gallery Configuration (similar to mainGalleryConfig but per section)
+  layout: varchar('layout', { length: 50 }).notNull().default('masonry'),
+  gridVariant: varchar('gridVariant', { length: 50 }).default('standard'),
+  columnsMobile: integer('columnsMobile').notNull().default(1),
+  columnsTablet: integer('columnsTablet').notNull().default(2),
+  columnsDesktop: integer('columnsDesktop').notNull().default(3),
+  columnsLarge: integer('columnsLarge').notNull().default(4),
+  gapSize: varchar('gapSize', { length: 20 }).notNull().default('medium'),
+  borderRadius: varchar('borderRadius', { length: 20 }).default('medium'),
+  aspectRatio: varchar('aspectRatio', { length: 20 }).default('auto'),
+  
+  // Hero Image Configuration
+  enableHeroImage: boolean('enableHeroImage').default(false).notNull(),
+  heroImageId: integer('heroImageId'),
+  heroImagePosition: varchar('heroImagePosition', { length: 20 }).default('top'),
+  heroImageSize: varchar('heroImageSize', { length: 20 }).default('large'),
+  heroImageStyle: varchar('heroImageStyle', { length: 20 }).default('featured'),
+  
+  // Display Options
+  showImageTitles: boolean('showImageTitles').default(true).notNull(),
+  showImageDescriptions: boolean('showImageDescriptions').default(false).notNull(),
+  showImageMetadata: boolean('showImageMetadata').default(false).notNull(),
+  enableLightbox: boolean('enableLightbox').default(true).notNull(),
+  enableInfiniteScroll: boolean('enableInfiniteScroll').default(false).notNull(),
+  imagesPerPage: integer('imagesPerPage').default(50).notNull(),
+  
+  // Animation and Visual Effects
+  enableAnimations: boolean('enableAnimations').default(true).notNull(),
+  animationType: varchar('animationType', { length: 20 }).default('fade'),
+  hoverEffect: varchar('hoverEffect', { length: 20 }).default('zoom'),
+  backgroundColor: varchar('backgroundColor', { length: 20 }).default('default'),
+  overlayColor: varchar('overlayColor', { length: 20 }).default('black'),
+  overlayOpacity: integer('overlayOpacity').default(20).notNull(),
+  
+  // Performance Options
+  enableLazyLoading: boolean('enableLazyLoading').default(true).notNull(),
+  imageQuality: varchar('imageQuality', { length: 20 }).default('auto'),
+  enableProgressiveLoading: boolean('enableProgressiveLoading').default(false).notNull(),
+  
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+export const multiGallerySectionImages = pgTable('multiGallerySectionImages', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  sectionId: uuid('sectionId').notNull().references(() => multiGallerySections.id, { onDelete: 'cascade' }),
+  imageId: integer('imageId').notNull().references(() => imageData.id, { onDelete: 'cascade' }),
+  order: integer('order').notNull().default(0),
+  addedAt: timestamp('addedAt').defaultNow().notNull(),
+})
+
+export const multiGallerySeparators = pgTable('multiGallerySeparators', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  pageId: uuid('pageId').notNull().references(() => multiGalleryPages.id, { onDelete: 'cascade' }),
+  position: integer('position').notNull(), // Position between sections (0 = before first, 1 = between first and second, etc.)
+  type: varchar('type', { length: 50 }).notNull().default('divider'), // divider, text, image, spacer
+  content: text('content'), // Text content or image URL
+  height: integer('height').default(50), // Height in pixels for spacer
+  style: json('style'), // JSON for custom styles
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+})
+
+// Relations for Multi-Gallery System
+export const multiGalleryPageRelations = relations(multiGalleryPages, ({ many }) => ({
+  sections: many(multiGallerySections),
+  separators: many(multiGallerySeparators),
+}))
+
+export const multiGallerySectionRelations = relations(multiGallerySections, ({ one, many }) => ({
+  page: one(multiGalleryPages, {
+    fields: [multiGallerySections.pageId],
+    references: [multiGalleryPages.id],
+  }),
+  images: many(multiGallerySectionImages),
+}))
+
+export const multiGallerySectionImageRelations = relations(multiGallerySectionImages, ({ one }) => ({
+  section: one(multiGallerySections, {
+    fields: [multiGallerySectionImages.sectionId],
+    references: [multiGallerySections.id],
+  }),
+  image: one(imageData, {
+    fields: [multiGallerySectionImages.imageId],
+    references: [imageData.id],
+  }),
+}))
+
+export const multiGallerySeparatorRelations = relations(multiGallerySeparators, ({ one }) => ({
+  page: one(multiGalleryPages, {
+    fields: [multiGallerySeparators.pageId],
+    references: [multiGalleryPages.id],
+  }),
+}))
+
+// Export types
+export type MultiGalleryPage = typeof multiGalleryPages.$inferSelect
+export type MultiGallerySection = typeof multiGallerySections.$inferSelect
+export type MultiGallerySectionImage = typeof multiGallerySectionImages.$inferSelect
+export type MultiGallerySeparator = typeof multiGallerySeparators.$inferSelect
