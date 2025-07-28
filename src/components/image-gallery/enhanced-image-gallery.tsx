@@ -28,7 +28,7 @@ export function EnhancedImageGallery({
   config,
   refreshInterval = null, // Disabled by default for main gallery
   onImagesChange,
-  className
+  className,
 }: EnhancedImageGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
@@ -56,7 +56,10 @@ export function EnhancedImageGallery({
       filteredImages.sort((a, b) => {
         switch (config.priorityMode) {
           case 'recent':
-            return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+            return (
+              new Date(b.uploadedAt).getTime() -
+              new Date(a.uploadedAt).getTime()
+            )
           case 'views':
             // Placeholder - would need view tracking
             return 0
@@ -80,19 +83,23 @@ export function EnhancedImageGallery({
   // Get hero image
   const heroImage = useMemo(() => {
     if (!config.enableHeroImage) return null
-    
+
     if (config.heroImageId) {
-      return processedImages.find(img => img.id === config.heroImageId) || null
+      return (
+        processedImages.find((img) => img.id === config.heroImageId) || null
+      )
     }
-    
+
     // Auto-select first image with isHero flag or first image
-    return processedImages.find(img => img.isHero) || processedImages[0] || null
+    return (
+      processedImages.find((img) => img.isHero) || processedImages[0] || null
+    )
   }, [config.enableHeroImage, config.heroImageId, processedImages])
 
   // Filter out hero image from main gallery if enabled
   const galleryImages = useMemo(() => {
     if (!heroImage) return processedImages
-    return processedImages.filter(img => img.id !== heroImage.id)
+    return processedImages.filter((img) => img.id !== heroImage.id)
   }, [processedImages, heroImage])
 
   // Handle image selection
@@ -111,41 +118,45 @@ export function EnhancedImageGallery({
         'rounded-sm': config.borderRadius === 'small',
         'rounded-md': config.borderRadius === 'medium',
         'rounded-lg': config.borderRadius === 'large',
-        'rounded-full': config.borderRadius === 'full'
+        'rounded-full': config.borderRadius === 'full',
       },
       config.enableAnimations && 'transition-all duration-300',
       config.hoverEffect === 'lift' && 'hover:scale-105 hover:shadow-lg',
-      config.hoverEffect === 'zoom' && 'hover:scale-102'
+      config.hoverEffect === 'zoom' && 'hover:scale-102',
     )
 
     return (
-      <div className={imageClass}>
+      <div className={cn(imageClass, 'relative')}>
         <img
           src={image.fileUrl}
           alt={image.name}
           className={cn(
-            'w-full h-full object-cover',
+            'h-full w-full object-cover',
             config.aspectRatio === 'square' && 'aspect-square',
             config.aspectRatio === 'portrait' && 'aspect-[3/4]',
             config.aspectRatio === 'landscape' && 'aspect-[4/3]',
             config.aspectRatio === 'golden' && 'aspect-[1.618/1]',
             config.enableLazyLoading && 'lazy',
-            config.hoverEffect === 'zoom' && config.enableAnimations && 'transition-transform duration-300 hover:scale-110'
+            config.hoverEffect === 'zoom' &&
+              config.enableAnimations &&
+              'transition-transform duration-300 hover:scale-110',
           )}
           loading={config.enableLazyLoading ? 'lazy' : 'eager'}
           onClick={() => handleImageSelect(image.id.toString())}
           style={{ cursor: config.enableLightbox ? 'pointer' : 'default' }}
         />
-        
+
         {/* Image overlay with info */}
         {(config.showImageTitles || config.showImageDescriptions) && (
-          <div className={cn(
-            'absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 hover:opacity-100',
-            'flex items-end p-4'
-          )}>
+          <div
+            className={cn(
+              'absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 hover:opacity-100',
+              'flex items-end p-4',
+            )}
+          >
             <div className="text-white">
               {config.showImageTitles && (
-                <h3 className="font-semibold text-lg mb-1">{image.name}</h3>
+                <h3 className="mb-1 text-lg font-semibold">{image.name}</h3>
               )}
               {config.showImageDescriptions && image.description && (
                 <p className="text-sm opacity-90">{image.description}</p>
@@ -168,7 +179,7 @@ export function EnhancedImageGallery({
             renderImage={renderImage}
           />
         )
-      
+
       case 'grid':
         return (
           <GridLayout
@@ -177,7 +188,7 @@ export function EnhancedImageGallery({
             renderImage={renderImage}
           />
         )
-      
+
       case 'list':
         return (
           <ListView
@@ -190,7 +201,7 @@ export function EnhancedImageGallery({
             onMove={() => {}} // Disabled for main gallery
           />
         )
-      
+
       case 'masonry':
       default:
         const breakpointColumnsObj = {
@@ -204,14 +215,14 @@ export function EnhancedImageGallery({
           small: '-ml-2 [&>*]:pl-2',
           medium: '-ml-4 [&>*]:pl-4',
           large: '-ml-6 [&>*]:pl-6',
-          xl: '-ml-8 [&>*]:pl-8'
+          xl: '-ml-8 [&>*]:pl-8',
         }[config.gapSize]
 
         const itemGapClass = {
           small: 'mb-2',
           medium: 'mb-4',
           large: 'mb-6',
-          xl: 'mb-8'
+          xl: 'mb-8',
         }[config.gapSize]
 
         return (
@@ -233,7 +244,7 @@ export function EnhancedImageGallery({
   if (isLoading && images.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2" />
         <span className="ml-2 text-lg">Loading gallery...</span>
       </div>
     )
@@ -241,11 +252,11 @@ export function EnhancedImageGallery({
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500 mb-4">Error loading gallery: {error}</p>
+      <div className="py-12 text-center">
+        <p className="mb-4 text-red-500">Error loading gallery: {error}</p>
         <button
           onClick={() => refresh()}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2"
         >
           Retry
         </button>
@@ -262,7 +273,7 @@ export function EnhancedImageGallery({
     config.backgroundColor === 'dark' && 'bg-gray-900',
     config.backgroundColor === 'light' && 'bg-gray-50',
     config.enableAnimations && 'transition-colors duration-300',
-    className
+    className,
   )
 
   return (
@@ -272,7 +283,11 @@ export function EnhancedImageGallery({
         <HeroImage
           image={heroImage}
           config={config}
-          onClick={config.enableLightbox ? () => handleImageSelect(heroImage.id.toString()) : undefined}
+          onClick={
+            config.enableLightbox
+              ? () => handleImageSelect(heroImage.id.toString())
+              : undefined
+          }
         />
       )}
 
