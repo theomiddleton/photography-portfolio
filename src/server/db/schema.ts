@@ -8,6 +8,7 @@ import {
   boolean,
   uuid,
   json,
+  bigint,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
@@ -357,3 +358,191 @@ export const galleryImageRelations = relations(galleryImages, ({ one }) => ({
 export type BlogPost = typeof blogPosts.$inferSelect
 export type Gallery = typeof galleries.$inferSelect
 export type GalleryImage = typeof galleryImages.$inferSelect
+
+// Multi-Gallery Page System
+export const multiGalleryPages = pgTable('multiGalleryPages', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  description: text('description'),
+  isPublic: boolean('isPublic').default(false).notNull(),
+  showInNav: boolean('showInNav').default(false).notNull(),
+  seoTitle: text('seoTitle'),
+  seoDescription: text('seoDescription'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+export const multiGallerySections = pgTable('multiGallerySections', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  pageId: uuid('pageId').notNull().references(() => multiGalleryPages.id, { onDelete: 'cascade' }),
+  order: integer('order').notNull().default(0),
+  title: text('title'),
+  description: text('description'),
+  
+  // Gallery Configuration (similar to mainGalleryConfig but per section)
+  layout: varchar('layout', { length: 50 }).notNull().default('masonry'),
+  gridVariant: varchar('gridVariant', { length: 50 }).default('standard'),
+  columnsMobile: integer('columnsMobile').notNull().default(1),
+  columnsTablet: integer('columnsTablet').notNull().default(2),
+  columnsDesktop: integer('columnsDesktop').notNull().default(3),
+  columnsLarge: integer('columnsLarge').notNull().default(4),
+  gapSize: varchar('gapSize', { length: 20 }).notNull().default('medium'),
+  borderRadius: varchar('borderRadius', { length: 20 }).default('medium'),
+  aspectRatio: varchar('aspectRatio', { length: 20 }).default('auto'),
+  
+  // Hero Image Configuration
+  enableHeroImage: boolean('enableHeroImage').default(false).notNull(),
+  heroImageId: integer('heroImageId'),
+  heroImagePosition: varchar('heroImagePosition', { length: 20 }).default('top'),
+  heroImageSize: varchar('heroImageSize', { length: 20 }).default('large'),
+  heroImageStyle: varchar('heroImageStyle', { length: 20 }).default('featured'),
+  
+  // Display Options
+  showImageTitles: boolean('showImageTitles').default(true).notNull(),
+  showImageDescriptions: boolean('showImageDescriptions').default(false).notNull(),
+  showImageMetadata: boolean('showImageMetadata').default(false).notNull(),
+  enableLightbox: boolean('enableLightbox').default(true).notNull(),
+  enableInfiniteScroll: boolean('enableInfiniteScroll').default(false).notNull(),
+  imagesPerPage: integer('imagesPerPage').default(50).notNull(),
+  
+  // Animation and Visual Effects
+  enableAnimations: boolean('enableAnimations').default(true).notNull(),
+  animationType: varchar('animationType', { length: 20 }).default('fade'),
+  hoverEffect: varchar('hoverEffect', { length: 20 }).default('zoom'),
+  backgroundColor: varchar('backgroundColor', { length: 20 }).default('default'),
+  overlayColor: varchar('overlayColor', { length: 20 }).default('black'),
+  overlayOpacity: integer('overlayOpacity').default(20).notNull(),
+  
+  // Performance Options
+  enableLazyLoading: boolean('enableLazyLoading').default(true).notNull(),
+  imageQuality: varchar('imageQuality', { length: 20 }).default('auto'),
+  enableProgressiveLoading: boolean('enableProgressiveLoading').default(false).notNull(),
+  
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+export const multiGallerySectionImages = pgTable('multiGallerySectionImages', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  sectionId: uuid('sectionId').notNull().references(() => multiGallerySections.id, { onDelete: 'cascade' }),
+  imageId: integer('imageId').notNull().references(() => imageData.id, { onDelete: 'cascade' }),
+  order: integer('order').notNull().default(0),
+  addedAt: timestamp('addedAt').defaultNow().notNull(),
+})
+
+export const multiGallerySeparators = pgTable('multiGallerySeparators', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  pageId: uuid('pageId').notNull().references(() => multiGalleryPages.id, { onDelete: 'cascade' }),
+  position: integer('position').notNull(), // Position between sections (0 = before first, 1 = between first and second, etc.)
+  type: varchar('type', { length: 50 }).notNull().default('divider'), // divider, text, image, spacer
+  content: text('content'), // Text content or image URL
+  height: integer('height').default(50), // Height in pixels for spacer
+  style: json('style'), // JSON for custom styles
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+})
+
+// Relations for Multi-Gallery System
+export const multiGalleryPageRelations = relations(multiGalleryPages, ({ many }) => ({
+  sections: many(multiGallerySections),
+  separators: many(multiGallerySeparators),
+}))
+
+export const multiGallerySectionRelations = relations(multiGallerySections, ({ one, many }) => ({
+  page: one(multiGalleryPages, {
+    fields: [multiGallerySections.pageId],
+    references: [multiGalleryPages.id],
+  }),
+  images: many(multiGallerySectionImages),
+}))
+
+export const multiGallerySectionImageRelations = relations(multiGallerySectionImages, ({ one }) => ({
+  section: one(multiGallerySections, {
+    fields: [multiGallerySectionImages.sectionId],
+    references: [multiGallerySections.id],
+  }),
+  image: one(imageData, {
+    fields: [multiGallerySectionImages.imageId],
+    references: [imageData.id],
+  }),
+}))
+
+export const multiGallerySeparatorRelations = relations(multiGallerySeparators, ({ one }) => ({
+  page: one(multiGalleryPages, {
+    fields: [multiGallerySeparators.pageId],
+    references: [multiGalleryPages.id],
+  }),
+}))
+
+// Storage Usage Monitoring Tables
+export const storageUsage = pgTable('storageUsage', {
+  id: serial('id').primaryKey(),
+  bucketName: varchar('bucketName', { length: 256 }).notNull(),
+  usageBytes: bigint('usageBytes', { mode: 'number' }).notNull(),
+  objectCount: integer('objectCount').notNull(),
+  measurementDate: timestamp('measurementDate').defaultNow().notNull(),
+  alertTriggered: boolean('alertTriggered').default(false).notNull(),
+  alertThresholdBytes: bigint('alertThresholdBytes', { mode: 'number' }).default(9000000000), // 9GB default
+})
+
+export const alertDismissals = pgTable('alertDismissals', {
+  id: serial('id').primaryKey(),
+  userId: integer('userId').references(() => users.id).notNull(),
+  alertType: varchar('alertType', { length: 100 }).notNull(), // 'storage_warning', 'storage_critical', etc.
+  bucketName: varchar('bucketName', { length: 256 }),
+  dismissedAt: timestamp('dismissedAt').defaultNow().notNull(),
+  expiresAt: timestamp('expiresAt').notNull(), // When dismissal expires
+  dismissalDuration: varchar('dismissalDuration', { length: 50 }).notNull(), // '1h', '1d', '1w', 'permanent'
+})
+
+export const duplicateFiles = pgTable('duplicateFiles', {
+  id: serial('id').primaryKey(),
+  fileHash: varchar('fileHash', { length: 64 }).notNull(), // SHA-256 hash
+  fileName: varchar('fileName', { length: 256 }).notNull(),
+  bucketName: varchar('bucketName', { length: 256 }).notNull(),
+  objectKey: varchar('objectKey', { length: 512 }).notNull(),
+  fileSize: bigint('fileSize', { mode: 'number' }).notNull(),
+  lastModified: timestamp('lastModified').notNull(),
+  dbReference: varchar('dbReference', { length: 100 }), // Which DB table has this file's UUID
+  dbRecordId: integer('dbRecordId'), // The ID of the record in the referenced table
+  uuid: varchar('uuid', { length: 36 }), // The UUID stored in the database
+  scanDate: timestamp('scanDate').defaultNow().notNull(),
+})
+
+export const usageAlertConfig = pgTable('usageAlertConfig', {
+  id: serial('id').primaryKey(),
+  bucketName: varchar('bucketName', { length: 256 }).notNull().unique(),
+  warningThresholdPercent: integer('warningThresholdPercent').default(80).notNull(), // 80% of 10GB
+  criticalThresholdPercent: integer('criticalThresholdPercent').default(95).notNull(), // 95% of 10GB
+  maxStorageBytes: bigint('maxStorageBytes', { mode: 'number' }).default(10000000000).notNull(), // 10GB
+  emailAlertsEnabled: boolean('emailAlertsEnabled').default(true).notNull(),
+  lastWarningEmailSent: timestamp('lastWarningEmailSent'),
+  lastCriticalEmailSent: timestamp('lastCriticalEmailSent'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+// Relations for new tables
+export const storageUsageRelations = relations(storageUsage, ({ one }) => ({
+  alertConfig: one(usageAlertConfig, {
+    fields: [storageUsage.bucketName],
+    references: [usageAlertConfig.bucketName],
+  }),
+}))
+
+export const alertDismissalRelations = relations(alertDismissals, ({ one }) => ({
+  user: one(users, {
+    fields: [alertDismissals.userId],
+    references: [users.id],
+  }),
+}))
+
+// Export types
+export type MultiGalleryPage = typeof multiGalleryPages.$inferSelect
+export type MultiGallerySection = typeof multiGallerySections.$inferSelect
+export type MultiGallerySectionImage = typeof multiGallerySectionImages.$inferSelect
+export type MultiGallerySeparator = typeof multiGallerySeparators.$inferSelect
+export type StorageUsage = typeof storageUsage.$inferSelect
+export type AlertDismissal = typeof alertDismissals.$inferSelect
+export type DuplicateFile = typeof duplicateFiles.$inferSelect
+export type UsageAlertConfig = typeof usageAlertConfig.$inferSelect
