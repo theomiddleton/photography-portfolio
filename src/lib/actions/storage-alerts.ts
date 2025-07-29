@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { env } from '~/env'
+import { siteConfig } from '~/config/site'
 import { UsageAlertEmail } from '~/components/emails/usage-alert-email'
 
 const resend = new Resend(env.RESEND_API_KEY)
@@ -21,7 +22,7 @@ export async function sendUsageAlert(data: UsageAlertData) {
     const subject = `${data.alertType === 'critical' ? '🚨 CRITICAL' : '⚠️ WARNING'}: ${data.bucketName} Storage Alert`
     
     await resend.emails.send({
-      from: 'Portfolio System <noreply@portfolio.com>',
+      from: `${siteConfig.emails.noReply}`,
       to: [env.ADMIN_EMAIL],
       subject,
       react: UsageAlertEmail({
