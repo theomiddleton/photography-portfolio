@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import { toast } from 'sonner'
 import Link from 'next/link'
 import Image from 'next/image'
+import { siteConfig } from '~/config/site'
 
 interface DuplicateFile {
   id: number
@@ -172,7 +173,7 @@ export function DeduplicationPage() {
 
   const getThumbnailUrl = (file: DuplicateFile): string | null => {
     if (!isImage(file.fileName)) return null
-    return `/api/files/thumbnail?bucket=${encodeURIComponent(file.bucketName)}&key=${encodeURIComponent(file.objectKey)}`
+    return `${siteConfig.imageBucketUrl}/${file.objectKey}`
   }
 
   // Group duplicates by hash
