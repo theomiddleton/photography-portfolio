@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import { db } from '~/server/db'
-import { storageUsage, usageAlertConfig, alertDismissals } from '~/server/db/schema'
+import {
+  storageUsage,
+  usageAlertConfig,
+  alertDismissals,
+  globalStorageConfig,
+} from '~/server/db/schema'
 import { desc, sql, and, gt, eq } from 'drizzle-orm'
 import { getSession } from '~/lib/auth/auth'
 import { PgColumn } from 'drizzle-orm/pg-core'
@@ -29,49 +34,59 @@ export async function GET() {
 
     const latestUsage = await Promise.all(
       buckets.map(async ({ bucketName }) => {
-      const usage = await db
-        .select({
-        id: storageUsage.id,
-        bucketName: storageUsage.bucketName,
-        usageBytes: storageUsage.usageBytes,
-        objectCount: storageUsage.objectCount,
-        measurementDate: storageUsage.measurementDate,
-        alertTriggered: storageUsage.alertTriggered,
-        })
-        .from(storageUsage)
-        .where(sql`${storageUsage.bucketName} = ${bucketName}`)
-        .orderBy(desc(storageUsage.measurementDate))
-        .limit(1)
-      return usage[0]
-      })
+        const usage = await db
+          .select({
+            id: storageUsage.id,
+            bucketName: storageUsage.bucketName,
+            usageBytes: storageUsage.usageBytes,
+            objectCount: storageUsage.objectCount,
+            measurementDate: storageUsage.measurementDate,
+            alertTriggered: storageUsage.alertTriggered,
+          })
+          .from(storageUsage)
+          .where(sql`${storageUsage.bucketName} = ${bucketName}`)
+          .orderBy(desc(storageUsage.measurementDate))
+          .limit(1)
+        return usage[0]
+      }),
     )
 
     // Get alert configurations
     const configs = await db.select().from(usageAlertConfig)
+
+    // Get global storage configuration
+    let [globalConfig] = await db.select().from(globalStorageConfig).limit(1)
+    if (!globalConfig) {
+      ;[globalConfig] = await db
+        .insert(globalStorageConfig)
+        .values({})
+        .returning()
+    }
 
     // Get active dismissals (not expired)
     const activeDismissals = await db
       .select()
       .from(alertDismissals)
       .where(
-      and(
-        gt(alertDismissals.expiresAt, new Date()),
-        eq(alertDismissals.userId, session.id)
-      )
+        and(
+          gt(alertDismissals.expiresAt, new Date()),
+          eq(alertDismissals.userId, session.id),
+        ),
       )
 
     // Create a set of dismissed alerts for quick lookup
     const dismissedAlertKeys = new Set(
-      activeDismissals.map(d => `${d.alertType}-${d.bucketName}`)
+      activeDismissals.map((d) => `${d.alertType}-${d.bucketName}`),
     )
 
     const alerts = []
 
     for (const usage of latestUsage) {
-      const config = configs.find(c => c.bucketName === usage.bucketName)
+      const config = configs.find((c) => c.bucketName === usage.bucketName)
       if (!config) continue
 
-      const usagePercent = (usage.usageBytes / config.maxStorageBytes) * 100
+      const usagePercent =
+        (usage.usageBytes / globalConfig.totalStorageLimit) * 100
       let alertType: 'warning' | 'critical' | null = null
 
       if (usagePercent >= config.criticalThresholdPercent) {
@@ -82,7 +97,7 @@ export async function GET() {
 
       if (alertType) {
         const alertKey = `${alertType}_storage-${usage.bucketName}`
-        
+
         // Check if this alert is dismissed
         if (!dismissedAlertKeys.has(alertKey)) {
           alerts.push({
@@ -91,7 +106,7 @@ export async function GET() {
             usagePercent: Math.round(usagePercent * 100) / 100,
             alertType,
             formattedUsage: formatBytes(usage.usageBytes),
-            formattedMax: formatBytes(config.maxStorageBytes),
+            formattedMax: formatBytes(globalConfig.totalStorageLimit),
             measurementDate: usage.measurementDate,
           })
         }
@@ -103,7 +118,7 @@ export async function GET() {
     console.error('Failed to fetch active alerts:', error)
     return NextResponse.json(
       { error: 'Failed to fetch active alerts' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
