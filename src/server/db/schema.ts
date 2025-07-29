@@ -34,6 +34,7 @@ export const imageData = pgTable('imageData', {
   order: integer('order').default(0).notNull(),
   priority: integer('priority').default(0).notNull(), // For priority-based sorting
   isHero: boolean('isHero').default(false).notNull(), // Mark as hero image
+  fileSize: integer('fileSize'), // File size in bytes
   uploadedAt: timestamp('uploadedAt').defaultNow(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
 })

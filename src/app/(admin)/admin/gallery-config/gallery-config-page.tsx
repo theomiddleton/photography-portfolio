@@ -106,6 +106,7 @@ export function GalleryConfigurationPage({ initialConfig, sampleImages }: Galler
                   config={currentConfig}
                   onConfigChange={handleConfigChange}
                   isPreviewMode={true}
+                  availableImages={sampleImages}
                 />
               </CardContent>
             </Card>
@@ -139,6 +140,7 @@ export function GalleryConfigurationPage({ initialConfig, sampleImages }: Galler
           config={currentConfig}
           onConfigChange={handleSaveSuccess}
           isPreviewMode={false}
+          availableImages={sampleImages}
         />
       )}
 

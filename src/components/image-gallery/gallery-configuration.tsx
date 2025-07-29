@@ -12,15 +12,18 @@ import { Badge } from '~/components/ui/badge'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Save, RotateCcw, Eye, Settings, Palette, Zap } from 'lucide-react'
 import { updateMainGalleryConfig, resetMainGalleryConfig } from '~/lib/actions/gallery-config'
+import { HeroImageSelector } from '~/components/image-gallery/hero-image-selector'
 import type { MainGalleryConfig } from '~/lib/types/gallery-config'
+import type { PortfolioImageData } from '~/lib/types/image'
 
 interface GalleryConfigurationProps {
   config: MainGalleryConfig
   onConfigChange: (config: MainGalleryConfig) => void
   isPreviewMode?: boolean
+  availableImages?: PortfolioImageData[]
 }
 
-export function GalleryConfiguration({ config, onConfigChange, isPreviewMode = false }: GalleryConfigurationProps) {
+export function GalleryConfiguration({ config, onConfigChange, isPreviewMode = false, availableImages = [] }: GalleryConfigurationProps) {
   const [localConfig, setLocalConfig] = useState<MainGalleryConfig>(config)
   const [isSaving, setIsSaving] = useState(false)
   const [isResetting, setIsResetting] = useState(false)
@@ -290,48 +293,57 @@ export function GalleryConfiguration({ config, onConfigChange, isPreviewMode = f
               </div>
 
               {localConfig.enableHeroImage && (
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div>
-                    <Label htmlFor="heroImageSize">Size</Label>
-                    <Select value={localConfig.heroImageSize || 'large'} onValueChange={(value) => updateConfig({ heroImageSize: value as any })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="small">Small</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="large">Large</SelectItem>
-                        <SelectItem value="xl">Extra Large</SelectItem>
-                        <SelectItem value="full">Full Screen</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div>
+                      <Label htmlFor="heroImageSize">Size</Label>
+                      <Select value={localConfig.heroImageSize || 'large'} onValueChange={(value) => updateConfig({ heroImageSize: value as any })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="small">Small</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="large">Large</SelectItem>
+                          <SelectItem value="xl">Extra Large</SelectItem>
+                          <SelectItem value="full">Full Screen</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="heroImageStyle">Style</Label>
+                      <Select value={localConfig.heroImageStyle || 'featured'} onValueChange={(value) => updateConfig({ heroImageStyle: value as any })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="featured">Featured</SelectItem>
+                          <SelectItem value="banner">Banner</SelectItem>
+                          <SelectItem value="showcase">Showcase</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="heroImagePosition">Position</Label>
+                      <Select value={localConfig.heroImagePosition || 'top'} onValueChange={(value) => updateConfig({ heroImagePosition: value as any })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="top">Top</SelectItem>
+                          <SelectItem value="center">Center</SelectItem>
+                          <SelectItem value="bottom">Bottom</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="heroImageStyle">Style</Label>
-                    <Select value={localConfig.heroImageStyle || 'featured'} onValueChange={(value) => updateConfig({ heroImageStyle: value as any })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="featured">Featured</SelectItem>
-                        <SelectItem value="banner">Banner</SelectItem>
-                        <SelectItem value="showcase">Showcase</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="heroImagePosition">Position</Label>
-                    <Select value={localConfig.heroImagePosition || 'top'} onValueChange={(value) => updateConfig({ heroImagePosition: value as any })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="top">Top</SelectItem>
-                        <SelectItem value="center">Center</SelectItem>
-                        <SelectItem value="bottom">Bottom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  
+                  {/* Hero Image Selector */}
+                  <HeroImageSelector
+                    images={availableImages}
+                    selectedImageId={localConfig.heroImageId}
+                    onImageSelect={(imageId) => updateConfig({ heroImageId: imageId })}
+                  />
                 </div>
               )}
             </CardContent>

@@ -81,6 +81,7 @@ export default async function AdminGalleryConfigPage() {
           order: imageData.order,
           priority: imageData.priority,
           isHero: imageData.isHero,
+          fileSize: imageData.fileSize,
           uploadedAt: imageData.uploadedAt,
           modifiedAt: imageData.modifiedAt,
         })
@@ -101,6 +102,7 @@ export default async function AdminGalleryConfigPage() {
         order: item.order,
         priority: item.priority || undefined,
         isHero: item.isHero || undefined,
+        fileSize: item.fileSize || undefined,
         uploadedAt: item.uploadedAt || new Date(),
         modifiedAt: item.modifiedAt || new Date(),
       }))
