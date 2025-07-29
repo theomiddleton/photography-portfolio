@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { Switch } from '~/components/ui/switch'
 import { Label } from '~/components/ui/label'
 import { Input } from '~/components/ui/input'
+import { Slider } from '~/components/ui/slider'
 import { Separator } from '~/components/ui/separator'
 import { toast } from 'sonner'
 
@@ -250,19 +251,19 @@ export function StorageAlertsPage() {
                   <div className="text-2xl font-bold">
                     {formatBytes(globalData.totalUsageBytes)}
                   </div>
-                  <p className="text-sm text-gray-600">Total Used</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Total Used</p>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-600">
+                  <div className="text-2xl font-bold text-gray-600 dark:text-gray-300">
                     {globalData.totalUsagePercent.toFixed(1)}%
                   </div>
-                  <p className="text-sm text-gray-600">Usage</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Usage</p>
                 </div>
                 <div>
                   <div className="text-2xl font-bold">
                     {globalData.totalObjectCount.toLocaleString()}
                   </div>
-                  <p className="text-sm text-gray-600">Total Files</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Total Files</p>
                 </div>
               </div>
 
@@ -272,7 +273,7 @@ export function StorageAlertsPage() {
                   <span>Combined Usage</span>
                   <span>{formatBytes(globalData.totalStorageLimit)} limit</span>
                 </div>
-                <div className="relative h-6 bg-gray-200 rounded-full overflow-hidden">
+                <div className="relative h-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   {storageData.map((bucket, index) => {
                     const bucketPercent = (bucket.usageBytes / globalData.totalStorageLimit) * 100
                     const leftOffset = storageData
@@ -328,7 +329,7 @@ export function StorageAlertsPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div>
-                <Label htmlFor="totalLimit" className="text-sm text-gray-600">Total Storage Limit (GB)</Label>
+                <Label htmlFor="totalLimit" className="text-sm text-gray-600 dark:text-gray-300">Total Storage Limit (GB)</Label>
                 <Input
                   id="totalLimit"
                   type="number"
@@ -341,7 +342,7 @@ export function StorageAlertsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="warningThreshold" className="text-sm text-gray-600">Warning Threshold (%)</Label>
+                <Label htmlFor="warningThreshold" className="text-sm text-gray-600 dark:text-gray-300">Warning Threshold (%)</Label>
                 <Input
                   id="warningThreshold"
                   type="number"
@@ -352,7 +353,7 @@ export function StorageAlertsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="criticalThreshold" className="text-sm text-gray-600">Critical Threshold (%)</Label>
+                <Label htmlFor="criticalThreshold" className="text-sm text-gray-600 dark:text-gray-300">Critical Threshold (%)</Label>
                 <Input
                   id="criticalThreshold"
                   type="number"
@@ -399,7 +400,7 @@ export function StorageAlertsPage() {
                   <div>
                     <h3 className="text-lg font-semibold">{config.bucketName}</h3>
                     {bucketData && (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                         {formatBytes(bucketData.usageBytes)} • {bucketUsagePercent.toFixed(1)}% of total limit
                       </p>
                     )}
@@ -416,27 +417,63 @@ export function StorageAlertsPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4">
                   <div>
-                    <Label className="text-sm text-gray-600">Warning Threshold (% of total)</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={config.warningThresholdPercent}
-                      onChange={(e) => updateAlertConfig(config.id, { warningThresholdPercent: parseInt(e.target.value) })}
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm text-gray-600 dark:text-gray-300">Warning Threshold (% of total)</Label>
+                      <span className="text-sm font-medium">{config.warningThresholdPercent}%</span>
+                    </div>
+                    <Slider
+                      value={[config.warningThresholdPercent]}
+                      onValueChange={(value) => {
+                        const newValue = value[0]
+                        // Ensure warning threshold doesn't exceed critical threshold
+                        if (newValue <= config.criticalThresholdPercent) {
+                          updateAlertConfig(config.id, { warningThresholdPercent: newValue })
+                        }
+                      }}
+                      max={Math.min(100, config.criticalThresholdPercent)}
+                      min={1}
+                      step={1}
+                      className="w-full"
                     />
+                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <span>1%</span>
+                      <span>{Math.min(100, config.criticalThresholdPercent)}% (max)</span>
+                    </div>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Critical Threshold (% of total)</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={config.criticalThresholdPercent}
-                      onChange={(e) => updateAlertConfig(config.id, { criticalThresholdPercent: parseInt(e.target.value) })}
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm text-gray-600 dark:text-gray-300">Critical Threshold (% of total)</Label>
+                      <span className="text-sm font-medium">{config.criticalThresholdPercent}%</span>
+                    </div>
+                    <Slider
+                      value={[config.criticalThresholdPercent]}
+                      onValueChange={(value) => {
+                        const newValue = value[0]
+                        // Ensure critical threshold is at least as high as warning threshold
+                        if (newValue >= config.warningThresholdPercent) {
+                          updateAlertConfig(config.id, { criticalThresholdPercent: newValue })
+                        }
+                      }}
+                      max={100}
+                      min={Math.max(1, config.warningThresholdPercent)}
+                      step={1}
+                      className="w-full"
                     />
+                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <span>{Math.max(1, config.warningThresholdPercent)}% (min)</span>
+                      <span>100%</span>
+                    </div>
                   </div>
+                  {config.criticalThresholdPercent < config.warningThresholdPercent && (
+                    <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <AlertDescription className="text-amber-800 dark:text-amber-300">
+                        Critical threshold must be greater than or equal to warning threshold
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
 
                 {(config.lastWarningEmailSent || config.lastCriticalEmailSent) && (
@@ -444,13 +481,13 @@ export function StorageAlertsPage() {
                     <div className="grid gap-2 md:grid-cols-2 text-sm">
                       {config.lastWarningEmailSent && (
                         <div>
-                          <span className="text-gray-600">Last warning sent:</span> {' '}
+                          <span className="text-gray-600 dark:text-gray-300">Last warning sent:</span> {' '}
                           {format(new Date(config.lastWarningEmailSent), 'MMM d, HH:mm')}
                         </div>
                       )}
                       {config.lastCriticalEmailSent && (
                         <div>
-                          <span className="text-gray-600">Last critical sent:</span> {' '}
+                          <span className="text-gray-600 dark:text-gray-300">Last critical sent:</span> {' '}
                           {format(new Date(config.lastCriticalEmailSent), 'MMM d, HH:mm')}
                         </div>
                       )}
