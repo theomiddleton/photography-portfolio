@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { db } from '~/server/db'
 import { storageUsage, usageAlertConfig, alertDismissals } from '~/server/db/schema'
-import { desc, sql, and, gt } from 'drizzle-orm'
+import { desc, sql, and, gt, eq } from 'drizzle-orm'
 import { getSession } from '~/lib/auth/auth'
+import { PgColumn } from 'drizzle-orm/pg-core'
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 Bytes'
@@ -20,25 +21,30 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get the latest storage usage for each bucket
-    const latestUsage = await db
-      .select({
+    // Get the latest storage usage for each bucket using Drizzle queries
+    const buckets = await db
+      .select({ bucketName: storageUsage.bucketName })
+      .from(storageUsage)
+      .groupBy(storageUsage.bucketName)
+
+    const latestUsage = await Promise.all(
+      buckets.map(async ({ bucketName }) => {
+      const usage = await db
+        .select({
         id: storageUsage.id,
         bucketName: storageUsage.bucketName,
         usageBytes: storageUsage.usageBytes,
         objectCount: storageUsage.objectCount,
         measurementDate: storageUsage.measurementDate,
         alertTriggered: storageUsage.alertTriggered,
+        })
+        .from(storageUsage)
+        .where(sql`${storageUsage.bucketName} = ${bucketName}`)
+        .orderBy(desc(storageUsage.measurementDate))
+        .limit(1)
+      return usage[0]
       })
-      .from(storageUsage)
-      .where(
-        sql`(pp_storage_usage.bucket_name, pp_storage_usage.measurement_date) IN (
-          SELECT bucket_name, MAX(measurement_date)
-          FROM pp_storage_usage 
-          GROUP BY bucket_name
-        )`
-      )
-      .orderBy(desc(storageUsage.measurementDate))
+    )
 
     // Get alert configurations
     const configs = await db.select().from(usageAlertConfig)
@@ -48,10 +54,10 @@ export async function GET() {
       .select()
       .from(alertDismissals)
       .where(
-        and(
-          gt(alertDismissals.expiresAt, new Date()),
-          sql`user_id = ${session.id}`
-        )
+      and(
+        gt(alertDismissals.expiresAt, new Date()),
+        eq(alertDismissals.userId, session.id)
+      )
       )
 
     // Create a set of dismissed alerts for quick lookup

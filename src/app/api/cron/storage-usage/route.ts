@@ -55,7 +55,9 @@ export async function GET(request: NextRequest) {
   try {
     // Verify this is a cron request
     const authHeader = request.headers.get('authorization')
+    console.log('Authorization header:', authHeader)   
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      console.warn('Unauthorized access attempt to storage usage route')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -195,5 +197,12 @@ export async function POST(request: NextRequest) {
   }
 
   // For manual triggers, we'll still use the GET logic but without auth check
-  return GET(request)
+  // Clone the request and add the authorization header for cron
+  const headers = new Headers(request.headers)
+  headers.set('authorization', `Bearer ${process.env.CRON_SECRET}`)
+
+  const url = new URL(request.url)
+  const newRequest = new NextRequest(url, { headers })
+
+  return GET(newRequest)
 }
