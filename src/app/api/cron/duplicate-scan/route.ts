@@ -246,5 +246,12 @@ export async function POST(request: NextRequest) {
   }
 
   // For manual triggers, we'll still use the GET logic but without auth check
-  return GET(request)
+  // Clone the request and add the authorization header for cron
+  const headers = new Headers(request.headers)
+  headers.set('authorization', `Bearer ${process.env.CRON_SECRET}`)
+
+  const url = new URL(request.url)
+  const newRequest = new NextRequest(url, { headers })
+
+  return GET(newRequest)
 }
