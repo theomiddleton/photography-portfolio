@@ -24,9 +24,9 @@ export async function GET() {
       })
       .from(storageUsage)
       .where(
-        sql`(bucket_name, measurement_date) IN (
+        sql`(pp_storage_usage.bucket_name, pp_storage_usage.measurement_date) IN (
           SELECT bucket_name, MAX(measurement_date)
-          FROM storage_usage 
+          FROM pp_storage_usage 
           GROUP BY bucket_name
         )`
       )
