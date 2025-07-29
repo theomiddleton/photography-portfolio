@@ -8,6 +8,7 @@ import {
   boolean,
   uuid,
   json,
+  bigint,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
@@ -521,8 +522,75 @@ export const multiGallerySeparatorRelations = relations(multiGallerySeparators, 
   }),
 }))
 
+// Storage Usage Monitoring Tables
+export const storageUsage = pgTable('storageUsage', {
+  id: serial('id').primaryKey(),
+  bucketName: varchar('bucketName', { length: 256 }).notNull(),
+  usageBytes: bigint('usageBytes', { mode: 'number' }).notNull(),
+  objectCount: integer('objectCount').notNull(),
+  measurementDate: timestamp('measurementDate').defaultNow().notNull(),
+  alertTriggered: boolean('alertTriggered').default(false).notNull(),
+  alertThresholdBytes: bigint('alertThresholdBytes', { mode: 'number' }).default(9000000000), // 9GB default
+})
+
+export const alertDismissals = pgTable('alertDismissals', {
+  id: serial('id').primaryKey(),
+  userId: integer('userId').references(() => users.id).notNull(),
+  alertType: varchar('alertType', { length: 100 }).notNull(), // 'storage_warning', 'storage_critical', etc.
+  bucketName: varchar('bucketName', { length: 256 }),
+  dismissedAt: timestamp('dismissedAt').defaultNow().notNull(),
+  expiresAt: timestamp('expiresAt').notNull(), // When dismissal expires
+  dismissalDuration: varchar('dismissalDuration', { length: 50 }).notNull(), // '1h', '1d', '1w', 'permanent'
+})
+
+export const duplicateFiles = pgTable('duplicateFiles', {
+  id: serial('id').primaryKey(),
+  fileHash: varchar('fileHash', { length: 64 }).notNull(), // SHA-256 hash
+  fileName: varchar('fileName', { length: 256 }).notNull(),
+  bucketName: varchar('bucketName', { length: 256 }).notNull(),
+  objectKey: varchar('objectKey', { length: 512 }).notNull(),
+  fileSize: bigint('fileSize', { mode: 'number' }).notNull(),
+  lastModified: timestamp('lastModified').notNull(),
+  dbReference: varchar('dbReference', { length: 100 }), // Which DB table has this file's UUID
+  dbRecordId: integer('dbRecordId'), // The ID of the record in the referenced table
+  uuid: varchar('uuid', { length: 36 }), // The UUID stored in the database
+  scanDate: timestamp('scanDate').defaultNow().notNull(),
+})
+
+export const usageAlertConfig = pgTable('usageAlertConfig', {
+  id: serial('id').primaryKey(),
+  bucketName: varchar('bucketName', { length: 256 }).notNull().unique(),
+  warningThresholdPercent: integer('warningThresholdPercent').default(80).notNull(), // 80% of 10GB
+  criticalThresholdPercent: integer('criticalThresholdPercent').default(95).notNull(), // 95% of 10GB
+  maxStorageBytes: bigint('maxStorageBytes', { mode: 'number' }).default(10000000000).notNull(), // 10GB
+  emailAlertsEnabled: boolean('emailAlertsEnabled').default(true).notNull(),
+  lastWarningEmailSent: timestamp('lastWarningEmailSent'),
+  lastCriticalEmailSent: timestamp('lastCriticalEmailSent'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+// Relations for new tables
+export const storageUsageRelations = relations(storageUsage, ({ one }) => ({
+  alertConfig: one(usageAlertConfig, {
+    fields: [storageUsage.bucketName],
+    references: [usageAlertConfig.bucketName],
+  }),
+}))
+
+export const alertDismissalRelations = relations(alertDismissals, ({ one }) => ({
+  user: one(users, {
+    fields: [alertDismissals.userId],
+    references: [users.id],
+  }),
+}))
+
 // Export types
 export type MultiGalleryPage = typeof multiGalleryPages.$inferSelect
 export type MultiGallerySection = typeof multiGallerySections.$inferSelect
 export type MultiGallerySectionImage = typeof multiGallerySectionImages.$inferSelect
 export type MultiGallerySeparator = typeof multiGallerySeparators.$inferSelect
+export type StorageUsage = typeof storageUsage.$inferSelect
+export type AlertDismissal = typeof alertDismissals.$inferSelect
+export type DuplicateFile = typeof duplicateFiles.$inferSelect
+export type UsageAlertConfig = typeof usageAlertConfig.$inferSelect
