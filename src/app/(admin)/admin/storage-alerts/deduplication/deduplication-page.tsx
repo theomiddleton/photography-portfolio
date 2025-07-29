@@ -201,12 +201,64 @@ export function DeduplicationPage() {
   const endIndex = startIndex + itemsPerPage
   const paginatedGroups = groupEntries.slice(startIndex, endIndex)
 
+  // Pagination Controls Component
+  const PaginationControls = () => (
+    totalGroups > 0 && (
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600 dark:text-gray-300">Items per page:</span>
+          <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+            setItemsPerPage(parseInt(value))
+            setCurrentPage(1)
+          }}>
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600 dark:text-gray-300">
+            Showing {startIndex + 1}-{Math.min(endIndex, totalGroups)} of {totalGroups} groups
+          </span>
+          <div className="flex gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          <span className="text-sm text-gray-600 dark:text-gray-300">
+            Page {currentPage} of {totalPages}
+          </span>
+        </div>
+      </div>
+    )
+  )
+
   if (loading) {
     return (
       <div className="container mx-auto py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </div>
     )
@@ -224,7 +276,7 @@ export function DeduplicationPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">File Deduplication</h1>
-            <p className="text-gray-600">Find and remove duplicate files across R2 buckets</p>
+            <p className="text-gray-600 dark:text-gray-300">Find and remove duplicate files across R2 buckets</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -250,25 +302,25 @@ export function DeduplicationPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">{Object.keys(duplicateGroups).length}</div>
-            <p className="text-sm text-gray-600">Duplicate Groups</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Duplicate Groups</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">{duplicates.length}</div>
-            <p className="text-sm text-gray-600">Total Duplicate Files</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Total Duplicate Files</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-red-600">{formatBytes(totalSpaceWasted)}</div>
-            <p className="text-sm text-gray-600">Space Wasted</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Space Wasted</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-blue-600">{selectedFiles.size}</div>
-            <p className="text-sm text-gray-600">Files Selected</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Files Selected</p>
           </CardContent>
         </Card>
         <Card>
@@ -281,69 +333,22 @@ export function DeduplicationPage() {
             >
               Select All Non-DB Files
             </Button>
-            <div className="text-xs text-gray-600 text-center">
+            <div className="text-xs text-gray-600 dark:text-gray-400 text-center">
               {duplicates.filter(d => !d.dbReference).length} files
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Pagination Controls */}
-      {totalGroups > 0 && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Items per page:</span>
-            <Select value={itemsPerPage.toString()} onValueChange={(value) => {
-              setItemsPerPage(parseInt(value))
-              setCurrentPage(1)
-            }}>
-              <SelectTrigger className="w-20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">
-              Showing {startIndex + 1}-{Math.min(endIndex, totalGroups)} of {totalGroups} groups
-            </span>
-            <div className="flex gap-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-            <span className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
-            </span>
-          </div>
-        </div>
-      )}
+      {/* Top Pagination Controls */}
+      <PaginationControls />
 
       {duplicates.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <FileX className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">No Duplicates Found</h3>
-            <p className="text-gray-500 mb-4">
+            <FileX className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">No Duplicates Found</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
               No duplicate files were found in your R2 buckets. Run a scan to check for duplicates.
             </p>
             <Button onClick={startScan} disabled={scanning}>
@@ -394,7 +399,7 @@ export function DeduplicationPage() {
                       <div
                         key={file.id}
                         className={`flex items-center justify-between p-4 border rounded-lg ${
-                          selectedFiles.has(file.id) ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'
+                          selectedFiles.has(file.id) ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                         }`}
                       >
                         <div className="flex items-center space-x-3">
@@ -404,7 +409,7 @@ export function DeduplicationPage() {
                           />
                           
                           {/* Thumbnail */}
-                          <div className="w-12 h-12 flex-shrink-0 bg-gray-200 rounded border overflow-hidden">
+                          <div className="w-12 h-12 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded border overflow-hidden">
                             {thumbnailUrl ? (
                               <Image
                                 src={thumbnailUrl}
@@ -452,7 +457,7 @@ export function DeduplicationPage() {
                         </div>
                         <div className="text-right">
                           <div className="text-sm font-medium">{formatBytes(file.fileSize)}</div>
-                          <div className="text-xs text-gray-500">{file.objectKey}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">{file.objectKey}</div>
                         </div>
                       </div>
                     )
@@ -463,6 +468,9 @@ export function DeduplicationPage() {
           ))}
         </div>
       )}
+
+      {/* Bottom Pagination Controls */}
+      <PaginationControls />
 
       {duplicates.length > 0 && (
         <Alert>
