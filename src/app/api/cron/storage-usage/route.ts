@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ListObjectsV2Command } from '@aws-sdk/client-s3'
 import { r2 } from '~/lib/r2'
 import { db } from '~/server/db'
-import { storageUsage, usageAlertConfig } from '~/server/db/schema'
+import { storageUsage, usageAlertConfig, globalStorageConfig } from '~/server/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { sendUsageAlert } from '~/lib/actions/storage-alerts'
 
@@ -11,6 +11,7 @@ const BUCKET_NAMES = [
   process.env.R2_BLOG_IMG_BUCKET_NAME,
   process.env.R2_ABOUT_IMG_BUCKET_NAME,
   process.env.R2_CUSTOM_IMG_BUCKET_NAME,
+  process.env.R2_FILES_BUCKET_NAME,
 ].filter(Boolean) as string[]
 
 const BUCKET_DISPLAY_NAMES: Record<string, string> = {
@@ -18,6 +19,7 @@ const BUCKET_DISPLAY_NAMES: Record<string, string> = {
   [process.env.R2_BLOG_IMG_BUCKET_NAME || '']: 'Blog Images',
   [process.env.R2_ABOUT_IMG_BUCKET_NAME || '']: 'About Images',
   [process.env.R2_CUSTOM_IMG_BUCKET_NAME || '']: 'Custom Images',
+  [process.env.R2_FILES_BUCKET_NAME || '']: 'Files',
 }
 
 async function calculateBucketUsage(bucketName: string) {
@@ -61,18 +63,104 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const results = []
+    // Get or create global storage config
+    let [globalConfig] = await db.select().from(globalStorageConfig).limit(1)
+    if (!globalConfig) {
+      [globalConfig] = await db
+        .insert(globalStorageConfig)
+        .values({})
+        .returning()
+    }
 
+    const results = []
+    let totalUsageBytes = 0
+
+    // First pass: calculate all bucket usage
+    const bucketUsages = []
     for (const bucketName of BUCKET_NAMES) {
       try {
         const { totalSize, objectCount } = await calculateBucketUsage(bucketName)
-        
+        bucketUsages.push({ bucketName, totalSize, objectCount })
+        totalUsageBytes += totalSize
+      } catch (error) {
+        console.error(`Failed to calculate usage for bucket ${bucketName}:`, error)
+        bucketUsages.push({ bucketName, totalSize: 0, objectCount: 0, error })
+      }
+    }
+
+    // Calculate total usage percentage
+    const totalUsagePercent = (totalUsageBytes / globalConfig.totalStorageLimit) * 100
+
+    // Check for global alerts
+    let globalAlertTriggered = false
+    const globalDisplayName = 'Total Storage'
+
+    if (totalUsagePercent >= globalConfig.criticalThresholdPercent) {
+      // Critical alert for total usage
+      const hoursSinceLastCritical = globalConfig.lastCriticalEmailSent
+        ? (Date.now() - globalConfig.lastCriticalEmailSent.getTime()) / (1000 * 60 * 60)
+        : Infinity
+
+      if (globalConfig.emailAlertsEnabled && hoursSinceLastCritical >= 24) {
+        await sendUsageAlert({
+          bucketName: globalDisplayName,
+          usageBytes: totalUsageBytes,
+          maxBytes: globalConfig.totalStorageLimit,
+          usagePercent: totalUsagePercent,
+          alertType: 'critical',
+          objectCount: bucketUsages.reduce((sum, b) => sum + b.objectCount, 0),
+        })
+
+        await db
+          .update(globalStorageConfig)
+          .set({ lastCriticalEmailSent: new Date() })
+          .where(eq(globalStorageConfig.id, globalConfig.id))
+      }
+      globalAlertTriggered = true
+    } else if (totalUsagePercent >= globalConfig.warningThresholdPercent) {
+      // Warning alert for total usage
+      const hoursSinceLastWarning = globalConfig.lastWarningEmailSent
+        ? (Date.now() - globalConfig.lastWarningEmailSent.getTime()) / (1000 * 60 * 60)
+        : Infinity
+
+      if (globalConfig.emailAlertsEnabled && hoursSinceLastWarning >= 72) {
+        await sendUsageAlert({
+          bucketName: globalDisplayName,
+          usageBytes: totalUsageBytes,
+          maxBytes: globalConfig.totalStorageLimit,
+          usagePercent: totalUsagePercent,
+          alertType: 'warning',
+          objectCount: bucketUsages.reduce((sum, b) => sum + b.objectCount, 0),
+        })
+
+        await db
+          .update(globalStorageConfig)
+          .set({ lastWarningEmailSent: new Date() })
+          .where(eq(globalStorageConfig.id, globalConfig.id))
+      }
+      globalAlertTriggered = true
+    }
+
+    // Second pass: process individual buckets
+    for (const bucketUsage of bucketUsages) {
+      const { bucketName, totalSize, objectCount } = bucketUsage
+
+      if ('error' in bucketUsage) {
+        results.push({
+          bucketName,
+          error: bucketUsage.error,
+        })
+        continue
+      }
+
+      try {
         // Store usage data
         await db.insert(storageUsage).values({
           bucketName,
           usageBytes: totalSize,
           objectCount,
           measurementDate: new Date(),
+          alertTriggered: globalAlertTriggered,
         })
 
         // Get or create alert config for this bucket
@@ -88,78 +176,20 @@ export async function GET(request: NextRequest) {
               bucketName,
               warningThresholdPercent: 80,
               criticalThresholdPercent: 95,
-              maxStorageBytes: 10000000000, // 10GB
               emailAlertsEnabled: true,
             })
             .returning()
         }
 
-        // Check if we need to send alerts
-        const usagePercent = (totalSize / alertConfig.maxStorageBytes) * 100
         const displayName = BUCKET_DISPLAY_NAMES[bucketName] || bucketName
-
-        let alertTriggered = false
-
-        if (usagePercent >= alertConfig.criticalThresholdPercent) {
-          // Critical alert
-          const hoursSinceLastCritical = alertConfig.lastCriticalEmailSent
-            ? (Date.now() - alertConfig.lastCriticalEmailSent.getTime()) / (1000 * 60 * 60)
-            : Infinity
-
-          if (alertConfig.emailAlertsEnabled && hoursSinceLastCritical >= 24) {
-            await sendUsageAlert({
-              bucketName: displayName,
-              usageBytes: totalSize,
-              maxBytes: alertConfig.maxStorageBytes,
-              usagePercent,
-              alertType: 'critical',
-              objectCount,
-            })
-
-            await db
-              .update(usageAlertConfig)
-              .set({ lastCriticalEmailSent: new Date() })
-              .where(eq(usageAlertConfig.bucketName, bucketName))
-          }
-          alertTriggered = true
-        } else if (usagePercent >= alertConfig.warningThresholdPercent) {
-          // Warning alert
-          const hoursSinceLastWarning = alertConfig.lastWarningEmailSent
-            ? (Date.now() - alertConfig.lastWarningEmailSent.getTime()) / (1000 * 60 * 60)
-            : Infinity
-
-          if (alertConfig.emailAlertsEnabled && hoursSinceLastWarning >= 72) {
-            await sendUsageAlert({
-              bucketName: displayName,
-              usageBytes: totalSize,
-              maxBytes: alertConfig.maxStorageBytes,
-              usagePercent,
-              alertType: 'warning',
-              objectCount,
-            })
-
-            await db
-              .update(usageAlertConfig)
-              .set({ lastWarningEmailSent: new Date() })
-              .where(eq(usageAlertConfig.bucketName, bucketName))
-          }
-          alertTriggered = true
-        }
-
-        // Update the alert triggered flag
-        if (alertTriggered) {
-          await db
-            .update(storageUsage)
-            .set({ alertTriggered: true })
-            .where(eq(storageUsage.bucketName, bucketName))
-        }
+        const bucketUsagePercent = (totalSize / globalConfig.totalStorageLimit) * 100
 
         results.push({
           bucketName: displayName,
           usageBytes: totalSize,
           objectCount,
-          usagePercent: Math.round(usagePercent * 100) / 100,
-          alertTriggered,
+          usagePercent: Math.round(bucketUsagePercent * 100) / 100,
+          alertTriggered: globalAlertTriggered,
         })
       } catch (error) {
         console.error(`Failed to process bucket ${bucketName}:`, error)
@@ -173,6 +203,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       results,
+      totalUsage: {
+        totalBytes: totalUsageBytes,
+        totalPercent: Math.round(totalUsagePercent * 100) / 100,
+        alertTriggered: globalAlertTriggered,
+        limit: globalConfig.totalStorageLimit,
+      },
       timestamp: new Date().toISOString(),
     })
   } catch (error) {

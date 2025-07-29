@@ -10,6 +10,7 @@ import { format } from 'date-fns'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { Switch } from '~/components/ui/switch'
 import { Label } from '~/components/ui/label'
+import { Input } from '~/components/ui/input'
 import { Separator } from '~/components/ui/separator'
 import { toast } from 'sonner'
 
@@ -22,12 +23,30 @@ interface StorageUsageData {
   alertTriggered: boolean
 }
 
+interface GlobalStorageData {
+  totalUsageBytes: number
+  totalObjectCount: number
+  totalUsagePercent: number
+  totalStorageLimit: number
+  warningThresholdPercent: number
+  criticalThresholdPercent: number
+}
+
 interface AlertConfig {
   id: number
   bucketName: string
   warningThresholdPercent: number
   criticalThresholdPercent: number
-  maxStorageBytes: number
+  emailAlertsEnabled: boolean
+  lastWarningEmailSent?: string
+  lastCriticalEmailSent?: string
+}
+
+interface GlobalStorageConfig {
+  id: number
+  totalStorageLimit: number
+  warningThresholdPercent: number
+  criticalThresholdPercent: number
   emailAlertsEnabled: boolean
   lastWarningEmailSent?: string
   lastCriticalEmailSent?: string
@@ -35,25 +54,34 @@ interface AlertConfig {
 
 export function StorageAlertsPage() {
   const [storageData, setStorageData] = useState<StorageUsageData[]>([])
+  const [globalData, setGlobalData] = useState<GlobalStorageData | null>(null)
   const [alertConfigs, setAlertConfigs] = useState<AlertConfig[]>([])
+  const [globalConfig, setGlobalConfig] = useState<GlobalStorageConfig | null>(null)
   const [loading, setLoading] = useState(true)
   const [calculating, setCalculating] = useState(false)
 
   const fetchData = async () => {
     try {
-      const [usageResponse, configResponse] = await Promise.all([
+      const [usageResponse, configResponse, globalConfigResponse] = await Promise.all([
         fetch('/api/storage/usage'),
         fetch('/api/storage/config'),
+        fetch('/api/storage/global-config'),
       ])
 
       if (usageResponse.ok) {
         const usageData = await usageResponse.json()
         setStorageData(usageData.data || [])
+        setGlobalData(usageData.global || null)
       }
 
       if (configResponse.ok) {
         const configData = await configResponse.json()
         setAlertConfigs(configData.data || [])
+      }
+
+      if (globalConfigResponse.ok) {
+        const globalConfigData = await globalConfigResponse.json()
+        setGlobalConfig(globalConfigData.data || null)
       }
     } catch (error) {
       console.error('Failed to fetch storage data:', error)
@@ -108,6 +136,26 @@ export function StorageAlertsPage() {
     }
   }
 
+  const updateGlobalConfig = async (updates: Partial<GlobalStorageConfig>) => {
+    try {
+      const response = await fetch('/api/storage/global-config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+
+      if (response.ok) {
+        toast.success('Global configuration updated')
+        await fetchData()
+      } else {
+        toast.error('Failed to update global configuration')
+      }
+    } catch (error) {
+      console.error('Failed to update global config:', error)
+      toast.error('Failed to update global configuration')
+    }
+  }
+
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes'
     const k = 1024
@@ -116,15 +164,21 @@ export function StorageAlertsPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  const getUsagePercent = (usage: StorageUsageData, config?: AlertConfig): number => {
-    if (!config) return 0
-    return (usage.usageBytes / config.maxStorageBytes) * 100
+  const getBucketColor = (index: number): string => {
+    const colors = [
+      'bg-blue-500',
+      'bg-green-500', 
+      'bg-orange-500',
+      'bg-purple-500',
+      'bg-pink-500',
+    ]
+    return colors[index % colors.length]
   }
 
-  const getAlertLevel = (percent: number, config?: AlertConfig): 'none' | 'warning' | 'critical' => {
-    if (!config) return 'none'
-    if (percent >= config.criticalThresholdPercent) return 'critical'
-    if (percent >= config.warningThresholdPercent) return 'warning'
+  const getGlobalAlertLevel = (): 'none' | 'warning' | 'critical' => {
+    if (!globalData || !globalConfig) return 'none'
+    if (globalData.totalUsagePercent >= globalConfig.criticalThresholdPercent) return 'critical'
+    if (globalData.totalUsagePercent >= globalConfig.warningThresholdPercent) return 'warning'
     return 'none'
   }
 
@@ -139,6 +193,8 @@ export function StorageAlertsPage() {
       </div>
     )
   }
+
+  const alertLevel = getGlobalAlertLevel()
 
   return (
     <div className="container mx-auto py-8 space-y-6">
@@ -162,140 +218,248 @@ export function StorageAlertsPage() {
       </div>
 
       {/* Overall Status */}
-      <Card>
+      <Card className={`
+        ${alertLevel === 'critical' ? 'border-red-500 bg-red-50' : 
+          alertLevel === 'warning' ? 'border-orange-500 bg-orange-50' : 
+          'border-gray-200'}
+      `}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            Storage Overview
-          </CardTitle>
-          <CardDescription>
-            Current storage usage across all R2 buckets
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Storage Overview
+              </CardTitle>
+              <CardDescription>
+                Combined storage usage across all R2 buckets
+              </CardDescription>
+            </div>
+            {alertLevel !== 'none' && (
+              <Badge variant={alertLevel === 'critical' ? 'destructive' : 'secondary'}>
+                {alertLevel === 'critical' && <AlertTriangle className="h-3 w-3 mr-1" />}
+                {alertLevel.toUpperCase()}
+              </Badge>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {storageData.map((usage) => {
-              const config = alertConfigs.find(c => c.bucketName === usage.bucketName)
-              const percent = getUsagePercent(usage, config)
-              const alertLevel = getAlertLevel(percent, config)
+          {globalData && (
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <div className="text-2xl font-bold">
+                    {formatBytes(globalData.totalUsageBytes)}
+                  </div>
+                  <p className="text-sm text-gray-600">Total Used</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-600">
+                    {globalData.totalUsagePercent.toFixed(1)}%
+                  </div>
+                  <p className="text-sm text-gray-600">Usage</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">
+                    {globalData.totalObjectCount.toLocaleString()}
+                  </div>
+                  <p className="text-sm text-gray-600">Total Files</p>
+                </div>
+              </div>
 
-              return (
-                <Card key={usage.id} className={`
-                  ${alertLevel === 'critical' ? 'border-red-500 bg-red-50' : 
-                    alertLevel === 'warning' ? 'border-orange-500 bg-orange-50' : 
-                    'border-gray-200'}
-                `}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium">
-                        {usage.bucketName}
-                      </CardTitle>
-                      {alertLevel !== 'none' && (
-                        <Badge variant={alertLevel === 'critical' ? 'destructive' : 'secondary'}>
-                          {alertLevel === 'critical' ? (
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                          ) : null}
-                          {alertLevel.toUpperCase()}
-                        </Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="text-2xl font-bold">
-                      {formatBytes(usage.usageBytes)}
-                    </div>
-                    <Progress 
-                      value={percent} 
-                      className={`h-2 ${
-                        alertLevel === 'critical' ? '[&>div]:bg-red-500' :
-                        alertLevel === 'warning' ? '[&>div]:bg-orange-500' :
-                        '[&>div]:bg-green-500'
-                      }`}
-                    />
-                    <div className="flex justify-between text-xs text-gray-600">
-                      <span>{percent.toFixed(1)}% used</span>
-                      <span>{usage.objectCount.toLocaleString()} files</span>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Last updated: {format(new Date(usage.measurementDate), 'MMM d, HH:mm')}
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
+              {/* Combined Progress Bar */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Combined Usage</span>
+                  <span>{formatBytes(globalData.totalStorageLimit)} limit</span>
+                </div>
+                <div className="relative h-6 bg-gray-200 rounded-full overflow-hidden">
+                  {storageData.map((bucket, index) => {
+                    const bucketPercent = (bucket.usageBytes / globalData.totalStorageLimit) * 100
+                    const leftOffset = storageData
+                      .slice(0, index)
+                      .reduce((acc, b) => acc + (b.usageBytes / globalData.totalStorageLimit) * 100, 0)
+                    
+                    return (
+                      <div
+                        key={bucket.id}
+                        className={`absolute h-full ${getBucketColor(index)}`}
+                        style={{
+                          left: `${leftOffset}%`,
+                          width: `${bucketPercent}%`,
+                        }}
+                        title={`${bucket.bucketName}: ${formatBytes(bucket.usageBytes)} (${bucketPercent.toFixed(1)}%)`}
+                      />
+                    )
+                  })}
+                </div>
+                
+                {/* Legend */}
+                <div className="flex flex-wrap gap-4 text-sm">
+                  {storageData.map((bucket, index) => {
+                    const bucketPercent = (bucket.usageBytes / globalData.totalStorageLimit) * 100
+                    return (
+                      <div key={bucket.id} className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded ${getBucketColor(index)}`} />
+                        <span>
+                          {bucket.bucketName}: {formatBytes(bucket.usageBytes)} ({bucketPercent.toFixed(1)}%)
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Alert Configuration */}
+      {/* Global Configuration */}
+      {globalConfig && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Global Storage Configuration
+            </CardTitle>
+            <CardDescription>
+              Configure overall storage limits and thresholds
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <Label htmlFor="totalLimit" className="text-sm text-gray-600">Total Storage Limit (GB)</Label>
+                <Input
+                  id="totalLimit"
+                  type="number"
+                  step="0.1"
+                  value={(globalConfig.totalStorageLimit / 1e9).toFixed(1)}
+                  onChange={(e) => {
+                    const newLimit = parseFloat(e.target.value) * 1e9
+                    updateGlobalConfig({ totalStorageLimit: newLimit })
+                  }}
+                />
+              </div>
+              <div>
+                <Label htmlFor="warningThreshold" className="text-sm text-gray-600">Warning Threshold (%)</Label>
+                <Input
+                  id="warningThreshold"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={globalConfig.warningThresholdPercent}
+                  onChange={(e) => updateGlobalConfig({ warningThresholdPercent: parseInt(e.target.value) })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="criticalThreshold" className="text-sm text-gray-600">Critical Threshold (%)</Label>
+                <Input
+                  id="criticalThreshold"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={globalConfig.criticalThresholdPercent}
+                  onChange={(e) => updateGlobalConfig({ criticalThresholdPercent: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="globalEmailAlerts"
+                  checked={globalConfig.emailAlertsEnabled}
+                  onCheckedChange={(checked) => updateGlobalConfig({ emailAlertsEnabled: checked })}
+                />
+                <Label htmlFor="globalEmailAlerts">Global Email Alerts</Label>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Individual Bucket Configuration */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            Alert Configuration
+            Bucket Alert Configuration
           </CardTitle>
           <CardDescription>
-            Configure thresholds and email notifications for each bucket
+            Configure individual bucket alert thresholds (as percentage of total limit)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {alertConfigs.map((config) => (
-            <div key={config.id} className="border rounded-lg p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">{config.bucketName}</h3>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id={`email-${config.id}`}
-                    checked={config.emailAlertsEnabled}
-                    onCheckedChange={(checked) => 
-                      updateAlertConfig(config.id, { emailAlertsEnabled: checked })
-                    }
-                  />
-                  <Label htmlFor={`email-${config.id}`}>Email Alerts</Label>
-                </div>
-              </div>
+          {alertConfigs.map((config) => {
+            const bucketData = storageData.find(d => d.bucketName === config.bucketName)
+            const bucketUsagePercent = bucketData && globalData 
+              ? (bucketData.usageBytes / globalData.totalStorageLimit) * 100 
+              : 0
 
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <Label className="text-sm text-gray-600">Max Storage</Label>
-                  <div className="text-lg font-medium">
-                    {formatBytes(config.maxStorageBytes)}
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm text-gray-600">Warning Threshold</Label>
-                  <div className="text-lg font-medium text-orange-600">
-                    {config.warningThresholdPercent}%
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm text-gray-600">Critical Threshold</Label>
-                  <div className="text-lg font-medium text-red-600">
-                    {config.criticalThresholdPercent}%
-                  </div>
-                </div>
-              </div>
-
-              {(config.lastWarningEmailSent || config.lastCriticalEmailSent) && (
-                <div className="pt-2 border-t">
-                  <div className="grid gap-2 md:grid-cols-2 text-sm">
-                    {config.lastWarningEmailSent && (
-                      <div>
-                        <span className="text-gray-600">Last warning sent:</span> {' '}
-                        {format(new Date(config.lastWarningEmailSent), 'MMM d, HH:mm')}
-                      </div>
-                    )}
-                    {config.lastCriticalEmailSent && (
-                      <div>
-                        <span className="text-gray-600">Last critical sent:</span> {' '}
-                        {format(new Date(config.lastCriticalEmailSent), 'MMM d, HH:mm')}
-                      </div>
+            return (
+              <div key={config.id} className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">{config.bucketName}</h3>
+                    {bucketData && (
+                      <p className="text-sm text-gray-600">
+                        {formatBytes(bucketData.usageBytes)} • {bucketUsagePercent.toFixed(1)}% of total limit
+                      </p>
                     )}
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id={`email-${config.id}`}
+                      checked={config.emailAlertsEnabled}
+                      onCheckedChange={(checked) => 
+                        updateAlertConfig(config.id, { emailAlertsEnabled: checked })
+                      }
+                    />
+                    <Label htmlFor={`email-${config.id}`}>Email Alerts</Label>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label className="text-sm text-gray-600">Warning Threshold (% of total)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={config.warningThresholdPercent}
+                      onChange={(e) => updateAlertConfig(config.id, { warningThresholdPercent: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-600">Critical Threshold (% of total)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={config.criticalThresholdPercent}
+                      onChange={(e) => updateAlertConfig(config.id, { criticalThresholdPercent: parseInt(e.target.value) })}
+                    />
+                  </div>
+                </div>
+
+                {(config.lastWarningEmailSent || config.lastCriticalEmailSent) && (
+                  <div className="pt-2 border-t">
+                    <div className="grid gap-2 md:grid-cols-2 text-sm">
+                      {config.lastWarningEmailSent && (
+                        <div>
+                          <span className="text-gray-600">Last warning sent:</span> {' '}
+                          {format(new Date(config.lastWarningEmailSent), 'MMM d, HH:mm')}
+                        </div>
+                      )}
+                      {config.lastCriticalEmailSent && (
+                        <div>
+                          <span className="text-gray-600">Last critical sent:</span> {' '}
+                          {format(new Date(config.lastCriticalEmailSent), 'MMM d, HH:mm')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </CardContent>
       </Card>
     </div>

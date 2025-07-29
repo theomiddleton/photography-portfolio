@@ -11,6 +11,7 @@ const BUCKET_NAMES = [
   process.env.R2_BLOG_IMG_BUCKET_NAME,
   process.env.R2_ABOUT_IMG_BUCKET_NAME,
   process.env.R2_CUSTOM_IMG_BUCKET_NAME,
+  process.env.R2_FILES_BUCKET_NAME,
 ].filter(Boolean) as string[]
 
 const BUCKET_DISPLAY_NAMES: Record<string, string> = {
@@ -18,6 +19,7 @@ const BUCKET_DISPLAY_NAMES: Record<string, string> = {
   [process.env.R2_BLOG_IMG_BUCKET_NAME || '']: 'Blog Images',
   [process.env.R2_ABOUT_IMG_BUCKET_NAME || '']: 'About Images',
   [process.env.R2_CUSTOM_IMG_BUCKET_NAME || '']: 'Custom Images',
+  [process.env.R2_FILES_BUCKET_NAME || '']: 'Files',
 }
 
 interface FileInfo {

@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
-import { AlertTriangle, ArrowLeft, Database, FileX, RefreshCw, Scan, Trash2 } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Database, FileX, RefreshCw, Scan, Trash2, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
-// import { DataTable } from '~/components/ui/data-table'
-// import { ColumnDef } from '@tanstack/react-table'
 import { Checkbox } from '~/components/ui/checkbox'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface DuplicateFile {
   id: number
@@ -33,6 +33,8 @@ export function DeduplicationPage() {
   const [scanning, setScanning] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set())
   const [deleting, setDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const fetchDuplicates = async () => {
     try {
@@ -141,6 +143,38 @@ export function DeduplicationPage() {
     setSelectedFiles(newSelection)
   }
 
+  const selectNonDbFilesInGroup = (hash: string) => {
+    const groupFiles = duplicates.filter(d => d.fileHash === hash && !d.dbReference)
+    const newSelection = new Set(selectedFiles)
+    
+    groupFiles.forEach(file => {
+      newSelection.add(file.id)
+    })
+    
+    setSelectedFiles(newSelection)
+  }
+
+  const selectAllNonDbFiles = () => {
+    const nonDbFiles = duplicates.filter(d => !d.dbReference)
+    const newSelection = new Set<number>()
+    
+    nonDbFiles.forEach(file => {
+      newSelection.add(file.id)
+    })
+    
+    setSelectedFiles(newSelection)
+  }
+
+  const isImage = (fileName: string): boolean => {
+    const ext = fileName.toLowerCase().split('.').pop() || ''
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
+  }
+
+  const getThumbnailUrl = (file: DuplicateFile): string | null => {
+    if (!isImage(file.fileName)) return null
+    return `/api/files/thumbnail?bucket=${encodeURIComponent(file.bucketName)}&key=${encodeURIComponent(file.objectKey)}`
+  }
+
   // Group duplicates by hash
   const duplicateGroups = duplicates.reduce((groups, file) => {
     if (!groups[file.fileHash]) {
@@ -157,6 +191,14 @@ export function DeduplicationPage() {
     }
     return total
   }, 0)
+
+  // Pagination
+  const groupEntries = Object.entries(duplicateGroups)
+  const totalGroups = groupEntries.length
+  const totalPages = Math.ceil(totalGroups / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedGroups = groupEntries.slice(startIndex, endIndex)
 
   if (loading) {
     return (
@@ -202,8 +244,8 @@ export function DeduplicationPage() {
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Summary Stats and Actions */}
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">{Object.keys(duplicateGroups).length}</div>
@@ -228,7 +270,72 @@ export function DeduplicationPage() {
             <p className="text-sm text-gray-600">Files Selected</p>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="p-6 space-y-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-xs"
+              onClick={selectAllNonDbFiles}
+            >
+              Select All Non-DB Files
+            </Button>
+            <div className="text-xs text-gray-600 text-center">
+              {duplicates.filter(d => !d.dbReference).length} files
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Pagination Controls */}
+      {totalGroups > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Items per page:</span>
+            <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+              setItemsPerPage(parseInt(value))
+              setCurrentPage(1)
+            }}>
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">
+              Showing {startIndex + 1}-{Math.min(endIndex, totalGroups)} of {totalGroups} groups
+            </span>
+            <div className="flex gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            <span className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+        </div>
+      )}
 
       {duplicates.length === 0 ? (
         <Card>
@@ -246,7 +353,7 @@ export function DeduplicationPage() {
         </Card>
       ) : (
         <div className="space-y-6">
-          {Object.entries(duplicateGroups).map(([hash, group]) => (
+          {paginatedGroups.map(([hash, group]) => (
             <Card key={hash}>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -260,54 +367,95 @@ export function DeduplicationPage() {
                       Wasted space: {formatBytes((group.length - 1) * group[0].fileSize)}
                     </CardDescription>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => selectAllInGroup(hash)}
-                  >
-                    Select All
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => selectNonDbFilesInGroup(hash)}
+                    >
+                      Select Non-DB ({group.filter(f => !f.dbReference).length})
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => selectAllInGroup(hash)}
+                    >
+                      Select All
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {group.map((file) => (
-                    <div
-                      key={file.id}
-                      className={`flex items-center justify-between p-4 border rounded-lg ${
-                        selectedFiles.has(file.id) ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Checkbox
-                          checked={selectedFiles.has(file.id)}
-                          onCheckedChange={() => toggleFileSelection(file.id)}
-                        />
-                        <div>
-                          <div className="font-medium">{file.fileName}</div>
-                          <div className="text-sm text-gray-600">
-                            {file.bucketName} • {format(new Date(file.lastModified), 'MMM d, yyyy HH:mm')}
+                  {group.map((file) => {
+                    const thumbnailUrl = getThumbnailUrl(file)
+                    return (
+                      <div
+                        key={file.id}
+                        className={`flex items-center justify-between p-4 border rounded-lg ${
+                          selectedFiles.has(file.id) ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Checkbox
+                            checked={selectedFiles.has(file.id)}
+                            onCheckedChange={() => toggleFileSelection(file.id)}
+                          />
+                          
+                          {/* Thumbnail */}
+                          <div className="w-12 h-12 flex-shrink-0 bg-gray-200 rounded border overflow-hidden">
+                            {thumbnailUrl ? (
+                              <Image
+                                src={thumbnailUrl}
+                                alt={file.fileName}
+                                width={48}
+                                height={48}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  // Hide image on error and show icon
+                                  e.currentTarget.style.display = 'none'
+                                  const parent = e.currentTarget.parentElement
+                                  if (parent) {
+                                    const icon = document.createElement('div')
+                                    icon.className = 'w-full h-full flex items-center justify-center'
+                                    icon.innerHTML = '<svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path></svg>'
+                                    parent.appendChild(icon)
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <ImageIcon className="w-6 h-6 text-gray-400" />
+                              </div>
+                            )}
                           </div>
-                          {file.dbReference && (
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="secondary" className="text-xs">
-                                {file.dbReference}
-                              </Badge>
-                              {file.uuid && (
-                                <span className="text-xs text-gray-500">
-                                  UUID: {file.uuid.substring(0, 8)}...
-                                </span>
-                              )}
+
+                          <div>
+                            <div className="font-medium">{file.fileName}</div>
+                            <div className="text-sm text-gray-600">
+                              {file.bucketName} • {format(new Date(file.lastModified), 'MMM d, yyyy HH:mm')}
                             </div>
-                          )}
+                            {file.dbReference && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="secondary" className="text-xs">
+                                  {file.dbReference}
+                                </Badge>
+                                {file.uuid && (
+                                  <span className="text-xs text-gray-500">
+                                    UUID: {file.uuid.substring(0, 8)}...
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium">{formatBytes(file.fileSize)}</div>
+                          <div className="text-xs text-gray-500">{file.objectKey}</div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium">{formatBytes(file.fileSize)}</div>
-                        <div className="text-xs text-gray-500">{file.objectKey}</div>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -322,6 +470,7 @@ export function DeduplicationPage() {
           <AlertDescription>
             When deleting duplicate files, ensure you keep at least one copy of each file that is referenced in your database. 
             Files with database references (showing badges) are currently being used and should be carefully reviewed before deletion.
+            Use "Select Non-DB Files" buttons to safely select files that are not referenced in the database.
           </AlertDescription>
         </Alert>
       )}
