@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '~/server/db'
-import { storageUsage } from '~/server/db/schema'
-import { desc, eq, and, max } from 'drizzle-orm'
+import { storageUsage, globalStorageConfig } from '~/server/db/schema'
+import { desc, eq, and, max, sum } from 'drizzle-orm'
 import { getSession } from '~/lib/auth/auth'
 
 export async function GET() {
@@ -10,6 +10,15 @@ export async function GET() {
 
     if (!session || session.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Get global config
+    let [globalConfig] = await db.select().from(globalStorageConfig).limit(1)
+    if (!globalConfig) {
+      [globalConfig] = await db
+        .insert(globalStorageConfig)
+        .values({})
+        .returning()
     }
 
     // Get the latest measurement date for each bucket using MAX aggregate
@@ -49,7 +58,25 @@ export async function GET() {
       }),
     )
 
-    return NextResponse.json({ data: latestUsage })
+    // Calculate total usage
+    const totalUsageBytes = latestUsage.reduce((sum, usage) => sum + (usage?.usageBytes || 0), 0)
+    const totalObjectCount = latestUsage.reduce((sum, usage) => sum + (usage?.objectCount || 0), 0)
+    const totalUsagePercent = (totalUsageBytes / globalConfig.totalStorageLimit) * 100
+
+    // Sort buckets by usage (descending)
+    const sortedUsage = latestUsage.sort((a, b) => (b?.usageBytes || 0) - (a?.usageBytes || 0))
+
+    return NextResponse.json({ 
+      data: sortedUsage,
+      global: {
+        totalUsageBytes,
+        totalObjectCount,
+        totalUsagePercent,
+        totalStorageLimit: globalConfig.totalStorageLimit,
+        warningThresholdPercent: globalConfig.warningThresholdPercent,
+        criticalThresholdPercent: globalConfig.criticalThresholdPercent,
+      }
+    })
   } catch (error) {
     console.error('Failed to fetch storage usage:', error)
     return NextResponse.json(

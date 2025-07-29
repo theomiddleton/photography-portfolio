@@ -560,9 +560,20 @@ export const duplicateFiles = pgTable('duplicateFiles', {
 export const usageAlertConfig = pgTable('usageAlertConfig', {
   id: serial('id').primaryKey(),
   bucketName: varchar('bucketName', { length: 256 }).notNull().unique(),
-  warningThresholdPercent: integer('warningThresholdPercent').default(80).notNull(), // 80% of 10GB
-  criticalThresholdPercent: integer('criticalThresholdPercent').default(95).notNull(), // 95% of 10GB
-  maxStorageBytes: bigint('maxStorageBytes', { mode: 'number' }).default(10000000000).notNull(), // 10GB
+  warningThresholdPercent: integer('warningThresholdPercent').default(80).notNull(), // % of total limit
+  criticalThresholdPercent: integer('criticalThresholdPercent').default(95).notNull(), // % of total limit
+  emailAlertsEnabled: boolean('emailAlertsEnabled').default(true).notNull(),
+  lastWarningEmailSent: timestamp('lastWarningEmailSent'),
+  lastCriticalEmailSent: timestamp('lastCriticalEmailSent'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
+export const globalStorageConfig = pgTable('globalStorageConfig', {
+  id: serial('id').primaryKey(),
+  totalStorageLimit: bigint('totalStorageLimit', { mode: 'number' }).default(10000000000).notNull(), // 10GB total
+  warningThresholdPercent: integer('warningThresholdPercent').default(80).notNull(), // 80% of total
+  criticalThresholdPercent: integer('criticalThresholdPercent').default(95).notNull(), // 95% of total
   emailAlertsEnabled: boolean('emailAlertsEnabled').default(true).notNull(),
   lastWarningEmailSent: timestamp('lastWarningEmailSent'),
   lastCriticalEmailSent: timestamp('lastCriticalEmailSent'),
@@ -594,3 +605,4 @@ export type StorageUsage = typeof storageUsage.$inferSelect
 export type AlertDismissal = typeof alertDismissals.$inferSelect
 export type DuplicateFile = typeof duplicateFiles.$inferSelect
 export type UsageAlertConfig = typeof usageAlertConfig.$inferSelect
+export type GlobalStorageConfig = typeof globalStorageConfig.$inferSelect
