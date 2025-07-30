@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { r2 } from '~/lib/r2'
 import { db } from '~/server/db'

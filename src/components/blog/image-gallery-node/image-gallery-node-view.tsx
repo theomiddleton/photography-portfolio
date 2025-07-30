@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { NodeViewWrapper, NodeViewProps } from '@tiptap/react'
+import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
 import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
 
@@ -86,8 +86,8 @@ export const ImageGalleryNodeView: React.FC<NodeViewProps> = ({
             alt={images[currentIndex].alt}
             fill
             className={cn(
-              "object-contain transition-opacity duration-300",
-              isLoading ? "opacity-0" : "opacity-100"
+              'object-contain transition-opacity duration-300',
+              isLoading ? 'opacity-0' : 'opacity-100'
             )}
             onLoad={() => setIsLoading(false)}
             priority
@@ -125,8 +125,8 @@ export const ImageGalleryNodeView: React.FC<NodeViewProps> = ({
               <div 
                 key={`${images[index].src}-${index}-${i}`}
                 className={cn(
-                  "relative mx-1 flex-none p-2",
-                  i === Math.floor(visibleIndices.length / 2) ? "z-20" : "z-0"
+                  'relative mx-1 flex-none p-2',
+                  i === Math.floor(visibleIndices.length / 2) ? 'z-20' : 'z-0'
                 )}
                 style={{
                   transform: i === Math.floor(visibleIndices.length / 2) ? 'none' : 'scale(0.9)',
@@ -136,8 +136,8 @@ export const ImageGalleryNodeView: React.FC<NodeViewProps> = ({
                 <button
                   onClick={() => handleThumbnailClick(index)}
                   className={cn(
-                    "relative block h-20 w-32 overflow-hidden rounded-lg transition-all duration-300",
-                    i === Math.floor(visibleIndices.length / 2) && "outline-solid outline-2 outline-black outline-offset-4"
+                    'relative block h-20 w-32 overflow-hidden rounded-lg transition-all duration-300',
+                    i === Math.floor(visibleIndices.length / 2) && 'outline-solid outline-2 outline-black outline-offset-4'
                   )}
                   aria-label={`View ${images[index].alt}`}
                   aria-current={index === currentIndex}

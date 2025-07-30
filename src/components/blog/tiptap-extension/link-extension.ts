@@ -1,7 +1,7 @@
-import TiptapLink from "@tiptap/extension-link"
-import type { EditorView } from "@tiptap/pm/view"
-import { getMarkRange } from "@tiptap/react"
-import { Plugin, TextSelection } from "@tiptap/pm/state"
+import TiptapLink from '@tiptap/extension-link'
+import type { EditorView } from '@tiptap/pm/view'
+import { getMarkRange } from '@tiptap/react'
+import { Plugin, TextSelection } from '@tiptap/pm/state'
 
 export const Link = TiptapLink.extend({
   inclusive: false,
@@ -24,7 +24,7 @@ export const Link = TiptapLink.extend({
           handleKeyDown: (_: EditorView, event: KeyboardEvent) => {
             const { selection } = editor.state
 
-            if (event.key === "Escape" && selection.empty !== true) {
+            if (event.key === 'Escape' && selection.empty !== true) {
               editor.commands.focus(selection.to, { scrollIntoView: false })
             }
 

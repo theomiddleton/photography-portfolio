@@ -1,17 +1,17 @@
-import * as React from "react"
-import { type Editor } from "@tiptap/react"
+import * as React from 'react'
+import { type Editor } from '@tiptap/react'
 
 // --- Hooks ---
-import { useTiptapEditor } from "~/hooks/use-tiptap-editor"
+import { useTiptapEditor } from '~/hooks/use-tiptap-editor'
 
 // --- Icons ---
-import { Redo2Icon } from "~/components/blog/tiptap-icons/redo2-icon"
-import { Undo2Icon } from "~/components/blog/tiptap-icons/undo2-icon"
+import { Redo2Icon } from '~/components/blog/tiptap-icons/redo2-icon'
+import { Undo2Icon } from '~/components/blog/tiptap-icons/undo2-icon'
 
 // --- UI Primitives ---
-import { Button, ButtonProps } from "~/components/blog/tiptap-ui-primitive/button"
+import { Button, type ButtonProps } from '~/components/blog/tiptap-ui-primitive/button'
 
-export type HistoryAction = "undo" | "redo"
+export type HistoryAction = 'undo' | 'redo'
 
 /**
  * Props for the UndoRedoButton component.
@@ -37,13 +37,13 @@ export const historyIcons = {
 }
 
 export const historyShortcutKeys: Partial<Record<HistoryAction, string>> = {
-  undo: "Ctrl-z",
-  redo: "Ctrl-Shift-z",
+  undo: 'Ctrl-z',
+  redo: 'Ctrl-Shift-z',
 }
 
 export const historyActionLabels: Record<HistoryAction, string> = {
-  undo: "Undo",
-  redo: "Redo",
+  undo: 'Undo',
+  redo: 'Redo',
 }
 
 /**
@@ -58,7 +58,7 @@ export function canExecuteHistoryAction(
   action: HistoryAction
 ): boolean {
   if (!editor) return false
-  return action === "undo" ? editor.can().undo() : editor.can().redo()
+  return action === 'undo' ? editor.can().undo() : editor.can().redo()
 }
 
 /**
@@ -74,7 +74,7 @@ export function executeHistoryAction(
 ): boolean {
   if (!editor) return false
   const chain = editor.chain().focus()
-  return action === "undo" ? chain.undo().run() : chain.redo().run()
+  return action === 'undo' ? chain.undo().run() : chain.redo().run()
 }
 
 /**
@@ -145,7 +145,7 @@ export const UndoRedoButton = React.forwardRef<
       editor: providedEditor,
       action,
       text,
-      className = "",
+      className = '',
       disabled,
       onClick,
       children,
@@ -200,6 +200,6 @@ export const UndoRedoButton = React.forwardRef<
   }
 )
 
-UndoRedoButton.displayName = "UndoRedoButton"
+UndoRedoButton.displayName = 'UndoRedoButton'
 
 export default UndoRedoButton

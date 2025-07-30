@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { NodeViewProps, NodeViewWrapper } from '@tiptap/react'
+import { type NodeViewProps, NodeViewWrapper } from '@tiptap/react'
 import { cn } from '~/lib/utils'
 
 interface ImageData {

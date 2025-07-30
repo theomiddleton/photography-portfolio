@@ -20,7 +20,7 @@ import {
   PointerSensor, 
   useSensor, 
   useSensors,
-  DragEndEvent,
+  type DragEndEvent,
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -75,7 +75,7 @@ interface GalleryImageGridProps {
   onImageEdit?: (image: GalleryImage) => void
   onBulkDelete?: (imageIds: string[]) => void
   onBulkMove?: (imageIds: string[], targetGalleryId: string) => void
-  availableGalleries?: Array<{ id: string; title: string }>
+  availableGalleries?: { id: string; title: string }[]
 }
 
 // Sortable Image Item Component
