@@ -1,6 +1,6 @@
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
-import { v4 as uuidv4 } from 'uuid'
+import { v7 as uuidv7 } from 'uuid'
 import { r2 } from '~/lib/r2'
 import { siteConfig } from '~/config/site'
 
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
     // take the file extention from the filename
     const fileExtension = filename.split('.').pop()
     // create a unique key name for the image
-    const keyName = uuidv4()
+    const keyName = uuidv7()
 
     // Determine which bucket to use based on the bucket prop
     const bucketName =

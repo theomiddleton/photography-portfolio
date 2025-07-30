@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
-import { v4 as uuidv4 } from 'uuid'
+import { v7 as uuidv7 } from 'uuid'
 import { r2 } from '~/lib/r2'
 import { siteConfig } from '~/config/site'
 import { sql } from 'drizzle-orm'
@@ -67,29 +67,38 @@ async function generateAIMetadata(imageUrl: string, originalMetadata: unknown) {
       'tags',
     ])
 
+    const metadata = originalMetadata as {
+      camera?: string
+      lens?: string
+      aperture?: string
+      shutterSpeed?: string
+      iso?: string
+      dateTime?: string
+    }
+
     const result = await generateObject({
       model: google('gemini-2.0-flash'),
       schema: MetadataSchema,
       messages: [
+      {
+        role: 'system',
+        content: systemPrompt,
+      },
+      {
+        role: 'user',
+        content: [
         {
-          role: 'system',
-          content: systemPrompt,
+          type: 'text',
+          text: `${userPrompt}
+          Camera: ${metadata?.camera || 'Unknown'}
+          Lens: ${metadata?.lens || 'Unknown'}
+          Settings: f/${metadata?.aperture || '?'},
+            ${metadata?.shutterSpeed || '?'}s, ISO ${metadata?.iso || '?'}
+          Date: ${metadata?.dateTime || 'Unknown'}`,
         },
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: `${userPrompt}
-                Camera: ${(originalMetadata as Record<string, unknown>)?.camera || 'Unknown'}
-                Lens: ${(originalMetadata as Record<string, unknown>)?.lens || 'Unknown'}
-                Settings: f/${(originalMetadata as Record<string, unknown>)?.aperture || '?'},
-                  ${(originalMetadata as Record<string, unknown>)?.shutterSpeed || '?'}s, ISO ${(originalMetadata as Record<string, unknown>)?.iso || '?'}
-                Date: ${(originalMetadata as Record<string, unknown>)?.dateTime || 'Unknown'}`,
-            },
-            { type: 'image', image: imageUrl },
-          ],
-        },
+        { type: 'image', image: imageUrl },
+        ],
+      },
       ],
       temperature: 0.7,
     })
@@ -190,7 +199,7 @@ export async function POST(request: Request) {
     const finalContentType = contentType
 
     // Generate unique identifiers
-    const uuid = uuidv4()
+    const uuid = uuidv7()
     const fileExtension =
       metadata.filename.split('.').pop()?.toLowerCase() || 'jpg'
     const fileName = `${uuid}.${fileExtension}`

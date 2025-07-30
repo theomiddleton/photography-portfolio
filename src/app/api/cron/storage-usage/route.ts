@@ -57,7 +57,6 @@ export async function GET(request: NextRequest) {
   try {
     // Verify this is a cron request
     const authHeader = request.headers.get('authorization')
-    console.log('Authorization header:', authHeader)   
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       console.warn('Unauthorized access attempt to storage usage route')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
