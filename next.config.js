@@ -22,6 +22,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    browserDebugInfoInTerminal: true,
+  },
   // compiler: {
   //   removeConsole: process.env.NODE_ENV === 'production',
   // },

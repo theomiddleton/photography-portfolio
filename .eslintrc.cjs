@@ -43,7 +43,7 @@ const config = {
     {
       files: ["src/**/*.{ts,tsx,js,jsx}"],
       rules: {
-        "quotes": ["warn", "single", { "avoidEscape": true }],
+        "quotes": ["warn", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
       },
     },
   ],

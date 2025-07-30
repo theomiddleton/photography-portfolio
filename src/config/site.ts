@@ -39,7 +39,8 @@ export const siteConfig = {
   emails: {
     order: 'orders@email.theoo.ooo',
     support: 'support@theoo.ooo',
-    replyTo: 'reply@theoo.ooo'
+    replyTo: 'reply@theoo.ooo',
+    noReply: 'noreply@email.theoo.ooo'
   }
 }
 export type SiteConfig = typeof siteConfig

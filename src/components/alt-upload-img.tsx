@@ -53,7 +53,7 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
             description: '',
             tags: '',
             isSale: false,
-            bucket,
+            bucket: bucket,
             printSizes: [],
           }),
         })

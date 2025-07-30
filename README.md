@@ -49,6 +49,8 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 - **🔍 SEO Optimized**: Dynamic OG images, sitemaps, and metadata
 - **🌙 Dark Mode**: Theme switching support for the admin dashboard
 - **🚀 Performance**: Optimized images, caching, and edge functions
+- **📷 Lightroom Integration**: Direct upload from Adobe Lightroom Classic with AI metadata generation
+- **⚠️ Usage Limit Alerts**: Real-time monitoring and notifications for cloud storage usage to help you avoid unexpected fees and stay within your free tier limits
 
 ## 🛠️ Technology Stack
 
@@ -95,12 +97,38 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
    ```bash
    git clone https://github.com/theomiddleton/portfolio-project
    cd portfolio-project
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pnpm install
-   ```
+```
+portfolio-project/
+├── lightroom-plugin/           # Adobe Lightroom Classic plugin
+│   ├── Info.lua               # Plugin configuration
+│   ├── ExportServiceProvider.lua # Main export logic
+│   ├── json.lua               # JSON utilities
+│   ├── PluginInfoProvider.lua # Plugin description
+│   └── INSTALLATION.md       # Plugin installation guide
+├── src/
+│   ├── app/                    # Next.js 15 App Router
+│   │   ├── (admin)/           # Admin dashboard routes
+│   │   ├── (auth)/            # Authentication routes
+│   │   ├── (main)/            # Public routes
+│   │   └── api/               # API routes
+│   │     └── lightroom/       # Lightroom-specific API endpoints
+│   ├── components/            # React components
+│   │   ├── admin/             # Admin components
+│   │   ├── blog/              # Blog components
+│   │   ├── store/             # E-commerce components
+│   │   └── ui/                # UI primitives
+│   ├── lib/                   # Utilities and actions
+│   │   ├── actions/           # Server actions
+│   │   ├── auth/              # Authentication logic
+│   │   ├── rate-limit.ts      # Rate limiting utilities
+│   │   └── types/             # TypeScript types
+│   ├── server/                # Server-side code
+│   │   └── db/                # Database schema and config
+│   └── styles/                # Global styles
+├── drizzle/                   # Database migrations
+├── docs/                      # Documentation
+└── public/                    # Static assets
+```
 
 3. **Set up environment variables**
    ```bash
@@ -159,6 +187,9 @@ FLAGS_SECRET="your-32-character-minimum-secret"
 
 # AI (Optional)
 GOOGLE_GENERATIVE_AI_API_KEY="your-google-ai-key"
+
+# Lightroom Integration (Optional)
+LIGHTROOM_API_KEY="your-secure-lightroom-api-key"
 
 # Application
 SITE_URL="http://localhost:3000" # Set as production domain when deploying
@@ -541,7 +572,34 @@ Built-in support for:
 - Structured data
 - Meta tag optimization
 
-## 🛡️ Security Features
+## 📷 Lightroom Integration
+
+### Overview
+This portfolio platform includes a powerful Adobe Lightroom Classic plugin that enables direct uploads from your Lightroom workflow to your portfolio website with AI-powered metadata generation.
+
+### Features
+- **📤 Direct Upload**: Export and upload images directly from Lightroom Classic
+- **🤖 AI Metadata**: Automatic generation of titles, descriptions, and tags using Google AI
+- **🔒 Secure**: API key authentication with rate limiting protection  
+- **⚡ Optimized**: Built-in image optimization and processing pipeline
+- **📊 Rich Metadata**: Preserves camera, lens, and EXIF data from Lightroom
+- **🎛️ Configurable**: Customizable quality, size, and AI settings
+
+### Quick Setup
+1. **Configure API Key**: Add `LIGHTROOM_API_KEY` to your environment variables
+2. **Install Plugin**: Copy the `lightroom-plugin` folder to your Lightroom plugins directory
+3. **Enable in Lightroom**: Go to File > Plug-in Manager and add the plugin
+4. **Configure Settings**: Set your API endpoint and authentication in the export dialog
+
+For detailed installation and usage instructions, see [`lightroom-plugin/INSTALLATION.md`](./lightroom-plugin/INSTALLATION.md).
+
+### Security Features
+- Bearer token authentication
+- Rate limiting (50 uploads per hour per IP)
+- File size validation (max 50MB)
+- Input sanitization and validation
+- Secure file handling
+
 
 - JWT-based authentication
 - Role-based access control
@@ -573,7 +631,7 @@ We welcome contributions to make this portfolio platform even better! Here's how
 7. Open a Pull Request
 
 ### What We're Looking For
-- 🚀 **New Features**: Gallery layouts, payment integrations, AI enhancements
+- 🚀 **New Features**: Gallery layouts, payment integrations, AI enhancements, Lightroom plugin improvements
 - 🐛 **Bug Fixes**: Performance improvements, UI/UX fixes
 - 📚 **Documentation**: Better guides, tutorials, or API documentation
 - 🎨 **UI/UX Improvements**: Better designs, accessibility enhancements
@@ -583,6 +641,7 @@ We welcome contributions to make this portfolio platform even better! Here's how
 - Additional storage provider integrations (AWS S3, Google Cloud, etc.)
 - New gallery templates and layouts
 - Enhanced blog editor features
+- Lightroom plugin features (batch operations, custom metadata fields)
 - Mobile app development
 - Advanced analytics and reporting
 - Internationalization (i18n) support
