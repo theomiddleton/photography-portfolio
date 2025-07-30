@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Theme System Demo</title>
+    <style>
+        /* CSS Custom Properties System */
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 240 10% 3.9%;
+            --primary: 240 5.9% 10%;
+            --primary-foreground: 0 0% 98%;
+            --secondary: 240 4.8% 95.9%;
+            --secondary-foreground: 240 5.9% 10%;
+            --accent: 240 4.8% 95.9%;
+            --accent-foreground: 240 5.9% 10%;
+            --border: 240 5.9% 90%;
+            --card: 0 0% 100%;
+            --card-foreground: 240 10% 3.9%;
+            --radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .dark {
+            --background: 240 10% 3.9%;
+            --foreground: 0 0% 98%;
+            --primary: 0 0% 98%;
+            --primary-foreground: 240 5.9% 10%;
+            --secondary: 240 3.7% 15.9%;
+            --secondary-foreground: 0 0% 98%;
+            --accent: 240 3.7% 15.9%;
+            --accent-foreground: 0 0% 98%;
+            --border: 240 3.7% 15.9%;
+            --card: 240 10% 3.9%;
+            --card-foreground: 0 0% 98%;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            transition: background-color 0.3s ease, color 0.3s ease;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: hsl(var(--foreground) / 0.7);
+            font-size: 1.1rem;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background-color: hsl(var(--card));
+            color: hsl(var(--card-foreground));
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) + 2px);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: hsl(var(--card-foreground) / 0.7);
+            margin-bottom: 1rem;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .button-primary {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+
+        .button-primary:hover {
+            background-color: hsl(var(--primary) / 0.9);
+        }
+
+        .button-secondary {
+            background-color: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+        }
+
+        .button-secondary:hover {
+            background-color: hsl(var(--secondary) / 0.8);
+        }
+
+        .button-outline {
+            background-color: transparent;
+            color: hsl(var(--foreground));
+            border: 1px solid hsl(var(--border));
+        }
+
+        .button-outline:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+        }
+
+        .controls {
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) + 4px);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls h3 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .theme-toggle {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        .color-input {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .color-input label {
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .color-input input {
+            padding: 0.5rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .demo-section {
+            margin-bottom: 2rem;
+        }
+
+        .demo-section h4 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .component-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+            border-radius: calc(var(--radius) - 2px);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .alert {
+            padding: 1rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            background-color: hsl(var(--card));
+            margin-bottom: 1rem;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: hsl(120 100% 50%);
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Live Theme System Demo</h1>
+            <p>Real-time theme customization with CSS custom properties and instant DOM updates</p>
+            <div style="margin-top: 1rem;">
+                <span class="status-indicator"></span>
+                <span>Live Theme System Active</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>Theme Controls</h3>
+            
+            <div class="theme-toggle">
+                <label>Current Mode:</label>
+                <span class="badge" id="current-mode">light</span>
+                <button class="button button-outline" onclick="toggleTheme()">Toggle Dark/Light</button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div class="color-input">
+                    <label for="primary-color">Primary Color</label>
+                    <input type="text" id="primary-color" value="240 5.9% 10%" onchange="updateColor('primary', this.value)">
+                </div>
+                <div class="color-input">
+                    <label for="background-color">Background Color</label>
+                    <input type="text" id="background-color" value="0 0% 100%" onchange="updateColor('background', this.value)">
+                </div>
+                <div class="color-input">
+                    <label for="accent-color">Accent Color</label>
+                    <input type="text" id="accent-color" value="240 4.8% 95.9%" onchange="updateColor('accent', this.value)">
+                </div>
+                <div class="color-input">
+                    <label for="border-color">Border Color</label>
+                    <input type="text" id="border-color" value="240 5.9% 90%" onchange="updateColor('border', this.value)">
+                </div>
+            </div>
+
+            <div class="preset-buttons">
+                <h4 style="width: 100%; margin-bottom: 0.5rem;">Theme Presets:</h4>
+                <button class="button button-secondary" onclick="applyPreset('default')">Default</button>
+                <button class="button button-secondary" onclick="applyPreset('ocean')">Ocean Blue</button>
+                <button class="button button-secondary" onclick="applyPreset('sunset')">Sunset Orange</button>
+                <button class="button button-secondary" onclick="applyPreset('forest')">Forest Green</button>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h4>Component Showcase</h4>
+            <div class="demo-grid">
+                <div class="card">
+                    <h3>Button Variants</h3>
+                    <p>Different button styles that adapt to theme changes</p>
+                    <button class="button button-primary">Primary Button</button>
+                    <button class="button button-secondary">Secondary Button</button>
+                    <button class="button button-outline">Outline Button</button>
+                </div>
+
+                <div class="card">
+                    <h3>Cards & Layouts</h3>
+                    <p>Card components with dynamic theming</p>
+                    <div class="alert">
+                        <div class="alert-title">Sample Alert</div>
+                        <div>This alert adapts to the current theme colors</div>
+                    </div>
+                    <span class="badge">Theme Badge</span>
+                </div>
+
+                <div class="card">
+                    <h3>Real-time Updates</h3>
+                    <p>All changes apply instantly without page refresh:</p>
+                    <ul style="list-style: none; padding: 0;">
+                        <li>✅ CSS Custom Properties</li>
+                        <li>✅ Direct DOM Manipulation</li>
+                        <li>✅ Smooth Transitions</li>
+                        <li>✅ Persistent Storage</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>Theme Features</h3>
+                    <p>Advanced capabilities:</p>
+                    <ul style="list-style: none; padding: 0;">
+                        <li>🎨 Live Color Customization</li>
+                        <li>🌓 Light/Dark Mode Toggle</li>
+                        <li>💾 localStorage Persistence</li>
+                        <li>🚀 No Component Re-renders</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTheme = 'light';
+
+        const themePresets = {
+            default: {
+                light: {
+                    '--background': '0 0% 100%',
+                    '--foreground': '240 10% 3.9%',
+                    '--primary': '240 5.9% 10%',
+                    '--accent': '240 4.8% 95.9%',
+                    '--border': '240 5.9% 90%'
+                },
+                dark: {
+                    '--background': '240 10% 3.9%',
+                    '--foreground': '0 0% 98%',
+                    '--primary': '0 0% 98%',
+                    '--accent': '240 3.7% 15.9%',
+                    '--border': '240 3.7% 15.9%'
+                }
+            },
+            ocean: {
+                light: {
+                    '--background': '210 40% 98%',
+                    '--foreground': '210 40% 8%',
+                    '--primary': '210 100% 50%',
+                    '--accent': '190 85% 90%',
+                    '--border': '210 20% 82%'
+                },
+                dark: {
+                    '--background': '210 50% 6%',
+                    '--foreground': '210 40% 90%',
+                    '--primary': '210 100% 60%',
+                    '--accent': '210 30% 12%',
+                    '--border': '210 30% 18%'
+                }
+            },
+            sunset: {
+                light: {
+                    '--background': '30 50% 98%',
+                    '--foreground': '30 50% 8%',
+                    '--primary': '15 90% 55%',
+                    '--accent': '45 100% 90%',
+                    '--border': '30 30% 82%'
+                },
+                dark: {
+                    '--background': '15 50% 6%',
+                    '--foreground': '30 40% 90%',
+                    '--primary': '15 90% 65%',
+                    '--accent': '15 30% 12%',
+                    '--border': '15 30% 18%'
+                }
+            },
+            forest: {
+                light: {
+                    '--background': '120 30% 98%',
+                    '--foreground': '120 30% 8%',
+                    '--primary': '120 60% 40%',
+                    '--accent': '120 40% 90%',
+                    '--border': '120 20% 82%'
+                },
+                dark: {
+                    '--background': '120 40% 6%',
+                    '--foreground': '120 30% 90%',
+                    '--primary': '120 60% 50%',
+                    '--accent': '120 30% 12%',
+                    '--border': '120 30% 18%'
+                }
+            }
+        };
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            if (currentTheme === 'dark') {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+            
+            document.getElementById('current-mode').textContent = currentTheme;
+            updateInputValues();
+        }
+
+        function updateColor(property, value) {
+            const root = document.documentElement;
+            root.style.setProperty(`--${property}`, value);
+            
+            // Also update related properties
+            if (property === 'primary') {
+                root.style.setProperty(`--primary-foreground`, currentTheme === 'light' ? '0 0% 98%' : '240 5.9% 10%');
+            }
+            if (property === 'accent') {
+                root.style.setProperty(`--accent-foreground`, currentTheme === 'light' ? '240 5.9% 10%' : '0 0% 98%');
+            }
+            if (property === 'background') {
+                // Update card background to match
+                root.style.setProperty(`--card`, value);
+            }
+        }
+
+        function applyPreset(presetName) {
+            const preset = themePresets[presetName];
+            if (!preset) return;
+            
+            const root = document.documentElement;
+            const colors = preset[currentTheme];
+            
+            Object.entries(colors).forEach(([property, value]) => {
+                root.style.setProperty(property, value);
+            });
+            
+            // Update related properties
+            root.style.setProperty(`--primary-foreground`, currentTheme === 'light' ? '0 0% 98%' : colors['--background']);
+            root.style.setProperty(`--secondary`, currentTheme === 'light' ? colors['--accent'] : colors['--accent']);
+            root.style.setProperty(`--secondary-foreground`, colors['--foreground']);
+            root.style.setProperty(`--accent-foreground`, colors['--foreground']);
+            root.style.setProperty(`--card`, colors['--background']);
+            root.style.setProperty(`--card-foreground`, colors['--foreground']);
+            
+            updateInputValues();
+        }
+
+        function updateInputValues() {
+            const style = getComputedStyle(document.documentElement);
+            document.getElementById('primary-color').value = style.getPropertyValue('--primary').trim();
+            document.getElementById('background-color').value = style.getPropertyValue('--background').trim();
+            document.getElementById('accent-color').value = style.getPropertyValue('--accent').trim();
+            document.getElementById('border-color').value = style.getPropertyValue('--border').trim();
+        }
+
+        // Initialize the demo
+        document.addEventListener('DOMContentLoaded', function() {
+            updateInputValues();
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,6 @@
 import { ThemeCustomizer } from '~/components/admin/theme/theme-customizer'
+import { ThemePresetsDemo } from '~/components/admin/theme/theme-presets-demo'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 
 export default function ThemeTestPage() {
   return (
@@ -10,9 +12,20 @@ export default function ThemeTestPage() {
         </p>
       </div>
       
-      <div className="flex justify-center">
-        <ThemeCustomizer />
-      </div>
+      <Tabs defaultValue="customizer" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="customizer">Theme Customizer</TabsTrigger>
+          <TabsTrigger value="presets">Theme Presets</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="customizer" className="flex justify-center">
+          <ThemeCustomizer />
+        </TabsContent>
+        
+        <TabsContent value="presets">
+          <ThemePresetsDemo />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
