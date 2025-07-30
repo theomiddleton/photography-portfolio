@@ -1,6 +1,7 @@
 import React from 'react'
 import type { ReactNode } from 'react'
 import { ThemeProvider } from '~/components/admin/theme/theme-provider'
+import { AdminThemeRestrictor } from '~/components/admin/theme/admin-theme-restrictor'
 import { AdminHeader } from '~/components/admin/header'
 import { AdminSidebar } from '~/components/admin/sidebar'
 import { StorageAlertProvider } from '~/components/storage-alert-provider'
@@ -24,10 +25,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="system"
-      enableSystem
+      defaultTheme="light" // Default to light mode for admin
+      enableSystem={true}
       disableTransitionOnChange
     >
+      <AdminThemeRestrictor />
       <StorageAlertProvider>
         <div className="flex h-screen flex-col">
           <AdminHeader />
