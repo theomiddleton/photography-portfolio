@@ -4,7 +4,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { AxiomWebVitals } from 'next-axiom'
 import { Toaster } from '~/components/ui/sonner'
 import { ThemeCleanup } from '~/components/admin/theme/theme-cleanup'
-import { ThemeScript } from '~/components/admin/theme/theme-script'
+import { ThemeProvider } from '~/components/admin/theme/theme-provider'
 
 import { Inter, Playfair_Display } from 'next/font/google'
 
@@ -31,13 +31,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <ThemeScript />
-      </head>
       <body className={`font-sans ${inter.variable} ${playfairDisplay.variable}`}>
-        <ThemeCleanup />
-        {children}
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ThemeCleanup />
+          {children}
+          <Toaster />
+        </ThemeProvider>
         <Analytics />
         <AxiomWebVitals />
         <SpeedInsights />
