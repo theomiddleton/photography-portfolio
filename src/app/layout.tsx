@@ -31,6 +31,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const savedTheme = localStorage.getItem('theme-color') || 'default';
+                if (savedTheme !== 'default') {
+                  document.documentElement.classList.add('theme-' + savedTheme);
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body className={`font-sans ${inter.variable} ${playfairDisplay.variable}`}>
         <ThemeProvider
           attribute="class"
