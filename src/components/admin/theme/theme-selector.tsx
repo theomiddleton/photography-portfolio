@@ -2,7 +2,6 @@
 
 import * as React from 'react'
 import { Check } from 'lucide-react'
-import { useTheme } from 'next-themes'
 
 import { Button } from '~/components/ui/button'
 import {
@@ -29,8 +28,10 @@ const themes = [
 
 export function ThemeSelector() {
   const [currentTheme, setCurrentTheme] = React.useState('default')
+  const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
+    setMounted(true)
     const savedTheme = localStorage.getItem('theme-color') || 'default'
     setCurrentTheme(savedTheme)
     applyTheme(savedTheme)
@@ -51,6 +52,14 @@ export function ThemeSelector() {
     // Save to localStorage
     localStorage.setItem('theme-color', themeValue)
     setCurrentTheme(themeValue)
+  }
+
+  if (!mounted) {
+    return (
+      <Button variant="outline" size="sm" disabled>
+        Loading...
+      </Button>
+    )
   }
 
   return (
