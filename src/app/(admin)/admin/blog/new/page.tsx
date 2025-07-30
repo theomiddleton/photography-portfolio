@@ -15,6 +15,10 @@ const initialContent = {
   ],
 }
 
+function BlogFormWrapper() {
+  return <BlogForm initialContent={initialContent} />
+}
+
 export default async function NewPostPage() {
   const session = await getSession()
 
@@ -32,7 +36,7 @@ export default async function NewPostPage() {
               <span className="sr-only">Back</span>
             </Button>
           </a>
-          <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+          <h1 className="flex-1 shrink-0 text-xl font-semibold tracking-tight whitespace-nowrap sm:grow-0">
             New Blog Post
           </h1>
         </div>
@@ -46,7 +50,7 @@ export default async function NewPostPage() {
             </div>
           }
         >
-          <BlogForm initialContent={initialContent} />
+          <BlogFormWrapper />
         </Suspense>
       </div>
     </main>
