@@ -50,6 +50,7 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 - **🌙 Dark Mode**: Theme switching support for the admin dashboard
 - **🚀 Performance**: Optimized images, caching, and edge functions
 - **📷 Lightroom Integration**: Direct upload from Adobe Lightroom Classic with AI metadata generation
+- **⚠️ Usage Limit Alerts**: Real-time monitoring and notifications for cloud storage usage to help you avoid unexpected fees and stay within your free tier limits
 
 ## 🛠️ Technology Stack
 
