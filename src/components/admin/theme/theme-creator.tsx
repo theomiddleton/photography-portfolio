@@ -31,6 +31,7 @@ import {
   validateColorFormat, 
   supportedColorFormats,
   themeSourceRecommendations,
+  extractColorsFromCSS,
   type ValidationResult 
 } from '~/lib/theme-validation'
 
@@ -54,11 +55,22 @@ export function ThemeCreator({ onThemeCreated }: ThemeCreatorProps) {
     foregroundColor: '#000000',
   })
 
-  // Validate CSS content when it changes
+  // Validate CSS content when it changes and auto-extract colors
   React.useEffect(() => {
     if (formData.cssContent.trim()) {
       const result = validateThemeCSS(formData.cssContent)
       setValidation(result)
+      
+      // Auto-extract colors when CSS content changes
+      const extractedColors = extractColorsFromCSS(formData.cssContent)
+      setFormData(prev => ({
+        ...prev,
+        primaryColor: extractedColors.primary || prev.primaryColor,
+        secondaryColor: extractedColors.secondary || prev.secondaryColor,
+        accentColor: extractedColors.accent || prev.accentColor,
+        backgroundColor: extractedColors.background || prev.backgroundColor,
+        foregroundColor: extractedColors.foreground || prev.foregroundColor,
+      }))
     } else {
       setValidation(null)
     }
@@ -169,6 +181,26 @@ export function ThemeCreator({ onThemeCreated }: ThemeCreatorProps) {
     setFormData(prev => ({ ...prev, [colorKey]: value }))
   }
 
+  const handleValidateCSS = () => {
+    if (!formData.cssContent.trim()) {
+      toast.error('Please enter CSS content to validate')
+      return
+    }
+    
+    const result = validateThemeCSS(formData.cssContent)
+    setValidation(result)
+    
+    if (result.isValid) {
+      toast.success('✅ CSS validation passed! Theme is ready for preview and submission.')
+    } else {
+      toast.error(`❌ CSS validation failed: ${result.errors.length} error(s) found`)
+    }
+    
+    if (result.warnings.length > 0) {
+      toast.warning(`⚠️ ${result.warnings.length} warning(s) found - check validation details`)
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -218,35 +250,19 @@ export function ThemeCreator({ onThemeCreated }: ThemeCreatorProps) {
           </Card>
 
           {/* Theme Sources */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <ExternalLink className="h-5 w-5" />
-                Where to Get Themes
-              </CardTitle>
-              <CardDescription>
-                Recommended sources for high-quality themes and inspiration
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Where to Get Themes:</strong>
+              <div className="mt-2 space-y-1 text-sm">
                 {themeSourceRecommendations.map((source) => (
-                  <div key={source.name} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">{source.name}</h4>
-                      <p className="text-sm text-muted-foreground">{source.description}</p>
-                    </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={source.url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Visit
-                      </a>
-                    </Button>
+                  <div key={source.name}>
+                    <strong>{source.name}:</strong> {source.description}
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </AlertDescription>
+          </Alert>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -411,6 +427,16 @@ export function ThemeCreator({ onThemeCreated }: ThemeCreatorProps) {
                 <div className="flex items-center justify-between mb-2">
                   <Label htmlFor="cssContent">CSS Content</Label>
                   <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleValidateCSS}
+                      disabled={!formData.cssContent.trim()}
+                    >
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Validate CSS
+                    </Button>
                     <Button
                       type="button"
                       variant="outline"

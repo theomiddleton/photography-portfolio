@@ -45,28 +45,23 @@ export const supportedColorFormats: ColorFormatInfo[] = [
 export const themeSourceRecommendations = [
   {
     name: 'shadcn/ui Themes',
-    url: 'https://ui.shadcn.com/themes',
-    description: 'Official shadcn/ui theme gallery with copy-paste CSS'
+    description: 'Official shadcn/ui theme gallery with copy-paste CSS. Visit ui.shadcn.com/themes for ready-made themes.'
   },
   {
     name: 'TweakCN',
-    url: 'https://tweakcn.dev',
-    description: 'Community themes and customizations for shadcn/ui'
+    description: 'Community themes and customizations for shadcn/ui. Search for "TweakCN" for community contributions.'
   },
   {
     name: 'Tailwind UI Colors',
-    url: 'https://tailwindui.com/components',
-    description: 'Professional color palettes and design systems'
+    description: 'Professional color palettes and design systems. Check Tailwind documentation for color references.'
   },
   {
     name: 'Radix Colors',
-    url: 'https://www.radix-ui.com/colors',
-    description: 'Beautiful, accessible color system by Radix UI'
+    description: 'Beautiful, accessible color system by Radix UI. Visit Radix UI documentation for color systems.'
   },
   {
     name: 'Coolors.co',
-    url: 'https://coolors.co',
-    description: 'Color palette generator and inspiration'
+    description: 'Color palette generator and inspiration. Search for "Coolors" to find palette generators.'
   }
 ]
 
@@ -165,4 +160,71 @@ export function validateColorFormat(color: string): { isValid: boolean; format?:
   }
 
   return { isValid: false }
+}
+
+/**
+ * Extract colors from CSS content for automatic swatch generation
+ */
+export function extractColorsFromCSS(cssContent: string): {
+  primary?: string
+  secondary?: string
+  accent?: string
+  background?: string
+  foreground?: string
+} {
+  const colors: Record<string, string> = {}
+  
+  // Common CSS variable patterns to look for
+  const colorMappings = [
+    { key: 'primary', patterns: ['--primary:', '--color-primary:', '--primary-500:'] },
+    { key: 'secondary', patterns: ['--secondary:', '--color-secondary:', '--secondary-500:'] },
+    { key: 'accent', patterns: ['--accent:', '--color-accent:', '--accent-500:'] },
+    { key: 'background', patterns: ['--background:', '--color-background:', '--bg-color:'] },
+    { key: 'foreground', patterns: ['--foreground:', '--color-foreground:', '--text-color:'] }
+  ]
+
+  // Extract values from CSS variables
+  colorMappings.forEach(({ key, patterns }) => {
+    for (const pattern of patterns) {
+      const regex = new RegExp(`${pattern.replace(':', '\\s*:\\s*')}([^;\\n}]+)`, 'i')
+      const match = cssContent.match(regex)
+      if (match) {
+        let value = match[1].trim()
+        
+        // Convert CSS variable values to proper colors
+        if (/^\d+\s+\d+%\s+\d+%/.test(value)) {
+          // HSL space-separated values (shadcn/ui format)
+          value = `hsl(${value})`
+        }
+        
+        // Validate the extracted color
+        const validation = validateColorFormat(value)
+        if (validation.isValid) {
+          colors[key] = value
+          break // Use first valid match
+        }
+      }
+    }
+  })
+
+  // Fallback: look for common hex colors
+  if (Object.keys(colors).length === 0) {
+    const hexColors = cssContent.match(/#[A-Fa-f0-9]{6}|#[A-Fa-f0-9]{3}/g)
+    if (hexColors && hexColors.length > 0) {
+      colors.primary = hexColors[0] || '#3b82f6'
+      colors.secondary = hexColors[1] || '#6b7280'
+      colors.accent = hexColors[2] || '#0066cc'
+      colors.background = '#ffffff'
+      colors.foreground = '#000000'
+    }
+  }
+
+  // Provide sensible defaults if nothing was found
+  return {
+    primary: colors.primary || '#3b82f6',
+    secondary: colors.secondary || '#6b7280', 
+    accent: colors.accent || '#0066cc',
+    background: colors.background || '#ffffff',
+    foreground: colors.foreground || '#000000'
+  }
 }

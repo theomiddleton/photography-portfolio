@@ -62,7 +62,7 @@ export async function createTheme(data: {
       createdBy: session.id,
     }).returning()
 
-    revalidatePath('/admin/theme')
+    revalidatePath('/admin/themes')
     return { success: true, theme }
   } catch (error) {
     console.error('Error creating theme:', error)
@@ -83,7 +83,7 @@ export async function activateTheme(themeId: string): Promise<{ success: boolean
     // Activate the selected theme
     await db.update(themes).set({ isActive: true }).where(eq(themes.id, themeId))
 
-    revalidatePath('/admin/theme')
+    revalidatePath('/admin/themes')
     return { success: true }
   } catch (error) {
     console.error('Error activating theme:', error)
@@ -110,7 +110,7 @@ export async function deleteTheme(themeId: string): Promise<{ success: boolean; 
 
     await db.delete(themes).where(eq(themes.id, themeId))
 
-    revalidatePath('/admin/theme')
+    revalidatePath('/admin/themes')
     return { success: true }
   } catch (error) {
     console.error('Error deleting theme:', error)
@@ -139,7 +139,7 @@ export async function updateTheme(themeId: string, data: {
     const updateData: any = { ...data, updatedAt: new Date() }
     await db.update(themes).set(updateData).where(eq(themes.id, themeId))
 
-    revalidatePath('/admin/theme')
+    revalidatePath('/admin/themes')
     return { success: true }
   } catch (error) {
     console.error('Error updating theme:', error)
