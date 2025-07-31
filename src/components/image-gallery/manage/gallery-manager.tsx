@@ -62,7 +62,7 @@ interface Gallery {
   viewCount: number
   createdAt: Date
   updatedAt: Date
-  images: Array<{
+  images: {
     id: string
     galleryId: string
     uuid: string
@@ -76,14 +76,14 @@ interface Gallery {
     metadata: Record<string, any> | null
     order: number
     uploadedAt: Date
-  }>
+  }[]
 }
 
 export function GalleryManager({ galleryId, gallerySlug }: GalleryManagerProps) {
   const [gallery, setGallery] = useState<Gallery | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [availableGalleries, setAvailableGalleries] = useState<Array<{ id: string; title: string }>>([])
+  const [availableGalleries, setAvailableGalleries] = useState<{ id: string; title: string }[]>([])
   const [editingImage, setEditingImage] = useState<Gallery['images'][0] | null>(null)
   const [imageEditDialogOpen, setImageEditDialogOpen] = useState(false)
   const router = useRouter()

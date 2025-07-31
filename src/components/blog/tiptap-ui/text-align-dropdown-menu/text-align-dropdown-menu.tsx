@@ -19,7 +19,7 @@ import {
 // --- UI Primitives ---
 import {
   Button,
-  ButtonProps,
+  type ButtonProps,
 } from '~/components/blog/tiptap-ui-primitive/button'
 import {
   DropdownMenu,

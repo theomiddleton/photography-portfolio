@@ -37,10 +37,10 @@ export function ImageSelect({ images, onSelect }: ImageSelectProps) {
           <div
             key={image.id}
             className={cn(
-              "relative group cursor-pointer rounded-lg overflow-hidden",
-              "transition-all duration-300 ease-in-out",
-              "hover:ring-2 hover:ring-primary",
-              selectedImages.includes(image.id) && "ring-2 ring-primary"
+              'relative group cursor-pointer rounded-lg overflow-hidden',
+              'transition-all duration-300 ease-in-out',
+              'hover:ring-2 hover:ring-primary',
+              selectedImages.includes(image.id) && 'ring-2 ring-primary'
             )}
             onClick={() => toggleImageSelection(image.id)}
           >

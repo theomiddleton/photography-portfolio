@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from 'react'
 
 export const SubscriptIcon = React.memo(
   ({ className, ...props }: React.SVGProps<SVGSVGElement>) => {
@@ -35,4 +35,4 @@ export const SubscriptIcon = React.memo(
   }
 )
 
-SubscriptIcon.displayName = "SubscriptIcon"
+SubscriptIcon.displayName = 'SubscriptIcon'

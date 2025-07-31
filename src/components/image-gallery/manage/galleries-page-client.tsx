@@ -46,12 +46,12 @@ interface Gallery {
   createdAt: Date
   updatedAt: Date
   imageCount: number
-  images?: Array<{
+  images?: {
     id: string
     fileUrl: string
     name: string
     alt: string | null
-  }>
+  }[]
 }
 
 interface GalleriesPageClientProps {

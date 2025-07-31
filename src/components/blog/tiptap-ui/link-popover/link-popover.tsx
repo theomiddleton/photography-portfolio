@@ -1,26 +1,26 @@
-import * as React from "react"
-import { isNodeSelection, type Editor } from "@tiptap/react"
+import * as React from 'react'
+import { isNodeSelection, type Editor } from '@tiptap/react'
 
 // --- Hooks ---
-import { useTiptapEditor } from "~/hooks/use-tiptap-editor"
+import { useTiptapEditor } from '~/hooks/use-tiptap-editor'
 
 // --- Icons ---
-import { CornerDownLeftIcon } from "~/components/blog/tiptap-icons/corner-down-left-icon"
-import { ExternalLinkIcon } from "~/components/blog/tiptap-icons/external-link-icon"
-import { LinkIcon } from "~/components/blog/tiptap-icons/link-icon"
-import { TrashIcon } from "~/components/blog/tiptap-icons/trash-icon"
+import { CornerDownLeftIcon } from '~/components/blog/tiptap-icons/corner-down-left-icon'
+import { ExternalLinkIcon } from '~/components/blog/tiptap-icons/external-link-icon'
+import { LinkIcon } from '~/components/blog/tiptap-icons/link-icon'
+import { TrashIcon } from '~/components/blog/tiptap-icons/trash-icon'
 
 // --- Lib ---
-import { isMarkInSchema } from "~/lib/tiptap-utils"
+import { isMarkInSchema } from '~/lib/tiptap-utils'
 
 // --- UI Primitives ---
-import { Button, ButtonProps } from "~/components/blog/tiptap-ui-primitive/button"
+import { Button, type ButtonProps } from '~/components/blog/tiptap-ui-primitive/button'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "~/components/blog/tiptap-ui-primitive/popover"
-import { Separator } from "~/components/blog/tiptap-ui-primitive/separator"
+} from '~/components/blog/tiptap-ui-primitive/popover'
+import { Separator } from '~/components/blog/tiptap-ui-primitive/separator'
 
 // --- Styles ---
 // Remove SCSS import
@@ -42,16 +42,16 @@ export interface LinkMainProps {
 
 export const useLinkHandler = (props: LinkHandlerProps) => {
   const { editor, onSetLink, onLinkActive } = props
-  const [url, setUrl] = React.useState<string>("")
+  const [url, setUrl] = React.useState<string>('')
 
   React.useEffect(() => {
     if (!editor) return
 
     // Get URL immediately on mount
-    const { href } = editor.getAttributes("link")
+    const { href } = editor.getAttributes('link')
 
-    if (editor.isActive("link") && !url) {
-      setUrl(href || "")
+    if (editor.isActive('link') && !url) {
+      setUrl(href || '')
       onLinkActive?.()
     }
   }, [editor, onLinkActive, url])
@@ -60,17 +60,17 @@ export const useLinkHandler = (props: LinkHandlerProps) => {
     if (!editor) return
 
     const updateLinkState = () => {
-      const { href } = editor.getAttributes("link")
-      setUrl(href || "")
+      const { href } = editor.getAttributes('link')
+      setUrl(href || '')
 
-      if (editor.isActive("link") && !url) {
+      if (editor.isActive('link') && !url) {
         onLinkActive?.()
       }
     }
 
-    editor.on("selectionUpdate", updateLinkState)
+    editor.on('selectionUpdate', updateLinkState)
     return () => {
-      editor.off("selectionUpdate", updateLinkState)
+      editor.off('selectionUpdate', updateLinkState)
     }
   }, [editor, onLinkActive, url])
 
@@ -83,11 +83,11 @@ export const useLinkHandler = (props: LinkHandlerProps) => {
     editor
       .chain()
       .focus()
-      .extendMarkRange("link")
+      .extendMarkRange('link')
       .insertContent({
-        type: "text",
+        type: 'text',
         text: text || url,
-        marks: [{ type: "link", attrs: { href: url } }],
+        marks: [{ type: 'link', attrs: { href: url } }],
       })
       .run()
 
@@ -99,10 +99,10 @@ export const useLinkHandler = (props: LinkHandlerProps) => {
     editor
       .chain()
       .focus()
-      .unsetMark("link", { extendEmptyMarkRange: true })
-      .setMeta("preventAutolink", true)
+      .unsetMark('link', { extendEmptyMarkRange: true })
+      .setMeta('preventAutolink', true)
       .run()
-    setUrl("")
+    setUrl('')
   }, [editor])
 
   return {
@@ -110,7 +110,7 @@ export const useLinkHandler = (props: LinkHandlerProps) => {
     setUrl,
     setLink,
     removeLink,
-    isActive: editor?.isActive("link") || false,
+    isActive: editor?.isActive('link') || false,
   }
 }
 
@@ -154,7 +154,7 @@ const LinkMain: React.FC<LinkMainProps> = ({
   isActive,
 }) => {
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       event.preventDefault()
       setLink()
     }
@@ -199,7 +199,7 @@ const LinkMain: React.FC<LinkMainProps> = ({
       <div className="flex items-center gap-0.5">
         <Button
           type="button"
-          onClick={() => window.open(url, "_blank")}
+          onClick={() => window.open(url, '_blank')}
           title="Open in new window"
           disabled={!url && !isActive}
           data-style="ghost"
@@ -221,7 +221,7 @@ const LinkMain: React.FC<LinkMainProps> = ({
   )
 }
 
-export interface LinkPopoverProps extends Omit<ButtonProps, "type"> {
+export interface LinkPopoverProps extends Omit<ButtonProps, 'type'> {
   /**
    * The TipTap editor instance.
    */
@@ -251,7 +251,7 @@ export function LinkPopover({
 }: LinkPopoverProps) {
   const editor = useTiptapEditor(providedEditor)
 
-  const linkInSchema = isMarkInSchema("link", editor)
+  const linkInSchema = isMarkInSchema('link', editor)
 
   const [isOpen, setIsOpen] = React.useState(false)
 
@@ -269,20 +269,20 @@ export function LinkPopover({
 
   const isDisabled = React.useMemo(() => {
     if (!editor) return true
-    if (editor.isActive("codeBlock")) return true
-    return !editor.can().setLink?.({ href: "" })
+    if (editor.isActive('codeBlock')) return true
+    return !editor.can().setLink?.({ href: '' })
   }, [editor])
 
   const canSetLink = React.useMemo(() => {
     if (!editor) return false
     try {
-      return editor.can().setMark("link")
+      return editor.can().setMark('link')
     } catch {
       return false
     }
   }, [editor])
 
-  const isActive = editor?.isActive("link") ?? false
+  const isActive = editor?.isActive('link') ?? false
 
   const handleOnOpenChange = React.useCallback(
     (nextIsOpen: boolean) => {
@@ -315,7 +315,7 @@ export function LinkPopover({
       <PopoverTrigger asChild>
         <LinkButton
           disabled={isDisabled}
-          data-active-state={isActive ? "on" : "off"}
+          data-active-state={isActive ? 'on' : 'off'}
           data-disabled={isDisabled}
           {...props}
         />
@@ -328,4 +328,4 @@ export function LinkPopover({
   )
 }
 
-LinkButton.displayName = "LinkButton"
+LinkButton.displayName = 'LinkButton'

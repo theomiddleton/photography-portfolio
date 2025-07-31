@@ -10,7 +10,7 @@ import { ImagePlusIcon } from '~/components/blog/tiptap-icons/image-plus-icon'
 // --- UI Primitives ---
 import {
   Button,
-  ButtonProps,
+  type ButtonProps,
 } from '~/components/blog/tiptap-ui-primitive/button'
 
 export interface ImageUploadButtonProps extends ButtonProps {

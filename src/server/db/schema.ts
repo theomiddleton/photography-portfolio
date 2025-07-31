@@ -521,6 +521,35 @@ export const usageAlertConfig = pgTable('usageAlertConfig', {
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 })
 
+// Theme System
+export const themes = pgTable('themes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  slug: varchar('slug', { length: 100 }).notNull().unique(),
+  description: text('description'),
+  cssContent: text('cssContent').notNull(), // Complete CSS content for the theme
+  isBuiltIn: boolean('isBuiltIn').default(false).notNull(), // Built-in themes vs custom themes
+  isActive: boolean('isActive').default(false).notNull(), // Currently active theme
+  previewColors: json('previewColors').$type<{
+    primary: string
+    secondary: string
+    accent: string
+    background: string
+    foreground: string
+  }>(), // Colors for swatch preview
+  metadata: json('metadata').$type<{
+    author?: string
+    version?: string
+    shadcnCompatible?: boolean
+    supportsLightMode?: boolean
+    supportsDarkMode?: boolean
+    [key: string]: any
+  }>(),
+  createdBy: integer('createdBy').references(() => users.id),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+})
+
 export const globalStorageConfig = pgTable('globalStorageConfig', {
   id: serial('id').primaryKey(),
   totalStorageLimit: bigint('totalStorageLimit', { mode: 'number' }).default(10000000000).notNull(), // 10GB total
@@ -548,6 +577,13 @@ export const alertDismissalRelations = relations(alertDismissals, ({ one }) => (
   }),
 }))
 
+export const themeRelations = relations(themes, ({ one }) => ({
+  creator: one(users, {
+    fields: [themes.createdBy],
+    references: [users.id],
+  }),
+}))
+
 // Export types
 export type MultiGalleryPage = typeof multiGalleryPages.$inferSelect
 export type MultiGallerySection = typeof multiGallerySections.$inferSelect
@@ -558,3 +594,4 @@ export type AlertDismissal = typeof alertDismissals.$inferSelect
 export type DuplicateFile = typeof duplicateFiles.$inferSelect
 export type UsageAlertConfig = typeof usageAlertConfig.$inferSelect
 export type GlobalStorageConfig = typeof globalStorageConfig.$inferSelect
+export type Theme = typeof themes.$inferSelect

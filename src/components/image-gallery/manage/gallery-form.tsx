@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { type z } from 'zod'
 import { toast } from 'sonner'
 
 import { Button } from '~/components/ui/button'

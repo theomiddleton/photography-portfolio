@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import * as React from "react"
+import * as React from 'react'
 
-type SpacerOrientation = "horizontal" | "vertical"
+type SpacerOrientation = 'horizontal' | 'vertical'
 
 interface SpacerProps extends React.HTMLAttributes<HTMLDivElement> {
   orientation?: SpacerOrientation
@@ -10,11 +10,11 @@ interface SpacerProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Spacer = React.forwardRef<HTMLDivElement, SpacerProps>(
-  ({ orientation = "horizontal", size = "1rem", className, ...props }, ref) => {
+  ({ orientation = 'horizontal', size = '1rem', className, ...props }, ref) => {
     const style = React.useMemo(() => {
-      const sizeValue = typeof size === "number" ? `${size}px` : size
+      const sizeValue = typeof size === 'number' ? `${size}px` : size
       return {
-        [orientation === "horizontal" ? "width" : "height"]: sizeValue,
+        [orientation === 'horizontal' ? 'width' : 'height']: sizeValue,
       }
     }, [orientation, size])
 
@@ -23,8 +23,8 @@ export const Spacer = React.forwardRef<HTMLDivElement, SpacerProps>(
         ref={ref}
         className={`
           shrink-0
-          ${orientation === "horizontal" ? "w-full" : "h-full"}
-          ${className || ""}
+          ${orientation === 'horizontal' ? 'w-full' : 'h-full'}
+          ${className || ''}
         `.trim()}
         style={style}
         {...props}
@@ -33,4 +33,4 @@ export const Spacer = React.forwardRef<HTMLDivElement, SpacerProps>(
   }
 )
 
-Spacer.displayName = "Spacer"
+Spacer.displayName = 'Spacer'

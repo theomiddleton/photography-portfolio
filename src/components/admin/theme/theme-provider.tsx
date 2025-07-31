@@ -10,7 +10,9 @@ export function ThemeProvider({
   return (
     <NextThemesProvider
       {...props}
-      storageKey="admin-theme" // Isolated storage key for admin theme
+      storageKey="admin-theme-mode" // Isolated storage key for admin theme mode
+      enableSystem={true}
+      defaultTheme="light" // Default to light mode for admin
     >
       {children}
     </NextThemesProvider>

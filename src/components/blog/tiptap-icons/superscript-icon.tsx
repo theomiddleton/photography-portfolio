@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from 'react'
 
 export const SuperscriptIcon = React.memo(
   ({ className, ...props }: React.SVGProps<SVGSVGElement>) => {
@@ -35,4 +35,4 @@ export const SuperscriptIcon = React.memo(
   }
 )
 
-SuperscriptIcon.displayName = "SuperscriptIcon"
+SuperscriptIcon.displayName = 'SuperscriptIcon'

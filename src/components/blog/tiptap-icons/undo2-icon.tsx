@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from 'react'
 
 export const Undo2Icon = React.memo(
   ({ className, ...props }: React.SVGProps<SVGSVGElement>) => {
@@ -23,4 +23,4 @@ export const Undo2Icon = React.memo(
   }
 )
 
-Undo2Icon.displayName = "Undo2Icon"
+Undo2Icon.displayName = 'Undo2Icon'

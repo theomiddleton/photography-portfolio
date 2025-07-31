@@ -1,15 +1,15 @@
-import * as React from "react"
-import { isNodeSelection, type Editor } from "@tiptap/react"
+import * as React from 'react'
+import { isNodeSelection, type Editor } from '@tiptap/react'
 
 // --- Hooks ---
-import { useTiptapEditor } from "~/hooks/use-tiptap-editor"
+import { useTiptapEditor } from '~/hooks/use-tiptap-editor'
 
 // --- Icons ---
-import { ChevronDownIcon } from "~/components/blog/tiptap-icons/chevron-down-icon"
-import { ListIcon } from "~/components/blog/tiptap-icons/list-icon"
+import { ChevronDownIcon } from '~/components/blog/tiptap-icons/chevron-down-icon'
+import { ListIcon } from '~/components/blog/tiptap-icons/list-icon'
 
 // --- Lib ---
-import { isNodeInSchema } from "~/lib/tiptap-utils"
+import { isNodeInSchema } from '~/lib/tiptap-utils'
 
 // --- Tiptap UI ---
 import {
@@ -18,19 +18,19 @@ import {
   isListActive,
   listOptions,
   type ListType,
-} from "~/components/blog/tiptap-ui/list-button/list-button"
+} from '~/components/blog/tiptap-ui/list-button/list-button'
 
 // --- UI Primitives ---
-import { Button, ButtonProps } from "~/components/blog/tiptap-ui-primitive/button"
+import { Button, type ButtonProps } from '~/components/blog/tiptap-ui-primitive/button'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-} from "~/components/blog/tiptap-ui-primitive/dropdown-menu"
+} from '~/components/blog/tiptap-ui-primitive/dropdown-menu'
 
-export interface ListDropdownMenuProps extends Omit<ButtonProps, "type"> {
+export interface ListDropdownMenuProps extends Omit<ButtonProps, 'type'> {
   /**
    * The TipTap editor instance.
    */
@@ -149,7 +149,7 @@ export function useActiveListIcon(
 
 export function ListDropdownMenu({
   editor: providedEditor,
-  types = ["bulletList", "orderedList", "taskList"],
+  types = ['bulletList', 'orderedList', 'taskList'],
   hideWhenUnavailable = false,
   onOpenChange,
   ...props
@@ -192,7 +192,7 @@ export function ListDropdownMenu({
         <Button
           type="button"
           data-style="ghost"
-          data-active-state={isAnyActive ? "on" : "off"}
+          data-active-state={isAnyActive ? 'on' : 'off'}
           role="button"
           tabIndex={-1}
           aria-label="List options"
@@ -213,7 +213,7 @@ export function ListDropdownMenu({
                 type={option.type}
                 text={option.label}
                 hideWhenUnavailable={hideWhenUnavailable}
-                tooltip={""}
+                tooltip={''}
                 className="w-full justify-start"
               />
             </DropdownMenuItem>

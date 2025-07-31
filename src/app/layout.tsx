@@ -4,6 +4,8 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { AxiomWebVitals } from 'next-axiom'
 import { Toaster } from '~/components/ui/sonner'
 import { ThemeCleanup } from '~/components/admin/theme/theme-cleanup'
+import { ThemeInjector } from '~/components/admin/theme/theme-injector'
+import { ServerThemeInjector } from '~/components/admin/theme/server-theme-injector'
 
 import { Inter, Playfair_Display } from 'next/font/google'
 
@@ -30,8 +32,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <ServerThemeInjector />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const savedTheme = localStorage.getItem('theme-color') || 'default';
+                if (savedTheme !== 'default') {
+                  document.documentElement.classList.add('theme-' + savedTheme);
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body className={`font-sans ${inter.variable} ${playfairDisplay.variable}`}>
         <ThemeCleanup />
+        <ThemeInjector />
         {children}
         <Toaster />
         <Analytics />

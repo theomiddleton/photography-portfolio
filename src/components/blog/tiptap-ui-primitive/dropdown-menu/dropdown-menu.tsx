@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from 'react'
 import {
   autoUpdate,
   flip,
@@ -6,7 +6,7 @@ import {
   FloatingList,
   FloatingPortal,
   offset,
-  Placement,
+  type Placement,
   shift,
   useClick,
   useDismiss,
@@ -17,15 +17,15 @@ import {
   useMergeRefs,
   useRole,
   useTypeahead,
-} from "@floating-ui/react"
-import { Separator } from "../separator"
+} from '@floating-ui/react'
+import { Separator } from '../separator'
 
 interface DropdownMenuOptions {
   initialOpen?: boolean
   open?: boolean
   onOpenChange?: (open: boolean) => void
-  side?: "top" | "right" | "bottom" | "left"
-  align?: "start" | "center" | "end"
+  side?: 'top' | 'right' | 'bottom' | 'left'
+  align?: 'start' | 'center' | 'end'
 }
 
 interface DropdownMenuProps extends DropdownMenuOptions {
@@ -34,8 +34,8 @@ interface DropdownMenuProps extends DropdownMenuOptions {
 
 type ContextType = ReturnType<typeof useDropdownMenu> & {
   updatePosition: (
-    side: "top" | "right" | "bottom" | "left",
-    align: "start" | "center" | "end"
+    side: 'top' | 'right' | 'bottom' | 'left',
+    align: 'start' | 'center' | 'end'
   ) => void
 }
 
@@ -45,7 +45,7 @@ function useDropdownMenuContext() {
   const context = React.useContext(DropdownMenuContext)
   if (!context) {
     throw new Error(
-      "DropdownMenu components must be wrapped in <DropdownMenu />"
+      'DropdownMenu components must be wrapped in <DropdownMenu />'
     )
   }
   return context
@@ -55,8 +55,8 @@ function useDropdownMenu({
   initialOpen = false,
   open: controlledOpen,
   onOpenChange: setControlledOpen,
-  side = "bottom",
-  align = "start",
+  side = 'bottom',
+  align = 'start',
 }: DropdownMenuOptions) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(initialOpen)
   const [currentPlacement, setCurrentPlacement] = React.useState<Placement>(
@@ -67,8 +67,8 @@ function useDropdownMenu({
   const open = controlledOpen ?? uncontrolledOpen
   const setOpen = setControlledOpen ?? setUncontrolledOpen
 
-  const elementsRef = React.useRef<Array<HTMLElement | null>>([])
-  const labelsRef = React.useRef<Array<string | null>>([])
+  const elementsRef = React.useRef<(HTMLElement | null)[]>([])
+  const labelsRef = React.useRef<(string | null)[]>([])
 
   const floating = useFloating({
     open,
@@ -82,14 +82,14 @@ function useDropdownMenu({
 
   const interactions = useInteractions([
     useClick(context, {
-      event: "mousedown",
+      event: 'mousedown',
       toggle: true,
       ignoreMouse: false,
     }),
-    useRole(context, { role: "menu" }),
+    useRole(context, { role: 'menu' }),
     useDismiss(context, {
       outsidePress: true,
-      outsidePressEvent: "mousedown",
+      outsidePressEvent: 'mousedown',
     }),
     useListNavigation(context, {
       listRef: elementsRef,
@@ -106,8 +106,8 @@ function useDropdownMenu({
 
   const updatePosition = React.useCallback(
     (
-      newSide: "top" | "right" | "bottom" | "left",
-      newAlign: "start" | "center" | "end"
+      newSide: 'top' | 'right' | 'bottom' | 'left',
+      newAlign: 'start' | 'center' | 'end'
     ) => {
       setCurrentPlacement(`${newSide}-${newAlign}` as Placement)
     },
@@ -165,7 +165,7 @@ export const DropdownMenuTrigger = React.forwardRef<
 
   if (asChild && React.isValidElement(children)) {
     const dataAttributes = {
-      "data-state": context.open ? "open" : "closed",
+      'data-state': context.open ? 'open' : 'closed',
     }
 
     return React.cloneElement(
@@ -173,9 +173,9 @@ export const DropdownMenuTrigger = React.forwardRef<
       context.getReferenceProps({
         ref,
         ...props,
-        ...(typeof children.props === "object" ? children.props : {}),
-        "aria-expanded": context.open,
-        "aria-haspopup": "menu" as const,
+        ...(typeof children.props === 'object' ? children.props : {}),
+        'aria-expanded': context.open,
+        'aria-haspopup': 'menu' as const,
         ...dataAttributes,
       })
     )
@@ -186,7 +186,7 @@ export const DropdownMenuTrigger = React.forwardRef<
       ref={ref}
       aria-expanded={context.open}
       aria-haspopup="menu"
-      data-state={context.open ? "open" : "closed"}
+      data-state={context.open ? 'open' : 'closed'}
       {...context.getReferenceProps(props)}
     >
       {children}
@@ -194,15 +194,15 @@ export const DropdownMenuTrigger = React.forwardRef<
   )
 })
 
-DropdownMenuTrigger.displayName = "DropdownMenuTrigger"
+DropdownMenuTrigger.displayName = 'DropdownMenuTrigger'
 
 interface DropdownMenuContentProps
   extends React.HTMLAttributes<HTMLDivElement> {
-  orientation?: "vertical" | "horizontal"
-  side?: "top" | "right" | "bottom" | "left"
-  align?: "start" | "center" | "end"
+  orientation?: 'vertical' | 'horizontal'
+  side?: 'top' | 'right' | 'bottom' | 'left'
+  align?: 'start' | 'center' | 'end'
   portal?: boolean
-  portalProps?: Omit<React.ComponentProps<typeof FloatingPortal>, "children">
+  portalProps?: Omit<React.ComponentProps<typeof FloatingPortal>, 'children'>
 }
 
 export const DropdownMenuContent = React.forwardRef<
@@ -212,9 +212,9 @@ export const DropdownMenuContent = React.forwardRef<
   ({
     style,
     className,
-    orientation = "vertical",
-    side = "bottom",
-    align = "start",
+    orientation = 'vertical',
+    side = 'bottom',
+    align = 'start',
     portal = true,
     portalProps = {},
     ...props
@@ -250,7 +250,7 @@ export const DropdownMenuContent = React.forwardRef<
             data-[side=right]:slide-in-from-left-2
             data-[side=top]:slide-in-from-bottom-2
             text-left
-            ${className || ""}
+            ${className || ''}
           `.trim()}
           style={{
             position: context.strategy,
@@ -278,7 +278,7 @@ export const DropdownMenuContent = React.forwardRef<
   }
 )
 
-DropdownMenuContent.displayName = "DropdownMenuContent"
+DropdownMenuContent.displayName = 'DropdownMenuContent'
 
 interface DropdownMenuItemProps extends React.HTMLAttributes<HTMLDivElement> {
   asChild?: boolean
@@ -309,15 +309,15 @@ export const DropdownMenuItem = React.forwardRef<
       ref: React.Ref<HTMLDivElement>
       role: string
       tabIndex: number
-      "aria-disabled"?: boolean
-      "data-highlighted"?: boolean
+      'aria-disabled'?: boolean
+      'data-highlighted'?: boolean
     } = {
       ref: useMergeRefs([item.ref, ref]),
-      role: "menuitem",
+      role: 'menuitem',
       className,
       tabIndex: isActive ? 0 : -1,
-      "data-highlighted": isActive,
-      "aria-disabled": disabled,
+      'data-highlighted': isActive,
+      'aria-disabled': disabled,
       ...context.getItemProps({
         ...props,
         onClick: handleSelect,
@@ -332,7 +332,7 @@ export const DropdownMenuItem = React.forwardRef<
       // Create merged props without adding onClick directly to the props object
       const mergedProps = {
         ...itemProps,
-        ...(typeof children.props === "object" ? children.props : {}),
+        ...(typeof children.props === 'object' ? children.props : {}),
       }
 
       // Handle onClick separately based on the element type
@@ -362,14 +362,14 @@ export const DropdownMenuItem = React.forwardRef<
       data-[highlighted=true]:bg-gray-100 dark:data-[highlighted=true]:bg-gray-800
       data-[highlighted=true]:text-gray-900 dark:data-[highlighted=true]:text-gray-100
       text-left
-      ${className || ""}
+      ${className || ''}
     `.trim()
 
     return <div {...itemProps} className={baseItemClasses}>{children}</div>
   }
 )
 
-DropdownMenuItem.displayName = "DropdownMenuItem"
+DropdownMenuItem.displayName = 'DropdownMenuItem'
 
 interface DropdownMenuGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   label?: string
@@ -385,14 +385,14 @@ export const DropdownMenuGroup = React.forwardRef<
       ref={ref}
       role="group"
       aria-label={label}
-      className={`flex flex-col gap-0.5 ${className || ""}`}
+      className={`flex flex-col gap-0.5 ${className || ''}`}
     >
       {children}
     </div>
   )
 })
 
-DropdownMenuGroup.displayName = "DropdownMenuGroup"
+DropdownMenuGroup.displayName = 'DropdownMenuGroup'
 
 export const DropdownMenuSeparator = React.forwardRef<
   React.ElementRef<typeof Separator>,
@@ -400,7 +400,7 @@ export const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <Separator
     ref={ref}
-    className={`my-1 h-px bg-gray-200 ${className || ""}`}
+    className={`my-1 h-px bg-gray-200 ${className || ''}`}
     {...props}
   />
 ))

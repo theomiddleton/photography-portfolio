@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from 'react'
 
 export const Code2Icon = React.memo(
   ({ className, ...props }: React.SVGProps<SVGSVGElement>) => {
@@ -29,4 +29,4 @@ export const Code2Icon = React.memo(
   }
 )
 
-Code2Icon.displayName = "Code2Icon"
+Code2Icon.displayName = 'Code2Icon'

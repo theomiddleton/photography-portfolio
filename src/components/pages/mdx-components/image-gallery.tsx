@@ -73,7 +73,7 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
   }
 
   return (
-    <div className={cn("w-full max-w-5xl mx-auto px-4 py-8", className)}>
+    <div className={cn('w-full max-w-5xl mx-auto px-4 py-8', className)}>
       {/* Main image container */}
       <div className="relative aspect-video w-full overflow-hidden rounded-lg">
         <div className="absolute inset-0 flex items-center justify-center">
@@ -83,8 +83,8 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
             width={images[currentIndex].width || 400}
             height={images[currentIndex].height || 600}
             className={cn(
-              "h-full w-auto object-contain transition-opacity duration-300",
-              isLoading ? "opacity-0" : "opacity-100"
+              'h-full w-auto object-contain transition-opacity duration-300',
+              isLoading ? 'opacity-0' : 'opacity-100'
             )}
             onLoad={() => setIsLoading(false)}
             priority
@@ -122,8 +122,8 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
               <div 
                 key={`${images[index].src}-${index}-${i}`}
                 className={cn(
-                  "relative mx-1 flex-none",
-                  i === Math.floor(visibleIndices.length / 2) ? "z-10" : "z-0"
+                  'relative mx-1 flex-none',
+                  i === Math.floor(visibleIndices.length / 2) ? 'z-10' : 'z-0'
                 )}
                 style={{
                   transform: i === Math.floor(visibleIndices.length / 2) ? 'none' : 'scale(0.9)',
@@ -133,8 +133,8 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
                 <button
                   onClick={() => handleThumbnailClick(index)}
                   className={cn(
-                    "relative block h-24 w-36 rounded-lg transition-all duration-300",
-                    i === Math.floor(visibleIndices.length / 2) && "ring-2 ring-black ring-offset-4"
+                    'relative block h-24 w-36 rounded-lg transition-all duration-300',
+                    i === Math.floor(visibleIndices.length / 2) && 'ring-2 ring-black ring-offset-4'
                   )}
                   aria-label={`View ${images[index].alt}`}
                   aria-current={index === currentIndex}

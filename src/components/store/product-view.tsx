@@ -88,10 +88,10 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div 
                         className={cn(
-                          "-translate-y-[5%]",
+                          '-translate-y-[5%]',
                           imageDimensions.height > imageDimensions.width 
-                            ? "w-[16.67%]"  // Portrait: scaled for equal area
-                            : "w-[25%]"     // Landscape: original size
+                            ? 'w-[16.67%]'  // Portrait: scaled for equal area
+                            : 'w-[25%]'     // Landscape: original size
                         )}
                         style={{
                           transform: imageDimensions.height > imageDimensions.width
@@ -166,10 +166,10 @@ export function ProductView({ product, sizes }: ProductViewProps) {
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div 
                         className={cn(
-                          "-translate-y-[5%]",
+                          '-translate-y-[5%]',
                           imageDimensions.height > imageDimensions.width 
-                            ? "w-[16.67%]"
-                            : "w-[25%]"
+                            ? 'w-[16.67%]'
+                            : 'w-[25%]'
                         )}
                         style={{
                           transform: imageDimensions.height > imageDimensions.width

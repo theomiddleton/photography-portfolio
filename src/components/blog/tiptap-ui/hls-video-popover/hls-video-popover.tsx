@@ -21,7 +21,7 @@ import {
 // --- UI Primitives ---
 import {
   Button as TipTapButton,
-  ButtonProps as TipTapButtonProps,
+  type ButtonProps as TipTapButtonProps,
 } from '~/components/blog/tiptap-ui-primitive/button'
 import { Button, ButtonProps } from '~/components/ui/button'
 import {
