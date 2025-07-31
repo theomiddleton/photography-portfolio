@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getActiveTheme } from '~/server/actions/themes'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const theme = await getActiveTheme()

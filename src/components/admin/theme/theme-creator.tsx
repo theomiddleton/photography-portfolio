@@ -438,7 +438,7 @@ export function ThemeCreator({ onThemeCreated }: ThemeCreatorProps) {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <Label htmlFor="cssContent">CSS Content</Label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
                       variant="outline"
@@ -468,6 +468,18 @@ export function ThemeCreator({ onThemeCreated }: ThemeCreatorProps) {
                       <Upload className="h-3 w-3 mr-1" />
                       Upload CSS
                     </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const testCSS = `:root { --primary: 0 84.2% 60.2%; --background: 120 100% 95%; } /* Red primary, light green background for testing */`
+                        setFormData(prev => ({ ...prev, cssContent: testCSS }))
+                        toast.info('Test CSS inserted - should show red buttons and light green background')
+                      }}
+                    >
+                      🧪 Test CSS
+                    </Button>
                   </div>
                 </div>
                 <Textarea
@@ -483,15 +495,45 @@ export function ThemeCreator({ onThemeCreated }: ThemeCreatorProps) {
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
   --primary: 240 5.9% 10%;
-  /* ... more CSS variables ... */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 10% 3.9%;
+  --radius: 0.5rem;
 }
 
 .dark {
   --background: 240 10% 3.9%;
-  /* ... dark mode variables ... */
+  --foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 5.9% 10%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
 }
 
-/* Your custom styles */`}
+/* Test: Red primary color for debugging */
+:root {
+  --primary: 0 84.2% 60.2%; /* Red */
+}
+
+/* Your custom styles here */`}
                   className="min-h-[300px] font-mono text-sm"
                   required
                 />

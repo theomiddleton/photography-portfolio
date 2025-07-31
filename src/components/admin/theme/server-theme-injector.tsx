@@ -12,7 +12,7 @@ export async function ServerThemeInjector() {
         <style 
           id="server-theme-styles"
           dangerouslySetInnerHTML={{ 
-            __html: activeTheme.cssContent 
+            __html: `/* Theme: ${activeTheme.name} */\n${activeTheme.cssContent}`
           }} 
         />
       )
