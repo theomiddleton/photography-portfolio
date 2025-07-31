@@ -154,9 +154,11 @@ export function validateColorFormat(color: string): { isValid: boolean; format?:
   const colorPatterns = {
     hex: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$/,
     rgb: /^rgba?\(\s*(\d+|(\d*\.\d+))\s*,\s*(\d+|(\d*\.\d+))\s*,\s*(\d+|(\d*\.\d+))\s*(,\s*(\d+|(\d*\.\d+)))?\s*\)$/,
-    hsl: /^hsla?\(\s*(\d+|(\d*\.\d+))\s*,\s*(\d+|(\d*\.\d+))%\s*,\s*(\d+|(\d*\.\d+))%\s*(,\s*(\d+|(\d*\.\d+)))?\s*\)$/,
+    // Updated HSL pattern to support both comma-separated AND space-separated values
+    hsl: /^hsla?\(\s*(\d+|(\d*\.\d+))\s*[,\s]\s*(\d+|(\d*\.\d+))%\s*[,\s]\s*(\d+|(\d*\.\d+))%\s*(,\s*(\d+|(\d*\.\d+)))?\s*\)$/,
     oklch: /^oklch\(\s*(\d+|(\d*\.\d+))\s+(\d+|(\d*\.\d+))\s+(\d+|(\d*\.\d+))\s*\)$/,
-    cssVariable: /^(\d+|(\d*\.\d+))\s+(\d+|(\d*\.\d+))%\s+(\d+|(\d*\.\d+))%$/ // HSL space-separated values for CSS variables
+    cssVariable: /^(\d+|(\d*\.\d+))\s+(\d+|(\d*\.\d+))%\s+(\d+|(\d*\.\d+))%$/, // HSL space-separated values for CSS variables
+    cssVariableRef: /^var\(--[\w-]+\)$/ // CSS variable references like var(--primary)
   }
 
   for (const [format, pattern] of Object.entries(colorPatterns)) {
@@ -243,9 +245,14 @@ export function extractColorsFromCSS(cssContent: string): {
           // Validate the extracted color
           const validation = validateColorFormat(convertedValue)
           if (validation.isValid) {
-            colors[key] = convertedValue
-            console.log(`✅ Extracted ${key}:`, convertedValue)
-            break // Use first valid match
+            // Skip CSS variable references for swatch colors, but consider actual color values
+            if (validation.format !== 'cssVariableRef') {
+              colors[key] = convertedValue
+              console.log(`✅ Extracted ${key}:`, convertedValue)
+              break // Use first valid match
+            } else {
+              console.log(`ℹ️ Found CSS variable reference for ${key}, looking for actual color value...`)
+            }
           } else {
             console.log(`❌ Invalid color format for ${key}:`, convertedValue)
           }
@@ -261,8 +268,8 @@ export function extractColorsFromCSS(cssContent: string): {
     // Look for hex colors
     const hexColors = cssContent.match(/#[A-Fa-f0-9]{6}(?![A-Fa-f0-9])|#[A-Fa-f0-9]{3}(?![A-Fa-f0-9])/g)
     
-    // Look for HSL colors  
-    const hslColors = cssContent.match(/hsl\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*\)/g)
+    // Look for HSL colors (both comma and space separated)
+    const hslColors = cssContent.match(/hsl\(\s*\d+(\.\d+)?\s*[,\s]\s*\d+(\.\d+)?%\s*[,\s]\s*\d+(\.\d+)?%\s*\)/g)
     
     // Look for RGB colors
     const rgbColors = cssContent.match(/rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)/g)
@@ -310,6 +317,11 @@ export function extractColorsFromCSS(cssContent: string): {
  * Convert CSS variable value to a standard color format
  */
 function convertCSSValueToColor(value: string): string {
+  // Handle CSS variable references (just return the reference as is for now)
+  if (value.startsWith('var(') && value.endsWith(')')) {
+    return value
+  }
+  
   // Handle HSL space-separated values (shadcn/ui format)
   if (/^\d+(\.\d+)?\s+\d+(\.\d+)?%\s+\d+(\.\d+)?%/.test(value)) {
     return `hsl(${value})`
