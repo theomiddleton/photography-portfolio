@@ -78,20 +78,31 @@ export function ThemeSelectorAdvanced({ onThemeChange }: ThemeSelectorAdvancedPr
   const handleActivateTheme = async (themeId: string) => {
     setLoading(true)
     try {
+      console.log('🎨 Activating theme:', themeId)
       const result = await activateTheme(themeId)
       if (result.success) {
         setActiveThemeId(themeId)
         onThemeChange?.(themeId)
         
+        // Force a small delay to ensure database is updated
+        await new Promise(resolve => setTimeout(resolve, 200))
+        
         // Dispatch custom event for theme change
+        console.log('🔄 Dispatching theme-changed event')
         window.dispatchEvent(new CustomEvent('theme-changed'))
         
-        toast.success('Theme activated successfully')
+        // Additional debugging
+        setTimeout(() => {
+          const activeThemeVar = getComputedStyle(document.documentElement).getPropertyValue('--active-theme')
+          console.log('🔍 Active theme after change:', activeThemeVar)
+        }, 1000)
+        
+        toast.success('✅ Theme activated and applied successfully')
       } else {
         toast.error(result.error || 'Failed to activate theme')
       }
     } catch (error) {
-      console.error('Error activating theme:', error)
+      console.error('❌ Error activating theme:', error)
       toast.error('Failed to activate theme')
     } finally {
       setLoading(false)

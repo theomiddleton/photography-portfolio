@@ -62,15 +62,14 @@ export function ThemeCreator({ onThemeCreated }: ThemeCreatorProps) {
       setValidation(result)
       
       // Auto-extract colors when CSS content changes
+      console.log('🎨 Auto-extracting colors from pasted CSS...')
       const extractedColors = extractColorsFromCSS(formData.cssContent)
       
       // Only update colors if they were successfully extracted (not defaults)
-      const hasExtractedColors = Object.entries(extractedColors).some(([key, color]) => {
-        const defaults = { primary: '#3b82f6', secondary: '#6b7280', accent: '#0066cc', background: '#ffffff', foreground: '#000000' }
-        return color !== (defaults as any)[key]
-      })
+      const hasExtractedColors = Object.keys(extractedColors).length > 0
       
       if (hasExtractedColors) {
+        console.log('✅ Colors extracted:', extractedColors)
         setFormData(prev => ({
           ...prev,
           primaryColor: extractedColors.primary || prev.primaryColor,
@@ -81,7 +80,9 @@ export function ThemeCreator({ onThemeCreated }: ThemeCreatorProps) {
         }))
         
         // Show feedback that colors were extracted
-        toast.success('🎨 Colors automatically extracted from CSS!')
+        toast.success(`🎨 Colors automatically extracted! Found ${Object.keys(extractedColors).length} colors`)
+      } else {
+        console.log('ℹ️ No colors extracted from CSS')
       }
     } else {
       setValidation(null)
@@ -473,12 +474,82 @@ export function ThemeCreator({ onThemeCreated }: ThemeCreatorProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        const testCSS = `:root { --primary: 0 84.2% 60.2%; --background: 120 100% 95%; } /* Red primary, light green background for testing */`
+                        const testCSS = `@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 120 100% 95%;
+    --foreground: 0 0% 10%;
+    --primary: 0 84% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 120 20% 85%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 120 20% 85%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 84% 60%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 120 20% 75%;
+    --input: 120 20% 75%;
+    --ring: 0 84% 60%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 120 20% 8%;
+    --foreground: 0 0% 98%;
+    --primary: 0 84% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 120 20% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 120 20% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 84% 60%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 120 20% 15%;
+    --input: 120 20% 15%;
+    --ring: 0 84% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Test: This should show light green background and red buttons */`
                         setFormData(prev => ({ ...prev, cssContent: testCSS }))
-                        toast.info('Test CSS inserted - should show red buttons and light green background')
+                        toast.info('🧪 Test CSS inserted - Should show light green background and red buttons/accents')
                       }}
                     >
                       🧪 Test CSS
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        // Debug current theme state
+                        const debugInfo = {
+                          activeTheme: document.querySelector('#dynamic-theme-styles')?.textContent?.substring(0, 200) + '...',
+                          injectedStyles: document.querySelectorAll('style[id*="theme"]').length,
+                          cssVariables: getComputedStyle(document.documentElement).getPropertyValue('--primary'),
+                          themeIdentifier: getComputedStyle(document.documentElement).getPropertyValue('--active-theme')
+                        }
+                        console.log('🔍 Theme Debug Info:', debugInfo)
+                        toast.info('Debug info logged to console. Check browser dev tools.')
+                      }}
+                    >
+                      🔍 Debug
                     </Button>
                   </div>
                 </div>

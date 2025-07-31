@@ -180,18 +180,51 @@ export function extractColorsFromCSS(cssContent: string): {
 } {
   const colors: Record<string, string> = {}
   
-  // Common CSS variable patterns to look for
+  console.log('🎨 Extracting colors from CSS...')
+  
+  // Enhanced CSS variable patterns with more variations
   const colorMappings = [
-    { key: 'primary', patterns: ['--primary:', '--color-primary:', '--primary-500:', '--primary-foreground:'] },
-    { key: 'secondary', patterns: ['--secondary:', '--color-secondary:', '--secondary-500:', '--secondary-foreground:'] },
-    { key: 'accent', patterns: ['--accent:', '--color-accent:', '--accent-500:', '--accent-foreground:'] },
-    { key: 'background', patterns: ['--background:', '--color-background:', '--bg-color:', '--bg-primary:'] },
-    { key: 'foreground', patterns: ['--foreground:', '--color-foreground:', '--text-color:', '--text-primary:'] }
+    { 
+      key: 'primary', 
+      patterns: [
+        '--primary:', '--color-primary:', '--primary-500:', '--primary-600:', '--primary-700:',
+        '--blue:', '--blue-500:', '--blue-600:', '--indigo:', '--indigo-500:'
+      ]
+    },
+    { 
+      key: 'secondary', 
+      patterns: [
+        '--secondary:', '--color-secondary:', '--secondary-500:', '--secondary-600:',
+        '--gray:', '--gray-500:', '--slate:', '--slate-500:', '--neutral:', '--neutral-500:'
+      ]
+    },
+    { 
+      key: 'accent', 
+      patterns: [
+        '--accent:', '--color-accent:', '--accent-500:', '--accent-600:',
+        '--violet:', '--violet-500:', '--purple:', '--purple-500:', '--pink:', '--pink-500:'
+      ]
+    },
+    { 
+      key: 'background', 
+      patterns: [
+        '--background:', '--color-background:', '--bg-color:', '--bg-primary:',
+        '--white:', '--gray-50:', '--slate-50:', '--neutral-50:', '--stone-50:'
+      ]
+    },
+    { 
+      key: 'foreground', 
+      patterns: [
+        '--foreground:', '--color-foreground:', '--text-color:', '--text-primary:',
+        '--black:', '--gray-900:', '--slate-900:', '--neutral-900:', '--stone-900:'
+      ]
+    }
   ]
 
-  // Extract values from CSS variables
+  // Extract values from CSS variables with improved parsing
   colorMappings.forEach(({ key, patterns }) => {
     for (const pattern of patterns) {
+      // More flexible regex that handles various spacing and semicolons
       const regex = new RegExp(`${pattern.replace(':', '\\s*:\\s*')}([^;\\n}]+)`, 'gi')
       const matches = cssContent.matchAll(regex)
       
@@ -199,43 +232,128 @@ export function extractColorsFromCSS(cssContent: string): {
         if (match[1]) {
           let value = match[1].trim()
           
-          // Convert CSS variable values to proper colors
-          if (/^\d+(\.\d+)?\s+\d+(\.\d+)?%\s+\d+(\.\d+)?%/.test(value)) {
-            // HSL space-separated values (shadcn/ui format)
-            value = `hsl(${value})`
-          }
+          // Clean up the value
+          value = value.replace(/;$/, '').trim() // Remove trailing semicolon
+          
+          console.log(`Found ${key} candidate:`, value)
+          
+          // Convert various formats to standard color format
+          let convertedValue = convertCSSValueToColor(value)
           
           // Validate the extracted color
-          const validation = validateColorFormat(value)
+          const validation = validateColorFormat(convertedValue)
           if (validation.isValid) {
-            colors[key] = value
+            colors[key] = convertedValue
+            console.log(`✅ Extracted ${key}:`, convertedValue)
             break // Use first valid match
+          } else {
+            console.log(`❌ Invalid color format for ${key}:`, convertedValue)
           }
         }
       }
     }
   })
 
-  // Fallback: look for common hex colors in the CSS
+  // Enhanced fallback: look for various color formats in the CSS
   if (Object.keys(colors).length === 0) {
+    console.log('🔍 No CSS variables found, looking for direct color values...')
+    
+    // Look for hex colors
     const hexColors = cssContent.match(/#[A-Fa-f0-9]{6}(?![A-Fa-f0-9])|#[A-Fa-f0-9]{3}(?![A-Fa-f0-9])/g)
-    if (hexColors && hexColors.length > 0) {
+    
+    // Look for HSL colors  
+    const hslColors = cssContent.match(/hsl\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*\)/g)
+    
+    // Look for RGB colors
+    const rgbColors = cssContent.match(/rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)/g)
+    
+    const allColors = [
+      ...(hexColors || []),
+      ...(hslColors || []),
+      ...(rgbColors || [])
+    ]
+    
+    if (allColors.length > 0) {
       // Use unique colors only
-      const uniqueColors = [...new Set(hexColors)]
+      const uniqueColors = [...new Set(allColors)]
+      console.log('🎨 Found direct colors:', uniqueColors)
+      
       colors.primary = uniqueColors[0] || '#3b82f6'
       colors.secondary = uniqueColors[1] || '#6b7280'
       colors.accent = uniqueColors[2] || '#0066cc'
-      colors.background = '#ffffff'
-      colors.foreground = '#000000'
+      
+      // Try to find likely background colors (light colors)
+      const lightColors = uniqueColors.filter(color => isLightColor(color))
+      colors.background = lightColors[0] || '#ffffff'
+      
+      // Try to find likely foreground colors (dark colors)
+      const darkColors = uniqueColors.filter(color => !isLightColor(color))
+      colors.foreground = darkColors[0] || '#000000'
     }
   }
 
-  // Provide sensible defaults if nothing was found
-  return {
-    primary: colors.primary || '#3b82f6',
-    secondary: colors.secondary || '#6b7280', 
-    accent: colors.accent || '#0066cc',
-    background: colors.background || '#ffffff',
-    foreground: colors.foreground || '#000000'
+  // Only return colors that were actually extracted (not defaults)
+  const extractedColors: any = {}
+  const defaults = { primary: '#3b82f6', secondary: '#6b7280', accent: '#0066cc', background: '#ffffff', foreground: '#000000' }
+  
+  Object.entries(colors).forEach(([key, value]) => {
+    if (value && value !== (defaults as any)[key]) {
+      extractedColors[key] = value
+    }
+  })
+  
+  console.log('🎨 Final extracted colors:', extractedColors)
+  return extractedColors
+}
+
+/**
+ * Convert CSS variable value to a standard color format
+ */
+function convertCSSValueToColor(value: string): string {
+  // Handle HSL space-separated values (shadcn/ui format)
+  if (/^\d+(\.\d+)?\s+\d+(\.\d+)?%\s+\d+(\.\d+)?%/.test(value)) {
+    return `hsl(${value})`
   }
+  
+  // Handle RGB space-separated values 
+  if (/^\d+\s+\d+\s+\d+$/.test(value)) {
+    return `rgb(${value.replace(/\s+/g, ', ')})`
+  }
+  
+  // Handle oklch format
+  if (/^\d+(\.\d+)?\s+\d+(\.\d+)?\s+\d+(\.\d+)?$/.test(value)) {
+    return `oklch(${value})`
+  }
+  
+  // Already a standard color format or invalid
+  return value
+}
+
+/**
+ * Determine if a color is likely a light color (background)
+ */
+function isLightColor(color: string): boolean {
+  // Convert hex to RGB for lightness calculation
+  if (color.startsWith('#')) {
+    const hex = color.slice(1)
+    const r = parseInt(hex.slice(0, 2), 16)
+    const g = parseInt(hex.slice(2, 4), 16)
+    const b = parseInt(hex.slice(4, 6), 16)
+    
+    // Calculate relative luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    return luminance > 0.5
+  }
+  
+  // For HSL, check lightness value
+  if (color.startsWith('hsl(')) {
+    const match = color.match(/hsl\(\s*\d+\s*,\s*\d+%\s*,\s*(\d+)%\s*\)/)
+    if (match) {
+      const lightness = parseInt(match[1])
+      return lightness > 50
+    }
+  }
+  
+  // Default assumption
+  return false
 }
