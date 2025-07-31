@@ -5,6 +5,7 @@ import { AxiomWebVitals } from 'next-axiom'
 import { Toaster } from '~/components/ui/sonner'
 import { ThemeCleanup } from '~/components/admin/theme/theme-cleanup'
 import { ThemeInjector } from '~/components/admin/theme/theme-injector'
+import { ServerThemeInjector } from '~/components/admin/theme/server-theme-injector'
 
 import { Inter, Playfair_Display } from 'next/font/google'
 
@@ -32,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <ServerThemeInjector />
         <script
           dangerouslySetInnerHTML={{
             __html: `

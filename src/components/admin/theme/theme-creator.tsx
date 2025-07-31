@@ -63,14 +63,26 @@ export function ThemeCreator({ onThemeCreated }: ThemeCreatorProps) {
       
       // Auto-extract colors when CSS content changes
       const extractedColors = extractColorsFromCSS(formData.cssContent)
-      setFormData(prev => ({
-        ...prev,
-        primaryColor: extractedColors.primary || prev.primaryColor,
-        secondaryColor: extractedColors.secondary || prev.secondaryColor,
-        accentColor: extractedColors.accent || prev.accentColor,
-        backgroundColor: extractedColors.background || prev.backgroundColor,
-        foregroundColor: extractedColors.foreground || prev.foregroundColor,
-      }))
+      
+      // Only update colors if they were successfully extracted (not defaults)
+      const hasExtractedColors = Object.entries(extractedColors).some(([key, color]) => {
+        const defaults = { primary: '#3b82f6', secondary: '#6b7280', accent: '#0066cc', background: '#ffffff', foreground: '#000000' }
+        return color !== (defaults as any)[key]
+      })
+      
+      if (hasExtractedColors) {
+        setFormData(prev => ({
+          ...prev,
+          primaryColor: extractedColors.primary || prev.primaryColor,
+          secondaryColor: extractedColors.secondary || prev.secondaryColor,
+          accentColor: extractedColors.accent || prev.accentColor,
+          backgroundColor: extractedColors.background || prev.backgroundColor,
+          foregroundColor: extractedColors.foreground || prev.foregroundColor,
+        }))
+        
+        // Show feedback that colors were extracted
+        toast.success('🎨 Colors automatically extracted from CSS!')
+      }
     } else {
       setValidation(null)
     }

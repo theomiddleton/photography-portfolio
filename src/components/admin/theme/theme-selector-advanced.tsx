@@ -18,6 +18,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '~/components/ui/alert-dialog'
 import { 
   getThemes, 
   activateTheme, 
@@ -35,6 +45,10 @@ export function ThemeSelectorAdvanced({ onThemeChange }: ThemeSelectorAdvancedPr
   const [activeThemeId, setActiveThemeId] = React.useState<string | null>(null)
   const [mounted, setMounted] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const [deleteDialog, setDeleteDialog] = React.useState<{
+    open: boolean
+    theme: Theme | null
+  }>({ open: false, theme: null })
 
   React.useEffect(() => {
     setMounted(true)
@@ -84,13 +98,11 @@ export function ThemeSelectorAdvanced({ onThemeChange }: ThemeSelectorAdvancedPr
     }
   }
 
-  const handleDeleteTheme = async (themeId: string, themeName: string) => {
-    if (!confirm(`Are you sure you want to delete the theme "${themeName}"?`)) {
-      return
-    }
+  const handleDeleteTheme = async (theme: Theme) => {
+    setDeleteDialog({ open: false, theme: null })
 
     try {
-      const result = await deleteTheme(themeId)
+      const result = await deleteTheme(theme.id)
       if (result.success) {
         await loadThemes()
         toast.success('Theme deleted successfully')
@@ -101,6 +113,10 @@ export function ThemeSelectorAdvanced({ onThemeChange }: ThemeSelectorAdvancedPr
       console.error('Error deleting theme:', error)
       toast.error('Failed to delete theme')
     }
+  }
+
+  const openDeleteDialog = (theme: Theme) => {
+    setDeleteDialog({ open: true, theme })
   }
 
   if (!mounted) {
@@ -241,7 +257,7 @@ export function ThemeSelectorAdvanced({ onThemeChange }: ThemeSelectorAdvancedPr
                         <>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
-                            onClick={() => handleDeleteTheme(theme.id, theme.name)}
+                            onClick={() => openDeleteDialog(theme)}
                             className="text-destructive"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
@@ -257,6 +273,27 @@ export function ThemeSelectorAdvanced({ onThemeChange }: ThemeSelectorAdvancedPr
           ))}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, theme: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Theme</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the theme "{deleteDialog.theme?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteDialog.theme && handleDeleteTheme(deleteDialog.theme)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

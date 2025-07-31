@@ -19,17 +19,23 @@ export function ThemeInjector() {
         if (response.ok) {
           const theme = await response.json()
           if (theme) {
-            // Remove existing dynamic theme styles
+            // Remove existing dynamic theme styles (but keep server styles)
             const existingStyle = document.getElementById('dynamic-theme-styles')
             if (existingStyle) {
               existingStyle.remove()
             }
 
-            // Inject the new theme CSS
-            const style = document.createElement('style')
-            style.id = 'dynamic-theme-styles'
-            style.textContent = theme.cssContent
-            document.head.appendChild(style)
+            // Only inject if we don't have server styles or they're different
+            const serverStyles = document.getElementById('server-theme-styles')
+            const shouldInject = !serverStyles || serverStyles.textContent !== theme.cssContent
+
+            if (shouldInject) {
+              // Inject the new theme CSS
+              const style = document.createElement('style')
+              style.id = 'dynamic-theme-styles'
+              style.textContent = theme.cssContent
+              document.head.appendChild(style)
+            }
           }
         }
       } catch (error) {
