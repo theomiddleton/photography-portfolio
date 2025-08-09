@@ -7,6 +7,8 @@
 
 # testing
 /coverage
+test-*.mjs
+test-*.js
 
 # database
 /drizzle/

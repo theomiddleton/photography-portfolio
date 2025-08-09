@@ -81,6 +81,11 @@ function parseExifDate(dateString: string): Date | undefined {
  */
 export async function extractExifData(buffer: ArrayBuffer): Promise<ExifData> {
   try {
+    // Validate buffer
+    if (!buffer || buffer.byteLength === 0) {
+      return { rawExifData: { error: 'Empty buffer provided' } }
+    }
+
     // Extract comprehensive EXIF data
     const exifData = await exifr.parse(buffer, {
       tiff: true,
