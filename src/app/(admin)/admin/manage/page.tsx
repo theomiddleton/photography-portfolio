@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
-import { Upload, Loader2, Database, AlertTriangle, Check, X } from 'lucide-react'
+import { Upload, Loader2, Database, AlertTriangle, Check, X, EyeOff } from 'lucide-react'
 
 import { Button } from '~/components/ui/button'
 import { ImageGallery } from '~/components/image-gallery/image-gallery'
@@ -38,7 +38,7 @@ export default function ImageManagementPage() {
   // EXIF migration state
   const [exifMigrationState, setExifMigrationState] = useState<{
     totalWithoutExif: number
-    imagesWithoutExif: Array<{ uuid: string; fileUrl: string; name: string }>
+    imagesWithoutExif: { uuid: string; fileUrl: string; name: string }[]
     isCheckingExif: boolean
     isMigrating: boolean
     migrationProgress: number
@@ -57,6 +57,30 @@ export default function ImageManagementPage() {
     migrationResults: null,
     showMigrationDetails: false,
   })
+
+  // EXIF banner ignore preferences
+  const [exifIgnorePrefs, setExifIgnorePrefs] = useState<{
+    ignoreAll: boolean
+    ignoredCurrentImages: string[] // Array of image UUIDs
+  }>({
+    ignoreAll: false,
+    ignoredCurrentImages: [],
+  })
+
+  // Load ignore preferences from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedIgnoreAll = localStorage.getItem('admin-exif-ignore-all')
+      const savedIgnoredImages = localStorage.getItem('admin-exif-ignored-images')
+      
+      setExifIgnorePrefs({
+        ignoreAll: savedIgnoreAll === 'true',
+        ignoredCurrentImages: savedIgnoredImages ? JSON.parse(savedIgnoredImages) : [],
+      })
+    } catch (error) {
+      console.error('Error loading EXIF ignore preferences:', error)
+    }
+  }, [])
 
   useEffect(() => {
     console.log('Fetching initial images...')
@@ -171,7 +195,12 @@ export default function ImageManagementPage() {
   }
 
   const handleMigrateExifData = async () => {
-    if (exifMigrationState.imagesWithoutExif.length === 0) return
+    // Filter out ignored images
+    const unignoredImages = exifMigrationState.imagesWithoutExif.filter(
+      img => !exifIgnorePrefs.ignoredCurrentImages.includes(img.uuid)
+    )
+    
+    if (unignoredImages.length === 0) return
 
     setExifMigrationState(prev => ({
       ...prev,
@@ -181,7 +210,7 @@ export default function ImageManagementPage() {
     }))
 
     try {
-      const imageIds = exifMigrationState.imagesWithoutExif.map(img => img.uuid)
+      const imageIds = unignoredImages.map(img => img.uuid)
       const batchSize = 5 // Process in smaller batches to avoid timeouts
       let totalProcessed = 0
       let totalFailed = 0
@@ -238,13 +267,82 @@ export default function ImageManagementPage() {
         isMigrating: false,
         migrationResults: {
           processed: 0,
-          failed: exifMigrationState.imagesWithoutExif.length,
+          failed: unignoredImages.length,
           errors: [error instanceof Error ? error.message : 'Unknown error occurred'],
         },
         showMigrationDetails: true,
       }))
       toast.error('Failed to migrate EXIF data')
     }
+  }
+
+  const handleIgnoreCurrentImages = () => {
+    const currentImageUuids = exifMigrationState.imagesWithoutExif.map(img => img.uuid)
+    const updatedIgnoredImages = [...exifIgnorePrefs.ignoredCurrentImages, ...currentImageUuids]
+    
+    try {
+      localStorage.setItem('admin-exif-ignored-images', JSON.stringify(updatedIgnoredImages))
+      setExifIgnorePrefs(prev => ({
+        ...prev,
+        ignoredCurrentImages: updatedIgnoredImages,
+      }))
+      toast.success(`Ignored ${currentImageUuids.length} images without EXIF data`)
+    } catch (error) {
+      console.error('Error saving ignore preferences:', error)
+      toast.error('Failed to save ignore preferences')
+    }
+  }
+
+  const handleIgnoreAllImages = () => {
+    try {
+      localStorage.setItem('admin-exif-ignore-all', 'true')
+      setExifIgnorePrefs(prev => ({
+        ...prev,
+        ignoreAll: true,
+      }))
+      toast.success('EXIF warnings disabled for all images')
+    } catch (error) {
+      console.error('Error saving ignore preferences:', error)
+      toast.error('Failed to save ignore preferences')
+    }
+  }
+
+  const handleResetIgnorePreferences = () => {
+    try {
+      localStorage.removeItem('admin-exif-ignore-all')
+      localStorage.removeItem('admin-exif-ignored-images')
+      setExifIgnorePrefs({
+        ignoreAll: false,
+        ignoredCurrentImages: [],
+      })
+      toast.success('EXIF warning preferences reset')
+      // Re-check for images without EXIF
+      checkImagesWithoutExif()
+    } catch (error) {
+      console.error('Error resetting ignore preferences:', error)
+      toast.error('Failed to reset ignore preferences')
+    }
+  }
+
+  // Filter out ignored images from the display
+  const shouldShowExifBanner = () => {
+    // If ignoring all EXIF warnings, don't show banner
+    if (exifIgnorePrefs.ignoreAll) {
+      return false
+    }
+
+    // Filter out images that have been explicitly ignored
+    const unignoredImages = exifMigrationState.imagesWithoutExif.filter(
+      img => !exifIgnorePrefs.ignoredCurrentImages.includes(img.uuid)
+    )
+
+    return unignoredImages.length > 0
+  }
+
+  const getUnignoredImagesCount = () => {
+    return exifMigrationState.imagesWithoutExif.filter(
+      img => !exifIgnorePrefs.ignoredCurrentImages.includes(img.uuid)
+    ).length
   }
 
   if (isLoading) {
@@ -284,27 +382,66 @@ export default function ImageManagementPage() {
             Organize and manage your photography portfolio
           </p>
         </div>
-        <Button
-          className="flex items-center gap-2"
-          onClick={() => (window.location.href = '/admin/upload')}
-        >
-          <Upload className="h-4 w-4" />
-          Upload Images
-        </Button>
+        <div className="flex items-center gap-4">
+          {/* EXIF Settings - only show if there are ignore preferences set */}
+          {(exifIgnorePrefs.ignoreAll || exifIgnorePrefs.ignoredCurrentImages.length > 0) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetIgnorePreferences}
+              className="flex items-center gap-2 text-muted-foreground"
+              title="Reset EXIF warning preferences"
+            >
+              <Database className="h-4 w-4" />
+              Reset EXIF Settings
+            </Button>
+          )}
+          <Button
+            className="flex items-center gap-2"
+            onClick={() => (window.location.href = '/admin/upload')}
+          >
+            <Upload className="h-4 w-4" />
+            Upload Images
+          </Button>
+        </div>
       </div>
 
       {/* EXIF Migration Banner */}
-      {exifMigrationState.totalWithoutExif > 0 && (
+      {shouldShowExifBanner() && (
         <Card className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-              <CardTitle className="text-lg text-amber-800 dark:text-amber-200">
-                EXIF Data Migration Required
-              </CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <CardTitle className="text-lg text-amber-800 dark:text-amber-200">
+                  EXIF Data Migration Required
+                </CardTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleIgnoreCurrentImages}
+                  className="flex items-center gap-1 text-amber-700 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200"
+                  title="Hide this warning for current images"
+                >
+                  <EyeOff className="h-4 w-4" />
+                  Ignore Current
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleIgnoreAllImages}
+                  className="flex items-center gap-1 text-amber-700 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200"
+                  title="Disable EXIF warnings for all images"
+                >
+                  <EyeOff className="h-4 w-4" />
+                  Ignore All
+                </Button>
+              </div>
             </div>
             <CardDescription className="text-amber-700 dark:text-amber-300">
-              {exifMigrationState.totalWithoutExif} image{exifMigrationState.totalWithoutExif === 1 ? '' : 's'} without EXIF metadata found. 
+              {getUnignoredImagesCount()} image{getUnignoredImagesCount() === 1 ? '' : 's'} without EXIF metadata found. 
               EXIF data contains important camera settings and technical information.
             </CardDescription>
           </CardHeader>
@@ -323,7 +460,7 @@ export default function ImageManagementPage() {
                   )}
                   {exifMigrationState.isMigrating 
                     ? 'Migrating...' 
-                    : `Extract EXIF for ${exifMigrationState.totalWithoutExif} Images`
+                    : `Extract EXIF for ${getUnignoredImagesCount()} Images`
                   }
                 </Button>
                 <Button
