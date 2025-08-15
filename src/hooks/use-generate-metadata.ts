@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { isAIAvailable } from '~/lib/ai-utils'
 
 export interface Metadata {
   title: string
@@ -16,6 +17,11 @@ export function useGenerateMetadata() {
     imageUrl: string,
     tasks: string[],
   ): Promise<Partial<Metadata>> {
+    // Check if AI is available
+    if (!isAIAvailable()) {
+      throw new Error('AI features are not available')
+    }
+
     // Abort previous request if still running
     if (controller) {
       controller.abort()

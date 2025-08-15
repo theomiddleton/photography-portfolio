@@ -6,6 +6,7 @@ import { google } from '@ai-sdk/google'
 import { waitUntil } from '@vercel/functions'
 import { logAction } from '~/lib/logging'
 import { AI_PROMPTS } from '~/config/ai-prompts'
+import { isAIAvailable, getAIUnavailableReason } from '~/lib/ai-utils'
 
 export const runtime = 'edge'
 
@@ -61,6 +62,14 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now()
 
   try {
+    // Check if AI features are available
+    if (!isAIAvailable()) {
+      return NextResponse.json(
+        { error: getAIUnavailableReason() },
+        { status: 400 },
+      )
+    }
+
     // Check authentication
     const session = await getSession()
     if (!session || session.role !== 'admin') {

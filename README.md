@@ -7,6 +7,7 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 - [Demo](#️-demo)
 - [Features](#-features)
 - [Technology Stack](#️-technology-stack)
+- [AI Features & Privacy Options](#-ai-features--privacy-options)
 - [Quick Start](#-quick-start)
 - [Environment Setup](#-environment-setup)
 - [Recommended Setup](#-recommended-setup)
@@ -18,6 +19,8 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 - [Available Scripts](#-available-scripts)
 - [Project Structure](#️-project-structure)
 - [Configuration](#-configuration)
+- [AI Features Configuration](#ai-features-configuration)
+- [Lightroom Integration](#-lightroom-integration)
 - [Security Features](#️-security-features)
 - [Performance Optimizations](#-performance-optimizations)
 - [Contributing](#-contributing)
@@ -32,6 +35,7 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 ## ✨ Features
 
 ### Core Features
+
 - **📸 Image Gallery**: Responsive masonry/grid layouts with lightbox viewing
 - **📝 Blog System**: Rich text editor with TipTap, image uploads, and publishing workflow
 - **🛒 Print Store**: E-commerce platform with Stripe integration for selling photography prints
@@ -42,6 +46,7 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 - **📄 Custom Pages**: MDX-powered custom page creation
 
 ### Advanced Features
+
 - **🔐 Authentication**: Secure user authentication with role-based access
 - **☁️ Cloud Storage**: Integrated with Cloudflare R2 for image/file storage
 - **💳 Payment Processing**: Stripe integration with order management
@@ -55,37 +60,77 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - **[Next.js 15](https://nextjs.org/)** - React framework with App Router
 - **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript
 - **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
 - **[Shadcn/ui](https://ui.shadcn.com/)** - Beautiful UI components
 
 ### Backend & Database
+
 - **[Drizzle ORM](https://orm.drizzle.team/)** - Type-safe SQL ORM
 - **[PostgreSQL](https://www.postgresql.org/)** - Primary database
 - **[Neon](https://neon.tech/)** - Serverless PostgreSQL (recommended)
 
 ### Storage & Media
+
 - **[Cloudflare R2](https://www.cloudflare.com/products/r2/)** - Object storage for images/files
 - **HLS Streaming** - Video content delivery
 
 ### Payments & Commerce
+
 - **[Stripe](https://stripe.com/)** - Payment processing and e-commerce
 - **Order Management** - Complete order tracking and fulfillment
 
 ### Content & Communication
+
 - **[TipTap](https://tiptap.dev/)** - Rich text editor for blog posts
 - **[MDX](https://mdxjs.com/)** - Markdown with React components
 - **[Resend](https://resend.com/)** - Email delivery service
 
 ### AI & Enhanced Features
+
 - **[Google AI](https://ai.google.dev/)** - AI-powered content labeling
 - **[Vercel Analytics](https://vercel.com/analytics)** - Performance analytics
+
+### 🔧 AI Features & Privacy Options
+
+This project includes optional AI features powered by Google's Generative AI for automated metadata generation (titles, descriptions, and tags for your images). **AI features are completely optional and can be easily disabled.**
+
+**For users who prefer not to use AI** (for ethical, privacy, or other reasons):
+
+1. **Disable via Environment**: Simply don't include the `GOOGLE_GENERATIVE_AI_API_KEY` in your environment variables
+2. **Disable via Configuration**: Set `features.aiEnabled: false` in `src/config/site.ts`
+3. **Both methods**: Use both approaches for complete certainty
+
+When AI features are disabled:
+
+- ✅ All AI buttons and UI elements are completely hidden
+- ✅ Core functionality remains 100% intact
+- ✅ Manual metadata entry works normally
+- ✅ Upload and gallery features work without any limitations
+- ✅ No AI-related network requests are made
+- ✅ Clean, distraction-free interface
+
+**What AI features do when enabled:**
+
+- Generate descriptive titles for uploaded images
+- Create detailed descriptions of image content
+- Suggest relevant tags based on visual analysis
+- All suggestions can be edited or ignored
+
+**Data & Privacy:**
+
+- Images are uploaded to your own cloud storage for processing
+- AI analysis is performed via Google's API with their standard privacy policies
+- No permanent storage of images by AI providers
+- You maintain full control over all generated content
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - pnpm / npm / bun
 - PostgreSQL database
 - Cloudflare R2 account
@@ -97,6 +142,8 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
    ```bash
    git clone https://github.com/theomiddleton/portfolio-project
    cd portfolio-project
+   ```
+
 ```
 portfolio-project/
 ├── lightroom-plugin/           # Adobe Lightroom Classic plugin
@@ -131,19 +178,22 @@ portfolio-project/
 ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Fill in your environment variables (see [Environment Setup](#environment-setup) below)
 
 4. **Set up the database**
+
    ```bash
    pnpm run generate
    pnpm run migrate
    ```
 
 5. **Start the development server**
+
    ```bash
    pnpm run dev
    ```
@@ -185,7 +235,10 @@ JWT_SECRET="your-strong-jwt-secret-min-32-chars"
 JWT_EXPIRATION_HOURS="720"
 FLAGS_SECRET="your-32-character-minimum-secret"
 
-# AI (Optional)
+# AI Features (Optional - Remove to disable AI completely)
+# Enables AI-powered metadata generation for images
+# If you prefer not to use AI for ethical or privacy reasons,
+# simply omit this variable and AI features will be disabled
 GOOGLE_GENERATIVE_AI_API_KEY="your-google-ai-key"
 
 # Lightroom Integration (Optional)
@@ -201,16 +254,19 @@ EDGE_CONFIG="https://edge-config.vercel.com/..." # Optional
 This is the production-ready stack I recommend and use:
 
 ### Hosting & Infrastructure
+
 - **[Vercel](https://vercel.com/)** - Frontend hosting and edge functions
 - **[Neon](https://neon.tech/)** - Serverless PostgreSQL database
 - **[Cloudflare R2](https://www.cloudflare.com/products/r2/)** - Object storage
 - **[Resend](https://resend.com/)** - Email delivery
 
 ### Payment & AI
+
 - **[Stripe](https://stripe.com/)** - Payment processing
 - **[Google AI](https://ai.google.dev/)** - AI capabilities
 
 ### Why This Stack?
+
 - **Serverless-first**: Scales automatically, pay for what you use
 - **Global edge**: Fast worldwide performance
 - **Developer experience**: Excellent tooling and integration
@@ -234,6 +290,7 @@ vercel
 ```
 
 **Benefits:**
+
 - Zero-config deployment
 - Automatic HTTPS and CDN
 - Edge functions
@@ -252,6 +309,7 @@ pnpm dlx wrangler pages deploy out
 ```
 
 **Setup:**
+
 1. Connect GitHub repository
 2. Set build command: `pnpm run build`
 3. Set output directory: `out`
@@ -264,25 +322,25 @@ pnpm dlx wrangler pages deploy out
 export default {
   config() {
     return {
-      name: "portfolio-project",
-      region: "us-east-1",
-    };
+      name: 'portfolio-project',
+      region: 'us-east-1',
+    }
   },
   stacks(app) {
     app.stack(function Site({ stack }) {
-      const site = new NextjsSite(stack, "site", {
+      const site = new NextjsSite(stack, 'site', {
         environment: {
           DATABASE_URL: process.env.DATABASE_URL,
           // ... other env vars
         },
-      });
-      
+      })
+
       stack.addOutputs({
         SiteUrl: site.url,
-      });
-    });
+      })
+    })
   },
-};
+}
 ```
 
 ```bash
@@ -329,12 +387,14 @@ docker run -p 3000:3000 portfolio-project
 ```
 
 **Benefits:**
+
 - Serverless PostgreSQL
 - Automatic scaling
 - Branching for development
 - Excellent Next.js integration
 
 **Drawbacks:**
+
 - Known reliability issues
 
 ### Option 2: Supabase
@@ -380,6 +440,7 @@ DATABASE_URL="postgresql://localhost:5432/portfolio_project"
 ### Option 1: Cloudflare R2 (Recommended)
 
 **Setup:**
+
 1. Create R2 buckets for each type:
    - `your-images` (main gallery)
    - `your-blog-images` (blog content)
@@ -387,6 +448,7 @@ DATABASE_URL="postgresql://localhost:5432/portfolio_project"
    - `your-custom-images` (custom content)
 
 2. Configure CORS:
+
 ```json
 [
   {
@@ -422,6 +484,7 @@ aws s3 mb s3://your-portfolio-blog
 ```
 
 Update configuration:
+
 ```typescript
 // lib/r2.ts - modify for S3
 import { S3Client } from '@aws-sdk/client-s3'
@@ -452,21 +515,25 @@ docker run -p 9000:9000 -p 9001:9001 minio/minio server /data --console-address 
 ## 📧 Email Service Alternatives
 
 ### Option 1: Resend (Recommended)
+
 - Simple setup
 - Great deliverability
 - Developer-friendly API
 
 ### Option 2: SendGrid
+
 ```bash
 pnpm install @sendgrid/mail
 ```
 
 ### Option 3: Mailgun
+
 ```bash
 pnpm install mailgun-js
 ```
 
 ### Option 4: Amazon SES
+
 ```bash
 pnpm install @aws-sdk/client-ses
 ```
@@ -474,16 +541,19 @@ pnpm install @aws-sdk/client-ses
 ## 💳 Payment Alternatives
 
 ### Option 1: Stripe (Recommended)
+
 - Best developer experience
 - Global support
 - Comprehensive features
 
 ### Option 2: PayPal
+
 ```bash
 pnpm install @paypal/checkout-server-sdk
 ```
 
 ### Option 3: Square
+
 ```bash
 pnpm install squareup
 ```
@@ -531,15 +601,58 @@ portfolio-project/
 ## 🔧 Configuration
 
 ### Site Configuration
+
 The main site configuration is located in `src/config/site.ts` and includes:
+
 - **Storage bucket URLs**: Configure your R2 bucket URLs for different content types
 - **SEO settings**: Open Graph images, meta descriptions, and structured data
 - **Social links**: Instagram, Twitter, Facebook, and other social media links
 - **Email addresses**: Contact and support email configuration
 - **Site metadata**: Title, description, and branding
+- **Feature flags**: Control which features are enabled (including AI)
+
+### AI Features Configuration
+
+AI features in this portfolio are **completely optional** and can be controlled in two ways:
+
+#### Method 1: Environment Variable Control
+
+```bash
+# To enable AI features
+GOOGLE_GENERATIVE_AI_API_KEY="your-google-ai-key"
+
+# To disable AI features - simply omit the variable or leave it empty
+# GOOGLE_GENERATIVE_AI_API_KEY=""
+```
+
+#### Method 2: Site Configuration Control
+
+```typescript
+// src/config/site.ts
+export const siteConfig = {
+  // ...other config
+  features: {
+    aiEnabled: true, // Set to false to disable AI features
+  },
+}
+```
+
+#### How It Works
+
+- **Both conditions must be true** for AI features to be available
+- When disabled, all AI buttons and UI elements are completely hidden
+- Core functionality (uploads, galleries, blog) works identically with or without AI
+- No performance impact when disabled
+- Respects user choice regarding AI usage
+
+#### For Users Who Prefer No AI
+
+We completely understand and respect users who prefer not to use AI features for ethical, privacy, or personal reasons. This portfolio is designed to work flawlessly without any AI dependencies. **AI is only for speed and ease of use for those who want to, and this project respects customization.**
 
 ### Theme Customization
+
 You can easily customize the look and feel of your portfolio using the **[tweakcn tool](https://tweakcn.com/editor/theme)**:
+
 - **Color schemes**: Modify primary, secondary, and accent colors
 - **Typography**: Adjust font styles and sizing
 - **Component styling**: Customize buttons, cards, and other UI elements
@@ -549,10 +662,13 @@ You can easily customize the look and feel of your portfolio using the **[tweakc
 Simply visit [tweakcn.com/editor/theme](https://tweakcn.com/editor/theme), customize your theme, and copy the generated CSS variables to your `globals.css` file.
 
 ### Design Philosophy
+
 For optimal photo viewing experience, dark mode is intentionally only available in the admin dashboard. The public gallery maintains a clean, light interface to ensure your photography remains the focus without visual distractions.
 
 ### Image Processing & Optimization
+
 The application includes comprehensive image handling capabilities:
+
 - Automatic optimization
 - Responsive delivery
 - Smart resizing
@@ -561,12 +677,15 @@ The application includes comprehensive image handling capabilities:
 - Progressive loading
 
 ### Analytics
+
 Built-in support for:
+
 - Vercel Analytics
 - Vercel Speed Insights
 - Custom event tracking
 
 ### SEO
+
 - Dynamic OG image generation
 - Automatic sitemap generation
 - Structured data
@@ -575,17 +694,20 @@ Built-in support for:
 ## 📷 Lightroom Integration
 
 ### Overview
+
 This portfolio platform includes a powerful Adobe Lightroom Classic plugin that enables direct uploads from your Lightroom workflow to your portfolio website with AI-powered metadata generation.
 
 ### Features
+
 - **📤 Direct Upload**: Export and upload images directly from Lightroom Classic
 - **🤖 AI Metadata**: Automatic generation of titles, descriptions, and tags using Google AI
-- **🔒 Secure**: API key authentication with rate limiting protection  
+- **🔒 Secure**: API key authentication with rate limiting protection
 - **⚡ Optimized**: Built-in image optimization and processing pipeline
 - **📊 Rich Metadata**: Preserves camera, lens, and EXIF data from Lightroom
 - **🎛️ Configurable**: Customizable quality, size, and AI settings
 
 ### Quick Setup
+
 1. **Configure API Key**: Add `LIGHTROOM_API_KEY` to your environment variables
 2. **Install Plugin**: Copy the `lightroom-plugin` folder to your Lightroom plugins directory
 3. **Enable in Lightroom**: Go to File > Plug-in Manager and add the plugin
@@ -594,12 +716,12 @@ This portfolio platform includes a powerful Adobe Lightroom Classic plugin that 
 For detailed installation and usage instructions, see [`lightroom-plugin/INSTALLATION.md`](./lightroom-plugin/INSTALLATION.md).
 
 ### Security Features
+
 - Bearer token authentication
 - Rate limiting (50 uploads per hour per IP)
 - File size validation (max 50MB)
 - Input sanitization and validation
 - Secure file handling
-
 
 - JWT-based authentication
 - Role-based access control
@@ -622,6 +744,7 @@ For detailed installation and usage instructions, see [`lightroom-plugin/INSTALL
 We welcome contributions to make this portfolio platform even better! Here's how you can contribute:
 
 ### Getting Started
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
@@ -631,6 +754,7 @@ We welcome contributions to make this portfolio platform even better! Here's how
 7. Open a Pull Request
 
 ### What We're Looking For
+
 - 🚀 **New Features**: Gallery layouts, payment integrations, AI enhancements, Lightroom plugin improvements
 - 🐛 **Bug Fixes**: Performance improvements, UI/UX fixes
 - 📚 **Documentation**: Better guides, tutorials, or API documentation
@@ -638,6 +762,7 @@ We welcome contributions to make this portfolio platform even better! Here's how
 - 🔧 **Developer Experience**: Better tooling, easier setup processes
 
 ### Areas for Contribution
+
 - Additional storage provider integrations (AWS S3, Google Cloud, etc.)
 - New gallery templates and layouts
 - Enhanced blog editor features
@@ -651,7 +776,6 @@ We welcome contributions to make this portfolio platform even better! Here's how
 Feel free to open an issue first to discuss larger changes or new features!
 
 ## 📝 License
-
 
 ---
 

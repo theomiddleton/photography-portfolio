@@ -16,7 +16,7 @@ export const siteConfig = {
     website: 'https://theoo.ooo',
     instagram: 'https://www.instagram.com/theomiddleton_/',
     twitter: '',
-    facebook: ''
+    facebook: '',
   },
   headers: {
     main: '',
@@ -34,13 +34,16 @@ export const siteConfig = {
           alt: 'Open Graph Image',
         },
       ],
-    },  
+    },
   },
   emails: {
     order: 'orders@email.theoo.ooo',
     support: 'support@theoo.ooo',
     replyTo: 'reply@theoo.ooo',
-    noReply: 'noreply@email.theoo.ooo'
-  }
+    noReply: 'noreply@email.theoo.ooo',
+  },
+  features: {
+    aiEnabled: true,
+  },
 }
 export type SiteConfig = typeof siteConfig
