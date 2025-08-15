@@ -18,7 +18,7 @@ import { Textarea } from '~/components/ui/textarea'
 import { Sparkles, Loader2 } from 'lucide-react'
 import { useGenerateMetadata } from '~/hooks/use-generate-metadata'
 import { toast } from 'sonner'
-import { isAIAvailable } from '~/lib/ai-utils'
+import { isAIEnabledClient } from '~/lib/ai-utils'
 
 interface UploadImgProps {
   bucket: 'image' | 'blog' | 'about' | 'custom'
@@ -61,8 +61,8 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
     stripeProductIds?: string[]
   }>({})
 
-  // AI metadata generation state - only initialize if AI is available
-  const aiEnabled = isAIAvailable()
+  // AI metadata generation state
+  const aiEnabled = isAIEnabledClient()
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [aiGenerated, setAiGenerated] = useState(false)
   const { generate, loading: aiLoading } = useGenerateMetadata()
@@ -109,7 +109,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   // AI metadata generation function
   const handleAIGenerate = async (field?: 'title' | 'description' | 'tags') => {
     if (!aiEnabled) {
-      toast.error('AI features are not available')
+      toast.error('AI features are disabled')
       return
     }
 

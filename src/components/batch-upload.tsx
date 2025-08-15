@@ -23,7 +23,7 @@ import {
   useFileUpload,
   type FileWithPreview,
 } from '~/hooks/use-file-upload'
-import { isAIAvailable } from '~/lib/ai-utils'
+import { isAIEnabledClient } from '~/lib/ai-utils'
 
 interface BatchImageData {
   id: string
@@ -73,7 +73,7 @@ export function BatchUpload({
   const maxSize = maxSizeMB * 1024 * 1024
   const maxFiles = 20
 
-  const aiEnabled = isAIAvailable()
+  const aiEnabled = isAIEnabledClient()
   const [batchImages, setBatchImages] = useState<BatchImageData[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
@@ -208,7 +208,7 @@ export function BatchUpload({
     field?: 'title' | 'description' | 'tags',
   ) => {
     if (!aiEnabled) {
-      toast.error('AI features are not available')
+      toast.error('AI features are disabled')
       return
     }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { isAIAvailable } from '~/lib/ai-utils'
+import { isAIEnabledClient } from '~/lib/ai-utils'
 
 export interface Metadata {
   title: string
@@ -12,14 +12,15 @@ export interface Metadata {
 export function useGenerateMetadata() {
   const [loading, setLoading] = useState(false)
   const [controller, setController] = useState<AbortController | null>(null)
+  const aiEnabled = isAIEnabledClient()
 
   async function generate(
     imageUrl: string,
     tasks: string[],
   ): Promise<Partial<Metadata>> {
-    // Check if AI is available
-    if (!isAIAvailable()) {
-      throw new Error('AI features are not available')
+    // Check if AI is enabled in config
+    if (!aiEnabled) {
+      throw new Error('AI features are disabled in site configuration')
     }
 
     // Abort previous request if still running
@@ -73,5 +74,9 @@ export function useGenerateMetadata() {
     }
   }
 
-  return { generate, loading }
+  return {
+    generate,
+    loading,
+    aiEnabled,
+  }
 }
