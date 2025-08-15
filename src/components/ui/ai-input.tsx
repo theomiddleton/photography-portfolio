@@ -18,6 +18,7 @@ interface AIInputProps {
   placeholder?: string
   multiline?: boolean
   className?: string
+  showAIButton?: boolean
 }
 
 export function AIInput({
@@ -30,6 +31,7 @@ export function AIInput({
   placeholder,
   multiline = false,
   className,
+  showAIButton = true,
 }: AIInputProps) {
   const InputComponent = multiline ? Textarea : Input
 
@@ -37,27 +39,31 @@ export function AIInput({
     <div className={cn('flex flex-col space-y-1.5', className)}>
       <div className="flex items-center justify-between">
         <Label htmlFor={label.toLowerCase()}>{label}</Label>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onAIClick}
-          disabled={loading || disabled}
-          className="h-8 px-2 text-xs"
-        >
-          {loading ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
-          ) : (
-            <Sparkles className="h-3 w-3" />
-          )}
-          <span className="ml-1">AI</span>
-        </Button>
+        {showAIButton && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onAIClick}
+            disabled={loading || disabled}
+            className="h-8 px-2 text-xs"
+          >
+            {loading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Sparkles className="h-3 w-3" />
+            )}
+            <span className="ml-1">AI</span>
+          </Button>
+        )}
       </div>
       <InputComponent
         id={label.toLowerCase()}
         placeholder={placeholder}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(
+          e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+        ) => onChange(e.target.value)}
         disabled={disabled}
         className={multiline ? 'min-h-[80px] resize-none' : ''}
       />

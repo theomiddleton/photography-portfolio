@@ -29,16 +29,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Bucket is required' }, { status: 400 })
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer())
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
     const key = `${prefix}${file.name}`
 
     // Extract EXIF data if requested and file is an image
     let exifData = null
     if (extractExif && file.type.startsWith('image/')) {
       try {
-        const rawExifData = await extractExifData(buffer)
+        const rawExifData = await extractExifData(arrayBuffer)
         exifData = validateExifData(rawExifData)
-        console.log(`Extracted EXIF data for ${file.name}:`, Object.keys(exifData))
+        console.log(
+          `Extracted EXIF data for ${file.name}:`,
+          Object.keys(exifData),
+        )
       } catch (error) {
         console.warn(`Failed to extract EXIF data from ${file.name}:`, error)
         // Don't fail the upload if EXIF extraction fails

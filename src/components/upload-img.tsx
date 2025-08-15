@@ -18,6 +18,7 @@ import { Textarea } from '~/components/ui/textarea'
 import { Sparkles, Loader2 } from 'lucide-react'
 import { useGenerateMetadata } from '~/hooks/use-generate-metadata'
 import { toast } from 'sonner'
+import { isAIAvailable } from '~/lib/ai-utils'
 
 interface UploadImgProps {
   bucket: 'image' | 'blog' | 'about' | 'custom'
@@ -52,10 +53,16 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
-  const [uploadController, setUploadController] = useState<AbortController | null>(null)
-  const [uploadMetadata, setUploadMetadata] = useState<{ uuid?: string, fileName?: string, stripeProductIds?: string[] }>({})
+  const [uploadController, setUploadController] =
+    useState<AbortController | null>(null)
+  const [uploadMetadata, setUploadMetadata] = useState<{
+    uuid?: string
+    fileName?: string
+    stripeProductIds?: string[]
+  }>({})
 
-  // AI metadata generation state
+  // AI metadata generation state - only initialize if AI is available
+  const aiEnabled = isAIAvailable()
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [aiGenerated, setAiGenerated] = useState(false)
   const { generate, loading: aiLoading } = useGenerateMetadata()
@@ -101,6 +108,11 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
 
   // AI metadata generation function
   const handleAIGenerate = async (field?: 'title' | 'description' | 'tags') => {
+    if (!aiEnabled) {
+      toast.error('AI features are not available')
+      return
+    }
+
     if (!imageUrl) {
       toast.error('Please upload an image first')
       return
@@ -135,35 +147,42 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
       const selectedFile = event.target.files[0]
       setFile(selectedFile)
 
-      // Upload file immediately for AI processing
-      if (selectedFile) {
+      // Upload file immediately for AI processing only if AI is enabled
+      if (selectedFile && aiEnabled) {
         uploadImageForAI(selectedFile)
       }
     }
   }
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setIsDragging(false)
 
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const droppedFile = e.dataTransfer.files[0]
-      if (droppedFile.type.startsWith('image/')) {
-        setFile(droppedFile)
-        // Upload file immediately for AI processing
-        uploadImageForAI(droppedFile)
-      } else {
-        alert('Please upload an image file')
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const droppedFile = e.dataTransfer.files[0]
+        if (droppedFile.type.startsWith('image/')) {
+          setFile(droppedFile)
+          // Upload file immediately for AI processing only if AI is enabled
+          if (aiEnabled) {
+            uploadImageForAI(droppedFile)
+          }
+        } else {
+          alert('Please upload an image file')
+        }
+        e.dataTransfer.clearData()
       }
-      e.dataTransfer.clearData()
-    }
-  }, [])
+    },
+    [aiEnabled],
+  )
 
   // Upload image immediately for AI processing
   const uploadImageForAI = async (imageFile: File) => {
+    if (!aiEnabled) return
+
     try {
-      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
 
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -260,19 +279,25 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
         controller.signal.addEventListener('abort', () => {
           xhr.abort()
           // Schedule cleanup using waitUntil pattern
-          if ('scheduler' in window && 'postTask' in (window as any).scheduler) {
-            ;(window as any).scheduler.postTask(() => {
-              fetch('/api/upload/cleanup', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  uuid,
-                  fileName,
-                  bucket,
-                  stripeProductIds: uploadMetadata.stripeProductIds || [],
-                }),
-              }).catch(console.error)
-            }, { priority: 'background' })
+          if (
+            'scheduler' in window &&
+            'postTask' in (window as any).scheduler
+          ) {
+            ;(window as any).scheduler.postTask(
+              () => {
+                fetch('/api/upload/cleanup', {
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    uuid,
+                    fileName,
+                    bucket,
+                    stripeProductIds: uploadMetadata.stripeProductIds || [],
+                  }),
+                }).catch(console.error)
+              },
+              { priority: 'background' },
+            )
           } else {
             setTimeout(() => {
               fetch('/api/upload/cleanup', {
@@ -418,12 +443,11 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
       </CardHeader>
       <CardContent>
         <div
-          className={`mt-2 flex items-center justify-center rounded-lg border-2 border-dashed 
-            ${
-              isDragging
-                ? 'cursor-copy border-primary bg-primary/5 ring-2 ring-primary/50'
-                : 'border-black/25 hover:border-black/40 dark:border-white/25 dark:hover:border-white/40'
-            } px-6 py-10 transition-all duration-200`}
+          className={`mt-2 flex items-center justify-center rounded-lg border-2 border-dashed ${
+            isDragging
+              ? 'border-primary bg-primary/5 ring-primary/50 cursor-copy ring-2'
+              : 'border-black/25 hover:border-black/40 dark:border-white/25 dark:hover:border-white/40'
+          } px-6 py-10 transition-all duration-200`}
           onDragEnter={handleDragIn}
           onDragLeave={handleDragOut}
           onDragOver={handleDrag}
@@ -439,7 +463,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
             <div className="mt-4 text-sm leading-6 text-gray-600 dark:text-gray-300">
               <label
                 htmlFor="file-upload"
-                className="relative cursor-pointer rounded-md bg-gray-100 font-semibold text-black focus-within:outline-hidden focus-within:ring-2 focus-within:ring-gray-600 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 hover:text-gray-500 dark:bg-gray-800 dark:text-white dark:focus-within:ring-gray-300 dark:focus-within:ring-offset-gray-900 dark:hover:text-gray-300"
+                className="relative cursor-pointer rounded-md bg-gray-100 font-semibold text-black focus-within:ring-2 focus-within:ring-gray-600 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:outline-hidden hover:text-gray-500 dark:bg-gray-800 dark:text-white dark:focus-within:ring-gray-300 dark:focus-within:ring-offset-gray-900 dark:hover:text-gray-300"
               >
                 <span>Upload a file</span>
                 <input
@@ -464,21 +488,23 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
             <div className="flex flex-col space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="name">Name</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleAIGenerate('title')}
-                  disabled={aiLoading || !imageUrl}
-                  className="h-8 px-2 text-xs"
-                >
-                  {aiLoading ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-3 w-3" />
-                  )}
-                  <span className="ml-1">AI</span>
-                </Button>
+                {aiEnabled && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleAIGenerate('title')}
+                    disabled={aiLoading || !imageUrl}
+                    className="h-8 px-2 text-xs"
+                  >
+                    {aiLoading ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3 w-3" />
+                    )}
+                    <span className="ml-1">AI</span>
+                  </Button>
+                )}
               </div>
               <Input
                 id="name"
@@ -493,21 +519,23 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
                 <div className="flex flex-col space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="description">Description</Label>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleAIGenerate('description')}
-                      disabled={aiLoading || !imageUrl}
-                      className="h-8 px-2 text-xs"
-                    >
-                      {aiLoading ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-3 w-3" />
-                      )}
-                      <span className="ml-1">AI</span>
-                    </Button>
+                    {aiEnabled && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAIGenerate('description')}
+                        disabled={aiLoading || !imageUrl}
+                        className="h-8 px-2 text-xs"
+                      >
+                        {aiLoading ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3 w-3" />
+                        )}
+                        <span className="ml-1">AI</span>
+                      </Button>
+                    )}
                   </div>
                   <Textarea
                     id="description"
@@ -521,21 +549,23 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
                 <div className="flex flex-col space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="tags">Tags</Label>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleAIGenerate('tags')}
-                      disabled={aiLoading || !imageUrl}
-                      className="h-8 px-2 text-xs"
-                    >
-                      {aiLoading ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-3 w-3" />
-                      )}
-                      <span className="ml-1">AI</span>
-                    </Button>
+                    {aiEnabled && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAIGenerate('tags')}
+                        disabled={aiLoading || !imageUrl}
+                        className="h-8 px-2 text-xs"
+                      >
+                        {aiLoading ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3 w-3" />
+                        )}
+                        <span className="ml-1">AI</span>
+                      </Button>
+                    )}
                   </div>
                   <Input
                     id="tags"
@@ -545,7 +575,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
                     disabled={aiLoading}
                   />
                 </div>
-                {!aiGenerated && imageUrl && (
+                {aiEnabled && !aiGenerated && imageUrl && (
                   <div className="flex justify-center pt-2">
                     <Button
                       type="button"
@@ -568,13 +598,13 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
                     </Button>
                   </div>
                 )}
-                <div className="flex items-center space-x-2 space-y-1.5">
+                <div className="flex items-center space-y-1.5 space-x-2">
                   <Label htmlFor="sale" className="flex items-center">
                     For Sale?
                   </Label>
                   <span className="inline-block align-middle">
                     <input
-                      className="peer size-6 shrink-0 rounded-sm border border-primary accent-black shadow-sm focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                      className="peer border-primary focus-visible:ring-ring data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground size-6 shrink-0 rounded-sm border accent-black shadow-sm focus-visible:ring-1 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                       type="checkbox"
                       id="sale"
                       checked={isSale}
@@ -601,14 +631,16 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
             if (uploadController) {
               cancelUpload()
             }
-            
+
             setFile(null)
             setName('')
             setDescription('')
             setTags('')
             setIsSale(false)
-            setImageUrl(null)
-            setAiGenerated(false)
+            if (aiEnabled) {
+              setImageUrl(null)
+              setAiGenerated(false)
+            }
             setUploadSuccess(false)
             setUploadedImages([])
             setUploadMetadata({})
