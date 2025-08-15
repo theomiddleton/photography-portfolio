@@ -21,6 +21,7 @@ import { waitUntil } from '@vercel/functions'
 import { generateObject } from 'ai'
 import { google } from '@ai-sdk/google'
 import { z } from 'zod'
+import { extractExifData, validateExifData } from '~/lib/exif'
 
 const MetadataSchema = z.object({
   title: z.string().describe('A creative, descriptive title for the image'),
@@ -33,6 +34,40 @@ const MetadataSchema = z.object({
       'Comma-separated tags that describe the image content, style, and mood',
     ),
 })
+
+// Background EXIF processing function
+async function processExifDataInBackground(
+  imageId: string,
+  imageUrl: string,
+): Promise<void> {
+  try {
+    await logAction('exif-background', `Starting background EXIF processing for ${imageId}`)
+
+    // Fetch the image from the URL
+    const imageResponse = await fetch(imageUrl)
+    if (!imageResponse.ok) {
+      throw new Error(`Failed to fetch image: ${imageResponse.statusText}`)
+    }
+
+    const imageBuffer = await imageResponse.arrayBuffer()
+
+    // Extract EXIF data
+    const exifData = await extractExifData(imageBuffer)
+
+    // Validate the extracted data
+    const validatedExifData = validateExifData(exifData)
+
+    // Update the database record with EXIF data
+    await db
+      .update(imageData)
+      .set(validatedExifData)
+      .where(eq(imageData.uuid, imageId))
+
+    await logAction('exif-background', `Successfully processed EXIF data for ${imageId}`)
+  } catch (error) {
+    await logAction('exif-background', `Failed to process EXIF data for ${imageId}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
 
 // async function generateAIMetadataInBackground(
 //   imageUrl: string,
@@ -277,6 +312,13 @@ export async function POST(request: Request) {
         revalidatePath('/admin/manage'),
       ]),
     )
+
+    // Use waitUntil for background EXIF processing for image bucket uploads
+    if (bucket === 'image' && !temporary) {
+      waitUntil(
+        processExifDataInBackground(keyName, fileUrl)
+      )
+    }
 
     // Use waitUntil for background AI metadata generation if requested
     // if (generateAI && bucket === 'image' && !temporary) {

@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { r2 } from '~/lib/r2'
 import { getSession } from '~/lib/auth/auth'
+import { extractExifData, validateExifData } from '~/lib/exif'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +19,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File
     const bucket = formData.get('bucket') as string
     const prefix = (formData.get('prefix') as string) || ''
+    const extractExif = formData.get('extractExif') === 'true'
 
     if (!file) {
       return NextResponse.json({ error: 'File is required' }, { status: 400 })
@@ -30,6 +32,19 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer())
     const key = `${prefix}${file.name}`
 
+    // Extract EXIF data if requested and file is an image
+    let exifData = null
+    if (extractExif && file.type.startsWith('image/')) {
+      try {
+        const rawExifData = await extractExifData(buffer)
+        exifData = validateExifData(rawExifData)
+        console.log(`Extracted EXIF data for ${file.name}:`, Object.keys(exifData))
+      } catch (error) {
+        console.warn(`Failed to extract EXIF data from ${file.name}:`, error)
+        // Don't fail the upload if EXIF extraction fails
+      }
+    }
+
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
@@ -39,12 +54,15 @@ export async function POST(request: NextRequest) {
 
     await r2.send(command)
 
-    return NextResponse.json({
+    const response = {
       success: true,
       key,
       name: file.name,
       size: file.size,
-    })
+      ...(exifData && { exifData }),
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Error uploading file:', error)
     return NextResponse.json(
