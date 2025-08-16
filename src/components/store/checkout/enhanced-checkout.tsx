@@ -9,20 +9,38 @@ import { Progress } from '~/components/ui/progress'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
 import { Checkbox } from '~/components/ui/checkbox'
-import { CheckCircle, ChevronLeft, ChevronRight, CreditCard, Package, Truck } from 'lucide-react'
+import {
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  Package,
+  Truck,
+} from 'lucide-react'
 import { formatPrice, cn } from '~/lib/utils'
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { CheckoutForm } from '~/components/store/checkout/stripe-form'
 import type { Product, ProductSize, ShippingMethod } from '~/server/db/schema'
 import { createCheckoutSession } from '~/lib/actions/store/store'
-import { getShippingMethods, updateOrderShipping } from '~/lib/actions/store/shipping'
+import {
+  getShippingMethods,
+  updateOrderShipping,
+} from '~/lib/actions/store/shipping'
 import { getTaxRates } from '~/lib/actions/store/store'
 import { toast } from 'sonner'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+)
 
 interface EnhancedCheckoutProps {
   productId: string
@@ -43,20 +61,20 @@ const steps: CheckoutStep[] = [
     id: 'details',
     title: 'Details',
     description: 'Shipping information',
-    icon: <Package className="h-4 w-4" />
+    icon: <Package className="h-4 w-4" />,
   },
   {
     id: 'shipping',
     title: 'Shipping',
     description: 'Delivery method',
-    icon: <Truck className="h-4 w-4" />
+    icon: <Truck className="h-4 w-4" />,
   },
   {
     id: 'payment',
     title: 'Payment',
     description: 'Complete order',
-    icon: <CreditCard className="h-4 w-4" />
-  }
+    icon: <CreditCard className="h-4 w-4" />,
+  },
 ]
 
 interface ShippingDetails {
@@ -72,7 +90,12 @@ interface ShippingDetails {
   specialInstructions?: string
 }
 
-export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: EnhancedCheckoutProps) {
+export function EnhancedCheckout({
+  productId,
+  sizeId,
+  quantity = 1,
+  onClose,
+}: EnhancedCheckoutProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [shippingDetails, setShippingDetails] = useState<ShippingDetails>({
@@ -85,14 +108,17 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
     zipCode: '',
     country: 'US',
     phone: '',
-    specialInstructions: ''
+    specialInstructions: '',
   })
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([])
   const [selectedShipping, setSelectedShipping] = useState<string>('')
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [clientSecret, setClientSecret] = useState<string>()
   const [orderId, setOrderId] = useState<string>()
-  const [taxRates, setTaxRates] = useState({ taxRate: 2000, stripeTaxRate: 150 })
+  const [taxRates, setTaxRates] = useState({
+    taxRate: 2000,
+    stripeTaxRate: 150,
+  })
 
   useEffect(() => {
     // Load shipping methods and tax rates
@@ -100,13 +126,13 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
       try {
         const [rates, methods] = await Promise.all([
           getTaxRates(),
-          getShippingMethods()
+          getShippingMethods(),
         ])
-        
+
         if (rates) {
           setTaxRates(rates)
         }
-        
+
         setShippingMethods(methods)
         if (methods.length > 0) {
           setSelectedShipping(methods[0].id)
@@ -152,11 +178,15 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
       // Create Stripe session when moving to payment step
       try {
         setLoading(true)
-        const session = await createCheckoutSession(productId, sizeId, quantity)
+        const session = await createCheckoutSession(
+          productId,
+          sizeId,
+          selectedShipping,
+        )
         if (session.clientSecret && session.orderId) {
           setClientSecret(session.clientSecret)
           setOrderId(session.orderId)
-          
+
           // Update shipping method
           if (selectedShipping) {
             await updateOrderShipping(session.orderId, selectedShipping)
@@ -178,8 +208,11 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
     setCurrentStep(Math.max(currentStep - 1, 0))
   }
 
-  const handleShippingDetailsChange = (field: keyof ShippingDetails, value: string) => {
-    setShippingDetails(prev => ({ ...prev, [field]: value }))
+  const handleShippingDetailsChange = (
+    field: keyof ShippingDetails,
+    value: string,
+  ) => {
+    setShippingDetails((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleShippingMethodChange = async (methodId: string) => {
@@ -194,7 +227,9 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
   }
 
   const calculateTotals = () => {
-    const selectedMethod = shippingMethods.find(m => m.id === selectedShipping)
+    const selectedMethod = shippingMethods.find(
+      (m) => m.id === selectedShipping,
+    )
     const shippingCost = selectedMethod?.price || 0
     const subtotal = 2500 * quantity // This should come from actual product price
     const tax = Math.round(subtotal * (taxRates.taxRate / 10000))
@@ -207,21 +242,23 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
   const progress = ((currentStep + 1) / steps.length) * 100
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-2">Checkout</h2>
+        <h2 className="mb-2 text-2xl font-bold">Checkout</h2>
         <Progress value={progress} className="mb-4" />
-        
+
         {/* Step indicators */}
         <div className="flex items-center justify-between">
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-center">
-              <div className={cn(
-                "flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors",
-                index <= currentStep 
-                  ? "bg-blue-600 border-blue-600 text-white" 
-                  : "border-gray-300 text-gray-300"
-              )}>
+              <div
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors',
+                  index <= currentStep
+                    ? 'border-blue-600 bg-blue-600 text-white'
+                    : 'border-gray-300 text-gray-300',
+                )}
+              >
                 {index < currentStep ? (
                   <CheckCircle className="h-4 w-4" />
                 ) : (
@@ -229,26 +266,30 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
                 )}
               </div>
               <div className="ml-3">
-                <p className={cn(
-                  "text-sm font-medium",
-                  index <= currentStep ? "text-gray-900" : "text-gray-500"
-                )}>
+                <p
+                  className={cn(
+                    'text-sm font-medium',
+                    index <= currentStep ? 'text-gray-900' : 'text-gray-500',
+                  )}
+                >
                   {step.title}
                 </p>
                 <p className="text-xs text-gray-500">{step.description}</p>
               </div>
               {index < steps.length - 1 && (
-                <div className={cn(
-                  "flex-1 h-px mx-4 transition-colors",
-                  index < currentStep ? "bg-blue-600" : "bg-gray-300"
-                )} />
+                <div
+                  className={cn(
+                    'mx-4 h-px flex-1 transition-colors',
+                    index < currentStep ? 'bg-blue-600' : 'bg-gray-300',
+                  )}
+                />
               )}
             </div>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Main content */}
         <div className="lg:col-span-2">
           <Card>
@@ -265,19 +306,26 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
                       id="email"
                       type="email"
                       value={shippingDetails.email}
-                      onChange={(e) => handleShippingDetailsChange('email', e.target.value)}
+                      onChange={(e) =>
+                        handleShippingDetailsChange('email', e.target.value)
+                      }
                       placeholder="your@email.com"
                       required
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="firstName">First Name *</Label>
                       <Input
                         id="firstName"
                         value={shippingDetails.firstName}
-                        onChange={(e) => handleShippingDetailsChange('firstName', e.target.value)}
+                        onChange={(e) =>
+                          handleShippingDetailsChange(
+                            'firstName',
+                            e.target.value,
+                          )
+                        }
                         required
                       />
                     </div>
@@ -286,7 +334,12 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
                       <Input
                         id="lastName"
                         value={shippingDetails.lastName}
-                        onChange={(e) => handleShippingDetailsChange('lastName', e.target.value)}
+                        onChange={(e) =>
+                          handleShippingDetailsChange(
+                            'lastName',
+                            e.target.value,
+                          )
+                        }
                         required
                       />
                     </div>
@@ -297,7 +350,9 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
                     <Input
                       id="address"
                       value={shippingDetails.address}
-                      onChange={(e) => handleShippingDetailsChange('address', e.target.value)}
+                      onChange={(e) =>
+                        handleShippingDetailsChange('address', e.target.value)
+                      }
                       placeholder="123 Main Street"
                       required
                     />
@@ -309,7 +364,9 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
                       <Input
                         id="city"
                         value={shippingDetails.city}
-                        onChange={(e) => handleShippingDetailsChange('city', e.target.value)}
+                        onChange={(e) =>
+                          handleShippingDetailsChange('city', e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -318,7 +375,9 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
                       <Input
                         id="state"
                         value={shippingDetails.state}
-                        onChange={(e) => handleShippingDetailsChange('state', e.target.value)}
+                        onChange={(e) =>
+                          handleShippingDetailsChange('state', e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -330,13 +389,20 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
                       <Input
                         id="zipCode"
                         value={shippingDetails.zipCode}
-                        onChange={(e) => handleShippingDetailsChange('zipCode', e.target.value)}
+                        onChange={(e) =>
+                          handleShippingDetailsChange('zipCode', e.target.value)
+                        }
                         required
                       />
                     </div>
                     <div>
                       <Label htmlFor="country">Country *</Label>
-                      <Select value={shippingDetails.country} onValueChange={(value) => handleShippingDetailsChange('country', value)}>
+                      <Select
+                        value={shippingDetails.country}
+                        onValueChange={(value) =>
+                          handleShippingDetailsChange('country', value)
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -355,17 +421,26 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
                       id="phone"
                       type="tel"
                       value={shippingDetails.phone}
-                      onChange={(e) => handleShippingDetailsChange('phone', e.target.value)}
+                      onChange={(e) =>
+                        handleShippingDetailsChange('phone', e.target.value)
+                      }
                       placeholder="+1 (555) 123-4567"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="instructions">Special Instructions (optional)</Label>
+                    <Label htmlFor="instructions">
+                      Special Instructions (optional)
+                    </Label>
                     <Textarea
                       id="instructions"
                       value={shippingDetails.specialInstructions}
-                      onChange={(e) => handleShippingDetailsChange('specialInstructions', e.target.value)}
+                      onChange={(e) =>
+                        handleShippingDetailsChange(
+                          'specialInstructions',
+                          e.target.value,
+                        )
+                      }
                       placeholder="Any special delivery instructions..."
                       rows={3}
                     />
@@ -382,10 +457,10 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
                       <div
                         key={method.id}
                         className={cn(
-                          "border rounded-lg p-4 cursor-pointer transition-colors",
+                          'cursor-pointer rounded-lg border p-4 transition-colors',
                           selectedShipping === method.id
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-200 hover:border-gray-300"
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300',
                         )}
                         onClick={() => handleShippingMethodChange(method.id)}
                       >
@@ -396,17 +471,27 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
                                 type="radio"
                                 name="shipping"
                                 checked={selectedShipping === method.id}
-                                onChange={() => handleShippingMethodChange(method.id)}
+                                onChange={() =>
+                                  handleShippingMethodChange(method.id)
+                                }
                                 className="sr-only"
                               />
                               <h4 className="font-medium">{method.name}</h4>
-                              {method.price === 0 && <Badge variant="secondary">Free</Badge>}
+                              {method.price === 0 && (
+                                <Badge variant="secondary">Free</Badge>
+                              )}
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">{method.description}</p>
-                            <p className="text-xs text-gray-500 mt-1">{method.estimatedDays} business days</p>
+                            <p className="mt-1 text-sm text-gray-600">
+                              {method.description}
+                            </p>
+                            <p className="mt-1 text-xs text-gray-500">
+                              {method.estimatedDays} business days
+                            </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium">{formatPrice(method.price)}</p>
+                            <p className="font-medium">
+                              {formatPrice(method.price)}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -419,19 +504,34 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
               {currentStep === 2 && (
                 <div className="space-y-6">
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="terms" 
+                    <Checkbox
+                      id="terms"
                       checked={agreeToTerms}
-                      onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        setAgreeToTerms(checked as boolean)
+                      }
                     />
                     <Label htmlFor="terms" className="text-sm">
-                      I agree to the <a href="/terms" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a>
+                      I agree to the{' '}
+                      <a
+                        href="/terms"
+                        className="text-blue-600 hover:underline"
+                      >
+                        Terms of Service
+                      </a>{' '}
+                      and{' '}
+                      <a
+                        href="/privacy"
+                        className="text-blue-600 hover:underline"
+                      >
+                        Privacy Policy
+                      </a>
                     </Label>
                   </div>
 
                   {clientSecret && agreeToTerms && (
                     <Elements stripe={stripePromise} options={{ clientSecret }}>
-                      <CheckoutForm orderId={orderId} onSuccess={onClose} />
+                      <CheckoutForm clientSecret={clientSecret} />
                     </Elements>
                   )}
                 </div>
@@ -472,13 +572,13 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between mt-8">
+      <div className="mt-8 flex justify-between">
         <Button
           variant="outline"
           onClick={currentStep === 0 ? onClose : handlePrevious}
           disabled={loading}
         >
-          <ChevronLeft className="h-4 w-4 mr-2" />
+          <ChevronLeft className="mr-2 h-4 w-4" />
           {currentStep === 0 ? 'Cancel' : 'Previous'}
         </Button>
 
@@ -488,7 +588,7 @@ export function EnhancedCheckout({ productId, sizeId, quantity = 1, onClose }: E
             disabled={!validateStep(currentStep) || loading}
           >
             {loading ? 'Loading...' : 'Next'}
-            <ChevronRight className="h-4 w-4 ml-2" />
+            <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         )}
       </div>
