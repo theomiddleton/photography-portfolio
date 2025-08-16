@@ -12,7 +12,9 @@ const initialFiles = []
 
 interface AltUploadProps {
   bucket: 'image' | 'blog' | 'about' | 'custom'
-  onFilesAdded?: (files: { id: string, name: string, url: string, file: File }[]) => void
+  onFilesAdded?: (
+    files: { id: string; name: string; url: string; file: File }[],
+  ) => void
 }
 
 export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
@@ -21,26 +23,33 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
   const maxFiles = 10
 
   const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
-  const [uploadedFiles, setUploadedFiles] = useState<{ id: string, name: string, url: string, file: File }[]>([])
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
+    {},
+  )
+  const [uploadedFiles, setUploadedFiles] = useState<
+    { id: string; name: string; url: string; file: File }[]
+  >([])
 
   // Function to handle actual file uploads
   const handleFilesAdded = async (addedFiles: FileWithPreview[]) => {
     setIsUploading(true)
-    const successfulUploads: { id: string, name: string, url: string, file: File }[] = []
-    
+    const successfulUploads: {
+      id: string
+      name: string
+      url: string
+      file: File
+    }[] = []
+
     for (const fileItem of addedFiles) {
       if (!(fileItem.file instanceof File)) continue // Skip metadata files
-      
+
       try {
         // Initialize progress for this file
-        setUploadProgress(prev => ({ ...prev, [fileItem.id]: 0 }))
-        
+        setUploadProgress((prev) => ({ ...prev, [fileItem.id]: 0 }))
+
         // Get pre-signed URL from your API
-        // Generate a UUID for the filename, preserving the original extension
-        const uuid = crypto.randomUUID()
-        const ext = fileItem.file.name.split('.').pop() || ''
-        const filename = ext ? `${uuid}.${ext}` : uuid
+        // Don't generate UUID here - let the API handle it
+        const filename = fileItem.file.name
 
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
@@ -66,31 +75,31 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
 
         // Upload file to the pre-signed URL with progress tracking
         const xhr = new XMLHttpRequest()
-        
+
         xhr.upload.addEventListener('progress', (event) => {
           if (event.lengthComputable) {
             const progress = Math.round((event.loaded / event.total) * 100)
-            setUploadProgress(prev => ({ ...prev, [fileItem.id]: progress }))
+            setUploadProgress((prev) => ({ ...prev, [fileItem.id]: progress }))
           }
         })
 
         await new Promise((resolve, reject) => {
           xhr.addEventListener('load', () => {
             if (xhr.status >= 200 && xhr.status < 300) {
-              setUploadProgress(prev => ({ ...prev, [fileItem.id]: 100 }))
+              setUploadProgress((prev) => ({ ...prev, [fileItem.id]: 100 }))
               console.log(`Successfully uploaded ${fileItem.file.name}`)
-              
+
               // Add to successful uploads
               if (fileItem.file instanceof File) {
                 const uploadedFile = {
                   id: fileItem.id,
                   name: fileItem.file.name,
                   url: fileUrl || uploadUrl, // Use fileUrl if available, fallback to uploadUrl
-                  file: fileItem.file
+                  file: fileItem.file,
                 }
                 successfulUploads.push(uploadedFile)
               }
-              
+
               resolve(xhr.response)
             } else {
               reject(new Error('Upload failed'))
@@ -109,23 +118,22 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
             reject(new Error('Invalid file type for upload'))
           }
         })
-        
       } catch (error) {
         console.error(`Failed to upload ${fileItem.file.name}:`, error)
         // You might want to show an error message to the user
       }
     }
-    
+
     setIsUploading(false)
-    
+
     // Update uploaded files state
-    setUploadedFiles(prev => [...prev, ...successfulUploads])
-    
+    setUploadedFiles((prev) => [...prev, ...successfulUploads])
+
     // Call the optional callback with successful uploads
     if (onFilesAdded && successfulUploads.length > 0) {
       onFilesAdded(successfulUploads)
     }
-    
+
     // Clear progress after a delay
     setTimeout(() => setUploadProgress({}), 2000)
   }
@@ -179,7 +187,12 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
           <p className="text-muted-foreground text-xs">
             SVG, PNG, JPG or GIF (max. {maxSizeMB}MB)
           </p>
-          <Button variant="outline" className="mt-4" onClick={openFileDialog} disabled={isUploading}>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={openFileDialog}
+            disabled={isUploading}
+          >
             <UploadIcon className="-ms-1 opacity-60" aria-hidden="true" />
             {isUploading ? 'Uploading...' : 'Select images'}
           </Button>
@@ -256,7 +269,7 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
 
                 {/* Success indicator */}
                 {progress === 100 && (
-                  <p className="text-green-600 text-xs">Upload complete!</p>
+                  <p className="text-xs text-green-600">Upload complete!</p>
                 )}
               </div>
             )
@@ -265,7 +278,12 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
           {/* Remove all files button */}
           {files.length > 1 && (
             <div>
-              <Button size="sm" variant="outline" onClick={clearFiles} disabled={isUploading}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={clearFiles}
+                disabled={isUploading}
+              >
                 Remove all files
               </Button>
             </div>
