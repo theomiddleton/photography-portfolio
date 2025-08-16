@@ -19,9 +19,10 @@ interface TaxSettingsProps {
     stripeRate: number
     profitPercentage?: number
   }
+  onUpdate?: () => void
 }
 
-export function TaxSettings({ initialTax }: TaxSettingsProps) {
+export function TaxSettings({ initialTax, onUpdate }: TaxSettingsProps) {
   const [taxRates, setTaxRates] = useState({
     taxRate: initialTax.taxRate ?? 20,
     stripeRate: initialTax.stripeRate ?? 1.4,
@@ -65,6 +66,7 @@ export function TaxSettings({ initialTax }: TaxSettingsProps) {
         type: 'success',
         message: 'Tax rates updated successfully'
       })
+      onUpdate?.()
     } catch (error) {
       console.error('Error saving tax rates:', error)
       setStatus({

@@ -271,11 +271,11 @@ export function EnhancedProductView({
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                    className="h-4 w-4 text-gray-300"
                   />
                 ))}
               </div>
-              <span className="text-sm text-gray-600">(47 reviews)</span>
+              <span className="text-sm text-gray-600">No reviews yet</span>
             </div>
 
             {selectedPrintSize && (
@@ -357,18 +357,14 @@ export function EnhancedProductView({
                 : `Add to Cart - ${formatPrice(totalPrice)}`}
             </Button>
 
-            <div className="grid grid-cols-3 gap-2 text-center text-sm text-gray-600">
-              <div className="flex flex-col items-center gap-1">
-                <Truck className="h-5 w-5" />
-                <span>Free shipping</span>
-              </div>
+            <div className="grid grid-cols-2 gap-2 text-center text-sm text-gray-600">
               <div className="flex flex-col items-center gap-1">
                 <Shield className="h-5 w-5" />
                 <span>30-day returns</span>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <Ruler className="h-5 w-5" />
-                <span>Custom sizes</span>
+                <Truck className="h-5 w-5" />
+                <span>Secure shipping</span>
               </div>
             </div>
           </div>
@@ -405,43 +401,9 @@ export function EnhancedProductView({
       <div className="border-t pt-16">
         <ProductReviews
           productId={product.id}
-          reviews={[
-            {
-              id: '1',
-              customerName: 'Sarah M.',
-              rating: 5,
-              title: 'Absolutely stunning quality',
-              content:
-                'The print quality exceeded my expectations. The colors are vibrant and the detail is incredible. Perfect for my living room wall.',
-              createdAt: new Date('2024-01-15'),
-              verified: true,
-              helpful: 12,
-            },
-            {
-              id: '2',
-              customerName: 'David L.',
-              rating: 5,
-              title: 'Fast shipping, great packaging',
-              content:
-                'Arrived quickly and was packaged very securely. The image looks even better in person than on screen.',
-              createdAt: new Date('2024-01-10'),
-              verified: true,
-              helpful: 8,
-            },
-            {
-              id: '3',
-              customerName: 'Emma K.',
-              rating: 4,
-              title: 'Beautiful print',
-              content:
-                'Really happy with this purchase. The print quality is excellent, though it took a bit longer to arrive than expected.',
-              createdAt: new Date('2024-01-08'),
-              verified: true,
-              helpful: 5,
-            },
-          ]}
-          averageRating={4.8}
-          totalReviews={47}
+          reviews={[]}
+          averageRating={0}
+          totalReviews={0}
           canReview={true}
         />
       </div>

@@ -66,7 +66,7 @@ export function StoreGrid({ prints, className }: StoreGridProps) {
               )}
               
               {/* Main product image */}
-              <div className="relative w-full h-full p-4">
+              <div className="relative w-full h-full p-6">
                 <Image
                   src={print.imageUrl}
                   alt={print.name}
