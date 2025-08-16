@@ -38,7 +38,7 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 
 - **📸 Image Gallery**: Responsive masonry/grid layouts with lightbox viewing
 - **📝 Blog System**: Rich text editor with TipTap, image uploads, and publishing workflow
-- **🛒 Print Store**: E-commerce platform with Stripe integration for selling photography prints
+- **🛒 Print Store**: E-commerce platform with Stripe integration for selling photography prints *(can be disabled)*
 - **👨‍💼 Admin Dashboard**: Complete content management system
 - **🖼️ Custom Galleries**: Create password-protected and public galleries
 - **📱 Responsive Design**: Mobile-first design with excellent performance
@@ -126,6 +126,41 @@ When AI features are disabled:
 - No permanent storage of images by AI providers
 - You maintain full control over all generated content
 
+### 🛒 Store Features & Configuration
+
+The e-commerce store is **completely optional** and can be easily disabled if you only need a portfolio without selling capabilities.
+
+**For users who don't need e-commerce features:**
+
+1. **Disable via Configuration**: Set `features.storeEnabled: false` in `src/config/site.ts`
+2. **Disable via Environment**: Don't include Stripe environment variables (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`)
+3. **Both methods**: Use both approaches for complete certainty
+
+When store features are disabled:
+
+- ✅ All store navigation links are completely hidden
+- ✅ Store pages return 404 (not accessible)
+- ✅ Store admin sections are hidden from admin dashboard
+- ✅ Store API endpoints return 404
+- ✅ Core portfolio functionality remains 100% intact
+- ✅ Clean, distraction-free interface focused on your photography
+
+**What store features provide when enabled:**
+
+- Complete e-commerce platform for selling photography prints
+- Stripe integration with secure payment processing
+- Order management and tracking
+- Shipping calculation and tax handling
+- Comprehensive security measures for production use (see `docs/STORE_SECURITY.md`)
+
+**Security & Production Readiness:**
+
+When enabled, the store includes comprehensive security measures:
+- Webhook verification and payment validation
+- Rate limiting and input validation
+- Authorization checks and audit logging
+- See `docs/STORE_SECURITY.md` for complete security documentation
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -211,9 +246,11 @@ portfolio-project/
 # Database
 DATABASE_URL="postgresql://user:password@host:port/database_name?sslmode=require"
 
-# Stripe (E-commerce)
+# Stripe (E-commerce) - Optional, required only if store is enabled
+# Remove these entirely to disable store functionality
 STRIPE_SECRET_KEY="sk_test_..."
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..." # Required for production store
 
 # Cloudflare R2 (Storage)
 R2_ACCESS_KEY_ID="your-access-key"
@@ -609,7 +646,50 @@ The main site configuration is located in `src/config/site.ts` and includes:
 - **Social links**: Instagram, Twitter, Facebook, and other social media links
 - **Email addresses**: Contact and support email configuration
 - **Site metadata**: Title, description, and branding
-- **Feature flags**: Control which features are enabled (including AI)
+- **Feature flags**: Control which features are enabled (including AI and Store)
+
+### Store Configuration
+
+The e-commerce store can be easily disabled if not needed:
+
+#### Method 1: Site Configuration Control
+
+```typescript
+// src/config/site.ts
+export const siteConfig = {
+  // ...other config
+  features: {
+    aiEnabled: true, // AI features control
+    storeEnabled: false, // Set to false to disable store
+  },
+}
+```
+
+#### Method 2: Environment Variable Control
+
+```bash
+# To disable store - simply omit these variables or leave them empty
+# STRIPE_SECRET_KEY=""
+# STRIPE_WEBHOOK_SECRET=""
+# NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=""
+
+# To enable store - include all required Stripe variables
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+```
+
+#### How It Works
+
+- **Both conditions must be true** for store features to be available
+- When disabled, all store links, pages, and admin sections are completely hidden
+- Core portfolio functionality (galleries, blog, about) works identically with or without store
+- No performance impact when disabled
+- Respects user choice regarding e-commerce functionality
+
+#### For Portfolio-Only Users
+
+We understand that many photographers only need a portfolio showcase without e-commerce. This project is designed to work flawlessly as a pure portfolio website. **The store is completely optional** and can be disabled without affecting any core functionality.
 
 ### AI Features Configuration
 
@@ -723,12 +803,24 @@ For detailed installation and usage instructions, see [`lightroom-plugin/INSTALL
 - Input sanitization and validation
 - Secure file handling
 
+### General Security Features
 - JWT-based authentication
 - Role-based access control
 - CSRF protection
 - Input validation with Zod
 - Secure password hashing
 - Rate limiting capabilities
+
+### E-commerce Security (when store is enabled)
+- **Stripe webhook verification**: Cryptographic signature validation
+- **Payment validation**: Server-side amount verification
+- **Input sanitization**: All store inputs validated and sanitized
+- **Rate limiting**: Protection against abuse (checkout, email, webhooks)
+- **Authorization checks**: Admin functions properly protected
+- **Transaction safety**: Database operations wrapped in transactions
+- **Audit logging**: Complete audit trail for all store operations
+
+For complete store security documentation, see [`docs/STORE_SECURITY.md`](./docs/STORE_SECURITY.md).
 
 ## 🚀 Performance Optimizations
 

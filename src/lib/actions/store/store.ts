@@ -14,6 +14,7 @@ import { eq, and, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { requireAdminAuth } from '~/lib/auth/permissions'
 import { logAction } from '~/lib/logging'
+import { isStoreEnabledServer } from '~/lib/store-utils'
 import {
   createCheckoutSessionSchema,
   updateOrderStatusSchema,
@@ -28,6 +29,11 @@ export async function createCheckoutSession(
   sizeId: string,
   shippingMethodId: string,
 ) {
+  // Check if store is enabled
+  if (!isStoreEnabledServer()) {
+    throw new Error('Store is not available')
+  }
+
   // Validate inputs
   const validatedInput = createCheckoutSessionSchema.safeParse({
     productId,

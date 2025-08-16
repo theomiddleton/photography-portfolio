@@ -3,8 +3,14 @@
 import { dbWithTx as db } from '~/server/db'
 import { orders, orderStatusHistory, users } from '~/server/db/schema'
 import { desc, eq, sql } from 'drizzle-orm'
+import { isStoreEnabledServer } from '~/lib/store-utils'
 
 export async function getOrders() {
+  // Check if store is enabled
+  if (!isStoreEnabledServer()) {
+    throw new Error('Store is not available')
+  }
+
   return await db.select().from(orders).orderBy(desc(orders.createdAt))
 }
 
@@ -14,6 +20,11 @@ export async function updateOrder(
   userId: number,
   note?: string,
 ) {
+  // Check if store is enabled
+  if (!isStoreEnabledServer()) {
+    throw new Error('Store is not available')
+  }
+
   try {
     // First check if user exists
     const user = await db.select().from(users).where(eq(users.id, userId)).limit(1)

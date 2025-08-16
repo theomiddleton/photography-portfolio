@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation'
 import { db } from '~/server/db'
 import { products, productSizes, orders, shippingMethods } from '~/server/db/schema'
 import { desc, eq } from 'drizzle-orm'
@@ -5,6 +6,7 @@ import { AdminOrders } from '~/components/store/admin/orders'
 import { AdminProducts } from '~/components/store/admin/products'
 import { AdminActions } from '~/components/store/admin/actions' 
 import { getSession } from '~/lib/auth/auth'
+import { isStoreEnabledServer } from '~/lib/store-utils'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -50,6 +52,11 @@ async function getRecentOrders() {
 }
 
 export default async function AdminStorePage() {
+  // Return 404 if store is disabled
+  if (!isStoreEnabledServer()) {
+    notFound()
+  }
+
   const [storeProducts, recentOrders] = await Promise.all([getProducts(), getRecentOrders()])
   const session = await getSession()
 

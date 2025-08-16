@@ -5,6 +5,7 @@ import { products, productSizes } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { ProductView } from '~/components/store/product-view'
 import { siteConfig } from '~/config/site'
+import { isStoreEnabledServer } from '~/lib/store-utils'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -23,6 +24,15 @@ async function getProductSizes(productId: string) {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
+  
+  // Return not found metadata if store is disabled
+  if (!isStoreEnabledServer()) {
+    return {
+      title: 'Page Not Found',
+      description: 'The requested page could not be found.',
+    }
+  }
+  
   const product = await getProduct(params.slug)
 
   if (!product) {
@@ -79,6 +89,11 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage(props: Props) {
+  // Return 404 if store is disabled
+  if (!isStoreEnabledServer()) {
+    notFound()
+  }
+
   const params = await props.params
   const product = await getProduct(params.slug)
 

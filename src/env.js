@@ -11,8 +11,8 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(['development', 'test', 'production'])
       .default('development'),
-    STRIPE_SECRET_KEY: z.string(),
-    STRIPE_WEBHOOK_SECRET: z.string(),
+    STRIPE_SECRET_KEY: z.string().optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().optional(),
     R2_ACCESS_KEY_ID: z.string(),
     R2_SECRET_ACCESS_KEY: z.string(),
     R2_IMAGE_BUCKET_NAME: z.string(),
@@ -33,7 +33,7 @@ export const env = createEnv({
   },
 
   client: {
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string(),
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   },
 
   runtimeEnv: {

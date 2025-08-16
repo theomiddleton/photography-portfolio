@@ -5,8 +5,14 @@ import { orders } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { logAction } from '~/lib/logging'
 import { webhookRateLimit, getClientIP } from '~/lib/rate-limit'
+import { isStoreEnabledServer } from '~/lib/store-utils'
 
 export async function POST(request: Request) {
+  // Return 404 if store is disabled
+  if (!isStoreEnabledServer()) {
+    return new Response('Not Found', { status: 404 })
+  }
+
   // Rate limiting
   const clientIP = getClientIP(request)
   const rateLimitResult = webhookRateLimit.check(clientIP)

@@ -1,11 +1,17 @@
 import { db } from '~/server/db'
 import { orders } from '~/server/db/schema'
 import { desc } from 'drizzle-orm'
+import { isStoreEnabledServer } from '~/lib/store-utils'
 
 // Mark as non-static
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
+  // Return 404 if store is disabled
+  if (!isStoreEnabledServer()) {
+    return new Response('Not Found', { status: 404 })
+  }
+
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder()
