@@ -10,6 +10,7 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 - [AI Features & Privacy Options](#-ai-features--privacy-options)
 - [Quick Start](#-quick-start)
 - [Environment Setup](#-environment-setup)
+- [Store Setup Guide](#-store-setup-guide)
 - [Recommended Setup](#-recommended-setup)
 - [Deployment Options](#-deployment-options)
 - [Database Options](#️-database-options)
@@ -130,6 +131,8 @@ When AI features are disabled:
 
 The e-commerce store is **completely optional** and can be easily disabled if you only need a portfolio without selling capabilities.
 
+**📚 Complete Store Setup Guide**: For detailed Stripe configuration, webhook setup, and production deployment, see **[Store Setup Guide](./docs/STORE_SETUP_GUIDE.md)**
+
 **For users who don't need e-commerce features:**
 
 1. **Disable via Configuration**: Set `features.storeEnabled: false` in `src/config/site.ts`
@@ -150,8 +153,19 @@ When store features are disabled:
 - Complete e-commerce platform for selling photography prints
 - Stripe integration with secure payment processing
 - Order management and tracking
+- Customer analytics and insights
 - Shipping calculation and tax handling
-- Comprehensive security measures for production use (see `docs/STORE_SECURITY.md`)
+- Modern shopping experience with wishlist and reviews
+- Comprehensive security measures for production use
+
+**Quick Store Setup:**
+
+1. **Create Stripe Account**: Get your API keys from [stripe.com](https://stripe.com)
+2. **Configure Webhooks**: Set up webhook endpoint with specific events
+3. **Environment Variables**: Add Stripe keys and admin email
+4. **Enable in Config**: Set `features.storeEnabled: true`
+
+For step-by-step instructions, webhook configuration, and troubleshooting, see the complete **[Store Setup Guide](./docs/STORE_SETUP_GUIDE.md)**.
 
 **Security & Production Readiness:**
 
@@ -159,7 +173,7 @@ When enabled, the store includes comprehensive security measures:
 - Webhook verification and payment validation
 - Rate limiting and input validation
 - Authorization checks and audit logging
-- See `docs/STORE_SECURITY.md` for complete security documentation
+- See **[Store Security Documentation](./docs/STORE_SECURITY.md)** for complete security details
 
 ## 🚀 Quick Start
 
@@ -247,10 +261,11 @@ portfolio-project/
 DATABASE_URL="postgresql://user:password@host:port/database_name?sslmode=require"
 
 # Stripe (E-commerce) - Optional, required only if store is enabled
+# For detailed setup instructions, see docs/STORE_SETUP_GUIDE.md
 # Remove these entirely to disable store functionality
 STRIPE_SECRET_KEY="sk_test_..."
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-STRIPE_WEBHOOK_SECRET="whsec_..." # Required for production store
+STRIPE_WEBHOOK_SECRET="whsec_..." # Get from Stripe webhook configuration
 
 # Cloudflare R2 (Storage)
 R2_ACCESS_KEY_ID="your-access-key"
@@ -285,6 +300,58 @@ LIGHTROOM_API_KEY="your-secure-lightroom-api-key"
 SITE_URL="http://localhost:3000" # Set as production domain when deploying
 EDGE_CONFIG="https://edge-config.vercel.com/..." # Optional
 ```
+
+## 🛒 Store Setup Guide
+
+**Complete Store Configuration Documentation**: **[docs/STORE_SETUP_GUIDE.md](./docs/STORE_SETUP_GUIDE.md)**
+
+The store system provides a complete e-commerce platform for selling photography prints. This section covers the essential setup steps. For detailed instructions, webhook configuration, and troubleshooting, see the complete Store Setup Guide.
+
+### Quick Setup Steps
+
+1. **Create Stripe Account**
+   - Sign up at [stripe.com](https://stripe.com)
+   - Complete business verification
+   - Get your API keys from Developers > API keys
+
+2. **Configure Environment Variables**
+   ```bash
+   STRIPE_SECRET_KEY="sk_test_..."  # Use sk_live_ for production
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."  # Use pk_live_ for production
+   STRIPE_WEBHOOK_SECRET="whsec_..."  # From webhook configuration
+   ADMIN_EMAIL="your-business@email.com"  # Order notifications
+   ```
+
+3. **Set Up Stripe Webhooks** (Critical Step)
+   - Go to Stripe Dashboard > Developers > Webhooks
+   - Add endpoint: `https://yourdomain.com/api/webhooks/stripe`
+   - Select events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`
+   - Copy webhook secret to `STRIPE_WEBHOOK_SECRET`
+
+4. **Enable Store in Configuration**
+   ```typescript
+   // src/config/site.ts
+   export const siteConfig = {
+     features: {
+       storeEnabled: true,  // Enable store functionality
+     },
+   }
+   ```
+
+5. **Test the Setup**
+   - Use Stripe test cards (4242424242424242)
+   - Complete a test purchase
+   - Verify order appears in admin dashboard
+   - Check webhook delivery in Stripe dashboard
+
+### Important Notes
+
+- **Webhooks are critical**: Orders won't be created without proper webhook configuration
+- **Use test mode first**: Always test with Stripe test keys before going live
+- **Security**: The store includes comprehensive security measures (see [STORE_SECURITY.md](./docs/STORE_SECURITY.md))
+- **Production**: Switch to live Stripe keys and update webhook URL for production
+
+For complete step-by-step instructions, webhook troubleshooting, and production deployment guidance, see **[Store Setup Guide](./docs/STORE_SETUP_GUIDE.md)**.
 
 ## 🎯 Recommended Setup
 
@@ -582,6 +649,7 @@ pnpm install @aws-sdk/client-ses
 - Best developer experience
 - Global support
 - Comprehensive features
+- **Complete setup guide**: [docs/STORE_SETUP_GUIDE.md](./docs/STORE_SETUP_GUIDE.md)
 
 ### Option 2: PayPal
 
