@@ -240,16 +240,19 @@ export function PricingStrategies({ sizes, profitMargin, onUpdate }: PricingStra
                       <p className="text-sm text-muted-foreground">Up to {tier.maxArea} sq inches</p>
                     </div>
                     <div className="w-24">
-                      <Input
-                        type="number"
-                        value={tier.margin}
-                        onChange={(e) => {
-                          const newTiers = [...tieredSettings.tiers]
-                          newTiers[index].margin = parseInt(e.target.value) || 0
-                          setTieredSettings({ tiers: newTiers })
-                        }}
-                        suffix="%"
-                      />
+                      <div className="flex items-center">
+                        <Input
+                          type="number"
+                          value={tier.margin}
+                          onChange={(e) => {
+                            const newTiers = [...tieredSettings.tiers]
+                            newTiers[index].margin = parseInt(e.target.value) || 0
+                            setTieredSettings({ tiers: newTiers })
+                          }}
+                          className="w-full"
+                        />
+                        <span className="ml-2 text-sm text-muted-foreground">%</span>
+                      </div>
                     </div>
                   </div>
                 ))}
