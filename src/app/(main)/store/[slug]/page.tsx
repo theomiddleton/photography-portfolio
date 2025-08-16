@@ -6,6 +6,7 @@ import { eq, ne, and, desc } from 'drizzle-orm'
 import { EnhancedProductView } from '~/components/store/enhanced-product-view'
 import { siteConfig } from '~/config/site'
 import { isStoreEnabledServer } from '~/lib/store-utils'
+import { generateProductStructuredData, generateBreadcrumbStructuredData } from '~/lib/structured-data'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -90,6 +91,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   return {
     title,
     description,
+    keywords: ['photography print', 'wall art', 'home decor', 'fine art', product.name.toLowerCase()],
     openGraph: {
       title,
       description,
@@ -101,8 +103,9 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
           alt: product.name,
         }
       ],
-      siteName: 'Print Store',
+      siteName: siteConfig.storeName,
       locale: 'en_GB',
+      type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
@@ -145,19 +148,50 @@ export default async function ProductPage(props: Props) {
     getRecommendations(product.id)
   ])
 
+  const baseUrl = siteConfig.url || 'http://localhost:3000'
+
+  // Generate structured data
+  const productStructuredData = generateProductStructuredData({
+    product,
+    sizes,
+    baseUrl
+  })
+
+  const breadcrumbStructuredData = generateBreadcrumbStructuredData([
+    { name: 'Home', url: baseUrl },
+    { name: 'Store', url: `${baseUrl}/store` },
+    { name: product.name, url: `${baseUrl}/store/${product.slug}` }
+  ])
+
   return (
-    <main className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-12 pt-24">
-        <EnhancedProductView
-          product={product}
-          sizes={sizes.map((size) => ({
-            ...size,
-            totalPrice: size.basePrice,
-          }))}
-          recommendations={recommendations}
-        />
-      </div>
-    </main>
+    <>
+      {/* Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(productStructuredData)
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbStructuredData)
+        }}
+      />
+
+      <main className="min-h-screen bg-white">
+        <div className="container mx-auto px-4 py-12 pt-24">
+          <EnhancedProductView
+            product={product}
+            sizes={sizes.map((size) => ({
+              ...size,
+              totalPrice: size.basePrice,
+            }))}
+            recommendations={recommendations}
+          />
+        </div>
+      </main>
+    </>
   )
 }
 

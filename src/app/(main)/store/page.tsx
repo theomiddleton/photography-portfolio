@@ -5,16 +5,18 @@ import { and, eq, desc } from 'drizzle-orm'
 import { products, productSizes, storeCosts } from '~/server/db/schema'
 import { StorePage } from '~/components/store/store-page'
 import { isStoreEnabledServer } from '~/lib/store-utils'
+import { generateStoreStructuredData, generateBreadcrumbStructuredData } from '~/lib/structured-data'
+import { siteConfig } from '~/config/site'
 
 export const metadata: Metadata = {
   title: 'Print Store | Photography Portfolio',
-  description: 'Purchase beautiful photographic prints from our curated collection',
+  description: 'Purchase beautiful photographic prints from our curated collection. High-quality wall art for your home and office.',
   openGraph: {
     title: 'Print Store | Photography Portfolio',
     description: 'Purchase beautiful photographic prints from our curated collection',
     type: 'website',
   },
-  keywords: ['photography prints', 'wall art', 'home decor', 'fine art photography'],
+  keywords: ['photography prints', 'wall art', 'home decor', 'fine art photography', 'photographic prints'],
 }
 
 export const revalidate = 3600 // Revalidate every hour
@@ -58,5 +60,36 @@ export default async function StorePageWrapper() {
   }
 
   const prints = await getProducts()
-  return <StorePage initialProducts={prints} />
+  const baseUrl = siteConfig.url || 'http://localhost:3000'
+
+  // Generate structured data
+  const storeStructuredData = generateStoreStructuredData({
+    products: prints,
+    baseUrl
+  })
+
+  const breadcrumbStructuredData = generateBreadcrumbStructuredData([
+    { name: 'Home', url: baseUrl },
+    { name: 'Store', url: `${baseUrl}/store` }
+  ])
+
+  return (
+    <>
+      {/* Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(storeStructuredData)
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbStructuredData)
+        }}
+      />
+
+      <StorePage initialProducts={prints} />
+    </>
+  )
 }
