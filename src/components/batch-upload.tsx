@@ -112,7 +112,7 @@ export function BatchUpload({
 
   const uploadImageForAI = async (imageData: BatchImageData) => {
     try {
-      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+      const tempName = `temp_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
 
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -120,7 +120,7 @@ export function BatchUpload({
         body: JSON.stringify({
           filename: imageData.file.name,
           contentType: imageData.file.type,
-          name: tempId,
+          name: tempName,
           bucket: bucket,
           temporary: true,
         }),
