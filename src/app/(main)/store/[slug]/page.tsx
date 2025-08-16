@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { db } from '~/server/db'
-import { products, productSizes } from '~/server/db/schema'
-import { eq } from 'drizzle-orm'
-import { ProductView } from '~/components/store/product-view'
+import { products, productSizes, storeCosts } from '~/server/db/schema'
+import { eq, ne, and, desc } from 'drizzle-orm'
+import { EnhancedProductView } from '~/components/store/enhanced-product-view'
 import { siteConfig } from '~/config/site'
 import { isStoreEnabledServer } from '~/lib/store-utils'
 
@@ -20,6 +20,45 @@ async function getProduct(slug: string) {
 
 async function getProductSizes(productId: string) {
   return await db.select().from(productSizes).where(eq(productSizes.productId, productId))
+}
+
+async function getRecommendations(currentProductId: string) {
+  // Get other active products as recommendations
+  const recommendedProducts = await db
+    .select()
+    .from(products)
+    .where(and(ne(products.id, currentProductId), eq(products.active, true)))
+    .limit(4)
+
+  // Get costs for price calculation
+  const costs = await db
+    .select()
+    .from(storeCosts)
+    .where(eq(storeCosts.active, true))
+    .orderBy(desc(storeCosts.createdAt))
+    .limit(1)
+
+  // Calculate prices for recommendations
+  const productsWithPrices = await Promise.all(
+    recommendedProducts.map(async (product) => {
+      const sizes = await db
+        .select()
+        .from(productSizes)
+        .where(and(eq(productSizes.productId, product.id), eq(productSizes.active, true)))
+        .orderBy(productSizes.basePrice)
+
+      const lowestPrice = sizes[0]?.basePrice || 0
+      const taxRate = costs[0]?.taxRate || 2000
+      const priceWithTax = Math.round(lowestPrice * (1 + taxRate / 10000))
+
+      return {
+        ...product,
+        priceWithTax,
+      }
+    })
+  )
+
+  return productsWithPrices
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
@@ -43,7 +82,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   }
 
   const title = `${product.name} | Print Store`
-  const description = product.description
+  const description = product.description || 'Beautiful photographic print available for purchase'
   const ogImageUrl = new URL('/api/og', siteConfig.url ?? 'http://localhost:3000')
   ogImageUrl.searchParams.set('image', product.imageUrl)
   ogImageUrl.searchParams.set('title', product.name)
@@ -101,17 +140,21 @@ export default async function ProductPage(props: Props) {
     notFound()
   }
 
-  const sizes = await getProductSizes(product.id)
+  const [sizes, recommendations] = await Promise.all([
+    getProductSizes(product.id),
+    getRecommendations(product.id)
+  ])
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
-      <div className="container mx-auto px-4 py-12">
-        <ProductView
+    <main className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-12 pt-24">
+        <EnhancedProductView
           product={product}
           sizes={sizes.map((size) => ({
             ...size,
             totalPrice: size.basePrice,
           }))}
+          recommendations={recommendations}
         />
       </div>
     </main>
