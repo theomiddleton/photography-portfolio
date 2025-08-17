@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Card,
   CardContent,
@@ -27,6 +27,7 @@ import {
   CheckCircle,
   Info
 } from 'lucide-react'
+import { useRealTimeUpdates } from '~/hooks/use-real-time-updates'
 
 interface CostsProps {
   sizes: BasePrintSize[]
@@ -60,6 +61,9 @@ export function Costs({ sizes, initialTax, shippingMethods }: CostsProps) {
   const [activeTab, setActiveTab] = useState('overview')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
+  // Enable real-time updates for costs data
+  const refreshData = useRealTimeUpdates([sizes, shippingMethods], 5000) // 5 second updates
+
   // Calculate metrics when data changes
   useEffect(() => {
     const calculateMetrics = () => {
@@ -83,6 +87,12 @@ export function Costs({ sizes, initialTax, shippingMethods }: CostsProps) {
 
     calculateMetrics()
   }, [sizes, shippingMethods])
+
+  const handleUpdate = useCallback(() => {
+    setHasUnsavedChanges(true)
+    // Trigger immediate data refresh
+    refreshData()
+  }, [refreshData])
 
   const getHealthStatus = () => {
     if (metrics.profitMargin < 10) return { color: 'destructive', icon: AlertTriangle, text: 'Low Profit' }
@@ -213,7 +223,7 @@ export function Costs({ sizes, initialTax, shippingMethods }: CostsProps) {
             <TabsContent value="sizes" className="space-y-4">
               <PrintSizes 
                 sizes={sizes} 
-                onUpdate={() => setHasUnsavedChanges(true)}
+                onUpdate={handleUpdate}
               />
             </TabsContent>
 
@@ -221,28 +231,28 @@ export function Costs({ sizes, initialTax, shippingMethods }: CostsProps) {
               <PricingStrategies 
                 sizes={sizes}
                 profitMargin={metrics.profitMargin}
-                onUpdate={() => setHasUnsavedChanges(true)}
+                onUpdate={handleUpdate}
               />
             </TabsContent>
 
             <TabsContent value="tax" className="space-y-4">
               <TaxSettings 
                 initialTax={initialTax} 
-                onUpdate={() => setHasUnsavedChanges(true)}
+                onUpdate={handleUpdate}
               />
             </TabsContent>
 
             <TabsContent value="shipping" className="space-y-4">
               <ShippingSettings 
                 shippingMethods={shippingMethods} 
-                onUpdate={() => setHasUnsavedChanges(true)}
+                onUpdate={handleUpdate}
               />
             </TabsContent>
 
             <TabsContent value="bulk" className="space-y-4">
               <BulkOperations 
                 sizes={sizes}
-                onUpdate={() => setHasUnsavedChanges(true)}
+                onUpdate={handleUpdate}
               />
             </TabsContent>
           </Tabs>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import { Checkbox } from '~/components/ui/checkbox'
 import { Progress } from '~/components/ui/progress'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '~/components/ui/dialog'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '~/components/ui/alert-dialog'
+import { Alert, AlertDescription } from '~/components/ui/alert'
 import type { BasePrintSize } from '~/server/db/schema'
 import { formatPrice } from '~/lib/utils'
-import { applyPrintSizeTemplate } from '~/lib/actions/store/sizes'
+import { applyPrintSizeTemplate, applyPrintSizesToProducts } from '~/lib/actions/store/sizes'
+import { getAllProducts } from '~/lib/actions/store/products'
 import { 
   Upload, 
   Download, 
@@ -29,10 +30,22 @@ import {
   AlertTriangle
 } from 'lucide-react'
 import { toast } from 'sonner'
+import Image from 'next/image'
 
 interface BulkOperationsProps {
   sizes: BasePrintSize[]
   onUpdate: () => void
+}
+
+interface Product {
+  id: string
+  name: string
+  slug: string
+  description: string
+  imageUrl: string
+  active: boolean
+  createdAt: Date
+  updatedAt: Date
 }
 
 interface BulkOperation {
@@ -117,6 +130,25 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
   const [templateConflicts, setTemplateConflicts] = useState<Array<{ existingSize: BasePrintSize, templateSize: any }>>([])
   const [conflictResolutions, setConflictResolutions] = useState<Record<string, 'overwrite' | 'skip' | 'both'>>({})
   const [showConflictDialog, setShowConflictDialog] = useState(false)
+  
+  // Product application state
+  const [products, setProducts] = useState<Product[]>([])
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set())
+  const [showProductDialog, setShowProductDialog] = useState(false)
+  const [applyToProducts, setApplyToProducts] = useState(false)
+  const [productConflicts, setProductConflicts] = useState<Array<{ productId: string, productName: string, conflictingSizes: any[] }>>([])
+  const [productConflictResolutions, setProductConflictResolutions] = useState<Record<string, 'overwrite' | 'skip' | 'both'>>({})
+
+  // Load products when component mounts
+  useEffect(() => {
+    const loadProducts = async () => {
+      const result = await getAllProducts()
+      if (result.success) {
+        setProducts(result.data)
+      }
+    }
+    loadProducts()
+  }, [])
 
   const handleSelectAll = () => {
     if (selectedSizes.size === sizes.length) {
@@ -231,8 +263,37 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
       setConflictResolutions(resolutions)
       setShowConflictDialog(true)
     } else {
+      // No conflicts, check if user wants to apply to products too
       setShowTemplateDialog(true)
     }
+  }
+
+  const handleProductSelection = () => {
+    if (selectedProducts.size === 0) {
+      toast.error('Please select at least one product')
+      return
+    }
+    
+    // Show product application dialog
+    setShowProductDialog(true)
+  }
+
+  const handleSelectAllProducts = () => {
+    if (selectedProducts.size === products.length) {
+      setSelectedProducts(new Set())
+    } else {
+      setSelectedProducts(new Set(products.map(p => p.id)))
+    }
+  }
+
+  const handleSelectProduct = (productId: string) => {
+    const newSelected = new Set(selectedProducts)
+    if (newSelected.has(productId)) {
+      newSelected.delete(productId)
+    } else {
+      newSelected.add(productId)
+    }
+    setSelectedProducts(newSelected)
   }
 
   const applyTemplate = async () => {
@@ -240,34 +301,69 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
 
     setProcessing(true)
     try {
-      // Prepare conflict resolutions for the API
-      const apiConflictResolutions: Record<string, { action: 'overwrite' | 'skip' | 'both', existingId?: string }> = {}
-      
-      templateConflicts.forEach(conflict => {
-        const resolution = conflictResolutions[conflict.existingSize.id]
-        if (resolution) {
-          apiConflictResolutions[conflict.templateSize.name] = {
-            action: resolution,
-            existingId: conflict.existingSize.id
-          }
-        }
-      })
-
-      const result = await applyPrintSizeTemplate(selectedTemplate.sizes, apiConflictResolutions)
-      
-      if (result.success) {
-        const { data: results } = result
-        let message = `Template "${selectedTemplate.name}" applied successfully! `
-        if (results.added > 0) message += `Added ${results.added} sizes. `
-        if (results.updated > 0) message += `Updated ${results.updated} sizes. `
-        if (results.skipped > 0) message += `Skipped ${results.skipped} sizes. `
-        if (results.errors.length > 0) message += `${results.errors.length} errors occurred.`
+      // First apply template to base sizes if there are conflicts
+      if (templateConflicts.length > 0) {
+        // Prepare conflict resolutions for the API
+        const apiConflictResolutions: Record<string, { action: 'overwrite' | 'skip' | 'both', existingId?: string }> = {}
         
-        toast.success(message)
-        onUpdate() // Refresh the sizes list
+        templateConflicts.forEach(conflict => {
+          const resolution = conflictResolutions[conflict.existingSize.id]
+          if (resolution) {
+            apiConflictResolutions[conflict.templateSize.name] = {
+              action: resolution,
+              existingId: conflict.existingSize.id
+            }
+          }
+        })
+
+        const templateResult = await applyPrintSizeTemplate(selectedTemplate.sizes, apiConflictResolutions)
+        
+        if (!templateResult.success) {
+          toast.error(templateResult.error || 'Failed to apply template to base sizes')
+          return
+        }
       } else {
-        toast.error(result.error || 'Failed to apply template')
+        // No conflicts, apply template normally
+        const templateResult = await applyPrintSizeTemplate(selectedTemplate.sizes, {})
+        
+        if (!templateResult.success) {
+          toast.error(templateResult.error || 'Failed to apply template to base sizes')
+          return
+        }
       }
+
+      // If user selected to apply to products, do that too
+      if (applyToProducts && selectedProducts.size > 0) {
+        // Get the base size IDs that were just created/updated
+        const baseSizeIds = sizes
+          .filter(size => selectedTemplate.sizes.some(ts => 
+            ts.name === size.name || (ts.width === size.width && ts.height === size.height)
+          ))
+          .map(size => size.id)
+
+        // Apply to products
+        const productResult = await applyPrintSizesToProducts(
+          baseSizeIds,
+          Array.from(selectedProducts),
+          productConflictResolutions
+        )
+
+        if (productResult.success) {
+          const { data: results } = productResult
+          let message = `Template "${selectedTemplate.name}" applied successfully! `
+          message += `Updated ${results.productsUpdated} products with ${results.sizesAdded} new sizes.`
+          if (results.sizesUpdated > 0) message += ` Updated ${results.sizesUpdated} existing sizes.`
+          if (results.sizesSkipped > 0) message += ` Skipped ${results.sizesSkipped} sizes.`
+          
+          toast.success(message)
+        } else {
+          toast.error(productResult.error || 'Failed to apply template to products')
+        }
+      } else {
+        toast.success(`Template "${selectedTemplate.name}" applied to base sizes successfully!`)
+      }
+      
+      onUpdate() // Refresh the sizes list
       
     } catch (error) {
       toast.error('Failed to apply template')
@@ -275,9 +371,14 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
       setProcessing(false)
       setShowTemplateDialog(false)
       setShowConflictDialog(false)
+      setShowProductDialog(false)
       setSelectedTemplate(null)
       setTemplateConflicts([])
       setConflictResolutions({})
+      setProductConflicts([])
+      setProductConflictResolutions({})
+      setApplyToProducts(false)
+      setSelectedProducts(new Set())
     }
   }
 
@@ -551,15 +652,30 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
                       <div className="text-xs text-muted-foreground mb-3">
                         {template.sizes.length} sizes: {template.sizes.map(s => s.name).join(', ')}
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => handleTemplateSelect(template)}
-                      >
-                        <Save className="h-4 w-4 mr-2" />
-                        Apply Template
-                      </Button>
+                      <div className="space-y-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => handleTemplateSelect(template)}
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Apply to Base Sizes
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="default" 
+                          className="w-full"
+                          onClick={() => {
+                            setSelectedTemplate(template)
+                            setApplyToProducts(true)
+                            setShowTemplateDialog(true)
+                          }}
+                        >
+                          <Package className="h-4 w-4 mr-2" />
+                          Apply to Products
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -571,29 +687,88 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
 
       {/* Template Confirmation Dialog */}
       <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Apply Template: {selectedTemplate?.name}</DialogTitle>
             <DialogDescription>
-              This will add {selectedTemplate?.sizes.length} new print sizes to your catalog.
+              {applyToProducts 
+                ? 'This will add these sizes to the selected products.'
+                : 'This will add these sizes to your base size catalog.'
+              }
             </DialogDescription>
           </DialogHeader>
           
           {selectedTemplate && (
-            <div className="space-y-4">
-              <div className="max-h-60 overflow-y-auto space-y-2">
-                {selectedTemplate.sizes.map((size, index) => (
-                  <div key={index} className="flex justify-between items-center p-2 border rounded">
-                    <div>
-                      <span className="font-medium">{size.name}</span>
-                      <span className="text-sm text-muted-foreground ml-2">
-                        {size.width}"×{size.height}"
-                      </span>
+            <div className="space-y-6">
+              {/* Template Sizes Preview */}
+              <div>
+                <h4 className="font-medium mb-3">Template Sizes ({selectedTemplate.sizes.length})</h4>
+                <div className="max-h-40 overflow-y-auto space-y-2 border rounded p-3">
+                  {selectedTemplate.sizes.map((size, index) => (
+                    <div key={index} className="flex justify-between items-center p-2 bg-muted rounded">
+                      <div>
+                        <span className="font-medium">{size.name}</span>
+                        <span className="text-sm text-muted-foreground ml-2">
+                          {size.width}"×{size.height}"
+                        </span>
+                      </div>
+                      <span className="text-sm">{formatPrice(size.basePrice)}</span>
                     </div>
-                    <span className="text-sm">{formatPrice(size.basePrice)}</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
+
+              {/* Product Selection for Product Application */}
+              {applyToProducts && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium">Select Products ({selectedProducts.size} of {products.length})</h4>
+                    <Button variant="outline" size="sm" onClick={handleSelectAllProducts}>
+                      {selectedProducts.size === products.length ? 'Deselect All' : 'Select All'}
+                    </Button>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto space-y-2 border rounded p-3">
+                    {products.map((product) => (
+                      <div key={product.id} className="flex items-center justify-between p-2 hover:bg-muted rounded">
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            checked={selectedProducts.has(product.id)}
+                            onCheckedChange={() => handleSelectProduct(product.id)}
+                          />
+                          <div className="flex items-center gap-3">
+                            <div className="relative w-12 h-8">
+                              <Image
+                                src={product.imageUrl}
+                                alt={product.name}
+                                fill
+                                sizes="48px"
+                                className="object-cover rounded"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">{product.name}</p>
+                              <p className="text-xs text-muted-foreground truncate max-w-xs">
+                                {product.description}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <Badge variant={product.active ? 'default' : 'secondary'} className="text-xs">
+                          {product.active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedProducts.size === 0 && (
+                    <Alert className="mt-3">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Please select at least one product to apply the template sizes to.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              )}
             </div>
           )}
           
@@ -601,7 +776,10 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
             <Button variant="outline" onClick={() => setShowTemplateDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={applyTemplate} disabled={processing}>
+            <Button 
+              onClick={applyTemplate} 
+              disabled={processing || (applyToProducts && selectedProducts.size === 0)}
+            >
               {processing ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -610,7 +788,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  Apply Template
+                  {applyToProducts ? `Apply to ${selectedProducts.size} Products` : 'Apply Template'}
                 </>
               )}
             </Button>
