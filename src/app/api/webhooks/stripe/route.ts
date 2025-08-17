@@ -65,7 +65,17 @@ export async function POST(request: Request) {
           })
           .where(eq(orders.stripeSessionId, paymentIntent.id))
 
-        if (result.rowCount === 0) {
+        // Perform the update and return the IDs of affected rows
+        const updatedOrders = await db
+          .update(orders)
+          .set({
+            status: 'processing',
+            statusUpdatedAt: new Date(),
+          })
+          .where(eq(orders.stripeSessionId, paymentIntent.id))
+          .returning({ id: orders.id })
+
+        if (!updatedOrders || updatedOrders.length === 0) {
           await logAction('webhook', `Order not found for payment intent: ${paymentIntent.id}`)
         } else {
           await logAction('webhook', `Order status updated to processing for payment: ${paymentIntent.id}`)
