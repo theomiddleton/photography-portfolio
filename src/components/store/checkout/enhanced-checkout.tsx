@@ -46,6 +46,7 @@ interface EnhancedCheckoutProps {
   productId: string
   sizeId: string
   quantity?: number
+  productSize?: { basePrice: number; name: string }
   onClose: () => void
 }
 
@@ -94,6 +95,7 @@ export function EnhancedCheckout({
   productId,
   sizeId,
   quantity = 1,
+  productSize,
   onClose,
 }: EnhancedCheckoutProps) {
   const [currentStep, setCurrentStep] = useState(0)
@@ -231,7 +233,7 @@ export function EnhancedCheckout({
       (m) => m.id === selectedShipping,
     )
     const shippingCost = selectedMethod?.price || 0
-    const subtotal = 2500 * quantity // This should come from actual product price
+    const subtotal = (productSize?.basePrice || 0) * quantity // Use actual product price
     const tax = Math.round(subtotal * (taxRates.taxRate / 10000))
     const total = subtotal + shippingCost + tax
 
@@ -531,7 +533,21 @@ export function EnhancedCheckout({
 
                   {clientSecret && agreeToTerms && (
                     <Elements stripe={stripePromise} options={{ clientSecret }}>
-                      <CheckoutForm clientSecret={clientSecret} />
+                      <CheckoutForm 
+                        clientSecret={clientSecret}
+                        shippingDetails={{
+                          name: `${shippingDetails.firstName} ${shippingDetails.lastName}`,
+                          email: shippingDetails.email,
+                          address: {
+                            line1: shippingDetails.address,
+                            city: shippingDetails.city,
+                            state: shippingDetails.state,
+                            postal_code: shippingDetails.zipCode,
+                            country: shippingDetails.country,
+                          },
+                          phone: shippingDetails.phone,
+                        }}
+                      />
                     </Elements>
                   )}
                 </div>

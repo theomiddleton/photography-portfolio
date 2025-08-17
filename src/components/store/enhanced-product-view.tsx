@@ -268,18 +268,20 @@ export function EnhancedProductView({
               </div>
             </div>
 
-            {/* Rating */}
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="h-4 w-4 text-gray-300"
-                  />
-                ))}
+            {/* Rating - only show if reviews are enabled */}
+            {siteConfig.features.reviewsEnabled && (
+              <div className="mb-4 flex items-center gap-2">
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="h-4 w-4 text-gray-300"
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-gray-600">No reviews yet</span>
               </div>
-              <span className="text-sm text-gray-600">No reviews yet</span>
-            </div>
+            )}
 
             {selectedPrintSize && (
               <div className="mb-2 text-3xl font-bold text-gray-900">
@@ -379,13 +381,14 @@ export function EnhancedProductView({
 
       {/* Reviews Section */}
       {siteConfig.features.reviewsEnabled && (
-        <div className="border-t pt-16 mb-16">
+        <div className="border-t pt-16 mb-24">
           <ProductReviews
             productId={product.id}
             reviews={[]}
             averageRating={0}
             totalReviews={0}
             canReview={true}
+            className="pb-12"
           />
         </div>
       )}
@@ -393,7 +396,7 @@ export function EnhancedProductView({
       {/* Recommendations */}
       {recommendations.length > 0 && (
         <div className={cn(
-          "border-t pt-16 mb-16",
+          "border-t pt-16 mb-24",
           !siteConfig.features.reviewsEnabled && "border-t"
         )}>
           <h2 className="mb-8 text-2xl font-bold">You might also like</h2>
@@ -429,6 +432,10 @@ export function EnhancedProductView({
               productId={product.id}
               sizeId={selectedPrintSize.id}
               quantity={quantity}
+              productSize={{
+                basePrice: selectedPrintSize.basePrice,
+                name: selectedPrintSize.name
+              }}
               onClose={() => setShowCheckout(false)}
             />
           </DialogContent>
