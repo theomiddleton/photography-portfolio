@@ -24,18 +24,20 @@ export function OrderSummary({
   stripeTaxRate
 }: OrderSummaryProps) {
   const selectedMethod = shippingMethods.find(method => method.id === selectedShipping)
-  const baseSubtotal = size.basePrice
+  const baseSubtotal = size.basePrice // This is always the base price from DB
   const shippingCost = selectedMethod?.price ?? 0
-  const tax = Math.round((baseSubtotal + shippingCost) * (taxRate / 10000))
-  const stripeTax = Math.round((baseSubtotal + shippingCost) * (stripeTaxRate / 10000))
   
-  let subtotal, total
+  let subtotal, tax, stripeTax, total
   if (siteConfig.features.store.showTax) {
-    // Show tax separately
+    // Show tax separately - calculate tax on base price + shipping
+    tax = Math.round((baseSubtotal + shippingCost) * (taxRate / 10000))
+    stripeTax = Math.round((baseSubtotal + shippingCost) * (stripeTaxRate / 10000))
     subtotal = baseSubtotal
     total = baseSubtotal + shippingCost + tax + stripeTax
   } else {
-    // Include tax in subtotal
+    // Include tax in subtotal - but don't show tax lines
+    tax = Math.round((baseSubtotal + shippingCost) * (taxRate / 10000))
+    stripeTax = Math.round((baseSubtotal + shippingCost) * (stripeTaxRate / 10000))
     subtotal = baseSubtotal + tax + stripeTax
     total = subtotal + shippingCost
   }

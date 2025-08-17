@@ -433,7 +433,7 @@ export function EnhancedProductView({
               sizeId={selectedPrintSize.id}
               quantity={quantity}
               productSize={{
-                basePrice: selectedPrintSize.basePrice,
+                basePrice: selectedPrintSize.basePrice, // Always pass the actual base price from DB
                 name: selectedPrintSize.name
               }}
               onClose={() => setShowCheckout(false)}

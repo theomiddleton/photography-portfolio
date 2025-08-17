@@ -234,7 +234,7 @@ export function EnhancedCheckout({
       (m) => m.id === selectedShipping,
     )
     const shippingCost = selectedMethod?.price || 0
-    const baseSubtotal = (productSize?.basePrice || 0) * quantity // Use actual product price
+    const baseSubtotal = (productSize?.basePrice || 0) * quantity // This is always the base price from DB
     const tax = Math.round(baseSubtotal * (taxRates.taxRate / 10000))
     
     let subtotal, total
@@ -243,7 +243,7 @@ export function EnhancedCheckout({
       subtotal = baseSubtotal
       total = baseSubtotal + shippingCost + tax
     } else {
-      // Include tax in subtotal
+      // Include tax in subtotal display, but tax is still calculated for backend
       subtotal = baseSubtotal + tax
       total = subtotal + shippingCost
     }
