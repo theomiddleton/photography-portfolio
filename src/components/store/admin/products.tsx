@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Switch } from '~/components/ui/switch'
@@ -82,9 +82,9 @@ export function AdminProducts({ products }: AdminProductsProps) {
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
 
   // Reset to first page when filters change
-  useState(() => {
+  useEffect(() => {
     setCurrentPage(1)
-  })
+  }, [searchQuery, statusFilter])
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)

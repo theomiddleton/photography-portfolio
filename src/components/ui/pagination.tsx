@@ -71,7 +71,11 @@ export function Pagination({
     return uniquePages
   }
 
-  if (totalPages <= 1) {
+  if (totalPages <= 1 && totalItems > 0) {
+    return null
+  }
+
+  if (totalItems === 0) {
     return null
   }
 
