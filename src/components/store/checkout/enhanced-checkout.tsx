@@ -235,23 +235,27 @@ export function EnhancedCheckout({
     )
     const shippingCost = selectedMethod?.price || 0
     const baseSubtotal = (productSize?.basePrice || 0) * quantity // This is always the base price from DB
-    const tax = Math.round(baseSubtotal * (taxRates.taxRate / 10000))
+    
+    // Match backend logic exactly: calculate tax on baseAmount (subtotal + shipping)
+    const baseAmount = baseSubtotal + shippingCost
+    const tax = Math.round(baseAmount * (taxRates.taxRate / 10000))
+    const stripeTax = Math.round(baseAmount * (taxRates.stripeTaxRate / 10000))
     
     let subtotal, total
     if (siteConfig.features.store.showTax) {
       // Show tax separately 
       subtotal = baseSubtotal
-      total = baseSubtotal + shippingCost + tax
+      total = baseAmount + tax + stripeTax
     } else {
-      // Include tax in subtotal display, but tax is still calculated for backend
-      subtotal = baseSubtotal + tax
+      // Include tax in subtotal display - show tax-inclusive price
+      subtotal = baseSubtotal + tax + stripeTax
       total = subtotal + shippingCost
     }
 
-    return { subtotal, shippingCost, tax, total, showTaxSeparately: siteConfig.features.store.showTax }
+    return { subtotal, shippingCost, tax, stripeTax, total, showTaxSeparately: siteConfig.features.store.showTax }
   }
 
-  const { subtotal, shippingCost, tax, total, showTaxSeparately } = calculateTotals()
+  const { subtotal, shippingCost, tax, stripeTax, total, showTaxSeparately } = calculateTotals()
   const progress = ((currentStep + 1) / steps.length) * 100
 
   return (
@@ -584,10 +588,16 @@ export function EnhancedCheckout({
                   <span>{formatPrice(shippingCost)}</span>
                 </div>
                 {showTaxSeparately && (
-                  <div className="flex justify-between text-sm">
-                    <span>Tax</span>
-                    <span>{formatPrice(tax)}</span>
-                  </div>
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span>Tax</span>
+                      <span>{formatPrice(tax)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Processing Fee</span>
+                      <span>{formatPrice(stripeTax)}</span>
+                    </div>
+                  </>
                 )}
                 <Separator />
                 <div className="flex justify-between font-medium">

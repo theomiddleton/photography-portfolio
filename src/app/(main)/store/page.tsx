@@ -41,11 +41,14 @@ async function getProducts() {
 
       const lowestPrice = sizes[0]?.basePrice || 0
       const taxRate = costs[0]?.taxRate || 2000 // Default to 20% if not found
+      const stripeTaxRate = costs[0]?.stripeTaxRate || 150 // Default to 1.5% if not found
       
       let displayPrice = lowestPrice
       if (!siteConfig.features.store.showTax) {
         // Include tax in displayed price when showTax is false
-        displayPrice = Math.round(lowestPrice * (1 + taxRate / 10000))
+        // Match backend calculation: apply both taxes to base amount
+        const totalTaxRate = (taxRate + stripeTaxRate) / 10000
+        displayPrice = Math.round(lowestPrice * (1 + totalTaxRate))
       }
 
       return {

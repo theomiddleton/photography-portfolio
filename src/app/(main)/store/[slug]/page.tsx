@@ -50,7 +50,14 @@ async function getRecommendations(currentProductId: string) {
 
       const lowestPrice = sizes[0]?.basePrice || 0
       const taxRate = costs[0]?.taxRate || 2000
-      const priceWithTax = Math.round(lowestPrice * (1 + taxRate / 10000))
+      const stripeTaxRate = costs[0]?.stripeTaxRate || 150
+      
+      let priceWithTax = lowestPrice
+      if (!siteConfig.features.store.showTax) {
+        // Include tax in displayed price when showTax is false
+        const totalTaxRate = (taxRate + stripeTaxRate) / 10000
+        priceWithTax = Math.round(lowestPrice * (1 + totalTaxRate))
+      }
 
       return {
         ...product,
@@ -157,14 +164,15 @@ export default async function ProductPage(props: Props) {
     .limit(1)
 
   const taxRate = costs[0]?.taxRate || 2000 // Default to 20% if not found
+  const stripeTaxRate = costs[0]?.stripeTaxRate || 150 // Default to 1.5% if not found
 
   // Calculate prices based on tax display setting
   const sizesWithPrices = sizes.map((size) => {
     let totalPrice = size.basePrice
     if (!siteConfig.features.store.showTax) {
       // Include tax in the displayed price
-      const tax = Math.round(size.basePrice * (taxRate / 10000))
-      totalPrice = size.basePrice + tax
+      const totalTaxRate = (taxRate + stripeTaxRate) / 10000
+      totalPrice = Math.round(size.basePrice * (1 + totalTaxRate))
     }
     return {
       ...size,
