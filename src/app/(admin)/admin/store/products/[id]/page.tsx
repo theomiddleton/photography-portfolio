@@ -107,11 +107,6 @@ export default async function ProductEditPage({ params }: ProductEditPageProps) 
                       </div>
                       <div className="text-sm font-medium mt-2">
                         ${(size.basePrice / 100).toFixed(2)}
-                        {size.sellAtPrice && (
-                          <span className="ml-2 text-green-600">
-                            (Sell: ${(size.sellAtPrice / 100).toFixed(2)})
-                          </span>
-                        )}
                       </div>
                     </div>
                   ))}
