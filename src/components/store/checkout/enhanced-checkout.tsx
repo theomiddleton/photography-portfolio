@@ -37,6 +37,7 @@ import {
 } from '~/lib/actions/store/shipping'
 import { getTaxRates } from '~/lib/actions/store/store'
 import { toast } from 'sonner'
+import { siteConfig } from '~/config/site'
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
