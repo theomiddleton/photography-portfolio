@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import {
   Table,
@@ -24,6 +24,7 @@ import type { Order } from '~/server/db/schema'
 import { updateOrder } from '~/lib/actions/store/orders'
 import { useRouter } from 'next/navigation'
 import { OrderDetails } from '~/components/store/admin/order-details'
+import { Pagination } from '~/components/ui/pagination'
 
 interface AdminOrdersProps {
   initialOrders: (Order & {
@@ -42,6 +43,40 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
     ),
   )
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  // Filter orders by status
+  const filteredOrders = useMemo(() => {
+    if (statusFilter === 'all') {
+      return orders
+    }
+    return orders.filter(order => order.status === statusFilter)
+  }, [orders, statusFilter])
+
+  // Paginate orders
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredOrders.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredOrders, currentPage, itemsPerPage])
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
+
+  // Reset to first page when filter changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [statusFilter])
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage)
+    setCurrentPage(1)
+  }
 
   useEffect(() => {
     const eventSource = new EventSource('/api/orders/stream')
@@ -178,9 +213,32 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Orders</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          Orders
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Filter by status:</span>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {orderStatuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="text-sm text-gray-600">
+              {filteredOrders.length} order{filteredOrders.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         <Table>
           <TableHeader>
             <TableRow>
@@ -193,52 +251,76 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.map((order) => (
-              <TableRow
-                key={order.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => setSelectedOrder(order)}
-              >
-                <TableCell>{order.product?.name || 'Unknown Print'}</TableCell>
-                <TableCell>{formatDateTime(order.createdAt)}</TableCell>
-                <TableCell>{order.email}</TableCell>
-                <TableCell>£{(order.total / 100).toFixed(2)}</TableCell>
-                <TableCell>
-                  <Badge className={`${statusColors[order.status]} text-white`}>
-                    {order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={order.status}
-                      onValueChange={(value) =>
-                        handleStatusUpdate(
-                          order.id,
-                          value as (typeof orderStatuses)[number],
-                        )
-                      }
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {orderStatuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </div>
+            {paginatedOrders.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                  {statusFilter === 'all' 
+                    ? 'No orders found' 
+                    : `No orders with status "${statusFilter}"`
+                  }
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              paginatedOrders.map((order) => (
+                <TableRow
+                  key={order.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => setSelectedOrder(order)}
+                >
+                  <TableCell>{order.product?.name || 'Unknown Print'}</TableCell>
+                  <TableCell>{formatDateTime(order.createdAt)}</TableCell>
+                  <TableCell>{order.email}</TableCell>
+                  <TableCell>£{(order.total / 100).toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Badge className={`${statusColors[order.status]} text-white`}>
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={order.status}
+                        onValueChange={(value) =>
+                          handleStatusUpdate(
+                            order.id,
+                            value as (typeof orderStatuses)[number],
+                          )
+                        }
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {orderStatuses.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination */}
+        {filteredOrders.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredOrders.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            className="pt-4 border-t"
+          />
+        )}
       </CardContent>
 
       <OrderDetails

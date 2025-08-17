@@ -33,6 +33,9 @@ import { EnhancedCheckout } from '~/components/store/checkout/enhanced-checkout'
 import { Frame } from '~/components/store/frame/frame'
 import { toast } from 'sonner'
 import { ProductReviews } from './product-reviews'
+import { ProductBadges } from './product-badges'
+import { ProductDetails } from './product-details'
+import { siteConfig } from '~/config/site'
 
 interface EnhancedProductViewProps {
   product: Product
@@ -358,14 +361,7 @@ export function EnhancedProductView({
             </Button>
 
             <div className="grid grid-cols-2 gap-2 text-center text-sm text-gray-600">
-              <div className="flex flex-col items-center gap-1">
-                <Shield className="h-5 w-5" />
-                <span>30-day returns</span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <Truck className="h-5 w-5" />
-                <span>Secure shipping</span>
-              </div>
+              <ProductBadges />
             </div>
           </div>
 
@@ -373,44 +369,33 @@ export function EnhancedProductView({
           <Separator />
           <div className="space-y-4">
             <h3 className="font-medium">Product Details</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Material</span>
-                <span>Premium photo paper</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Finish</span>
-                <span>Matte or glossy</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Frame</span>
-                <span>Optional wood or metal</span>
-              </div>
-              {selectedPrintSize && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Dimensions</span>
-                  <span>{selectedPrintSize.name}</span>
-                </div>
-              )}
-            </div>
+            <ProductDetails 
+              productId={product.id} 
+              selectedSize={selectedPrintSize}
+            />
           </div>
         </div>
       </div>
 
       {/* Reviews Section */}
-      <div className="border-t pt-16">
-        <ProductReviews
-          productId={product.id}
-          reviews={[]}
-          averageRating={0}
-          totalReviews={0}
-          canReview={true}
-        />
-      </div>
+      {siteConfig.features.reviewsEnabled && (
+        <div className="border-t pt-16 mb-16">
+          <ProductReviews
+            productId={product.id}
+            reviews={[]}
+            averageRating={0}
+            totalReviews={0}
+            canReview={true}
+          />
+        </div>
+      )}
 
       {/* Recommendations */}
       {recommendations.length > 0 && (
-        <div className="border-t pt-16">
+        <div className={cn(
+          "border-t pt-16 mb-16",
+          !siteConfig.features.reviewsEnabled && "border-t"
+        )}>
           <h2 className="mb-8 text-2xl font-bold">You might also like</h2>
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
             {recommendations.slice(0, 4).map((rec) => (

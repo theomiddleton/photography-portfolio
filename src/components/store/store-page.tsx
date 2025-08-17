@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { StoreGrid } from './store-grid'
 import { StoreHeader } from './store-header'
 import { StoreFiltersSidebar, type StoreFilters } from './store-filters'
+import { Pagination } from '~/components/ui/pagination'
 import { Skeleton } from '~/components/ui/skeleton'
 import type { Product } from '~/server/db/schema'
 
@@ -20,6 +21,8 @@ export function StorePage({ initialProducts }: StorePageProps) {
   const [sortBy, setSortBy] = useState('newest')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(12)
   const [filters, setFilters] = useState<StoreFilters>(() => {
     // Initialize filters based on product prices
     const prices = initialProducts.map(p => p.priceWithTax)
@@ -33,6 +36,11 @@ export function StorePage({ initialProducts }: StorePageProps) {
       tags: []
     }
   })
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, sortBy, filters])
 
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
@@ -77,6 +85,15 @@ export function StorePage({ initialProducts }: StorePageProps) {
     })
   }, [products, searchQuery, sortBy, filters])
 
+  // Paginate products
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredAndSortedProducts.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredAndSortedProducts, currentPage, itemsPerPage])
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage)
+
   // Get filter options from products
   const filterOptions = useMemo(() => {
     const prices = products.map(p => p.priceWithTax)
@@ -90,6 +107,17 @@ export function StorePage({ initialProducts }: StorePageProps) {
       availableTags: [...new Set(tags)]
     }
   }, [products])
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    // Scroll to top of content area
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage)
+    setCurrentPage(1) // Reset to first page
+  }
 
   if (loading) {
     return (
@@ -183,10 +211,23 @@ export function StorePage({ initialProducts }: StorePageProps) {
               )}
             </div>
           ) : (
-            <StoreGrid 
-              prints={filteredAndSortedProducts}
-              className={viewMode === 'list' ? 'grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1' : undefined}
-            />
+            <div className="space-y-6">
+              <StoreGrid 
+                prints={paginatedProducts}
+                className={viewMode === 'list' ? 'grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1' : undefined}
+              />
+              
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredAndSortedProducts.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                className="pt-8 border-t"
+              />
+            </div>
           )}
         </div>
       </div>

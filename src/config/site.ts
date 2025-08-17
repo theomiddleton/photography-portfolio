@@ -45,6 +45,7 @@ export const siteConfig = {
   features: {
     aiEnabled: true,
     storeEnabled: true,
+    reviewsEnabled: true,
   },
 }
 export type SiteConfig = typeof siteConfig
