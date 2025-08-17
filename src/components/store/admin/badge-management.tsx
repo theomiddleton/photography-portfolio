@@ -316,11 +316,11 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
             <Label className="text-sm font-medium">Preview (Active badges only)</Label>
             <div className="mt-2 p-4 border rounded-lg bg-gray-50">
               {activeBadges.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2 text-center text-sm text-gray-600">
+                <div className="flex flex-wrap justify-center items-center gap-4 text-center text-sm text-gray-600">
                   {activeBadges.map((badge) => (
-                    <div key={badge.id} className="flex flex-col items-center gap-1">
+                    <div key={badge.id} className="flex flex-col items-center gap-1 min-w-0 flex-shrink-0">
                       {renderIcon(badge.icon)}
-                      <span>{badge.text}</span>
+                      <span className="whitespace-nowrap">{badge.text}</span>
                     </div>
                   ))}
                 </div>

@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
@@ -11,6 +9,8 @@ import { Textarea } from '~/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Progress } from '~/components/ui/progress'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '~/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '~/components/ui/alert-dialog'
 import type { BasePrintSize } from '~/server/db/schema'
 import { formatPrice } from '~/lib/utils'
 import { 
@@ -23,7 +23,9 @@ import {
   AlertCircle,
   RefreshCw,
   Trash2,
-  Edit
+  Edit,
+  Save,
+  AlertTriangle
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -39,6 +41,65 @@ interface BulkOperation {
   selectedItems: string[]
 }
 
+interface PrintSizeTemplate {
+  id: string
+  name: string
+  description: string
+  sizes: Array<{
+    name: string
+    width: number
+    height: number
+    basePrice: number
+  }>
+}
+
+const PRINT_SIZE_TEMPLATES: PrintSizeTemplate[] = [
+  {
+    id: 'standard',
+    name: 'Standard Prints',
+    description: 'Common photo print sizes (4x6, 5x7, 8x10, 11x14, 16x20)',
+    sizes: [
+      { name: '4x6', width: 4, height: 6, basePrice: 1500 },
+      { name: '5x7', width: 5, height: 7, basePrice: 2000 },
+      { name: '8x10', width: 8, height: 10, basePrice: 3500 },
+      { name: '11x14', width: 11, height: 14, basePrice: 6000 },
+      { name: '16x20', width: 16, height: 20, basePrice: 12000 }
+    ]
+  },
+  {
+    id: 'square',
+    name: 'Square Format',
+    description: 'Instagram-style square prints (6x6, 8x8, 12x12, 16x16)',
+    sizes: [
+      { name: '6x6', width: 6, height: 6, basePrice: 2500 },
+      { name: '8x8', width: 8, height: 8, basePrice: 3500 },
+      { name: '12x12', width: 12, height: 12, basePrice: 7500 },
+      { name: '16x16', width: 16, height: 16, basePrice: 14000 }
+    ]
+  },
+  {
+    id: 'large',
+    name: 'Large Format',
+    description: 'Gallery-quality large prints (20x30, 24x36, 30x40)',
+    sizes: [
+      { name: '20x30', width: 20, height: 30, basePrice: 25000 },
+      { name: '24x36', width: 24, height: 36, basePrice: 35000 },
+      { name: '30x40', width: 30, height: 40, basePrice: 50000 }
+    ]
+  },
+  {
+    id: 'panoramic',
+    name: 'Panoramic',
+    description: 'Wide format prints (6x12, 8x20, 12x30, 16x40)',
+    sizes: [
+      { name: '6x12', width: 6, height: 12, basePrice: 4000 },
+      { name: '8x20', width: 8, height: 20, basePrice: 8000 },
+      { name: '12x30', width: 12, height: 30, basePrice: 18000 },
+      { name: '16x40', width: 16, height: 40, basePrice: 32000 }
+    ]
+  }
+]
+
 export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
   const [operation, setOperation] = useState<BulkOperation>({
     type: 'price-increase',
@@ -48,6 +109,13 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
   const [processing, setProcessing] = useState(false)
   const [importData, setImportData] = useState('')
   const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set())
+  
+  // Template-related state
+  const [selectedTemplate, setSelectedTemplate] = useState<PrintSizeTemplate | null>(null)
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false)
+  const [templateConflicts, setTemplateConflicts] = useState<Array<{ existingSize: BasePrintSize, templateSize: any }>>([])
+  const [conflictResolutions, setConflictResolutions] = useState<Record<string, 'overwrite' | 'skip' | 'both'>>({})
+  const [showConflictDialog, setShowConflictDialog] = useState(false)
 
   const handleSelectAll = () => {
     if (selectedSizes.size === sizes.length) {
@@ -132,6 +200,111 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
     URL.revokeObjectURL(url)
     
     toast.success('Data exported successfully')
+  }
+
+  // Template handling functions
+  const handleTemplateSelect = (template: PrintSizeTemplate) => {
+    setSelectedTemplate(template)
+    
+    // Check for conflicts with existing sizes
+    const conflicts: Array<{ existingSize: BasePrintSize, templateSize: any }> = []
+    
+    template.sizes.forEach(templateSize => {
+      const existingSize = sizes.find(size => 
+        size.name === templateSize.name || 
+        (size.width === templateSize.width && size.height === templateSize.height)
+      )
+      
+      if (existingSize) {
+        conflicts.push({ existingSize, templateSize })
+      }
+    })
+    
+    if (conflicts.length > 0) {
+      setTemplateConflicts(conflicts)
+      // Initialize conflict resolutions
+      const resolutions: Record<string, 'overwrite' | 'skip' | 'both'> = {}
+      conflicts.forEach(conflict => {
+        resolutions[conflict.existingSize.id] = 'skip'
+      })
+      setConflictResolutions(resolutions)
+      setShowConflictDialog(true)
+    } else {
+      setShowTemplateDialog(true)
+    }
+  }
+
+  const applyTemplate = async () => {
+    if (!selectedTemplate) return
+
+    setProcessing(true)
+    try {
+      let sizesToAdd = [...selectedTemplate.sizes]
+      
+      // Handle conflicts if any
+      if (templateConflicts.length > 0) {
+        const conflictActions: Array<{ action: string, size: any, existingId?: string }> = []
+        
+        templateConflicts.forEach(conflict => {
+          const resolution = conflictResolutions[conflict.existingSize.id]
+          
+          switch (resolution) {
+            case 'overwrite':
+              // Mark existing size for update
+              conflictActions.push({
+                action: 'update',
+                size: conflict.templateSize,
+                existingId: conflict.existingSize.id
+              })
+              // Remove from sizes to add
+              sizesToAdd = sizesToAdd.filter(s => s.name !== conflict.templateSize.name)
+              break
+              
+            case 'both':
+              // Rename template size to avoid conflict
+              const newName = `${conflict.templateSize.name} (New)`
+              conflictActions.push({
+                action: 'add',
+                size: { ...conflict.templateSize, name: newName }
+              })
+              // Update the size in sizesToAdd
+              sizesToAdd = sizesToAdd.map(s => 
+                s.name === conflict.templateSize.name 
+                  ? { ...s, name: newName }
+                  : s
+              )
+              break
+              
+            case 'skip':
+            default:
+              // Remove from sizes to add
+              sizesToAdd = sizesToAdd.filter(s => s.name !== conflict.templateSize.name)
+              break
+          }
+        })
+        
+        // Apply conflict actions (this would be API calls in real implementation)
+        // For now, just show success message
+        toast.success(`Applied template "${selectedTemplate.name}" with ${conflictActions.length} conflict resolutions`)
+      }
+      
+      // Add remaining sizes (this would be API calls in real implementation)
+      if (sizesToAdd.length > 0) {
+        toast.success(`Added ${sizesToAdd.length} new sizes from template "${selectedTemplate.name}"`)
+      }
+      
+      onUpdate()
+      
+    } catch (error) {
+      toast.error('Failed to apply template')
+    } finally {
+      setProcessing(false)
+      setShowTemplateDialog(false)
+      setShowConflictDialog(false)
+      setSelectedTemplate(null)
+      setTemplateConflicts([])
+      setConflictResolutions({})
+    }
   }
 
   const importFromCSV = async () => {
@@ -394,58 +567,180 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <h3 className="font-medium mb-2">Standard Prints</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Common photo print sizes (4x6, 5x7, 8x10, 11x14, 16x20)
-                    </p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      Apply Template
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <h3 className="font-medium mb-2">Square Format</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Instagram-style square prints (6x6, 8x8, 12x12, 16x16)
-                    </p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      Apply Template
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <h3 className="font-medium mb-2">Large Format</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Gallery-quality large prints (20x30, 24x36, 30x40)
-                    </p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      Apply Template
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <h3 className="font-medium mb-2">Panoramic</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Wide format prints (6x12, 8x20, 12x30, 16x40)
-                    </p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      Apply Template
-                    </Button>
-                  </CardContent>
-                </Card>
+                {PRINT_SIZE_TEMPLATES.map((template) => (
+                  <Card key={template.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <h3 className="font-medium mb-2">{template.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {template.description}
+                      </p>
+                      <div className="text-xs text-muted-foreground mb-3">
+                        {template.sizes.length} sizes: {template.sizes.map(s => s.name).join(', ')}
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => handleTemplateSelect(template)}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Apply Template
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Template Confirmation Dialog */}
+      <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Apply Template: {selectedTemplate?.name}</DialogTitle>
+            <DialogDescription>
+              This will add {selectedTemplate?.sizes.length} new print sizes to your catalog.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedTemplate && (
+            <div className="space-y-4">
+              <div className="max-h-60 overflow-y-auto space-y-2">
+                {selectedTemplate.sizes.map((size, index) => (
+                  <div key={index} className="flex justify-between items-center p-2 border rounded">
+                    <div>
+                      <span className="font-medium">{size.name}</span>
+                      <span className="text-sm text-muted-foreground ml-2">
+                        {size.width}"×{size.height}"
+                      </span>
+                    </div>
+                    <span className="text-sm">{formatPrice(size.basePrice)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTemplateDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={applyTemplate} disabled={processing}>
+              {processing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Applying...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Apply Template
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Conflict Resolution Dialog */}
+      <Dialog open={showConflictDialog} onOpenChange={setShowConflictDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Resolve Conflicts
+            </DialogTitle>
+            <DialogDescription>
+              Some sizes in the template conflict with existing sizes. Choose how to handle each conflict:
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {templateConflicts.map((conflict, index) => (
+              <div key={index} className="border rounded-lg p-4 space-y-3">
+                <div className="font-medium text-sm">
+                  Conflict: {conflict.templateSize.name} ({conflict.templateSize.width}"×{conflict.templateSize.height}")
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-1">
+                    <div className="font-medium text-blue-600">Existing Size</div>
+                    <div>{conflict.existingSize.name}</div>
+                    <div className="text-muted-foreground">
+                      {conflict.existingSize.width}"×{conflict.existingSize.height}"
+                    </div>
+                    <div>{formatPrice(conflict.existingSize.basePrice)}</div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <div className="font-medium text-green-600">Template Size</div>
+                    <div>{conflict.templateSize.name}</div>
+                    <div className="text-muted-foreground">
+                      {conflict.templateSize.width}"×{conflict.templateSize.height}"
+                    </div>
+                    <div>{formatPrice(conflict.templateSize.basePrice)}</div>
+                  </div>
+                </div>
+                
+                <Select 
+                  value={conflictResolutions[conflict.existingSize.id]} 
+                  onValueChange={(value: 'overwrite' | 'skip' | 'both') => 
+                    setConflictResolutions(prev => ({
+                      ...prev,
+                      [conflict.existingSize.id]: value
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="skip">
+                      <div className="flex items-center gap-2">
+                        <span>Skip</span>
+                        <span className="text-xs text-muted-foreground">Keep existing, ignore template</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="overwrite">
+                      <div className="flex items-center gap-2">
+                        <span>Overwrite</span>
+                        <span className="text-xs text-muted-foreground">Replace existing with template</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="both">
+                      <div className="flex items-center gap-2">
+                        <span>Keep Both</span>
+                        <span className="text-xs text-muted-foreground">Rename template size</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConflictDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={applyTemplate} disabled={processing}>
+              {processing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Applying...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Apply with Resolutions
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

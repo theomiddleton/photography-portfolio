@@ -225,7 +225,7 @@ export function StorePage({ initialProducts }: StorePageProps) {
                 itemsPerPage={itemsPerPage}
                 onPageChange={handlePageChange}
                 onItemsPerPageChange={handleItemsPerPageChange}
-                className="pt-8 border-t"
+                className="pt-8 pb-12 border-t"
               />
             </div>
           )}
