@@ -34,6 +34,13 @@ import {
 import { toast } from 'sonner'
 import { cn } from '~/lib/utils'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '~/components/ui/alert-dialog'
+import { 
+  addStoreBadge, 
+  updateStoreBadge, 
+  deleteStoreBadge, 
+  reorderStoreBadges, 
+  getStoreBadges 
+} from '~/lib/actions/store/badges'
 
 // Predefined badge options
 const PREDEFINED_BADGES = [
@@ -85,35 +92,17 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
     active: true
   })
 
-  // Simulate loading badges (replace with actual API call)
+  // Load badges from database
   useEffect(() => {
     const loadBadges = async () => {
       setLoading(true)
       try {
-        // Simulate API call - replace with actual implementation
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Default badges
-        setBadges([
-          {
-            id: '1',
-            name: '30-day returns',
-            icon: 'Shield',
-            text: '30-day returns',
-            order: 0,
-            active: true,
-            isDefault: true
-          },
-          {
-            id: '2',
-            name: 'Secure shipping',
-            icon: 'Truck',
-            text: 'Secure shipping',
-            order: 1,
-            active: true,
-            isDefault: true
-          }
-        ])
+        const result = await getStoreBadges()
+        if (result.success) {
+          setBadges(result.data)
+        } else {
+          toast.error(result.error || 'Failed to load badges')
+        }
       } catch (error) {
         toast.error('Failed to load badges')
       } finally {
@@ -131,20 +120,21 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
     }
 
     try {
-      const badge: StoreBadge = {
-        id: Date.now().toString(),
+      const result = await addStoreBadge({
         name: newBadge.name,
         icon: newBadge.icon,
         text: newBadge.text,
-        order: badges.length,
-        active: newBadge.active,
-        isDefault: false
-      }
+        active: newBadge.active
+      })
 
-      setBadges(prev => [...prev, badge])
-      setNewBadge({ name: '', icon: 'Shield', text: '', active: true })
-      setShowAddDialog(false)
-      toast.success('Badge added successfully')
+      if (result.success) {
+        setBadges(prev => [...prev, result.data])
+        setNewBadge({ name: '', icon: 'Shield', text: '', active: true })
+        setShowAddDialog(false)
+        toast.success('Badge added successfully')
+      } else {
+        toast.error(result.error || 'Failed to add badge')
+      }
     } catch (error) {
       toast.error('Failed to add badge')
     }
@@ -152,10 +142,15 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
 
   const handleUpdateBadge = async (badgeId: string, updates: Partial<StoreBadge>) => {
     try {
-      setBadges(prev => prev.map(badge => 
-        badge.id === badgeId ? { ...badge, ...updates } : badge
-      ))
-      toast.success('Badge updated successfully')
+      const result = await updateStoreBadge(badgeId, updates)
+      if (result.success) {
+        setBadges(prev => prev.map(badge => 
+          badge.id === badgeId ? { ...badge, ...updates } : badge
+        ))
+        toast.success('Badge updated successfully')
+      } else {
+        toast.error(result.error || 'Failed to update badge')
+      }
     } catch (error) {
       toast.error('Failed to update badge')
     }
@@ -163,26 +158,41 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
 
   const handleDeleteBadge = async (badgeId: string) => {
     try {
-      setBadges(prev => prev.filter(badge => badge.id !== badgeId))
-      toast.success('Badge deleted successfully')
+      const result = await deleteStoreBadge(badgeId)
+      if (result.success) {
+        setBadges(prev => prev.filter(badge => badge.id !== badgeId))
+        toast.success('Badge deleted successfully')
+      } else {
+        toast.error(result.error || 'Failed to delete badge')
+      }
     } catch (error) {
       toast.error('Failed to delete badge')
     }
   }
 
-  const handleReorderBadges = (startIndex: number, endIndex: number) => {
+  const handleReorderBadges = async (startIndex: number, endIndex: number) => {
     const result = Array.from(badges)
     const [removed] = result.splice(startIndex, 1)
     result.splice(endIndex, 0, removed)
     
-    // Update order
-    const reorderedBadges = result.map((badge, index) => ({
-      ...badge,
-      order: index
-    }))
+    setBadges(result)
     
-    setBadges(reorderedBadges)
-    toast.success('Badge order updated')
+    try {
+      const badgeIds = result.map(badge => badge.id)
+      const reorderResult = await reorderStoreBadges(badgeIds)
+      if (!reorderResult.success) {
+        toast.error('Failed to save new order')
+        // Reload badges to reset order
+        const loadResult = await getStoreBadges()
+        if (loadResult.success) {
+          setBadges(loadResult.data)
+        }
+      } else {
+        toast.success('Badge order updated')
+      }
+    } catch (error) {
+      toast.error('Failed to update badge order')
+    }
   }
 
   const handlePredefinedBadgeSelect = (predefined: typeof PREDEFINED_BADGES[0]) => {

@@ -28,6 +28,14 @@ import {
 import { toast } from 'sonner'
 import { cn } from '~/lib/utils'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '~/components/ui/alert-dialog'
+import { 
+  addStoreProductDetail, 
+  updateStoreProductDetail, 
+  deleteStoreProductDetail, 
+  reorderStoreProductDetails, 
+  getStoreProductDetails, 
+  bulkApplyGlobalDetails 
+} from '~/lib/actions/store/product-details'
 
 // Predefined product detail templates
 const PREDEFINED_DETAILS = [
@@ -98,41 +106,17 @@ export function ProductDetailManagement({ className, products = [] }: ProductDet
     active: true
   })
 
-  // Simulate loading details (replace with actual API call)
+  // Load details from database
   useEffect(() => {
     const loadDetails = async () => {
       setLoading(true)
       try {
-        // Simulate API call - replace with actual implementation
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Default global details
-        setDetails([
-          {
-            id: '1',
-            label: 'Material',
-            value: 'Premium photo paper',
-            order: 0,
-            isGlobal: true,
-            active: true
-          },
-          {
-            id: '2',
-            label: 'Finish',
-            value: 'Matte or glossy',
-            order: 1,
-            isGlobal: true,
-            active: true
-          },
-          {
-            id: '3',
-            label: 'Frame',
-            value: 'Optional wood or metal',
-            order: 2,
-            isGlobal: true,
-            active: true
-          }
-        ])
+        const result = await getStoreProductDetails()
+        if (result.success) {
+          setDetails(result.data)
+        } else {
+          toast.error(result.error || 'Failed to load product details')
+        }
       } catch (error) {
         toast.error('Failed to load product details')
       } finally {
@@ -150,20 +134,22 @@ export function ProductDetailManagement({ className, products = [] }: ProductDet
     }
 
     try {
-      const detail: StoreProductDetail = {
-        id: Date.now().toString(),
+      const result = await addStoreProductDetail({
         productId: newDetail.isGlobal ? undefined : newDetail.productId,
         label: newDetail.label,
         value: newDetail.value,
-        order: details.filter(d => d.isGlobal === newDetail.isGlobal).length,
         isGlobal: newDetail.isGlobal,
         active: newDetail.active
-      }
+      })
 
-      setDetails(prev => [...prev, detail])
-      setNewDetail({ label: '', value: '', isGlobal: true, productId: '', active: true })
-      setShowAddDialog(false)
-      toast.success('Product detail added successfully')
+      if (result.success) {
+        setDetails(prev => [...prev, result.data])
+        setNewDetail({ label: '', value: '', isGlobal: true, productId: '', active: true })
+        setShowAddDialog(false)
+        toast.success('Product detail added successfully')
+      } else {
+        toast.error(result.error || 'Failed to add product detail')
+      }
     } catch (error) {
       toast.error('Failed to add product detail')
     }
@@ -171,10 +157,15 @@ export function ProductDetailManagement({ className, products = [] }: ProductDet
 
   const handleUpdateDetail = async (detailId: string, updates: Partial<StoreProductDetail>) => {
     try {
-      setDetails(prev => prev.map(detail => 
-        detail.id === detailId ? { ...detail, ...updates } : detail
-      ))
-      toast.success('Product detail updated successfully')
+      const result = await updateStoreProductDetail(detailId, updates)
+      if (result.success) {
+        setDetails(prev => prev.map(detail => 
+          detail.id === detailId ? { ...detail, ...updates } : detail
+        ))
+        toast.success('Product detail updated successfully')
+      } else {
+        toast.error(result.error || 'Failed to update product detail')
+      }
     } catch (error) {
       toast.error('Failed to update product detail')
     }
@@ -182,8 +173,13 @@ export function ProductDetailManagement({ className, products = [] }: ProductDet
 
   const handleDeleteDetail = async (detailId: string) => {
     try {
-      setDetails(prev => prev.filter(detail => detail.id !== detailId))
-      toast.success('Product detail deleted successfully')
+      const result = await deleteStoreProductDetail(detailId)
+      if (result.success) {
+        setDetails(prev => prev.filter(detail => detail.id !== detailId))
+        toast.success('Product detail deleted successfully')
+      } else {
+        toast.error(result.error || 'Failed to delete product detail')
+      }
     } catch (error) {
       toast.error('Failed to delete product detail')
     }
@@ -222,16 +218,17 @@ export function ProductDetailManagement({ className, products = [] }: ProductDet
     }
 
     try {
-      const globalDetails = details.filter(d => d.isGlobal && d.active)
-      const newProductDetails = globalDetails.map(detail => ({
-        ...detail,
-        id: `${detail.id}-${selectedProduct}-${Date.now()}`,
-        productId: selectedProduct,
-        isGlobal: false
-      }))
-
-      setDetails(prev => [...prev, ...newProductDetails])
-      toast.success('Global details applied to product successfully')
+      const result = await bulkApplyGlobalDetails(selectedProduct)
+      if (result.success) {
+        // Refresh the details list
+        const refreshResult = await getStoreProductDetails()
+        if (refreshResult.success) {
+          setDetails(refreshResult.data)
+        }
+        toast.success(`Applied ${result.count} global details to product successfully`)
+      } else {
+        toast.error(result.error || 'Failed to apply details to product')
+      }
     } catch (error) {
       toast.error('Failed to apply details to product')
     }

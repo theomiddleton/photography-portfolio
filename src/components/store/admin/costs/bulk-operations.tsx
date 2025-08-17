@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '~/components/ui/alert-dialog'
 import type { BasePrintSize } from '~/server/db/schema'
 import { formatPrice } from '~/lib/utils'
+import { applyPrintSizeTemplate } from '~/lib/actions/store/sizes'
 import { 
   Upload, 
   Download, 
@@ -239,61 +240,34 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
 
     setProcessing(true)
     try {
-      let sizesToAdd = [...selectedTemplate.sizes]
+      // Prepare conflict resolutions for the API
+      const apiConflictResolutions: Record<string, { action: 'overwrite' | 'skip' | 'both', existingId?: string }> = {}
       
-      // Handle conflicts if any
-      if (templateConflicts.length > 0) {
-        const conflictActions: Array<{ action: string, size: any, existingId?: string }> = []
-        
-        templateConflicts.forEach(conflict => {
-          const resolution = conflictResolutions[conflict.existingSize.id]
-          
-          switch (resolution) {
-            case 'overwrite':
-              // Mark existing size for update
-              conflictActions.push({
-                action: 'update',
-                size: conflict.templateSize,
-                existingId: conflict.existingSize.id
-              })
-              // Remove from sizes to add
-              sizesToAdd = sizesToAdd.filter(s => s.name !== conflict.templateSize.name)
-              break
-              
-            case 'both':
-              // Rename template size to avoid conflict
-              const newName = `${conflict.templateSize.name} (New)`
-              conflictActions.push({
-                action: 'add',
-                size: { ...conflict.templateSize, name: newName }
-              })
-              // Update the size in sizesToAdd
-              sizesToAdd = sizesToAdd.map(s => 
-                s.name === conflict.templateSize.name 
-                  ? { ...s, name: newName }
-                  : s
-              )
-              break
-              
-            case 'skip':
-            default:
-              // Remove from sizes to add
-              sizesToAdd = sizesToAdd.filter(s => s.name !== conflict.templateSize.name)
-              break
+      templateConflicts.forEach(conflict => {
+        const resolution = conflictResolutions[conflict.existingSize.id]
+        if (resolution) {
+          apiConflictResolutions[conflict.templateSize.name] = {
+            action: resolution,
+            existingId: conflict.existingSize.id
           }
-        })
+        }
+      })
+
+      const result = await applyPrintSizeTemplate(selectedTemplate.sizes, apiConflictResolutions)
+      
+      if (result.success) {
+        const { data: results } = result
+        let message = `Template "${selectedTemplate.name}" applied successfully! `
+        if (results.added > 0) message += `Added ${results.added} sizes. `
+        if (results.updated > 0) message += `Updated ${results.updated} sizes. `
+        if (results.skipped > 0) message += `Skipped ${results.skipped} sizes. `
+        if (results.errors.length > 0) message += `${results.errors.length} errors occurred.`
         
-        // Apply conflict actions (this would be API calls in real implementation)
-        // For now, just show success message
-        toast.success(`Applied template "${selectedTemplate.name}" with ${conflictActions.length} conflict resolutions`)
+        toast.success(message)
+        onUpdate() // Refresh the sizes list
+      } else {
+        toast.error(result.error || 'Failed to apply template')
       }
-      
-      // Add remaining sizes (this would be API calls in real implementation)
-      if (sizesToAdd.length > 0) {
-        toast.success(`Added ${sizesToAdd.length} new sizes from template "${selectedTemplate.name}"`)
-      }
-      
-      onUpdate()
       
     } catch (error) {
       toast.error('Failed to apply template')
