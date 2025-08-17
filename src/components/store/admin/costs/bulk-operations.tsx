@@ -342,10 +342,16 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
           .map(size => size.id)
 
         // Apply to products
+        // Transform product conflict resolutions to match API format
+        const apiProductConflictResolutions: Record<string, { action: 'overwrite' | 'skip' | 'both', existingId?: string }> = {}
+        Object.entries(productConflictResolutions).forEach(([key, action]) => {
+          apiProductConflictResolutions[key] = { action }
+        })
+        
         const productResult = await applyPrintSizesToProducts(
           baseSizeIds,
           Array.from(selectedProducts),
-          productConflictResolutions
+          apiProductConflictResolutions
         )
 
         if (productResult.success) {
