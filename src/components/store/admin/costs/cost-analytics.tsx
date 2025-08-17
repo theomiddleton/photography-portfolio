@@ -51,11 +51,15 @@ export function CostAnalytics({ sizes, shippingMethods, taxSettings }: CostAnaly
       days: method.estimatedDays || 0
     })).sort((a, b) => a.price - b.price)
 
-    // Calculate overall metrics
-    const totalSizes = sizes.length
-    const profitableSizes = sizeAnalytics.filter(s => s.profit > 0).length
-    const averageProfit = sizeAnalytics.reduce((sum, s) => sum + s.profit, 0) / totalSizes
-    const averageMargin = sizeAnalytics.reduce((sum, s) => sum + s.profitMargin, 0) / totalSizes
+    // Calculate overall metrics  
+    const totalSizes = sizes.length  
+    const profitableSizes = sizeAnalytics.filter(s => s.profit > 0).length  
+    const averageProfit = totalSizes > 0  
+      ? sizeAnalytics.reduce((sum, s) => sum + s.profit, 0) / totalSizes  
+      : 0  
+    const averageMargin = totalSizes > 0  
+      ? sizeAnalytics.reduce((sum, s) => sum + s.profitMargin, 0) / totalSizes  
+      : 0  
     
     // Risk assessment
     const lowMarginSizes = sizeAnalytics.filter(s => s.profitMargin < 15).length

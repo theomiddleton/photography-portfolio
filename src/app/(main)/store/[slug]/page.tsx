@@ -201,13 +201,13 @@ export default async function ProductPage(props: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(productStructuredData)
+          __html: JSON.stringify(productStructuredData).replace(/</g, '\\u003c')  
         }}
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbStructuredData)
+          __html: JSON.stringify(breadcrumbStructuredData).replace(/</g, '\\u003c')
         }}
       />
 
