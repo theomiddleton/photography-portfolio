@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 }
 
 interface ProductEditPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 async function getProduct(id: string) {
@@ -49,7 +49,8 @@ export default async function ProductEditPage({ params }: ProductEditPageProps) 
     notFound()
   }
 
-  const product = await getProduct(params.id)
+  const { id } = await params
+  const product = await getProduct(id)
 
   if (!product) {
     notFound()
