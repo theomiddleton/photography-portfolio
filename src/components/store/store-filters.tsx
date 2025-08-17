@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, RotateCcw } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
@@ -8,6 +8,7 @@ import { Separator } from '~/components/ui/separator'
 import { Badge } from '~/components/ui/badge'
 import { Slider } from '~/components/ui/slider'
 import { Checkbox } from '~/components/ui/checkbox'
+import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import { cn, formatPrice } from '~/lib/utils'
 
 export interface StoreFilters {
@@ -40,7 +41,6 @@ export function StoreFiltersSidebar({
   availableTags,
   className
 }: StoreFiltersProps) {
-import { useState, useEffect } from 'react'
 
   const [localFilters, setLocalFilters] = useState<StoreFilters>(filters)
 
@@ -153,42 +153,31 @@ import { useState, useEffect } from 'react'
             {/* Availability */}
             <div className="space-y-3">
               <h4 className="font-medium">Availability</h4>
-              <div className="space-y-2">
+              <RadioGroup
+                value={localFilters.availability}
+                onValueChange={(value) =>
+                  updateFilters({ availability: value as typeof localFilters.availability })
+                }
+              >
                 {[
                   { value: 'all', label: 'All Items' },
                   { value: 'available', label: 'Available' },
                   { value: 'unavailable', label: 'Unavailable' }
-import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
-
-<div className="space-y-3">
-  <h4 className="font-medium">Availability</h4>
-  <RadioGroup
-    value={localFilters.availability}
-    onValueChange={(value) =>
-      updateFilters({ availability: value as typeof localFilters.availability })
-    }
-  >
-    {[
-      { value: 'all', label: 'All Items' },
-      { value: 'available', label: 'Available' },
-      { value: 'unavailable', label: 'Unavailable' }
-    ].map((option) => (
-      <div key={option.value} className="flex items-center space-x-2">
-        <RadioGroupItem
-          value={option.value}
-          id={`availability-${option.value}`}
-        />
-        <label
-          htmlFor={`availability-${option.value}`}
-          className="text-sm cursor-pointer"
-        >
-          {option.label}
-        </label>
-      </div>
-    ))}
-  </RadioGroup>
-</div>
-              </div>
+                ].map((option) => (
+                  <div key={option.value} className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value={option.value}
+                      id={`availability-${option.value}`}
+                    />
+                    <label
+                      htmlFor={`availability-${option.value}`}
+                      className="text-sm cursor-pointer"
+                    >
+                      {option.label}
+                    </label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
 
             {/* Categories */}

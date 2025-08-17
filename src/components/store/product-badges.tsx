@@ -80,35 +80,6 @@ export function ProductBadges({ className }: ProductBadgesProps) {
 
     loadBadges()
   }, [])
-        console.error('Failed to load badges:', error)
-        // Fallback to default badges
-        setBadges([
-          {
-            id: '1',
-            name: '30-day returns',
-            icon: 'Shield',
-            text: '30-day returns',
-            order: 0,
-            active: true,
-            isDefault: true
-          },
-          {
-            id: '2',
-            name: 'Secure shipping',
-            icon: 'Truck',
-            text: 'Secure shipping',
-            order: 1,
-            active: true,
-            isDefault: true
-          }
-        ])
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    loadBadges()
-  }, [])
 
   const renderIcon = (iconName: string) => {
     const IconComponent = ICON_COMPONENTS[iconName as keyof typeof ICON_COMPONENTS]

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Search, SlidersHorizontal, Grid3X3, List } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -33,19 +33,16 @@ export function StoreHeader({
   onToggleFilters,
   className
 }: StoreHeaderProps) {
-++ b/src/components/store/store-header.tsx
-@@
-import { useEffect, useState } from 'react'
-@@
+
   const [localSearch, setLocalSearch] = useState(searchQuery)
   useEffect(() => {
     setLocalSearch(searchQuery)
   }, [searchQuery])
- 
-   const handleSearchSubmit = (e: React.FormEvent) => {
-     e.preventDefault()
-     onSearchChange(localSearch)
-   }
+  
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSearchChange(localSearch)
+  }
 
   return (
     <div className={cn("space-y-6", className)}>

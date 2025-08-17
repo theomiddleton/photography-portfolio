@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { Product } from '~/server/db/schema'
 import { formatPrice, cn } from '~/lib/utils'
 import { Badge } from '~/components/ui/badge'
@@ -14,9 +14,6 @@ interface StoreGridProps {
   prints: (Product & { priceWithTax: number })[]
   className?: string
 }
-
-export function StoreGrid({ prints, className }: StoreGridProps) {
-import React, { useState, useEffect } from 'react'
 
 export function StoreGrid({ prints, className }: StoreGridProps) {
   const [wishlistItems, setWishlistItems] = useState<Set<string>>(() => {
@@ -48,9 +45,6 @@ export function StoreGrid({ prints, className }: StoreGridProps) {
     }
     setWishlistItems(newWishlist)
   }
-
-  // ...rest of component rendering
-}
 
   const handleImageLoad = (productId: string) => {
     setLoadingItems(prev => {
