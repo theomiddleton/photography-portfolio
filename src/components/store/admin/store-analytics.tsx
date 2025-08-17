@@ -108,6 +108,8 @@ export function StoreAnalytics({ orders, products }: StoreAnalyticsProps) {
         totalOrders,
         averageOrderValue,
         conversionRate: 2.3, // This would come from actual analytics
+        // TODO: Integrate with analytics service to calculate:
+        // conversionRate = (uniquePurchasers / uniqueVisitors) * 100
         topProducts,
         recentActivity,
         salesByDay
@@ -314,17 +316,28 @@ export function StoreAnalytics({ orders, products }: StoreAnalyticsProps) {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold">
-                    {orders.filter(o => 
-                      orders.filter(order => order.email === o.email).length > 1
-                    ).length}
-                  </div>
-                  <p className="text-sm text-gray-500">Repeat Customers</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    {(orders.filter(o => 
-                      orders.filter(order => order.email === o.email).length > 1
-                    ).length / new Set(orders.map(o => o.email)).size * 100).toFixed(1)}%
+                {(() => {
+                  const emailCounts = new Map<string, number>()
+                  orders.forEach(order => {
+                    emailCounts.set(order.email, (emailCounts.get(order.email) || 0) + 1)
+                  })
+                  const repeatCustomers = Array.from(emailCounts.values()).filter(count => count > 1).length
+                  const totalCustomers = emailCounts.size
+                  const repeatRate = totalCustomers > 0 ? (repeatCustomers / totalCustomers * 100) : 0
+
+                  return (
+                    <>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{repeatCustomers}</div>
+                        <p className="text-sm text-gray-500">Repeat Customers</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{repeatRate.toFixed(1)}%</div>
+                        <p className="text-sm text-gray-500">Repeat Rate</p>
+                      </div>
+                    </>
+                  )
+                })()}
                   </div>
                   <p className="text-sm text-gray-500">Repeat Rate</p>
                 </div>

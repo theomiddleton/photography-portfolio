@@ -40,7 +40,14 @@ export function StoreFiltersSidebar({
   availableTags,
   className
 }: StoreFiltersProps) {
+import { useState, useEffect } from 'react'
+
   const [localFilters, setLocalFilters] = useState<StoreFilters>(filters)
+
+  // Sync local filters when prop changes
+  useEffect(() => {
+    setLocalFilters(filters)
+  }, [filters])
 
   const updateFilters = (updates: Partial<StoreFilters>) => {
     const newFilters = { ...localFilters, ...updates }
@@ -151,23 +158,36 @@ export function StoreFiltersSidebar({
                   { value: 'all', label: 'All Items' },
                   { value: 'available', label: 'Available' },
                   { value: 'unavailable', label: 'Unavailable' }
-                ].map((option) => (
-                  <div key={option.value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`availability-${option.value}`}
-                      checked={localFilters.availability === option.value}
-                      onCheckedChange={() => 
-                        updateFilters({ availability: option.value as typeof localFilters.availability })
-                      }
-                    />
-                    <label
-                      htmlFor={`availability-${option.value}`}
-                      className="text-sm cursor-pointer"
-                    >
-                      {option.label}
-                    </label>
-                  </div>
-                ))}
+import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
+
+<div className="space-y-3">
+  <h4 className="font-medium">Availability</h4>
+  <RadioGroup
+    value={localFilters.availability}
+    onValueChange={(value) =>
+      updateFilters({ availability: value as typeof localFilters.availability })
+    }
+  >
+    {[
+      { value: 'all', label: 'All Items' },
+      { value: 'available', label: 'Available' },
+      { value: 'unavailable', label: 'Unavailable' }
+    ].map((option) => (
+      <div key={option.value} className="flex items-center space-x-2">
+        <RadioGroupItem
+          value={option.value}
+          id={`availability-${option.value}`}
+        />
+        <label
+          htmlFor={`availability-${option.value}`}
+          className="text-sm cursor-pointer"
+        >
+          {option.label}
+        </label>
+      </div>
+    ))}
+  </RadioGroup>
+</div>
               </div>
             </div>
 

@@ -33,12 +33,19 @@ export function StoreHeader({
   onToggleFilters,
   className
 }: StoreHeaderProps) {
+++ b/src/components/store/store-header.tsx
+@@
+import { useEffect, useState } from 'react'
+@@
   const [localSearch, setLocalSearch] = useState(searchQuery)
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSearchChange(localSearch)
-  }
+  useEffect(() => {
+    setLocalSearch(searchQuery)
+  }, [searchQuery])
+ 
+   const handleSearchSubmit = (e: React.FormEvent) => {
+     e.preventDefault()
+     onSearchChange(localSearch)
+   }
 
   return (
     <div className={cn("space-y-6", className)}>

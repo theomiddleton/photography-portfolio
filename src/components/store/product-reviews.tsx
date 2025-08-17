@@ -239,7 +239,12 @@ export function ProductReviews({
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <span>{review.customerName}</span>
                       <span>•</span>
-                      <span>{formatDistanceToNow(review.createdAt, { addSuffix: true })}</span>
+                      <span>{
+                        formatDistanceToNow(
+                          typeof review.createdAt === 'string' ? new Date(review.createdAt) : review.createdAt,
+                          { addSuffix: true }
+                        )
+                      }</span>
                     </div>
                   </div>
                   <Button variant="ghost" size="sm">

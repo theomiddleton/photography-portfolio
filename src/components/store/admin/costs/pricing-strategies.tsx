@@ -154,8 +154,11 @@ export function PricingStrategies({ sizes, profitMargin, onUpdate }: PricingStra
   const getImpactSummary = () => {
     const totalOldRevenue = sizes.reduce((sum, size) => sum + (size.sellAtPrice || 0), 0)
     const totalNewRevenue = previewPrices.reduce((sum, size) => sum + size.newPrice, 0)
-    const revenueChange = ((totalNewRevenue - totalOldRevenue) / totalOldRevenue) * 100
-    
+    const revenueChange =
+      totalOldRevenue > 0
+        ? ((totalNewRevenue - totalOldRevenue) / totalOldRevenue) * 100
+        : 0
+
     return {
       totalChanges: sizes.length,
       revenueChange: revenueChange || 0,

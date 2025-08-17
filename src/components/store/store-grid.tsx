@@ -16,8 +16,23 @@ interface StoreGridProps {
 }
 
 export function StoreGrid({ prints, className }: StoreGridProps) {
-  const [wishlistItems, setWishlistItems] = useState<Set<string>>(new Set())
+import React, { useState, useEffect } from 'react'
+
+export function StoreGrid({ prints, className }: StoreGridProps) {
+  const [wishlistItems, setWishlistItems] = useState<Set<string>>(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('wishlist')
+      return saved ? new Set(JSON.parse(saved)) : new Set()
+    }
+    return new Set()
+  })
   const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set())
+
+  // Persist wishlist to localStorage
+  useEffect(() => {
+    localStorage.setItem('wishlist', JSON.stringify(Array.from(wishlistItems)))
+  }, [wishlistItems])
 
   const toggleWishlist = (productId: string, productName: string, e: React.MouseEvent) => {
     e.preventDefault()
@@ -33,6 +48,9 @@ export function StoreGrid({ prints, className }: StoreGridProps) {
     }
     setWishlistItems(newWishlist)
   }
+
+  // ...rest of component rendering
+}
 
   const handleImageLoad = (productId: string) => {
     setLoadingItems(prev => {
@@ -113,9 +131,7 @@ export function StoreGrid({ prints, className }: StoreGridProps) {
                 {!print.active && (
                   <Badge variant="secondary" className="text-xs">Unavailable</Badge>
                 )}
-                {index < 3 && (
-                  <Badge variant="outline" className="text-xs bg-white/90">Featured</Badge>
-                )}
+                {/* TODO: Add featured flag to product data model */}
               </div>
             </div>
 

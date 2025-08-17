@@ -52,14 +52,15 @@ export function OptimizedImage({
   }
 
   // Generate a simple blur data URL if none provided
-  const defaultBlurDataURL = `data:image/svg+xml;base64,${Buffer.from(
+  // Generate a simple blur data URL if none provided
+  const defaultBlurDataURL = `data:image/svg+xml;base64,${btoa(
     `<svg width="${width || 400}" height="${height || 300}" xmlns="http://www.w3.org/2000/svg">
       <rect width="100%" height="100%" fill="#f3f4f6"/>
       <text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#9ca3af" font-family="Arial, sans-serif" font-size="14">
         Loading...
       </text>
     </svg>`
-  ).toString('base64')}`
+  )}`
 
   if (hasError) {
     return (

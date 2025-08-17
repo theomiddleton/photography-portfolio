@@ -41,15 +41,18 @@ export function ProductBadges({ className }: ProductBadgesProps) {
   const [badges, setBadges] = useState<StoreBadge[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Simulate loading badges (replace with actual API call)
+  // Load badges from API
   useEffect(() => {
     const loadBadges = async () => {
       setLoading(true)
       try {
-        // Simulate API call - replace with actual implementation
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // Default badges (this should come from your database)
+        const res = await fetch('/api/store/badges', { cache: 'no-store' })
+        if (!res.ok) throw new Error(`Failed to fetch badges: ${res.status}`)
+        const data: StoreBadge[] = await res.json()
+        setBadges(data)
+      } catch (error) {
+        console.error('Failed to load badges:', error)
+        // Fallback to default badges
         setBadges([
           {
             id: '1',
@@ -70,7 +73,13 @@ export function ProductBadges({ className }: ProductBadgesProps) {
             isDefault: true
           }
         ])
-      } catch (error) {
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadBadges()
+  }, [])
         console.error('Failed to load badges:', error)
         // Fallback to default badges
         setBadges([

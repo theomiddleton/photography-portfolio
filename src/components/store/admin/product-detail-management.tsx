@@ -132,6 +132,10 @@ export function ProductDetailManagement({ className, products = [] }: ProductDet
       toast.error('Please fill in all required fields')
       return
     }
+    if (!newDetail.isGlobal && !newDetail.productId) {
+      toast.error('Please select a product for non-global details')
+      return
+    }
 
     try {
       const result = await addStoreProductDetail({
@@ -144,7 +148,13 @@ export function ProductDetailManagement({ className, products = [] }: ProductDet
 
       if (result.success) {
         setDetails(prev => [...prev, result.data])
-        setNewDetail({ label: '', value: '', isGlobal: true, productId: '', active: true })
+        setNewDetail({
+          label: '',
+          value: '',
+          isGlobal: true,
+          productId: '',
+          active: true
+        })
         setShowAddDialog(false)
         toast.success('Product detail added successfully')
       } else {
@@ -199,8 +209,20 @@ export function ProductDetailManagement({ className, products = [] }: ProductDet
     
     // Update the full details array
     const otherDetails = details.filter(d => d.isGlobal !== isGlobal)
-    setDetails([...otherDetails, ...reorderedDetails])
-    toast.success('Product detail order updated')
+    const next = [...otherDetails, ...reorderedDetails]
+    setDetails(next)
+    ;(async () => {
+      try {
+        await reorderStoreProductDetails(
+          reorderedDetails.map(d => ({ id: d.id, order: d.order }))
+        )
+        toast.success('Product detail order updated')
+      } catch {
+        // revert on failure
+        setDetails(details)
+        toast.error('Failed to persist order. Please try again.')
+      }
+    })()
   }
 
   const handlePredefinedDetailSelect = (predefined: typeof PREDEFINED_DETAILS[0]) => {

@@ -10,7 +10,7 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 - [AI Features & Privacy Options](#-ai-features--privacy-options)
 - [Quick Start](#-quick-start)
 - [Environment Setup](#-environment-setup)
-- [Store Setup Guide](#-store-setup-guide)
+- [Store Setup Guide](#store-setup-guide)
 - [Recommended Setup](#-recommended-setup)
 - [Deployment Options](#-deployment-options)
 - [Database Options](#️-database-options)

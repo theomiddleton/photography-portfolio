@@ -67,15 +67,14 @@ export function Costs({ sizes, initialTax, shippingMethods }: CostsProps) {
   // Calculate metrics when data changes
   useEffect(() => {
     const calculateMetrics = () => {
-      const profitSums = sizes.reduce((sum, size) => {
-        if (size.sellAtPrice && size.basePrice) {
-          return sum + (size.sellAtPrice - size.basePrice)
-        }
-        return sum
-      }, 0)
-      
-      const averageProfit = sizes.length > 0 ? profitSums / sizes.length / 100 : 0
-      
+      const validSizes = sizes.filter(
+        (s) => s.sellAtPrice != null && s.basePrice != null
+      )
+      const profitSums = validSizes.reduce(
+        (sum, size) => sum + ((size.sellAtPrice as number) - (size.basePrice as number)),
+        0
+      )
+      const averageProfit = validSizes.length > 0 ? (profitSums / validSizes.length) / 100 : 0
       setMetrics(prev => ({
         ...prev,
         averageProfit,
