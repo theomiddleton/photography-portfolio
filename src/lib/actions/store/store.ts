@@ -190,10 +190,10 @@ async function calculateOrderTotal(productId: string, sizeId: string, shippingMe
 
   // Convert stored tax rates to decimals with safe defaults
   const taxRateDecimal =
-    costs[0]?.taxRate !== undefined ? costs[0].taxRate / 1000000 : 0.2
+    costs[0]?.taxRate !== undefined ? costs[0].taxRate / 10000 : 0.2
   const stripeTaxRateDecimal =
     costs[0]?.stripeTaxRate !== undefined
-      ? costs[0].stripeTaxRate / 1000000
+      ? costs[0].stripeTaxRate / 10000
       : 0.015
 
   // Calculate the tax amounts (in pence)
@@ -315,10 +315,10 @@ export async function updateTaxRates(
         .set({ active: false })
         .where(eq(storeCosts.active, true))
 
-      // Convert percentages to integer storage format
-      const taxRateInt = Math.round(validTaxRate * 1000000) // Store as parts per million
-      const stripeRateInt = Math.round(validStripeRate * 1000000)
-      const profitPercentageInt = Math.round(validProfitPercentage * 1000000)
+      // Convert percentages to integer storage format (percentage * 10000)
+      const taxRateInt = Math.round(validTaxRate * 10000) // Store as percentage * 10000
+      const stripeRateInt = Math.round(validStripeRate * 10000)
+      const profitPercentageInt = Math.round(validProfitPercentage * 10000)
 
       // Insert new rates
       await tx.insert(storeCosts).values({
