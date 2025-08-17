@@ -6,6 +6,7 @@ import { Button } from '~/components/ui/button'
 import { ChevronLeft } from 'lucide-react'
 import { isStoreEnabledServer } from '~/lib/store-utils'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Edit Product - Admin',
