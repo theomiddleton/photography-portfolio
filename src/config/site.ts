@@ -47,7 +47,7 @@ export const siteConfig = {
     storeEnabled: true,
     store: {
       reviewsEnabled: false,
-      showTax: true, // When true, shows tax separately. When false, includes tax in price
+      showTax: false, // When true, shows tax separately. When false, includes tax in price
     },
   },
 }
