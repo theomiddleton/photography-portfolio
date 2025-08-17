@@ -2,6 +2,7 @@ import type { Product, ProductSize, ShippingMethod } from '~/server/db/schema'
 import { formatPrice } from '~/lib/utils'
 import Image from 'next/image'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import { siteConfig } from '~/config/site'
 
 interface OrderSummaryProps {
   product: Product
@@ -23,11 +24,21 @@ export function OrderSummary({
   stripeTaxRate
 }: OrderSummaryProps) {
   const selectedMethod = shippingMethods.find(method => method.id === selectedShipping)
-  const subtotal = size.basePrice
+  const baseSubtotal = size.basePrice
   const shippingCost = selectedMethod?.price ?? 0
-  const tax = Math.round((subtotal + shippingCost) * (taxRate / 1000000))
-  const stripeTax = Math.round((subtotal + shippingCost) * (stripeTaxRate / 1000000))
-  const total = subtotal + shippingCost + tax + stripeTax
+  const tax = Math.round((baseSubtotal + shippingCost) * (taxRate / 1000000))
+  const stripeTax = Math.round((baseSubtotal + shippingCost) * (stripeTaxRate / 1000000))
+  
+  let subtotal, total
+  if (siteConfig.features.store.showTax) {
+    // Show tax separately
+    subtotal = baseSubtotal
+    total = baseSubtotal + shippingCost + tax + stripeTax
+  } else {
+    // Include tax in subtotal
+    subtotal = baseSubtotal + tax + stripeTax
+    total = subtotal + shippingCost
+  }
 
   return (
     <div className="bg-gray-50 p-6 rounded-lg space-y-4">
@@ -73,14 +84,18 @@ export function OrderSummary({
           <span>Shipping</span>
           <span>{selectedMethod ? formatPrice(shippingCost) : '-'}</span>
         </div>
-        <div className="flex justify-between">
-          <span>Tax</span>
-          <span>{formatPrice(tax)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Processing Fee</span>
-          <span>{formatPrice(stripeTax)}</span>
-        </div>
+        {siteConfig.features.store.showTax && (
+          <>
+            <div className="flex justify-between">
+              <span>Tax</span>
+              <span>{formatPrice(tax)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Processing Fee</span>
+              <span>{formatPrice(stripeTax)}</span>
+            </div>
+          </>
+        )}
         <div className="flex justify-between font-semibold mt-4">
           <span>Total</span>
           <span>{formatPrice(total)}</span>

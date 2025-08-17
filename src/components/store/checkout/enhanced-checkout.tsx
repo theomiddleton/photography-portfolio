@@ -233,14 +233,24 @@ export function EnhancedCheckout({
       (m) => m.id === selectedShipping,
     )
     const shippingCost = selectedMethod?.price || 0
-    const subtotal = (productSize?.basePrice || 0) * quantity // Use actual product price
-    const tax = Math.round(subtotal * (taxRates.taxRate / 10000))
-    const total = subtotal + shippingCost + tax
+    const baseSubtotal = (productSize?.basePrice || 0) * quantity // Use actual product price
+    const tax = Math.round(baseSubtotal * (taxRates.taxRate / 10000))
+    
+    let subtotal, total
+    if (siteConfig.features.store.showTax) {
+      // Show tax separately 
+      subtotal = baseSubtotal
+      total = baseSubtotal + shippingCost + tax
+    } else {
+      // Include tax in subtotal
+      subtotal = baseSubtotal + tax
+      total = subtotal + shippingCost
+    }
 
-    return { subtotal, shippingCost, tax, total }
+    return { subtotal, shippingCost, tax, total, showTaxSeparately: siteConfig.features.store.showTax }
   }
 
-  const { subtotal, shippingCost, tax, total } = calculateTotals()
+  const { subtotal, shippingCost, tax, total, showTaxSeparately } = calculateTotals()
   const progress = ((currentStep + 1) / steps.length) * 100
 
   return (
@@ -572,10 +582,12 @@ export function EnhancedCheckout({
                   <span>Shipping</span>
                   <span>{formatPrice(shippingCost)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>Tax</span>
-                  <span>{formatPrice(tax)}</span>
-                </div>
+                {showTaxSeparately && (
+                  <div className="flex justify-between text-sm">
+                    <span>Tax</span>
+                    <span>{formatPrice(tax)}</span>
+                  </div>
+                )}
                 <Separator />
                 <div className="flex justify-between font-medium">
                   <span>Total</span>

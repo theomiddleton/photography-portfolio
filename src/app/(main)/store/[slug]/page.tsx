@@ -148,6 +148,30 @@ export default async function ProductPage(props: Props) {
     getRecommendations(product.id)
   ])
 
+  // Get costs for tax calculation
+  const costs = await db
+    .select()
+    .from(storeCosts)
+    .where(eq(storeCosts.active, true))
+    .orderBy(desc(storeCosts.createdAt))
+    .limit(1)
+
+  const taxRate = costs[0]?.taxRate || 2000 // Default to 20% if not found
+
+  // Calculate prices based on tax display setting
+  const sizesWithPrices = sizes.map((size) => {
+    let totalPrice = size.basePrice
+    if (!siteConfig.features.store.showTax) {
+      // Include tax in the displayed price
+      const tax = Math.round(size.basePrice * (taxRate / 10000))
+      totalPrice = size.basePrice + tax
+    }
+    return {
+      ...size,
+      totalPrice,
+    }
+  })
+
   const baseUrl = siteConfig.url || 'http://localhost:3000'
 
   // Generate structured data
@@ -183,10 +207,7 @@ export default async function ProductPage(props: Props) {
         <div className="container mx-auto px-4 py-12 pt-24">
           <EnhancedProductView
             product={product}
-            sizes={sizes.map((size) => ({
-              ...size,
-              totalPrice: size.basePrice,
-            }))}
+            sizes={sizesWithPrices}
             recommendations={recommendations}
           />
         </div>

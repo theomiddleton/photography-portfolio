@@ -269,7 +269,7 @@ export function EnhancedProductView({
             </div>
 
             {/* Rating - only show if reviews are enabled */}
-            {siteConfig.features.reviewsEnabled && (
+            {siteConfig.features.store.reviewsEnabled && (
               <div className="mb-4 flex items-center gap-2">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
@@ -380,7 +380,7 @@ export function EnhancedProductView({
       </div>
 
       {/* Reviews Section */}
-      {siteConfig.features.reviewsEnabled && (
+      {siteConfig.features.store.reviewsEnabled && (
         <div className="border-t pt-16 mb-24">
           <ProductReviews
             productId={product.id}
@@ -397,7 +397,7 @@ export function EnhancedProductView({
       {recommendations.length > 0 && (
         <div className={cn(
           "border-t pt-16 mb-24",
-          !siteConfig.features.reviewsEnabled && "border-t"
+          !siteConfig.features.store.reviewsEnabled && "border-t"
         )}>
           <h2 className="mb-8 text-2xl font-bold">You might also like</h2>
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4">

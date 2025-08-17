@@ -216,6 +216,49 @@ Perform final tests with real (small) payments:
 
 ## Store Configuration
 
+### Site Configuration Options
+
+The store behavior can be customized through the `siteConfig` object in `src/config/site.ts`:
+
+```typescript
+export const siteConfig = {
+  // ... other config options
+  features: {
+    storeEnabled: true, // Enable/disable entire store
+    store: {
+      reviewsEnabled: false, // Show/hide product reviews
+      showTax: true, // Tax display behavior (see below)
+    },
+  },
+}
+```
+
+#### Tax Display Configuration
+
+The `showTax` setting controls how taxes are displayed to customers:
+
+**When `showTax: true` (Default)**
+- Tax is shown as a separate line item during checkout
+- Product prices show base price only
+- Customer sees: "Subtotal: £25.00, Tax: £5.00, Total: £30.00"
+
+**When `showTax: false`**
+- Tax is included in all displayed prices
+- No separate tax line shown to customer
+- Customer sees: "Subtotal: £30.00, Total: £30.00" (tax included)
+
+This is useful for:
+- **B2C sales in regions where tax-inclusive pricing is standard** (EU, UK)
+- **Simplified checkout experience** without tax complexity
+- **Compliance with local regulations** requiring tax-inclusive display
+
+#### Reviews Configuration
+
+Set `reviewsEnabled: true/false` to show/hide the entire reviews system:
+- Product rating displays under product titles
+- Customer review sections on product pages
+- Review submission forms
+
 ### Product Management
 
 Products are managed through the admin dashboard:

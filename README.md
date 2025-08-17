@@ -729,6 +729,10 @@ export const siteConfig = {
   features: {
     aiEnabled: true, // AI features control
     storeEnabled: false, // Set to false to disable store
+    store: {
+      reviewsEnabled: false, // Show/hide product reviews and ratings
+      showTax: true, // Tax display: true = separate line, false = included in price
+    },
   },
 }
 ```
@@ -754,6 +758,17 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
 - Core portfolio functionality (galleries, blog, about) works identically with or without store
 - No performance impact when disabled
 - Respects user choice regarding e-commerce functionality
+
+#### Store Feature Options
+
+When the store is enabled, you can customize specific features:
+
+- **`reviewsEnabled`**: Controls whether product reviews and ratings are displayed
+- **`showTax`**: Controls tax display behavior:
+  - `true`: Shows tax as separate line item (e.g., "Subtotal: £25.00, Tax: £5.00")
+  - `false`: Includes tax in all prices (e.g., "Subtotal: £30.00" with tax included)
+  
+These options are useful for different regions and business models.
 
 #### For Portfolio-Only Users
 

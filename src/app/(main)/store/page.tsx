@@ -41,11 +41,16 @@ async function getProducts() {
 
       const lowestPrice = sizes[0]?.basePrice || 0
       const taxRate = costs[0]?.taxRate || 2000 // Default to 20% if not found
-      const priceWithTax = Math.round(lowestPrice * (1 + taxRate / 10000))
+      
+      let displayPrice = lowestPrice
+      if (!siteConfig.features.store.showTax) {
+        // Include tax in displayed price when showTax is false
+        displayPrice = Math.round(lowestPrice * (1 + taxRate / 10000))
+      }
 
       return {
         ...product,
-        priceWithTax,
+        priceWithTax: displayPrice,
       }
     })
   )
