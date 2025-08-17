@@ -1,6 +1,6 @@
 'use server'
 
-import { db } from '~/server/db'
+import { db, dbWithTx } from '~/server/db'
 import { storeBadges } from '~/server/db/schema'
 import { revalidatePath } from 'next/cache'
 import { eq, desc } from 'drizzle-orm'
@@ -12,14 +12,21 @@ export async function addStoreBadge(data: {
   active: boolean
 }) {
   try {
+    // Check if badge with same name exists
+    const existing = await db
+      .select({ id: storeBadges.id })
+      .from(storeBadges)
+      .where(eq(storeBadges.name, data.name))
+      .limit(1)
+    if (existing.length > 0) {
+      return { success: false, error: 'A badge with this name already exists' }
+    }
     const maxOrder = await db
       .select({ order: storeBadges.order })
       .from(storeBadges)
       .orderBy(desc(storeBadges.order))
       .limit(1)
-
     const nextOrder = maxOrder.length > 0 ? maxOrder[0].order + 1 : 0
-
     const [badge] = await db
       .insert(storeBadges)
       .values({
@@ -31,7 +38,6 @@ export async function addStoreBadge(data: {
         isDefault: false,
       })
       .returning()
-
     revalidatePath('/admin/store')
     return { success: true, data: badge }
   } catch (error) {
@@ -82,14 +88,16 @@ export async function deleteStoreBadge(id: string) {
 
 export async function reorderStoreBadges(badgeIds: string[]) {
   try {
-    // Update order for each badge
-    for (let i = 0; i < badgeIds.length; i++) {
-      await db
-        .update(storeBadges)
-        .set({ order: i, updatedAt: new Date() })
-        .where(eq(storeBadges.id, badgeIds[i]))
-    }
-
+    // Batch update using a transaction for better performance
+    await dbWithTx.transaction(async (tx) => {
+      const updates = badgeIds.map((id, index) =>
+        tx
+          .update(storeBadges)
+          .set({ order: index, updatedAt: new Date() })
+          .where(eq(storeBadges.id, id))
+      )
+      await Promise.all(updates)
+    })
     revalidatePath('/admin/store')
     return { success: true }
   } catch (error) {
