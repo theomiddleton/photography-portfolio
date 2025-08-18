@@ -15,7 +15,7 @@ export async function getAllProducts() {
         imageUrl: products.imageUrl,
         active: products.active,
         createdAt: products.createdAt,
-        updatedAt: products.updatedAt
+        updatedAt: products.updatedAt,
       })
       .from(products)
       .orderBy(products.name)
@@ -44,20 +44,19 @@ export async function getProductWithSizes(productId: string) {
       .from(productSizes)
       .where(eq(productSizes.productId, productId))
 
-    return { 
-      success: true, 
-      data: { 
-        ...product, 
-        sizes: sizes.map(size => ({
+    return {
+      success: true,
+      data: {
+        ...product,
+        sizes: sizes.map((size) => ({
           id: size.id,
           name: size.name,
           width: size.width,
           height: size.height,
           basePrice: size.basePrice,
-          sellAtPrice: size.sellAtPrice,
-          active: size.active
-        }))
-      } 
+          active: size.active,
+        })),
+      },
     }
   } catch (error) {
     console.error('Failed to get product with sizes:', error)
