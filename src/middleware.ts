@@ -6,6 +6,19 @@ export async function middleware(request: NextRequest) {
   // Extract the base path (first segment of the URL path)
   const basePath = '/' + request.nextUrl.pathname.split('/')[1]
 
+  // Create response with security headers
+  const response = NextResponse.next()
+
+  // Add security headers
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-XSS-Protection', '1; mode=block')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.stripe.com; frame-src https://js.stripe.com;"
+  )
+
   // Check if the base path matches any of our protected routes
   if (config.matcher.some((path) => basePath === path.split('/:')[0])) {
     const session = await getSession()
@@ -15,8 +28,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/', request.url))
     }
   }
-  // For non-admin routes or if the user is an admin, continue with the request
-  return NextResponse.next()
+
+  return response
 }
 
 export const config = {

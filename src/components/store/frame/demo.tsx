@@ -16,9 +16,7 @@ export function FrameDemo() {
   >('walnut')
   const [matColor, setMatColor] = useState<'white' | 'ivory' | 'black' | 'none'>('white')
   const [frameWidth, setFrameWidth] = useState<'narrow' | 'medium' | 'wide'>('medium')
-  const [imageUrl, setImageUrl] = useState(
-    'https://img.theomiddleton.me/5ddbd35c-6bc2-48ac-8afe-1b4e6f0d22e1.jpg',
-  )
+  const [imageUrl, setImageUrl] = useState('')
   const [imageError, setImageError] = useState(false)
 
   // Add new state for image dimensions
@@ -51,7 +49,10 @@ export function FrameDemo() {
     <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="p-6 rounded-lg shadow-lg">
-          <h1 className="text-2xl font-bold mb-6">Art Frame Preview</h1>
+          <h1 className="text-2xl font-bold mb-6">
+            Art Frame Preview
+            <span className="ml-2 text-sm font-normal text-gray-500">(Demo Component - TODO: Replace with real implementation)</span>
+          </h1>
 
           <div className="grid gap-8 md:grid-cols-2 items-start">
             <div className="space-y-6">
@@ -145,11 +146,23 @@ export function FrameDemo() {
               {/* Wall Preview */}
               <div className="relative w-full aspect-3/2 rounded-lg overflow-hidden shadow-xl">
                 <div 
-                  className="absolute inset-0 bg-cover bg-center"
+                  className="absolute inset-0 bg-cover bg-center bg-gray-100"
                   style={{
-                    backgroundImage: `url('https://images.unsplash.com/photo-1513694203232-719a280e022f')`
+                    backgroundImage: `linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
+                                     linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
+                                     linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+                                     linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)`,
+                    backgroundSize: '20px 20px',
+                    backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
                   }}
-                />
+                >
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-gray-400 text-center">
+                      <div className="text-lg font-medium">Wall Preview</div>
+                      <div className="text-sm">TODO: Add real wall background image</div>
+                    </div>
+                  </div>
+                </div>
                 <div className="absolute inset-0 bg-black/5" />
                 
                 {/* Frame container */}

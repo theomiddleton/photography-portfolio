@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { getNavigationGalleries } from '~/lib/actions/gallery/gallery'
+import { isStoreEnabledClient } from '~/lib/store-utils'
 
 interface MainNavProps {
   isAdmin?: boolean
@@ -68,14 +69,16 @@ export function MainNav({ isAdmin }: MainNavProps) {
       >
         About
       </Link>
-      <Link
-        href="/store"
-        className={cn(
-          "text-foreground/60 transition-colors hover:text-foreground/80"
-        )}
-      >
-        Store
-      </Link>
+      {isStoreEnabledClient() && (
+        <Link
+          href="/store"
+          className={cn(
+            "text-foreground/60 transition-colors hover:text-foreground/80"
+          )}
+        >
+          Store
+        </Link>
+      )}
       {galleries.length > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -136,15 +139,17 @@ export function MainNav({ isAdmin }: MainNavProps) {
       >
         About
       </Link>
-      <Link
-        href="/store"
-        className={cn(
-          "text-foreground/60 transition-colors hover:text-foreground/80"
-        )}
-        onClick={() => setOpen(false)}
-      >
-        Store
-      </Link>
+      {isStoreEnabledClient() && (
+        <Link
+          href="/store"
+          className={cn(
+            "text-foreground/60 transition-colors hover:text-foreground/80"
+          )}
+          onClick={() => setOpen(false)}
+        >
+          Store
+        </Link>
+      )}
       {galleries.length > 0 && (
         <div className="flex flex-col gap-2">
           <span className="text-foreground/60 font-medium">Galleries</span>

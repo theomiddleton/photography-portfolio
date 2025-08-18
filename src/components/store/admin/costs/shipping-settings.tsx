@@ -18,6 +18,7 @@ import { updateShippingMethods } from '~/lib/actions/store/shipping'
 
 interface ShippingSettingsProps {
   shippingMethods: ShippingMethod[]
+  onUpdate?: () => void
 }
 
 interface ShippingMethodInput {
@@ -30,6 +31,7 @@ interface ShippingMethodInput {
 
 export function ShippingSettings({
   shippingMethods: initialMethods = [],
+  onUpdate,
 }: ShippingSettingsProps) {
   const [methods, setMethods] = useState<ShippingMethodInput[]>(
     initialMethods.map((method) => ({
@@ -97,6 +99,7 @@ export function ShippingSettings({
         type: 'success',
         message: 'Shipping methods updated successfully',
       })
+      onUpdate?.()
     } catch (error) {
       console.error('Error saving shipping methods:', error)
       setStatus({

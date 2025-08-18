@@ -225,6 +225,30 @@ export const storeCosts = pgTable('storeCosts', {
   updatedAt: timestamp('updatedAt').defaultNow(),
 })
 
+export const storeBadges = pgTable('storeBadges', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  icon: text('icon').notNull(), // Lucide icon name
+  text: text('text').notNull(),
+  order: integer('order').default(0).notNull(),
+  active: boolean('active').default(true).notNull(),
+  isDefault: boolean('isDefault').default(false).notNull(), // For predefined badges
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
+export const storeProductDetails = pgTable('storeProductDetails', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  productId: uuid('productId').references(() => products.id, { onDelete: 'cascade' }),
+  label: text('label').notNull(), // e.g., "Material", "Finish", "Frame"
+  value: text('value').notNull(), // e.g., "Premium photo paper", "Matte or glossy", "Optional wood or metal"
+  order: integer('order').default(0).notNull(),
+  isGlobal: boolean('isGlobal').default(false).notNull(), // Global details apply to all products
+  active: boolean('active').default(true).notNull(),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+})
+
 export const blogPosts = pgTable('blogPosts', {
   id: uuid('id').defaultRandom().primaryKey(),
   slug: text('slug').notNull().unique(),
@@ -368,6 +392,8 @@ export type Order = typeof orders.$inferSelect
 export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect
 export type ShippingMethod = typeof shippingMethods.$inferSelect
 export type StoreCosts = typeof storeCosts.$inferSelect
+export type StoreBadge = typeof storeBadges.$inferSelect
+export type StoreProductDetail = typeof storeProductDetails.$inferSelect
 
 export const galleryRelations = relations(galleries, ({ one, many }) => ({
   coverImage: one(galleryImages, {

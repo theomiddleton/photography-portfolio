@@ -17,9 +17,10 @@ import { addPrintSize, updatePrintSize } from '~/lib/actions/store/sizes'
 
 interface PrintSizesProps {
   sizes: BasePrintSize[]
+  onUpdate?: () => void
 }
 
-export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
+export function PrintSizes({ sizes: initialSizes, onUpdate }: PrintSizesProps) {
   const [sizes, setSizes] = useState(initialSizes)
   const [newSize, setNewSize] = useState({
     name: '',
@@ -59,6 +60,7 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
         basePrice: '',
         sellAtPrice: '',
       })
+      onUpdate?.()
     } catch (error) {
       console.error(error)
     }
@@ -95,6 +97,7 @@ export function PrintSizes({ sizes: initialSizes }: PrintSizesProps) {
         sizes.map((size) => (size.id === editingSize.id ? result.data : size)),
       )
       setEditingSize(null)
+      onUpdate?.()
     } catch (error) {
       console.error(error)
     }

@@ -1,8 +1,14 @@
+import { notFound } from 'next/navigation'
 import { FrameDemo } from '~/components/store/frame/demo'
 import { Button } from '~/components/ui/button'
 import { ChevronLeft } from 'lucide-react'
+import { isStoreEnabledServer } from '~/lib/store-utils'
 
 export default async function AdminStoreFrame() {
+  // Return 404 if store is disabled
+  if (!isStoreEnabledServer()) {
+    notFound()
+  }
 
   return (
     <main>

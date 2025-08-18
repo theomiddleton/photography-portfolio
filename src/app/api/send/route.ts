@@ -16,6 +16,9 @@ import {
 } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { siteConfig } from '~/config/site'
+import { emailSchema } from '~/lib/validations/store'
+import { logAction } from '~/lib/logging'
+import { emailRateLimit, getClientIP } from '~/lib/rate-limit'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -34,25 +37,31 @@ interface ShippingDetails {
 }
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const clientIP = getClientIP(request)
+  const rateLimitResult = emailRateLimit.check(clientIP)
+  
+  if (!rateLimitResult.success) {
+    await logAction('email', `Rate limit exceeded for IP: ${clientIP}`)
+    return Response.json({ error: 'Rate limit exceeded' }, { status: 429 })
+  }
+
   try {
-    const {
-      email,
-      orderId,
-      shippingDetails,
-    }: {
-      email: string
-      orderId: string
-      shippingDetails?: ShippingDetails
-    } = await request.json()
+    const requestData = await request.json()
 
-    console.log('Received request:', { email, orderId, shippingDetails })
+    // Validate input data
+    const validatedInput = emailSchema.safeParse(requestData)
 
-    if (!email) {
-      return Response.json({ error: 'Email is required' }, { status: 400 })
+    if (!validatedInput.success) {
+      await logAction('email', `Invalid email request: ${validatedInput.error.message}`)
+      return Response.json({ error: 'Invalid input parameters' }, { status: 400 })
     }
 
-    // Fetch order details
-    // Update order fetch to include shipping method
+    const { email, orderId, shippingDetails } = validatedInput.data
+
+    await logAction('email', `Processing email request for order: ${orderId}`)
+
+    // Fetch order details with security check
     const order = await db
       .select()
       .from(orders)
@@ -61,14 +70,17 @@ export async function POST(request: Request) {
       .leftJoin(productSizes, eq(orders.sizeId, productSizes.id))
       .leftJoin(shippingMethods, eq(orders.shippingMethodId, shippingMethods.id))
       .limit(1)
-      .then((results) => {
-        console.log('Database query results:', results)
-        return results[0]
-      })
+      .then((results) => results[0])
 
     if (!order) {
-      console.error('No order found for ID:', orderId)
+      await logAction('email', `Order not found for ID: ${orderId}`)
       return Response.json({ error: 'Order not found' }, { status: 404 })
+    }
+
+    // Security check: ensure order is in processing status
+    if (order.orders.status !== 'processing') {
+      await logAction('email', `Email attempt for non-processing order: ${orderId}, status: ${order.orders.status}`)
+      return Response.json({ error: 'Order not in valid status for email' }, { status: 400 })
     }
 
     const orderDate = new Date().toLocaleDateString('en-GB', {
@@ -79,11 +91,17 @@ export async function POST(request: Request) {
       minute: '2-digit',
     })
 
-    // Format monetary values
+    // Format monetary values safely
     const formattedSubtotal = `£${(order.orders.subtotal / 100).toFixed(2)}`
     const formattedShipping = `£${(order.orders.shippingCost / 100).toFixed(2)}`
     const formattedTax = `£${(order.orders.tax / 100).toFixed(2)}`
     const formattedTotal = `£${(order.orders.total / 100).toFixed(2)}`
+
+    // Validate admin email exists
+    if (!process.env.ADMIN_EMAIL) {
+      await logAction('email', 'Admin email not configured')
+      return Response.json({ error: 'Email configuration error' }, { status: 500 })
+    }
 
     // Send customer confirmation email
     const customerEmail = await resend.emails.send({
@@ -144,7 +162,7 @@ export async function POST(request: Request) {
     // Send admin notification email
     const adminEmail = await resend.emails.send({
       from: `${siteConfig.storeName} <${siteConfig.emails.order}>`,
-      to: [process.env.ADMIN_EMAIL!],
+      to: [process.env.ADMIN_EMAIL],
       subject: `New Order #${order.orders.orderNumber} - ${order.products.name}`,
       replyTo: `${siteConfig.storeName} <${siteConfig.emails.replyTo}>`,
       react: AdminOrderNotificationEmail({
@@ -185,20 +203,23 @@ export async function POST(request: Request) {
     })
 
     if (customerEmail.error || adminEmail.error) {
+      await logAction('email', `Email sending failed: ${customerEmail.error || adminEmail.error}`)
       return Response.json(
-        { error: customerEmail.error || adminEmail.error },
+        { error: 'Failed to send emails' },
         { status: 500 },
       )
     }
+
+    await logAction('email', `Emails sent successfully for order: ${orderId}`)
 
     return Response.json({
       customerEmail: customerEmail.data,
       adminEmail: adminEmail.data,
     })
   } catch (error) {
-    console.log(error)
+    await logAction('email', `Email processing error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     return Response.json(
-      { error: error instanceof Error ? error.message : 'An unknown error occurred' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

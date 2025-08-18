@@ -24,6 +24,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '~/components/ui/alert-dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
+import { BadgeManagement } from './badge-management'
+import { ProductDetailManagement } from './product-detail-management'
 
 interface MigrationResult {
   success: boolean
@@ -100,7 +103,7 @@ export function AdminActions() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {alert && (
         <Alert variant={alert.type === 'error' ? 'destructive' : 'default'}>
           <AlertTitle>{alert.title}</AlertTitle>
@@ -108,87 +111,112 @@ export function AdminActions() {
         </Alert>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Store Actions</CardTitle>
-          <CardDescription>
-            Manage your store settings and perform maintenance tasks
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex gap-4">
-          <Button asChild variant="outline">
-            <a href="/admin/store/costs">Manage Costs & Sizes</a>
-          </Button>
-          <Button asChild variant="outline">
-            <a href="/admin/store/frame">Manage Frame Mockups</a>
-          </Button>
-          <Button onClick={handleMigrate} disabled={isMigrating}>
-            {isMigrating ? (
-              <>
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                Migrating...
-              </>
-            ) : (
-              'Migrate Images to Products'
-            )}
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={isDeleting}>
-                {isDeleting ? (
+      <Tabs defaultValue="general" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="general">General Settings</TabsTrigger>
+          <TabsTrigger value="badges">Badge Management</TabsTrigger>
+          <TabsTrigger value="details">Product Details</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Store Actions</CardTitle>
+              <CardDescription>
+                Manage your store settings and perform maintenance tasks
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex gap-4">
+              <Button asChild variant="outline">
+                <a href="/admin/store/costs">Manage Costs & Sizes</a>
+              </Button>
+              <Button asChild variant="outline">
+                <a href="/admin/store/frame">Manage Frame Mockups</a>
+              </Button>
+              <Button onClick={handleMigrate} disabled={isMigrating}>
+                {isMigrating ? (
                   <>
                     <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                    Deleting...
+                    Migrating...
                   </>
                 ) : (
-                  'Delete All Products'
+                  'Migrate Images to Products'
                 )}
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete all
-                  products from your store, including:
-                  <ul className="mt-2 list-inside list-disc">
-                    <li>All product data from the database</li>
-                    <li>All associated product sizes</li>
-                    <li>All products from Stripe</li>
-                    <li>Order history will NOT be deleted</li>
-                  </ul>
-                  <div className="mt-4 space-y-2">
-                    <p className="font-medium">
-                      Type &quot;DELETE ALL PRODUCTS&quot; to confirm:
-                    </p>
-                    <input
-                      type="text"
-                      value={deleteConfirmation}
-                      onChange={(e) => setDeleteConfirmation(e.target.value)}
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      placeholder="Type confirmation phrase"
-                    />
-                  </div>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setDeleteConfirmation('')}>
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  disabled={
-                    deleteConfirmation !== 'DELETE ALL PRODUCTS' || isDeleting
-                  }
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
-                >
-                  Delete All Products
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardContent>
-      </Card>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={isDeleting}>
+                    {isDeleting ? (
+                      <>
+                        <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      'Delete All Products'
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete
+                      all products from your store, including:
+                      <ul className="mt-2 list-inside list-disc">
+                        <li>All product data from the database</li>
+                        <li>All associated product sizes</li>
+                        <li>All products from Stripe</li>
+                        <li>Order history will NOT be deleted</li>
+                      </ul>
+                      <div className="mt-4 space-y-2">
+                        <p className="font-medium">
+                          Type &quot;DELETE ALL PRODUCTS&quot; to confirm:
+                        </p>
+                        <input
+                          type="text"
+                          value={deleteConfirmation}
+                          onChange={(e) =>
+                            setDeleteConfirmation(e.target.value)
+                          }
+                          className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                          placeholder="Type confirmation phrase"
+                        />
+                      </div>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel
+                      onClick={() => setDeleteConfirmation('')}
+                    >
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={
+                        deleteConfirmation !== 'DELETE ALL PRODUCTS' ||
+                        isDeleting
+                      }
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                    >
+                      Delete All Products
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="badges">
+          <BadgeManagement />
+        </TabsContent>
+
+        <TabsContent value="details">
+          <ProductDetailManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

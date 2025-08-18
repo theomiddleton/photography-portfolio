@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation'
 import { db } from '~/server/db'
 import { basePrintSizes, storeCosts, shippingMethods } from '~/server/db/schema'
 import { desc, eq } from 'drizzle-orm'
@@ -5,6 +6,7 @@ import { desc, eq } from 'drizzle-orm'
 import { Costs } from '~/components/store/admin/costs/costs'
 import { Button } from '~/components/ui/button'
 import { ChevronLeft } from 'lucide-react'
+import { isStoreEnabledServer } from '~/lib/store-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,6 +47,11 @@ async function getCosts() {
 }
 
 export default async function CostsPage() {
+  // Return 404 if store is disabled
+  if (!isStoreEnabledServer()) {
+    notFound()
+  }
+
   const [sizes, costs, shippingMethods] = await Promise.all([
     getPrintSizes(),
     getCosts(),

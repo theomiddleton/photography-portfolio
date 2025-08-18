@@ -11,12 +11,29 @@ import {
 import { Button } from '~/components/ui/button'
 import { updateOrderStatus } from '~/lib/actions/store/store'
 
-export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
+interface CheckoutFormProps {
+  clientSecret: string
+  shippingDetails?: {
+    name: string
+    email: string
+    address: {
+      line1: string
+      line2?: string
+      city: string
+      state: string
+      postal_code: string
+      country: string
+    }
+    phone?: string
+  }
+}
+
+export function CheckoutForm({ clientSecret, shippingDetails }: CheckoutFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string>()
-  const [email, setEmail] = useState<string>()
+  const [email, setEmail] = useState<string>(shippingDetails?.email || '')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -106,6 +123,11 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Contact Information</h2>
         <LinkAuthenticationElement
+          options={{
+            defaultValues: {
+              email: shippingDetails?.email || '',
+            },
+          }}
           onChange={(event) => setEmail(event.value.email)}
         />
       </div>
@@ -116,6 +138,11 @@ export function CheckoutForm({ clientSecret }: { clientSecret: string }) {
           options={{
             mode: 'shipping',
             allowedCountries: ['GB'],
+            defaultValues: shippingDetails?.address ? {
+              name: shippingDetails.name,
+              address: shippingDetails.address,
+              phone: shippingDetails.phone || '',
+            } : undefined,
           }}
         />
       </div>

@@ -1,0 +1,124 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { 
+  Shield, 
+  Truck, 
+  Check, 
+  Clock,
+  Package,
+  CreditCard,
+  Heart,
+  Award,
+  Star,
+  Gift,
+  Lock,
+  Zap,
+  Users,
+  Globe,
+  MessageCircle
+} from 'lucide-react'
+
+const ICON_COMPONENTS = {
+  Shield, Truck, Check, Clock, Package, CreditCard, Heart, Award, Star, Gift, Lock, Zap, Users, Globe, MessageCircle
+}
+
+interface StoreBadge {
+  id: string
+  name: string
+  icon: string
+  text: string
+  order: number
+  active: boolean
+  isDefault: boolean
+}
+
+interface ProductBadgesProps {
+  className?: string
+}
+
+export function ProductBadges({ className }: ProductBadgesProps) {
+  const [badges, setBadges] = useState<StoreBadge[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Load badges from API
+  useEffect(() => {
+    const loadBadges = async () => {
+      setLoading(true)
+      try {
+        const res = await fetch('/api/store/badges', { cache: 'no-store' })
+        if (!res.ok) throw new Error(`Failed to fetch badges: ${res.status}`)
+        const data: StoreBadge[] = await res.json()
+        setBadges(data)
+      } catch (error) {
+        console.error('Failed to load badges:', error)
+        // Fallback to default badges
+        setBadges([
+          {
+            id: '1',
+            name: '30-day returns',
+            icon: 'Shield',
+            text: '30-day returns',
+            order: 0,
+            active: true,
+            isDefault: true
+          },
+          {
+            id: '2',
+            name: 'Secure shipping',
+            icon: 'Truck',
+            text: 'Secure shipping',
+            order: 1,
+            active: true,
+            isDefault: true
+          }
+        ])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadBadges()
+  }, [])
+
+  const renderIcon = (iconName: string) => {
+    const IconComponent = ICON_COMPONENTS[iconName as keyof typeof ICON_COMPONENTS]
+    return IconComponent ? <IconComponent className="h-5 w-5" /> : <Shield className="h-5 w-5" />
+  }
+
+  const activeBadges = badges.filter(badge => badge.active).sort((a, b) => a.order - b.order)
+
+  if (loading) {
+    return (
+      <div className={className}>
+        <div className="grid grid-cols-2 gap-2 text-center text-sm text-gray-600">
+          <div className="flex flex-col items-center gap-1">
+            <div className="h-5 w-5 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <div className="h-5 w-5 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (activeBadges.length === 0) {
+    return null
+  }
+
+  return (
+    <div className={className}>
+      <div className="flex flex-wrap justify-center items-center gap-4 text-center text-sm text-gray-600">
+        {activeBadges.map((badge) => (
+          <div key={badge.id} className="flex flex-col items-center gap-1 min-w-0 flex-shrink-0">
+            {renderIcon(badge.icon)}
+            <span className="whitespace-nowrap">{badge.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}

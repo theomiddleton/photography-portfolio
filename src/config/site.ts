@@ -44,6 +44,11 @@ export const siteConfig = {
   },
   features: {
     aiEnabled: true,
+    storeEnabled: true,
+    store: {
+      reviewsEnabled: false,
+      showTax: false, // When true, shows tax separately. When false, includes tax in price
+    },
   },
 }
 export type SiteConfig = typeof siteConfig
