@@ -7,6 +7,7 @@ import { db } from '~/server/db'
 import { users } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { logSecurityEvent } from '~/lib/security-logging'
+import { checkEmailRateLimit } from '~/lib/rate-limiting'
 
 const resend = new Resend(env.RESEND_API_KEY)
 
@@ -170,6 +171,23 @@ function SecurityNotificationTemplate({ name, event, details }: { name: string; 
 
 export async function sendEmailVerification(userId: number, email: string, name: string): Promise<boolean> {
   try {
+    // Check rate limiting
+    const rateLimit = await checkEmailRateLimit(email, 'email_verification')
+    if (!rateLimit.allowed) {
+      void logSecurityEvent({
+        type: 'EMAIL_SEND_FAIL',
+        userId,
+        email,
+        details: { 
+          type: 'verification', 
+          error: 'rate_limited',
+          remaining: rateLimit.remaining,
+          resetTime: rateLimit.resetTime
+        },
+      })
+      return false
+    }
+
     const token = generateSecureToken()
     const expiryMinutes = 60 // 1 hour
     const expiry = new Date(Date.now() + expiryMinutes * 60 * 1000)
@@ -225,6 +243,21 @@ export async function sendEmailVerification(userId: number, email: string, name:
 
 export async function sendPasswordReset(email: string): Promise<boolean> {
   try {
+    // Check rate limiting first
+    const rateLimit = await checkEmailRateLimit(email, 'password_reset')
+    if (!rateLimit.allowed) {
+      void logSecurityEvent({
+        type: 'PASSWORD_RESET_REQUEST',
+        email,
+        details: { 
+          result: 'rate_limited',
+          remaining: rateLimit.remaining,
+          resetTime: rateLimit.resetTime
+        },
+      })
+      return true // Still return true to prevent email enumeration
+    }
+
     // Find user by email
     const user = await db
       .select({ id: users.id, name: users.name, isActive: users.isActive })
