@@ -73,25 +73,25 @@ export async function applyPrintSizeTemplate(
     height: number
     basePrice: number
   }>,
-  conflictResolutions: Record<string, { action: 'overwrite' | 'skip' | 'both', existingId?: string }>
+  conflictResolutions: Record<
+    string,
+    { action: 'overwrite' | 'skip' | 'both'; existingId?: string }
+  >,
 ) {
   try {
     const results = {
       added: 0,
       updated: 0,
       skipped: 0,
-      errors: [] as string[]
+      errors: [] as string[],
     }
 
     for (const templateSize of templateSizes) {
       try {
-        // Check if there's a conflict resolution for this size
-        const conflictKey = Object.keys(conflictResolutions).find(key => {
-          const resolution = conflictResolutions[key]
-          return resolution?.existingId // This would be matched differently in real implementation
-        })
-
-        const resolution = conflictKey ? conflictResolutions[conflictKey] : null
+        // Derive a deterministic key expected from the UI layer:
+        // e.g. "NAME:WIDTHxHEIGHT"
+        const conflictKey = `${templateSize.name}:${templateSize.width}x${templateSize.height}`
+        const resolution = conflictResolutions[conflictKey] ?? null
 
         if (resolution) {
           switch (resolution.action) {
@@ -113,15 +113,13 @@ export async function applyPrintSizeTemplate(
 
             case 'both':
               // Add with modified name
-              await db
-                .insert(basePrintSizes)
-                .values({
-                  name: `${templateSize.name} (New)`,
-                  width: templateSize.width,
-                  height: templateSize.height,
-                  basePrice: templateSize.basePrice,
-                  sellAtPrice: null,
-                })
+              await db.insert(basePrintSizes).values({
+                name: `${templateSize.name} (New)`,
+                width: templateSize.width,
+                height: templateSize.height,
+                basePrice: templateSize.basePrice,
+                sellAtPrice: null,
+              })
               results.added++
               break
 
@@ -131,15 +129,13 @@ export async function applyPrintSizeTemplate(
           }
         } else {
           // No conflict, add normally
-          await db
-            .insert(basePrintSizes)
-            .values({
-              name: templateSize.name,
-              width: templateSize.width,
-              height: templateSize.height,
-              basePrice: templateSize.basePrice,
-              sellAtPrice: null,
-            })
+          await db.insert(basePrintSizes).values({
+            name: templateSize.name,
+            width: templateSize.width,
+            height: templateSize.height,
+            basePrice: templateSize.basePrice,
+            sellAtPrice: null,
+          })
           results.added++
         }
       } catch (error) {
@@ -160,7 +156,10 @@ export async function applyPrintSizeTemplate(
 export async function applyPrintSizesToProducts(
   baseSizeIds: string[],
   productIds: string[],
-  conflictResolutions: Record<string, { action: 'overwrite' | 'skip' | 'both', existingId?: string }>
+  conflictResolutions: Record<
+    string,
+    { action: 'overwrite' | 'skip' | 'both'; existingId?: string }
+  >,
 ) {
   try {
     const results = {
@@ -168,7 +167,7 @@ export async function applyPrintSizesToProducts(
       sizesAdded: 0,
       sizesUpdated: 0,
       sizesSkipped: 0,
-      errors: [] as string[]
+      errors: [] as string[],
     }
 
     // Get the base sizes to apply
@@ -184,7 +183,7 @@ export async function applyPrintSizesToProducts(
     for (const productId of productIds) {
       try {
         let productSizesAdded = 0
-        
+
         for (const baseSize of baseSizes) {
           const conflictKey = `${productId}-${baseSize.name}`
           const resolution = conflictResolutions[conflictKey]
@@ -200,10 +199,10 @@ export async function applyPrintSizesToProducts(
                   eq(productSizes.name, baseSize.name),
                   and(
                     eq(productSizes.width, baseSize.width),
-                    eq(productSizes.height, baseSize.height)
-                  )
-                )
-              )
+                    eq(productSizes.height, baseSize.height),
+                  ),
+                ),
+              ),
             )
             .limit(1)
 
@@ -226,17 +225,15 @@ export async function applyPrintSizesToProducts(
 
                 case 'both':
                   // Create new size with modified name
-                  await db
-                    .insert(productSizes)
-                    .values({
-                      productId,
-                      name: `${baseSize.name} (Alt)`,
-                      width: baseSize.width,
-                      height: baseSize.height,
-                      basePrice: baseSize.basePrice,
-                      stripeProductId: `temp_${Date.now()}_${Math.random()}`,
-                      stripePriceId: `temp_${Date.now()}_${Math.random()}`
-                    })
+                  await db.insert(productSizes).values({
+                    productId,
+                    name: `${baseSize.name} (Alt)`,
+                    width: baseSize.width,
+                    height: baseSize.height,
+                    basePrice: baseSize.basePrice,
+                    stripeProductId: `temp_${Date.now()}_${Math.random()}`,
+                    stripePriceId: `temp_${Date.now()}_${Math.random()}`,
+                  })
                   results.sizesAdded++
                   productSizesAdded++
                   break
@@ -250,17 +247,15 @@ export async function applyPrintSizesToProducts(
             }
           } else {
             // No conflict, add new size
-            await db
-              .insert(productSizes)
-              .values({
-                productId,
-                name: baseSize.name,
-                width: baseSize.width,
-                height: baseSize.height,
-                basePrice: baseSize.basePrice,
-                stripeProductId: `temp_${Date.now()}_${Math.random()}`,
-                stripePriceId: `temp_${Date.now()}_${Math.random()}`
-              })
+            await db.insert(productSizes).values({
+              productId,
+              name: baseSize.name,
+              width: baseSize.width,
+              height: baseSize.height,
+              basePrice: baseSize.basePrice,
+              stripeProductId: `temp_${Date.now()}_${Math.random()}`,
+              stripePriceId: `temp_${Date.now()}_${Math.random()}`,
+            })
             results.sizesAdded++
             productSizesAdded++
           }

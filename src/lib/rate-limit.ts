@@ -6,25 +6,27 @@ interface RateLimitEntry {
   resetTime: number
 }
 
-const rateLimitStore = new Map<string, RateLimitEntry>()
-
 export interface RateLimitConfig {
   windowMs: number // Time window in milliseconds
   maxRequests: number // Maximum requests per window
 }
 
 export function rateLimit(config: RateLimitConfig) {
+  const store = new Map<string, RateLimitEntry>()
+
   return {
-    check: (identifier: string): { success: boolean; reset: number; remaining: number } => {
+    check: (
+      identifier: string,
+    ): { success: boolean; reset: number; remaining: number } => {
       const now = Date.now()
-      const entry = rateLimitStore.get(identifier)
+      const entry = store.get(identifier)
 
       // Clean up expired entries
       if (entry && now > entry.resetTime) {
-        rateLimitStore.delete(identifier)
+        store.delete(identifier)
       }
 
-      const currentEntry = rateLimitStore.get(identifier) || {
+      const currentEntry = store.get(identifier) || {
         count: 0,
         resetTime: now + config.windowMs,
       }
@@ -38,7 +40,7 @@ export function rateLimit(config: RateLimitConfig) {
       }
 
       currentEntry.count++
-      rateLimitStore.set(identifier, currentEntry)
+      store.set(identifier, currentEntry)
 
       return {
         success: true,
@@ -70,7 +72,7 @@ export function getClientIP(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for')
   const realIP = request.headers.get('x-real-ip')
   const cfIP = request.headers.get('cf-connecting-ip')
-  
+
   if (forwarded) {
     return forwarded.split(',')[0].trim()
   }
@@ -80,7 +82,7 @@ export function getClientIP(request: Request): string {
   if (cfIP) {
     return cfIP
   }
-  
+
   // Fallback to a default identifier
   return 'unknown'
 }
