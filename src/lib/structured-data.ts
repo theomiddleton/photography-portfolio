@@ -33,7 +33,7 @@ export function generateProductStructuredData({
     sku: product.id,
     offers: {
       '@type': 'AggregateOffer',
-      priceCurrency: 'USD',
+      priceCurrency: 'GBP', // TODO: Make currency configurable in site config
       lowPrice: (lowestPrice / 100).toFixed(2),
       highPrice: (highestPrice / 100).toFixed(2),
       offerCount: sizes.length,
@@ -78,7 +78,7 @@ export function generateStoreStructuredData({
         url: `${baseUrl}/store/${product.slug}`,
         offers: {
           '@type': 'Offer',
-          priceCurrency: 'USD',
+          priceCurrency: 'GBP', // TODO: Make currency configurable in site config
           price: (product.priceWithTax / 100).toFixed(2),
           availability: product.active 
             ? 'https://schema.org/InStock'

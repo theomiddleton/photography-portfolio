@@ -107,7 +107,7 @@ export function StoreAnalytics({ orders, products }: StoreAnalyticsProps) {
         totalRevenue,
         totalOrders,
         averageOrderValue,
-        conversionRate: 2.3, // This would come from actual analytics
+        conversionRate: 0, // TODO: Integrate with analytics service to calculate real conversion rate
         // TODO: Integrate with analytics service to calculate:
         // conversionRate = (uniquePurchasers / uniqueVisitors) * 100
         topProducts,
@@ -166,7 +166,8 @@ export function StoreAnalytics({ orders, products }: StoreAnalyticsProps) {
           <CardContent>
             <div className="text-2xl font-bold">{formatPrice(analytics.totalRevenue)}</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last period
+              {/* TODO: Calculate actual period-over-period comparison */}
+              Period comparison not implemented
             </p>
           </CardContent>
         </Card>
@@ -179,7 +180,8 @@ export function StoreAnalytics({ orders, products }: StoreAnalyticsProps) {
           <CardContent>
             <div className="text-2xl font-bold">{analytics.totalOrders}</div>
             <p className="text-xs text-muted-foreground">
-              +180.1% from last period
+              {/* TODO: Calculate actual period-over-period comparison */}
+              Period comparison not implemented
             </p>
           </CardContent>
         </Card>
@@ -192,7 +194,8 @@ export function StoreAnalytics({ orders, products }: StoreAnalyticsProps) {
           <CardContent>
             <div className="text-2xl font-bold">{formatPrice(analytics.averageOrderValue)}</div>
             <p className="text-xs text-muted-foreground">
-              +19% from last period
+              {/* TODO: Calculate actual period-over-period comparison */}
+              Period comparison not implemented
             </p>
           </CardContent>
         </Card>
@@ -205,7 +208,8 @@ export function StoreAnalytics({ orders, products }: StoreAnalyticsProps) {
           <CardContent>
             <div className="text-2xl font-bold">{analytics.conversionRate}%</div>
             <p className="text-xs text-muted-foreground">
-              +0.5% from last period
+              {/* TODO: Calculate actual period-over-period comparison */}
+              Period comparison not implemented
             </p>
           </CardContent>
         </Card>
