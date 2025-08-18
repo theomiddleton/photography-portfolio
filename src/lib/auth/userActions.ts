@@ -8,6 +8,8 @@ import { eq } from 'drizzle-orm'
 import { verifyPassword, hashPassword, createSession } from '~/lib/auth/authHelpers'
 import { getSession } from '~/lib/auth/auth'
 import { logSecurityEvent } from '~/lib/security-logging'
+import { checkAccountLockStatus, recordFailedLoginAttempt, recordSuccessfulLogin } from '~/lib/account-security'
+import { validateCSRFFromFormData } from '~/lib/csrf-protection'
 
 import { loginSchema } from '~/lib/types/loginSchema'
 import { registerSchema } from '~/lib/types/registerSchema'
@@ -40,6 +42,20 @@ export interface User {
 
 // login function, returns a FormState for sending messages to the client, takes a FormState and a FormData
 export async function login(prevState: FormState, data: FormData): Promise<FormState> {
+  // Validate CSRF token first
+  const isValidCSRF = await validateCSRFFromFormData(data)
+  if (!isValidCSRF) {
+    // Log potential CSRF attack
+    void logSecurityEvent({
+      type: 'LOGIN_FAIL',
+      details: { reason: 'invalid_csrf_token' }
+    })
+    
+    return {
+      message: 'Invalid request. Please refresh the page and try again.',
+    }
+  }
+
   // parse the form data in a type-safe way
   const formData = Object.fromEntries(data)
   const parsed = loginSchema.safeParse(formData)
@@ -85,21 +101,52 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
       
       return { message: 'Invalid email or password' }
     }
+
+    // Check if account is locked
+    const lockStatus = await checkAccountLockStatus(user.id)
+    if (lockStatus.isLocked) {
+      void logSecurityEvent({
+        type: 'LOGIN_FAIL',
+        userId: user.id,
+        email: user.email,
+        details: { 
+          reason: 'account_locked',
+          lockoutExpiry: lockStatus.lockoutExpiry?.toISOString()
+        }
+      })
+      
+      return { 
+        message: `Account is temporarily locked. Please try again later.`
+      }
+    }
     
     // check if the password is valid, boolean
     const isPasswordValid = await verifyPassword(parsed.data.password, user.password)
     
-    // if the password is invalid, return a generic message
+    // if the password is invalid, record failed attempt and return generic message
     if (!isPasswordValid) {
+      const newLockStatus = await recordFailedLoginAttempt(user.id, user.email)
+      
       // Log failed login attempt
       void logSecurityEvent({
         type: 'LOGIN_FAIL',
         userId: user.id,
         email: user.email,
-        details: { reason: 'invalid_password' }
+        details: { 
+          reason: 'invalid_password',
+          attemptsRemaining: newLockStatus.attemptsRemaining,
+          accountLocked: newLockStatus.isLocked
+        }
       })
       
-      return { message: 'Invalid email or password' }
+      let message = 'Invalid email or password'
+      if (newLockStatus.isLocked) {
+        message = 'Too many failed attempts. Account has been temporarily locked.'
+      } else if (newLockStatus.attemptsRemaining <= 2) {
+        message = `Invalid email or password. ${newLockStatus.attemptsRemaining} attempts remaining before account lockout.`
+      }
+      
+      return { message }
     }
 
     // Validate user role
@@ -133,6 +180,9 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
       path: '/' // Explicit path
     })
     
+    // Record successful login (resets failed attempts)
+    await recordSuccessfulLogin(user.id)
+    
     // Log successful login
     void logSecurityEvent({
       type: 'LOGIN_SUCCESS',
@@ -162,6 +212,20 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
 }
 
 export async function register(prevState: FormState, data: FormData): Promise<FormState> {
+  // Validate CSRF token first
+  const isValidCSRF = await validateCSRFFromFormData(data)
+  if (!isValidCSRF) {
+    // Log potential CSRF attack
+    void logSecurityEvent({
+      type: 'REGISTER_FAIL',
+      details: { reason: 'invalid_csrf_token' }
+    })
+    
+    return {
+      message: 'Invalid request. Please refresh the page and try again.',
+    }
+  }
+
   // the same as the login function, but with register schema
   const formData = Object.fromEntries(data)
   const parsed = registerSchema.safeParse(formData)
