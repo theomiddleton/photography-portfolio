@@ -30,6 +30,8 @@ export const env = createEnv({
     RESEND_API_KEY: z.string(),
     GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
     CRON_SECRET: z.string().optional(),
+    UPSTASH_REDIS_REST_URL: z.string().url(),
+    UPSTASH_REDIS_REST_TOKEN: z.string(),
   },
 
   client: {
