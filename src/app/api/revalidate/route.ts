@@ -1,12 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { getSession } from '~/lib/auth/auth'
-import { imageProcessingRateLimit, getClientIP } from '~/lib/rate-limit'
+import { revalidateRateLimit, getClientIP } from '~/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   // Rate limiting
   const clientIP = getClientIP(request)
-  const rateLimitResult = await imageProcessingRateLimit.check(clientIP)
+  const rateLimitResult = await revalidateRateLimit.check(clientIP)
   
   if (!rateLimitResult.success) {
     return NextResponse.json(
