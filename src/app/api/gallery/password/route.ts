@@ -10,6 +10,7 @@ import {
   logFailedAttempt, 
   logGalleryAccess 
 } from '~/lib/actions/gallery/access-control'
+import { passwordAttemptRateLimit, getClientIP } from '~/lib/rate-limit'
 
 const passwordSchema = z.object({
   gallerySlug: z.string().min(1),
@@ -18,10 +19,21 @@ const passwordSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // IP-based rate limiting
+    const clientIP = getClientIP(request)
+    const rateLimitResult = await passwordAttemptRateLimit.check(clientIP)
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Too many attempts from this IP. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
     const body = await request.json()
     const { gallerySlug, password } = passwordSchema.parse(body)
 
-    // Check rate limit first
+    // Check gallery-specific rate limit (existing business logic)
     const isRateLimited = await checkRateLimit(gallerySlug)
     if (isRateLimited) {
       return NextResponse.json(

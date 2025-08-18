@@ -15,6 +15,7 @@ import { google } from '@ai-sdk/google'
 import { z } from 'zod'
 import { slugify } from '~/lib/utils'
 import { AI_PROMPTS } from '~/config/ai-prompts'
+import { uploadRateLimit, getClientIP } from '~/lib/rate-limit'
 
 const LIGHTROOM_API_KEY = process.env.LIGHTROOM_API_KEY
 
@@ -148,6 +149,17 @@ async function authenticateRequest(request: Request): Promise<boolean> {
 
 export async function POST(request: Request) {
   try {
+    // Rate limiting
+    const clientIP = getClientIP(request)
+    const rateLimitResult = await uploadRateLimit.check(clientIP)
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { success: false, error: 'Rate limit exceeded' },
+        { status: 429 }
+      )
+    }
+
     // Authenticate the request
     const isAuthenticated = await authenticateRequest(request)
     if (!isAuthenticated) {

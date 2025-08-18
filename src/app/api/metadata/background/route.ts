@@ -9,6 +9,7 @@ import { generateObject } from 'ai'
 import { google } from '@ai-sdk/google'
 import { z } from 'zod'
 import { AI_PROMPTS } from '~/config/ai-prompts'
+import { aiGenerationRateLimit, getClientIP } from '~/lib/rate-limit'
 
 export const runtime = 'edge'
 
@@ -25,6 +26,17 @@ const MetadataSchema = z.object({
 })
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await aiGenerationRateLimit.check(clientIP)
+  
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. AI generation is limited to 5 requests per minute.' },
+      { status: 429 }
+    )
+  }
+
   const session = await getSession()
 
   if (!session || session.role !== 'admin') {

@@ -1,9 +1,21 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { getImages, createImage, updateImagesOrder } from '~/lib/actions/image'
 import { getSession } from '~/lib/auth/auth'
+import { imageProcessingRateLimit, getClientIP } from '~/lib/rate-limit'
 
 // GET /api/images
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await imageProcessingRateLimit.check(clientIP)
+  
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      { status: 429 }
+    )
+  }
+
   const session = await getSession()
   // If there's no session or the user is not an admin, return an error message
   if (!session || session.role !== 'admin') {
@@ -37,6 +49,17 @@ export async function GET(request: NextRequest) {
 
 // POST /api/images
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await imageProcessingRateLimit.check(clientIP)
+  
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      { status: 429 }
+    )
+  }
+
   const session = await getSession()
   // If there's no session or the user is not an admin, return an error message
   if (!session || session.role !== 'admin') {
@@ -62,6 +85,17 @@ export async function POST(request: NextRequest) {
 
 // PATCH /api/images/order
 export async function PATCH(request: NextRequest) {
+  // Rate limiting
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await imageProcessingRateLimit.check(clientIP)
+  
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      { status: 429 }
+    )
+  }
+
   const session = await getSession()
   // If there's no session or the user is not an admin, return an error message
   if (!session || session.role !== 'admin') {

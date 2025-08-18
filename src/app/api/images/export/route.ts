@@ -2,8 +2,20 @@ import { NextResponse } from 'next/server'
 import { db } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 import { getSession } from '~/lib/auth/auth'
+import { imageProcessingRateLimit, getClientIP } from '~/lib/rate-limit'
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Rate limiting
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await imageProcessingRateLimit.check(clientIP)
+  
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      { status: 429 }
+    )
+  }
+
   const session = await getSession()
 
   // If there's no session or the user is not an admin, return an error message

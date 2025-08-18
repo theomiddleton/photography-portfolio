@@ -80,6 +80,26 @@ export const webhookRateLimit = rateLimit({
   maxRequests: 100, // 100 webhook calls per minute (generous for Stripe)
 })
 
+export const uploadRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 10, // 10 file uploads per minute per IP (resource intensive)
+})
+
+export const imageProcessingRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 20, // 20 image processing requests per minute per IP
+})
+
+export const aiGenerationRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 5, // 5 AI generation requests per minute per IP (expensive)
+})
+
+export const passwordAttemptRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 10, // 10 password attempts per minute per IP
+})
+
 export function getClientIP(request: Request): string {
   // Try to get real IP from various headers (handle proxy/CDN scenarios)
   const forwarded = request.headers.get('x-forwarded-for')

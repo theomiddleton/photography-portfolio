@@ -7,6 +7,7 @@ import { waitUntil } from '@vercel/functions'
 import { logAction } from '~/lib/logging'
 import { AI_PROMPTS } from '~/config/ai-prompts'
 import { isAIAvailable, getAIUnavailableReason } from '~/lib/ai-utils'
+import { aiGenerationRateLimit, getClientIP } from '~/lib/rate-limit'
 
 export const runtime = 'edge'
 
@@ -62,6 +63,17 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now()
 
   try {
+    // Rate limiting
+    const clientIP = getClientIP(req)
+    const rateLimitResult = await aiGenerationRateLimit.check(clientIP)
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. AI generation is limited to 5 requests per minute.' },
+        { status: 429 }
+      )
+    }
+
     // Check if AI features are available
     if (!isAIAvailable()) {
       return NextResponse.json(

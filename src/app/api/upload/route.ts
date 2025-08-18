@@ -16,6 +16,7 @@ import { revalidatePath } from 'next/cache'
 
 import { logAction } from '~/lib/logging'
 import { getSession } from '~/lib/auth/auth'
+import { uploadRateLimit, getClientIP } from '~/lib/rate-limit'
 import { stripe } from '~/lib/stripe'
 import { waitUntil } from '@vercel/functions'
 import { generateObject } from 'ai'
@@ -131,6 +132,15 @@ async function processExifDataInBackground(
 // }
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await uploadRateLimit.check(clientIP)
+  
+  if (!rateLimitResult.success) {
+    await logAction('upload', `Rate limit exceeded for IP: ${clientIP}`)
+    return Response.json({ error: 'Rate limit exceeded' }, { status: 429 })
+  }
+
   const session = await getSession()
 
   // If there's no session or the user is not an admin, return an error message

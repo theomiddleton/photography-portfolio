@@ -3,8 +3,20 @@ import { dbWithTx } from '~/server/db'
 import { imageData } from '~/server/db/schema'
 import { getSession } from '~/lib/auth/auth'
 import { logAction } from '~/lib/logging'
+import { imageProcessingRateLimit, getClientIP } from '~/lib/rate-limit'
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await imageProcessingRateLimit.check(clientIP)
+  
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      { status: 429 }
+    )
+  }
+
   const session = await getSession()
 
   // If there's no session or the user is not an admin, return an error message
