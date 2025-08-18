@@ -23,7 +23,7 @@ export async function getSession(): Promise<UserSession | null> {
     const { payload } = await jwtVerify(session, key, { algorithms: ['HS256'] })
     
     // Validate session structure and expiration
-    const sessionData = payload as UserSession
+    const sessionData = payload as unknown as UserSession
     if (!sessionData.email || !sessionData.role || !sessionData.id || !sessionData.exp) {
       console.warn('Invalid session structure detected')
       return null
@@ -49,8 +49,8 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
   try {
     const { payload } = await jwtVerify(session, key, { algorithms: ['HS256'] })
-    const sessionData = payload as UserSession
-    
+    const sessionData = payload as unknown as UserSession
+
     // Validate session structure
     if (!sessionData.email || !sessionData.role || !sessionData.id) {
       const response = NextResponse.next()

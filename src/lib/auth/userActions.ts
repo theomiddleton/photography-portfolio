@@ -407,7 +407,7 @@ export async function logout(_prevState: LogoutState): Promise<LogoutState> {
 }
 
 export async function getUsers(): Promise<User[]> {
-  return db.select({
+  const rawUsers = await db.select({
     id: users.id,
     name: users.name,
     email: users.email,
@@ -415,6 +415,11 @@ export async function getUsers(): Promise<User[]> {
     createdAt: users.createdAt,
     modifiedAt: users.modifiedAt
   }).from(users)
+
+  return rawUsers.map(u => ({
+    ...u,
+    role: u.role === 'admin' ? 'admin' : 'user'
+  }))
 }
 
 export async function deleteUser(userId: number): Promise<User[]> {

@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt'
-import { SignJWT, jwtVerify } from 'jose'
+import { SignJWT, jwtVerify, type JWTPayload } from 'jose'
 import { env } from '~/env.js'
 import type { SessionPayload } from '~/lib/types/session'
 
@@ -38,8 +38,8 @@ export async function createSession(userData: SessionPayload): Promise<string> {
   if (!userData.email || !userData.role || !userData.id) {
     throw new Error('Invalid session data provided')
   }
-  
-  return await new SignJWT(userData)
+
+  return await new SignJWT(userData as unknown as JWTPayload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(`${JWT_EXPIRATION_HOURS}h`)
