@@ -72,6 +72,7 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 - **[Drizzle ORM](https://orm.drizzle.team/)** - Type-safe SQL ORM
 - **[PostgreSQL](https://www.postgresql.org/)** - Primary database
 - **[Neon](https://neon.tech/)** - Serverless PostgreSQL (recommended)
+- **[Upstash Redis](https://upstash.com/)** Redis KV store (recommended)
 
 ### Storage & Media
 
@@ -372,11 +373,27 @@ The application uses Upstash Redis for distributed rate limiting across API endp
 
 ### Rate Limit Configuration
 
-The following endpoints are rate limited:
+### Rate Limiting Configuration
 
-- **Email API**: 5 requests per minute per IP
-- **Webhook API**: 100 requests per minute per IP  
-- **Checkout API**: 10 requests per minute per IP
+The application includes robust rate limiting to ensure fair usage and protect against abuse. Below are the rate limits for various endpoints, all configurable:
+
+- **File Upload API**: 10 requests per minute per IP  
+- **Image Processing API**: 20 requests per minute per IP  
+- **AI Generation API**: 5 requests per minute per IP (due to high computational cost)  
+- **Password Attempt API**: 10 requests per minute per IP  
+- **Email API**: 5 requests per minute per IP  
+- **Webhook API**: 100 requests per minute per IP (optimized for Stripe webhooks)  
+- **Checkout API**: 10 requests per minute per IP  
+- **Cache Revalidation API**: 20 requests per minute per IP  
+
+#### Admin Multiplier
+
+Administrators benefit from increased rate limits to accommodate higher operational needs. Admin accounts receive a configurable multiplier, defaulting to **3x the base limits** for all endpoints. For example:
+
+- **File Upload API (Admin)**: 30 requests per minute per IP  
+- **AI Generation API (Admin)**: 15 requests per minute per IP  
+
+This multiplier ensures that administrative tasks can be performed efficiently without impacting regular users.
 
 ### Setup Instructions
 
