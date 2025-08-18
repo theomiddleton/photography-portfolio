@@ -17,6 +17,7 @@ interface RateLimitEntry {
 }
 
 export interface RateLimitConfig {
+  name: string // Namespace for the rate limiter to prevent cross-endpoint collisions
   windowMs: number // Time window in milliseconds
   maxRequests: number // Maximum requests per window
 }
@@ -30,11 +31,11 @@ export function rateLimit(config: RateLimitConfig) {
         const now = Date.now()
         const windowStart = Math.floor(now / config.windowMs) * config.windowMs
         const resetTime = windowStart + config.windowMs
-        const key = `rate_limit:${identifier}:${windowStart}`
+        const key = `rate_limit:${config.name}:v1:${identifier}:${windowStart}`
 
         // Use Redis INCR command with expiration for atomic operation
         const current = await redis.incr(key)
-        
+
         // Set expiration only on first increment to avoid race conditions
         if (current === 1) {
           await redis.pexpire(key, config.windowMs)
@@ -77,7 +78,9 @@ async function isUserAdmin(): Promise<boolean> {
 }
 
 // Create configurable rate limiter that respects admin privileges
-export function createConfigurableRateLimit(limitType: keyof typeof siteConfig.rateLimiting.limits) {
+export function createConfigurableRateLimit(
+  limitType: keyof typeof siteConfig.rateLimiting.limits,
+) {
   return {
     check: async (
       identifier: string,
@@ -85,13 +88,16 @@ export function createConfigurableRateLimit(limitType: keyof typeof siteConfig.r
       try {
         const baseLimit = siteConfig.rateLimiting.limits[limitType]
         const isAdmin = await isUserAdmin()
-        const maxRequests = isAdmin ? baseLimit * siteConfig.rateLimiting.adminMultiplier : baseLimit
-        
+        const maxRequests = isAdmin
+          ? baseLimit * siteConfig.rateLimiting.adminMultiplier
+          : baseLimit
+
         const config: RateLimitConfig = {
+          name: limitType,
           windowMs: 60 * 1000, // 1 minute
           maxRequests,
         }
-        
+
         const limiter = rateLimit(config)
         return await limiter.check(identifier)
       } catch (error) {
