@@ -1,5 +1,13 @@
-// Simple in-memory rate limiter for API protection
-// In production, consider using Redis or similar for distributed rate limiting
+// Redis-based rate limiter for API protection using Upstash Redis
+// Provides distributed rate limiting across multiple instances
+
+import { Redis } from '@upstash/redis'
+import { env } from '~/env.js'
+
+const redis = new Redis({
+  url: env.UPSTASH_REDIS_REST_URL,
+  token: env.UPSTASH_REDIS_REST_TOKEN,
+})
 
 interface RateLimitEntry {
   count: number
@@ -12,40 +20,45 @@ export interface RateLimitConfig {
 }
 
 export function rateLimit(config: RateLimitConfig) {
-  const store = new Map<string, RateLimitEntry>()
-
   return {
-    check: (
+    check: async (
       identifier: string,
-    ): { success: boolean; reset: number; remaining: number } => {
-      const now = Date.now()
-      const entry = store.get(identifier)
+    ): Promise<{ success: boolean; reset: number; remaining: number }> => {
+      try {
+        const now = Date.now()
+        const windowStart = Math.floor(now / config.windowMs) * config.windowMs
+        const resetTime = windowStart + config.windowMs
+        const key = `rate_limit:${identifier}:${windowStart}`
 
-      // Clean up expired entries
-      if (entry && now > entry.resetTime) {
-        store.delete(identifier)
-      }
-
-      const currentEntry = store.get(identifier) || {
-        count: 0,
-        resetTime: now + config.windowMs,
-      }
-
-      if (currentEntry.count >= config.maxRequests) {
-        return {
-          success: false,
-          reset: currentEntry.resetTime,
-          remaining: 0,
+        // Use Redis INCR command with expiration for atomic operation
+        const current = await redis.incr(key)
+        
+        // Set expiration only on first increment to avoid race conditions
+        if (current === 1) {
+          await redis.pexpire(key, config.windowMs)
         }
-      }
 
-      currentEntry.count++
-      store.set(identifier, currentEntry)
+        if (current > config.maxRequests) {
+          return {
+            success: false,
+            reset: resetTime,
+            remaining: 0,
+          }
+        }
 
-      return {
-        success: true,
-        reset: currentEntry.resetTime,
-        remaining: config.maxRequests - currentEntry.count,
+        return {
+          success: true,
+          reset: resetTime,
+          remaining: config.maxRequests - current,
+        }
+      } catch (error) {
+        // On Redis failure, fail open (allow request) to avoid blocking legitimate users
+        console.error('Rate limiter Redis error:', error)
+        return {
+          success: true,
+          reset: Date.now() + config.windowMs,
+          remaining: config.maxRequests - 1,
+        }
       }
     },
   }

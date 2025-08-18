@@ -68,6 +68,7 @@
     "@tiptap/pm": "^2.26.1",
     "@tiptap/react": "^2.26.1",
     "@tiptap/starter-kit": "^2.26.1",
+    "@upstash/redis": "^1.37.1",
     "@vercel/analytics": "^1.5.0",
     "@vercel/functions": "^2.2.12",
     "@vercel/og": "^0.6.8",

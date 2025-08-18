@@ -39,7 +39,7 @@ interface ShippingDetails {
 export async function POST(request: Request) {
   // Rate limiting
   const clientIP = getClientIP(request)
-  const rateLimitResult = emailRateLimit.check(clientIP)
+  const rateLimitResult = await emailRateLimit.check(clientIP)
   
   if (!rateLimitResult.success) {
     await logAction('email', `Rate limit exceeded for IP: ${clientIP}`)

@@ -296,6 +296,12 @@ GOOGLE_GENERATIVE_AI_API_KEY="your-google-ai-key"
 # Lightroom Integration (Optional)
 LIGHTROOM_API_KEY="your-secure-lightroom-api-key"
 
+# Rate Limiting with Upstash Redis
+# Required for production to enable distributed rate limiting
+# Sign up at upstash.com and create a Redis database
+UPSTASH_REDIS_REST_URL="https://your-redis-instance.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="your-upstash-redis-token"
+
 # Application
 SITE_URL="http://localhost:3000" # Set as production domain when deploying
 EDGE_CONFIG="https://edge-config.vercel.com/..." # Optional
@@ -353,6 +359,53 @@ The store system provides a complete e-commerce platform for selling photography
 
 For complete step-by-step instructions, webhook troubleshooting, and production deployment guidance, see **[Store Setup Guide](./docs/STORE_SETUP_GUIDE.md)**.
 
+## 🚦 Rate Limiting Setup (Redis)
+
+The application uses Upstash Redis for distributed rate limiting across API endpoints. This ensures your application can scale horizontally while maintaining consistent rate limiting behavior.
+
+### Why Redis-Based Rate Limiting?
+
+- **Distributed**: Works across multiple server instances
+- **Fast**: Sub-millisecond response times with Upstash
+- **Secure**: Prevents abuse and protects your APIs
+- **Fail-safe**: Graceful fallback if Redis is unavailable
+
+### Rate Limit Configuration
+
+The following endpoints are rate limited:
+
+- **Email API**: 5 requests per minute per IP
+- **Webhook API**: 100 requests per minute per IP  
+- **Checkout API**: 10 requests per minute per IP
+
+### Setup Instructions
+
+1. **Create Upstash Redis Database**
+   - Visit [upstash.com](https://upstash.com) and create a free account
+   - Create a new Redis database
+   - Copy the REST URL and token from the database details
+
+2. **Configure Environment Variables**
+   ```bash
+   UPSTASH_REDIS_REST_URL="https://your-redis-instance.upstash.io"
+   UPSTASH_REDIS_REST_TOKEN="your-upstash-redis-token"
+   ```
+
+3. **Database Region Selection**
+   - Choose a region close to your deployment location
+   - For Vercel deployments, US East (Virginia) is recommended
+
+### Features
+
+- **Automatic Key Expiration**: Redis keys automatically expire after the rate limit window
+- **Atomic Operations**: Uses Redis INCR for thread-safe counting
+- **Graceful Degradation**: If Redis is unavailable, requests are allowed through (fail-open strategy)
+- **Low Latency**: Upstash edge locations provide < 10ms response times globally
+
+### Security Considerations
+
+The rate limiter uses a fail-open strategy, meaning if Redis is unavailable, requests will be allowed through rather than blocked. This prevents legitimate users from being locked out due to infrastructure issues while still providing protection under normal circumstances.
+
 ## 🎯 Recommended Setup
 
 This is the production-ready stack I recommend and use:
@@ -363,6 +416,7 @@ This is the production-ready stack I recommend and use:
 - **[Neon](https://neon.tech/)** - Serverless PostgreSQL database
 - **[Cloudflare R2](https://www.cloudflare.com/products/r2/)** - Object storage
 - **[Resend](https://resend.com/)** - Email delivery
+- **[Upstash Redis](https://upstash.com/)** - Serverless Redis for rate limiting
 
 ### Payment & AI
 
