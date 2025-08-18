@@ -89,9 +89,46 @@ export const users = pgTable('users', {
   accountLockedUntil: timestamp('accountLockedUntil'),
   lastLoginAt: timestamp('lastLoginAt'),
   passwordChangedAt: timestamp('passwordChangedAt').defaultNow().notNull(),
+  // Email verification fields
+  emailVerified: boolean('emailVerified').default(false).notNull(),
+  emailVerificationToken: varchar('emailVerificationToken', { length: 255 }),
+  emailVerificationExpiry: timestamp('emailVerificationExpiry'),
+  // Password reset fields
+  passwordResetToken: varchar('passwordResetToken', { length: 255 }),
+  passwordResetExpiry: timestamp('passwordResetExpiry'),
+  // Account status fields
+  isActive: boolean('isActive').default(true).notNull(),
+  deactivatedAt: timestamp('deactivatedAt'),
+  deactivationReason: varchar('deactivationReason', { length: 500 }),
+  // Session tracking fields
+  lastLoginIP: varchar('lastLoginIP', { length: 45 }), // IPv6 compatible
+  lastLoginUserAgent: varchar('lastLoginUserAgent', { length: 500 }),
 }, (table) => ({
   emailIndex: index('users_email_idx').on(table.email),
   roleIndex: index('users_role_idx').on(table.role),
+  emailVerificationTokenIndex: index('users_email_verification_token_idx').on(table.emailVerificationToken),
+  passwordResetTokenIndex: index('users_password_reset_token_idx').on(table.passwordResetToken),
+  isActiveIndex: index('users_is_active_idx').on(table.isActive),
+}))
+
+// User sessions table for tracking active sessions
+export const userSessions = pgTable('userSessions', {
+  id: serial('id').primaryKey(),
+  userId: integer('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  sessionToken: varchar('sessionToken', { length: 255 }).notNull().unique(),
+  ipAddress: varchar('ipAddress', { length: 45 }), // IPv6 compatible
+  userAgent: varchar('userAgent', { length: 500 }),
+  isRememberMe: boolean('isRememberMe').default(false).notNull(),
+  expiresAt: timestamp('expiresAt').notNull(),
+  lastUsedAt: timestamp('lastUsedAt').defaultNow().notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  revokedAt: timestamp('revokedAt'),
+  revokeReason: varchar('revokeReason', { length: 100 }),
+}, (table) => ({
+  userIdIndex: index('user_sessions_user_id_idx').on(table.userId),
+  sessionTokenIndex: index('user_sessions_session_token_idx').on(table.sessionToken),
+  expiresAtIndex: index('user_sessions_expires_at_idx').on(table.expiresAt),
+  activeSessionsIndex: index('user_sessions_active_idx').on(table.userId, table.revokedAt),
 }))
 
 export const logs = pgTable('logs', {
@@ -368,6 +405,19 @@ export const galleryFailedAttempts = pgTable('galleryFailedAttempts', {
   userAgent: text('userAgent'),
 })
 
+// User sessions relations
+export const userSessionsRelations = relations(userSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [userSessions.userId],
+    references: [users.id],
+  }),
+}))
+
+// Users relations with sessions
+export const usersRelations = relations(users, ({ many }) => ({
+  sessions: many(userSessions),
+}))
+
 export const orderRelations = relations(orders, ({ one, many }) => ({
   product: one(products, {
     fields: [orders.productId],
@@ -617,6 +667,8 @@ export const alertDismissalRelations = relations(alertDismissals, ({ one }) => (
 }))
 
 // Export types
+export type User = typeof users.$inferSelect
+export type UserSession = typeof userSessions.$inferSelect
 export type MultiGalleryPage = typeof multiGalleryPages.$inferSelect
 export type MultiGallerySection = typeof multiGallerySections.$inferSelect
 export type MultiGallerySectionImage = typeof multiGallerySectionImages.$inferSelect

@@ -119,6 +119,46 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
         message: `Account is temporarily locked. Please try again later.`
       }
     }
+
+    // Check if account is active
+    if (!user.isActive) {
+      // Check if it's a deactivated account that can be reactivated
+      if (user.deactivatedAt) {
+        const { reactivateAccount } = await import('./accountManagement')
+        const reactivationResult = await reactivateAccount(user.email, parsed.data.password)
+        
+        if (reactivationResult.success) {
+          return {
+            message: 'Account reactivated successfully. Please log in again.',
+            redirect: '/auth/login?message=account_reactivated'
+          }
+        }
+      }
+
+      void logSecurityEvent({
+        type: 'LOGIN_FAIL',
+        userId: user.id,
+        email: user.email,
+        details: { reason: 'account_inactive' }
+      })
+      
+      return { message: 'Account is inactive. Please contact support.' }
+    }
+
+    // Check if email is verified (only for new accounts)
+    if (!user.emailVerified) {
+      void logSecurityEvent({
+        type: 'LOGIN_FAIL',
+        userId: user.id,
+        email: user.email,
+        details: { reason: 'email_not_verified' }
+      })
+      
+      return { 
+        message: 'Please verify your email address before logging in. Check your inbox for a verification link.',
+        redirect: '/auth/verify-email-notice?email=' + encodeURIComponent(user.email)
+      }
+    }
     
     // check if the password is valid, boolean
     const isPasswordValid = await verifyPassword(parsed.data.password, user.password)
@@ -164,7 +204,36 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
       return { message: 'Account error. Please contact support.' }
     }
     
-    // Create session
+    // Check for remember me option (if we add it to the form later)
+    const rememberMe = formData.rememberMe === 'true' || formData.rememberMe === 'on'
+    
+    // Get client information
+    const { getClientIP, getUserAgent } = await import('./sessionManagement')
+    const clientIP = getClientIP()
+    const userAgent = getUserAgent()
+    
+    // Create session using enhanced session management
+    const { createUserSession } = await import('./sessionManagement')
+    const sessionToken = await createUserSession({
+      userId: user.id,
+      email: user.email,
+      rememberMe,
+      ipAddress: clientIP,
+      userAgent,
+    })
+
+    if (!sessionToken) {
+      void logSecurityEvent({
+        type: 'LOGIN_FAIL',
+        userId: user.id,
+        email: user.email,
+        details: { reason: 'session_creation_failed' }
+      })
+      
+      return { message: 'Failed to create session. Please try again.' }
+    }
+
+    // Create JWT session for Next.js compatibility
     const session = await createSession({ 
       email: user.email, 
       role: user.role as 'admin' | 'user', 
@@ -176,9 +245,20 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
       httpOnly: true,
       secure: true, // Always secure
       sameSite: 'strict',
-      expires: new Date(Date.now() + JWT_EXPIRATION_MS),
+      expires: new Date(Date.now() + (rememberMe ? 30 * 24 * 60 * 60 * 1000 : JWT_EXPIRATION_MS)),
       path: '/' // Explicit path
     })
+    
+    // Update user login tracking
+    await db
+      .update(users)
+      .set({
+        lastLoginAt: new Date(),
+        lastLoginIP: clientIP?.substring(0, 45),
+        lastLoginUserAgent: userAgent?.substring(0, 500),
+        modifiedAt: new Date(),
+      })
+      .where(eq(users.id, user.id))
     
     // Record successful login (resets failed attempts)
     await recordSuccessfulLogin(user.id)
@@ -299,7 +379,7 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     // hash the password
     const hashedPassword = await hashPassword(password)
     
-    // Create the user first to get the id
+    // Create the user with email verification required
     type NewUser = typeof users.$inferInsert
     
     const insertUser = async (user: NewUser) => {
@@ -310,7 +390,9 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
       name: name, 
       email: email, 
       password: hashedPassword, 
-      role: role 
+      role: role,
+      emailVerified: false, // Require email verification
+      isActive: true // Account is active but email needs verification
     }
     const [createdUser] = await insertUser(newUser)
     
@@ -318,31 +400,29 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
       throw new Error('Failed to create user')
     }
     
-    // Now create session with the new user's ID
-    const session = await createSession({ 
-      email: email, 
-      role: role, 
-      id: createdUser.id 
-    })
-    
-    const cookieStore = await cookies()
-    cookieStore.set('session', session, {
-      httpOnly: true,
-      secure: true, // Always secure
-      sameSite: 'strict',
-      expires: new Date(Date.now() + JWT_EXPIRATION_MS),
-      path: '/' // Explicit path
-    })
+    // Send email verification instead of creating session immediately
+    const { sendEmailVerification } = await import('~/lib/email/email-service')
+    const emailSent = await sendEmailVerification(createdUser.id, email, name)
     
     // Log successful registration
     void logSecurityEvent({
       type: 'REGISTER_SUCCESS',
       userId: createdUser.id,
       email: email,
-      details: { role: role }
+      details: { role: role, emailVerificationSent: emailSent }
     })
     
-    return { message: 'User created successfully' }
+    if (!emailSent) {
+      return { 
+        message: 'Account created successfully, but there was an issue sending the verification email. Please contact support.',
+        redirect: '/auth/login?message=verification_email_issue'
+      }
+    }
+    
+    return { 
+      message: 'Account created successfully! Please check your email and click the verification link before logging in.',
+      redirect: '/auth/login?message=verify_email'
+    }
   } catch (error) {
     console.error('Registration error:', error)
     
