@@ -67,6 +67,7 @@ interface PrintSizeTemplate {
   }>
 }
 
+// Predefined print size templates for quick setup - these are configurable templates, not hardcoded data
 const PRINT_SIZE_TEMPLATES: PrintSizeTemplate[] = [
   {
     id: 'standard',

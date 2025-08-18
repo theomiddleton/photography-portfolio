@@ -22,70 +22,21 @@ export function ProductDetails({ productId, selectedSize, className }: ProductDe
   const [details, setDetails] = useState<StoreProductDetail[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Simulate loading details (replace with actual API call)
+  // Load product details from database
   useEffect(() => {
     const loadDetails = async () => {
       setLoading(true)
       try {
-        // Simulate API call - replace with actual implementation
-        await new Promise(resolve => setTimeout(resolve, 500))
+        // TODO: Implement real API call to fetch product details from database
+        // This should call the storeProductDetails management system that was already implemented
+        // For now, show loading state and empty details until real implementation
+        console.warn('ProductDetails: TODO - Replace with real database call to fetch product details')
         
-        // Default global details (this should come from your database)
-        setDetails([
-          {
-            id: '1',
-            label: 'Material',
-            value: 'Premium photo paper',
-            order: 0,
-            isGlobal: true,
-            active: true
-          },
-          {
-            id: '2',
-            label: 'Finish',
-            value: 'Matte or glossy',
-            order: 1,
-            isGlobal: true,
-            active: true
-          },
-          {
-            id: '3',
-            label: 'Frame',
-            value: 'Optional wood or metal',
-            order: 2,
-            isGlobal: true,
-            active: true
-          }
-        ])
+        // Empty details until real implementation
+        setDetails([])
       } catch (error) {
         console.error('Failed to load product details:', error)
-        // Fallback to default details
-        setDetails([
-          {
-            id: '1',
-            label: 'Material',
-            value: 'Premium photo paper',
-            order: 0,
-            isGlobal: true,
-            active: true
-          },
-          {
-            id: '2',
-            label: 'Finish',
-            value: 'Matte or glossy',
-            order: 1,
-            isGlobal: true,
-            active: true
-          },
-          {
-            id: '3',
-            label: 'Frame',
-            value: 'Optional wood or metal',
-            order: 2,
-            isGlobal: true,
-            active: true
-          }
-        ])
+        setDetails([])
       } finally {
         setLoading(false)
       }
@@ -120,7 +71,14 @@ export function ProductDetails({ productId, selectedSize, className }: ProductDe
   }
 
   if (relevantDetails.length === 0) {
-    return null
+    return (
+      <div className={className}>
+        <div className="text-sm text-gray-500 italic">
+          {/* TODO: Product details will be loaded from database when real implementation is complete */}
+          No product details configured yet
+        </div>
+      </div>
+    )
   }
 
   return (

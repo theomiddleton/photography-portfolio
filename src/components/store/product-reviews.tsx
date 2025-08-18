@@ -65,11 +65,9 @@ export function ProductReviews({
 
     setSubmitting(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      toast.success('Review submitted successfully!')
-      setShowReviewForm(false)
-      setNewReview({ rating: 5, title: '', content: '', customerName: '' })
+      // TODO: Implement real review submission API
+      console.warn('ProductReviews: TODO - Replace with real review submission API')
+      toast.error('Review submission not yet implemented - TODO: Connect to real API')
     } catch (error) {
       toast.error('Failed to submit review')
     } finally {
@@ -79,9 +77,9 @@ export function ProductReviews({
 
   const handleMarkHelpful = async (reviewId: string) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      toast.success('Thank you for your feedback!')
+      // TODO: Implement real helpful marking API
+      console.warn('ProductReviews: TODO - Replace with real helpful marking API')
+      toast.error('Mark as helpful not yet implemented - TODO: Connect to real API')
     } catch (error) {
       toast.error('Failed to mark as helpful')
     }
