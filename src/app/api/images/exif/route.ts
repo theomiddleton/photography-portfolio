@@ -6,8 +6,20 @@ import { eq } from 'drizzle-orm'
 import { extractExifData, validateExifData } from '~/lib/exif'
 import { logAction } from '~/lib/logging'
 import { waitUntil } from '@vercel/functions'
+import { imageProcessingRateLimit, getClientIP } from '~/lib/rate-limit'
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await imageProcessingRateLimit.check(clientIP)
+  
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      { status: 429 }
+    )
+  }
+
   const session = await getSession()
 
   // If there's no session or the user is not an admin, return an error message

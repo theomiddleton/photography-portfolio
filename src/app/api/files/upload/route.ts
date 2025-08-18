@@ -3,9 +3,21 @@ import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { r2 } from '~/lib/r2'
 import { getSession } from '~/lib/auth/auth'
 import { extractExifData, validateExifData } from '~/lib/exif'
+import { uploadRateLimit, getClientIP } from '~/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIP = getClientIP(request)
+    const rateLimitResult = await uploadRateLimit.check(clientIP)
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded' },
+        { status: 429 }
+      )
+    }
+
     const session = await getSession()
 
     // If there's no session or the user is not an admin, return unauthorized

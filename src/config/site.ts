@@ -50,5 +50,20 @@ export const siteConfig = {
       showTax: false, // When true, shows tax separately. When false, includes tax in price
     },
   },
+  rateLimiting: {
+    // Base rate limits (requests per minute)
+    limits: {
+      upload: 10, // File uploads (resource intensive)
+      imageProcessing: 20, // Image processing operations
+      aiGeneration: 5, // AI generation requests (expensive)
+      passwordAttempt: 10, // Password attempts
+      email: 5, // Email sending
+      webhook: 100, // Webhook processing (generous for Stripe)
+      checkout: 10, // Checkout attempts
+      revalidate: 20, // Cache revalidation
+    },
+    // Admin multiplier - admins get 3x the base limits
+    adminMultiplier: 3,
+  },
 }
 export type SiteConfig = typeof siteConfig

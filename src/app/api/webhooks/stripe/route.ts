@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
   // Rate limiting
   const clientIP = getClientIP(request)
-  const rateLimitResult = webhookRateLimit.check(clientIP)
+  const rateLimitResult = await webhookRateLimit.check(clientIP)
   
   if (!rateLimitResult.success) {
     await logAction('webhook', `Rate limit exceeded for IP: ${clientIP}`)

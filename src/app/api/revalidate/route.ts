@@ -1,8 +1,20 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { getSession } from '~/lib/auth/auth'
+import { revalidateRateLimit, getClientIP } from '~/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await revalidateRateLimit.check(clientIP)
+  
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      { status: 429 }
+    )
+  }
+
   // Verify the request is authenticated
   const session = await getSession()
   
