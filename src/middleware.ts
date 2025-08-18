@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getSession } from '~/lib/auth/auth'
 import { logSecurityEvent } from '~/lib/security-logging'
-import { securityConfig } from '~/lib/security-config'
+import { securityConfig } from '~/config/security-config'
 
 export async function middleware(request: NextRequest) {
   // Extract the base path (first segment of the URL path)
@@ -26,14 +26,14 @@ export async function middleware(request: NextRequest) {
       void logSecurityEvent({
         type: 'ADMIN_ACCESS',
         email: session?.email,
-        details: { 
+        details: {
           reason: 'unauthorized_access_attempt',
           path: request.nextUrl.pathname,
           userAgent: request.headers.get('user-agent'),
-          ip: getClientIP(request)
-        }
+          ip: getClientIP(request),
+        },
       })
-      
+
       return NextResponse.redirect(new URL('/', request.url))
     }
 
@@ -42,10 +42,10 @@ export async function middleware(request: NextRequest) {
       type: 'ADMIN_ACCESS',
       userId: session.id,
       email: session.email,
-      details: { 
+      details: {
         reason: 'authorized_access',
-        path: request.nextUrl.pathname
-      }
+        path: request.nextUrl.pathname,
+      },
     })
   }
 

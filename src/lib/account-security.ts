@@ -1,7 +1,7 @@
 import { db } from '~/server/db'
 import { users } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
-import { securityConfig } from './security-config'
+import { securityConfig } from '~/config/security-config'
 import { logSecurityEvent } from './security-logging'
 
 export interface AccountStatus {
@@ -10,20 +10,25 @@ export interface AccountStatus {
   lockoutExpiry?: Date
 }
 
-export async function checkAccountLockStatus(userId: number): Promise<AccountStatus> {
+export async function checkAccountLockStatus(
+  userId: number,
+): Promise<AccountStatus> {
   try {
     const user = await db
       .select({
         failedLoginAttempts: users.failedLoginAttempts,
-        accountLockedUntil: users.accountLockedUntil
+        accountLockedUntil: users.accountLockedUntil,
       })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     if (!user) {
-      return { isLocked: false, attemptsRemaining: securityConfig.account.maxFailedAttempts }
+      return {
+        isLocked: false,
+        attemptsRemaining: securityConfig.account.maxFailedAttempts,
+      }
     }
 
     const now = new Date()
@@ -34,56 +39,74 @@ export async function checkAccountLockStatus(userId: number): Promise<AccountSta
       return {
         isLocked: true,
         attemptsRemaining: 0,
-        lockoutExpiry
+        lockoutExpiry,
       }
     }
 
     // If lockout has expired, reset the account
     if (lockoutExpiry && lockoutExpiry <= now) {
       await resetFailedAttempts(userId)
-      return { isLocked: false, attemptsRemaining: securityConfig.account.maxFailedAttempts }
+      return {
+        isLocked: false,
+        attemptsRemaining: securityConfig.account.maxFailedAttempts,
+      }
     }
 
-    const attemptsRemaining = Math.max(0, securityConfig.account.maxFailedAttempts - (user.failedLoginAttempts || 0))
+    const attemptsRemaining = Math.max(
+      0,
+      securityConfig.account.maxFailedAttempts -
+        (user.failedLoginAttempts || 0),
+    )
     return {
       isLocked: false,
-      attemptsRemaining
+      attemptsRemaining,
     }
   } catch (error) {
     console.error('Error checking account lock status:', error)
     // Fail safely - don't lock accounts due to system errors
-    return { isLocked: false, attemptsRemaining: securityConfig.account.maxFailedAttempts }
+    return {
+      isLocked: false,
+      attemptsRemaining: securityConfig.account.maxFailedAttempts,
+    }
   }
 }
 
-export async function recordFailedLoginAttempt(userId: number, email: string): Promise<AccountStatus> {
+export async function recordFailedLoginAttempt(
+  userId: number,
+  email: string,
+): Promise<AccountStatus> {
   try {
     const user = await db
       .select({
         failedLoginAttempts: users.failedLoginAttempts,
-        accountLockedUntil: users.accountLockedUntil
+        accountLockedUntil: users.accountLockedUntil,
       })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     if (!user) {
-      return { isLocked: false, attemptsRemaining: securityConfig.account.maxFailedAttempts }
+      return {
+        isLocked: false,
+        attemptsRemaining: securityConfig.account.maxFailedAttempts,
+      }
     }
 
     const newAttempts = (user.failedLoginAttempts || 0) + 1
     const shouldLock = newAttempts >= securityConfig.account.maxFailedAttempts
 
     if (shouldLock) {
-      const lockoutExpiry = new Date(Date.now() + securityConfig.account.lockoutDurationMinutes * 60 * 1000)
-      
+      const lockoutExpiry = new Date(
+        Date.now() + securityConfig.account.lockoutDurationMinutes * 60 * 1000,
+      )
+
       await db
         .update(users)
         .set({
           failedLoginAttempts: newAttempts,
           accountLockedUntil: lockoutExpiry,
-          modifiedAt: new Date()
+          modifiedAt: new Date(),
         })
         .where(eq(users.id, userId))
 
@@ -92,30 +115,31 @@ export async function recordFailedLoginAttempt(userId: number, email: string): P
         type: 'LOGIN_FAIL',
         userId,
         email,
-        details: { 
+        details: {
           reason: 'account_locked',
           attempts: newAttempts,
-          lockoutUntil: lockoutExpiry.toISOString()
-        }
+          lockoutUntil: lockoutExpiry.toISOString(),
+        },
       })
 
       return {
         isLocked: true,
         attemptsRemaining: 0,
-        lockoutExpiry
+        lockoutExpiry,
       }
     } else {
       await db
         .update(users)
         .set({
           failedLoginAttempts: newAttempts,
-          modifiedAt: new Date()
+          modifiedAt: new Date(),
         })
         .where(eq(users.id, userId))
 
       return {
         isLocked: false,
-        attemptsRemaining: securityConfig.account.maxFailedAttempts - newAttempts
+        attemptsRemaining:
+          securityConfig.account.maxFailedAttempts - newAttempts,
       }
     }
   } catch (error) {
@@ -131,7 +155,7 @@ export async function resetFailedAttempts(userId: number): Promise<void> {
       .set({
         failedLoginAttempts: 0,
         accountLockedUntil: null,
-        modifiedAt: new Date()
+        modifiedAt: new Date(),
       })
       .where(eq(users.id, userId))
   } catch (error) {
@@ -147,7 +171,7 @@ export async function recordSuccessfulLogin(userId: number): Promise<void> {
         failedLoginAttempts: 0,
         accountLockedUntil: null,
         lastLoginAt: new Date(),
-        modifiedAt: new Date()
+        modifiedAt: new Date(),
       })
       .where(eq(users.id, userId))
   } catch (error) {
@@ -163,7 +187,7 @@ export async function recordPasswordChange(userId: number): Promise<void> {
         passwordChangedAt: new Date(),
         failedLoginAttempts: 0,
         accountLockedUntil: null,
-        modifiedAt: new Date()
+        modifiedAt: new Date(),
       })
       .where(eq(users.id, userId))
   } catch (error) {
