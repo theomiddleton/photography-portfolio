@@ -51,7 +51,7 @@ export async function resetPassword(
   }
 
   // Validate password strength
-  const passwordValidation = validatePasswordStrength(password)
+  const passwordValidation = await validatePasswordStrength(password)
   if (!passwordValidation.isValid) {
     return {
       message: 'Password does not meet security requirements.',

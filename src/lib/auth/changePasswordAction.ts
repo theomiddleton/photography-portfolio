@@ -48,7 +48,7 @@ export async function changePasswordAction(
   }
 
   // Validate password strength
-  const passwordValidation = validatePasswordStrength(newPassword)
+  const passwordValidation = await validatePasswordStrength(newPassword)
   if (!passwordValidation.isValid) {
     return {
       message: 'New password does not meet security requirements.',

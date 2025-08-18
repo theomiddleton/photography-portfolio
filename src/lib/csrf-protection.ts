@@ -1,3 +1,5 @@
+'use server'
+
 import { cookies } from 'next/headers'
 import { SignJWT, jwtVerify } from 'jose'
 import { env } from '~/env.js'

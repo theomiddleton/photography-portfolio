@@ -5,7 +5,7 @@ import { userSessions, users } from '~/server/db/schema'
 import { eq, and, gt, isNull, lt } from 'drizzle-orm'
 import { generateSecureToken } from './tokenHelpers'
 import { logSecurityEvent } from '~/lib/security-logging'
-import { cookies, headers } from 'next/headers'
+import { headers } from 'next/headers'
 
 interface CreateSessionOptions {
   userId: number
@@ -295,28 +295,9 @@ export async function cleanupExpiredSessions(): Promise<number> {
 }
 
 /**
- * Get client IP address from headers
- */
-export function getClientIP(): string | undefined {
-  const headersList = headers()
-  
-  // Check various headers that might contain the real IP
-  const forwardedFor = headersList.get('x-forwarded-for')
-  const realIP = headersList.get('x-real-ip')
-  const clientIP = headersList.get('x-client-ip')
-  
-  if (forwardedFor) {
-    // x-forwarded-for can contain multiple IPs, take the first one
-    return forwardedFor.split(',')[0]?.trim()
-  }
-  
-  return realIP || clientIP || undefined
-}
-
-/**
  * Get user agent from headers
  */
-export function getUserAgent(): string | undefined {
-  const headersList = headers()
+export async function getUserAgent(): Promise<string | undefined> {
+  const headersList = await headers()
   return headersList.get('user-agent') || undefined
 }

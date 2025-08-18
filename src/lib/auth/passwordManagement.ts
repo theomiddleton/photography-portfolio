@@ -280,10 +280,10 @@ export async function changePassword(
 /**
  * Validate password strength
  */
-export function validatePasswordStrength(password: string): {
+export async function validatePasswordStrength(password: string): Promise<{
   isValid: boolean
   issues: string[]
-} {
+}> {
   const issues: string[] = []
 
   if (password.length < 8) {

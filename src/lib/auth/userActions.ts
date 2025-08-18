@@ -1,21 +1,65 @@
 'use server'
 
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { db } from '~/server/db'
 import { users } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 
-import { verifyPassword, hashPassword, createSession } from '~/lib/auth/authHelpers'
+import {
+  verifyPassword,
+  hashPassword,
+  createSession,
+} from '~/lib/auth/authHelpers'
 import { getSession } from '~/lib/auth/auth'
 import { logSecurityEvent } from '~/lib/security-logging'
-import { checkAccountLockStatus, recordFailedLoginAttempt, recordSuccessfulLogin } from '~/lib/account-security'
+import {
+  checkAccountLockStatus,
+  recordFailedLoginAttempt,
+  recordSuccessfulLogin,
+} from '~/lib/account-security'
 import { validateCSRFFromFormData } from '~/lib/csrf-protection'
 
 import { loginSchema } from '~/lib/types/loginSchema'
 import { registerSchema } from '~/lib/types/registerSchema'
 
+import { getUserAgent, createUserSession } from '~/lib/auth/sessionManagement'
+import { reactivateAccount } from '~/lib/auth/accountManagement'
+import { sendEmailVerification } from '~/lib/email/email-service'
+import { sanitizeIPAddress } from '~/lib/input-sanitization'
+
 const JWT_EXPIRATION_HOURS = parseInt(process.env.JWT_EXPIRATION_HOURS || '168') // Reduced default
 const JWT_EXPIRATION_MS = JWT_EXPIRATION_HOURS * 60 * 60 * 1000
+
+// Helper function to get client IP from headers in server actions
+function getClientIPFromHeaders(headersList: Headers): string {
+  // Try to get real IP from various headers (handle proxy/CDN scenarios)
+  const forwarded = headersList.get('x-forwarded-for')
+  const realIP = headersList.get('x-real-ip')
+  const cfIP = headersList.get('cf-connecting-ip')
+
+  let clientIP = 'unknown'
+
+  if (forwarded) {
+    // Take the first IP in the chain and validate it
+    const firstIP = forwarded.split(',')[0].trim()
+    const sanitizedIP = sanitizeIPAddress(firstIP)
+    if (sanitizedIP) {
+      clientIP = sanitizedIP
+    }
+  } else if (realIP) {
+    const sanitizedIP = sanitizeIPAddress(realIP)
+    if (sanitizedIP) {
+      clientIP = sanitizedIP
+    }
+  } else if (cfIP) {
+    const sanitizedIP = sanitizeIPAddress(cfIP)
+    if (sanitizedIP) {
+      clientIP = sanitizedIP
+    }
+  }
+
+  return clientIP
+}
 
 // FormData type
 export interface FormState {
@@ -41,16 +85,19 @@ export interface User {
 }
 
 // login function, returns a FormState for sending messages to the client, takes a FormState and a FormData
-export async function login(prevState: FormState, data: FormData): Promise<FormState> {
+export async function login(
+  prevState: FormState,
+  data: FormData,
+): Promise<FormState> {
   // Validate CSRF token first
   const isValidCSRF = await validateCSRFFromFormData(data)
   if (!isValidCSRF) {
     // Log potential CSRF attack
     void logSecurityEvent({
       type: 'LOGIN_FAIL',
-      details: { reason: 'invalid_csrf_token' }
+      details: { reason: 'invalid_csrf_token' },
     })
-    
+
     return {
       message: 'Invalid request. Please refresh the page and try again.',
     }
@@ -59,21 +106,24 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
   // parse the form data in a type-safe way
   const formData = Object.fromEntries(data)
   const parsed = loginSchema.safeParse(formData)
-  
+
   // if the form data is invalid, return a message through FormState with the issues
   if (!parsed.success) {
     const fields: Record<string, string> = {}
     for (const key of Object.keys(formData)) {
       fields[key] = formData[key].toString()
     }
-    
+
     // Log invalid login attempt
     void logSecurityEvent({
       type: 'LOGIN_FAIL',
       email: formData.email?.toString(),
-      details: { reason: 'invalid_form_data', issues: parsed.error.issues.length }
+      details: {
+        reason: 'invalid_form_data',
+        issues: parsed.error.issues.length,
+      },
     })
-    
+
     return {
       message: 'Invalid form data',
       fields,
@@ -88,17 +138,17 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
       .from(users)
       .where(eq(users.email, parsed.data.email))
       .limit(1)
-      .then(rows => rows[0] ?? undefined)
-    
+      .then((rows) => rows[0] ?? undefined)
+
     // if the user isnt found, return a generic message to prevent email enumeration
     if (!user) {
       // Log failed login attempt
       void logSecurityEvent({
         type: 'LOGIN_FAIL',
         email: parsed.data.email,
-        details: { reason: 'user_not_found' }
+        details: { reason: 'user_not_found' },
       })
-      
+
       return { message: 'Invalid email or password' }
     }
 
@@ -109,14 +159,14 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
         type: 'LOGIN_FAIL',
         userId: user.id,
         email: user.email,
-        details: { 
+        details: {
           reason: 'account_locked',
-          lockoutExpiry: lockStatus.lockoutExpiry?.toISOString()
-        }
+          lockoutExpiry: lockStatus.lockoutExpiry?.toISOString(),
+        },
       })
-      
-      return { 
-        message: `Account is temporarily locked. Please try again later.`
+
+      return {
+        message: `Account is temporarily locked. Please try again later.`,
       }
     }
 
@@ -124,13 +174,15 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
     if (!user.isActive) {
       // Check if it's a deactivated account that can be reactivated
       if (user.deactivatedAt) {
-        const { reactivateAccount } = await import('./accountManagement')
-        const reactivationResult = await reactivateAccount(user.email, parsed.data.password)
-        
+        const reactivationResult = await reactivateAccount(
+          user.email,
+          parsed.data.password,
+        )
+
         if (reactivationResult.success) {
           return {
             message: 'Account reactivated successfully. Please log in again.',
-            redirect: '/auth/login?message=account_reactivated'
+            redirect: '/auth/login?message=account_reactivated',
           }
         }
       }
@@ -139,9 +191,9 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
         type: 'LOGIN_FAIL',
         userId: user.id,
         email: user.email,
-        details: { reason: 'account_inactive' }
+        details: { reason: 'account_inactive' },
       })
-      
+
       return { message: 'Account is inactive. Please contact support.' }
     }
 
@@ -151,69 +203,77 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
         type: 'LOGIN_FAIL',
         userId: user.id,
         email: user.email,
-        details: { reason: 'email_not_verified' }
+        details: { reason: 'email_not_verified' },
       })
-      
-      return { 
-        message: 'Please verify your email address before logging in. Check your inbox for a verification link.',
-        redirect: '/auth/verify-email-notice?email=' + encodeURIComponent(user.email)
+
+      return {
+        message:
+          'Please verify your email address before logging in. Check your inbox for a verification link.',
+        redirect:
+          '/auth/verify-email-notice?email=' + encodeURIComponent(user.email),
       }
     }
-    
+
     // check if the password is valid, boolean
-    const isPasswordValid = await verifyPassword(parsed.data.password, user.password)
-    
+    const isPasswordValid = await verifyPassword(
+      parsed.data.password,
+      user.password,
+    )
+
     // if the password is invalid, record failed attempt and return generic message
     if (!isPasswordValid) {
       const newLockStatus = await recordFailedLoginAttempt(user.id, user.email)
-      
+
       // Log failed login attempt
       void logSecurityEvent({
         type: 'LOGIN_FAIL',
         userId: user.id,
         email: user.email,
-        details: { 
+        details: {
           reason: 'invalid_password',
           attemptsRemaining: newLockStatus.attemptsRemaining,
-          accountLocked: newLockStatus.isLocked
-        }
+          accountLocked: newLockStatus.isLocked,
+        },
       })
-      
+
       let message = 'Invalid email or password'
       if (newLockStatus.isLocked) {
-        message = 'Too many failed attempts. Account has been temporarily locked.'
+        message =
+          'Too many failed attempts. Account has been temporarily locked.'
       } else if (newLockStatus.attemptsRemaining <= 2) {
         message = `Invalid email or password. ${newLockStatus.attemptsRemaining} attempts remaining before account lockout.`
       }
-      
+
       return { message }
     }
 
     // Validate user role
     if (user.role !== 'admin' && user.role !== 'user') {
-      console.error(`Invalid user role detected: ${user.role} for user ${user.id}`)
-      
+      console.error(
+        `Invalid user role detected: ${user.role} for user ${user.id}`,
+      )
+
       // Log security issue
       void logSecurityEvent({
         type: 'LOGIN_FAIL',
         userId: user.id,
         email: user.email,
-        details: { reason: 'invalid_role', role: user.role }
+        details: { reason: 'invalid_role', role: user.role },
       })
-      
+
       return { message: 'Account error. Please contact support.' }
     }
-    
+
     // Check for remember me option (if we add it to the form later)
-    const rememberMe = formData.rememberMe === 'true' || formData.rememberMe === 'on'
-    
+    const rememberMe =
+      formData.rememberMe === 'true' || formData.rememberMe === 'on'
+
     // Get client information
-    const { getClientIP, getUserAgent } = await import('./sessionManagement')
-    const clientIP = getClientIP()
-    const userAgent = getUserAgent()
-    
+    const headersList = await headers()
+    const clientIP = getClientIPFromHeaders(headersList)
+    const userAgent = await getUserAgent()
+
     // Create session using enhanced session management
-    const { createUserSession } = await import('./sessionManagement')
     const sessionToken = await createUserSession({
       userId: user.id,
       email: user.email,
@@ -227,28 +287,31 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
         type: 'LOGIN_FAIL',
         userId: user.id,
         email: user.email,
-        details: { reason: 'session_creation_failed' }
+        details: { reason: 'session_creation_failed' },
       })
-      
+
       return { message: 'Failed to create session. Please try again.' }
     }
 
     // Create JWT session for Next.js compatibility
-    const session = await createSession({ 
-      email: user.email, 
-      role: user.role as 'admin' | 'user', 
-      id: user.id 
+    const session = await createSession({
+      email: user.email,
+      role: user.role as 'admin' | 'user',
+      id: user.id,
     })
-    
+
     const cookieStore = await cookies()
     cookieStore.set('session', session, {
       httpOnly: true,
       secure: true, // Always secure
       sameSite: 'strict',
-      expires: new Date(Date.now() + (rememberMe ? 30 * 24 * 60 * 60 * 1000 : JWT_EXPIRATION_MS)),
-      path: '/' // Explicit path
+      expires: new Date(
+        Date.now() +
+          (rememberMe ? 30 * 24 * 60 * 60 * 1000 : JWT_EXPIRATION_MS),
+      ),
+      path: '/', // Explicit path
     })
-    
+
     // Update user login tracking
     await db
       .update(users)
@@ -259,48 +322,51 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
         modifiedAt: new Date(),
       })
       .where(eq(users.id, user.id))
-    
+
     // Record successful login (resets failed attempts)
     await recordSuccessfulLogin(user.id)
-    
+
     // Log successful login
     void logSecurityEvent({
       type: 'LOGIN_SUCCESS',
       userId: user.id,
       email: user.email,
-      details: { role: user.role }
+      details: { role: user.role },
     })
-    
+
     // Return redirect path based on role
     const redirectPath = user.role === 'admin' ? '/admin' : '/'
-    return { 
+    return {
       message: 'User logged in',
-      redirect: redirectPath
+      redirect: redirectPath,
     }
   } catch (error) {
     console.error('Login error:', error)
-    
+
     // Log system error
     void logSecurityEvent({
       type: 'LOGIN_FAIL',
       email: parsed.data.email,
-      details: { reason: 'system_error' }
+      details: { reason: 'system_error' },
     })
-    
+
     return { message: 'An error occurred during login. Please try again.' }
   }
 }
 
-export async function register(prevState: FormState, data: FormData): Promise<FormState> {
+export async function register(
+  prevState: FormState,
+  data: FormData,
+): Promise<FormState> {
   // Validate CSRF token first
   const isValidCSRF = await validateCSRFFromFormData(data)
   if (!isValidCSRF) {
     // Log potential CSRF attack
     void logSecurityEvent({
       type: 'REGISTER_FAIL',
-      details: { reason: 'invalid_csrf_token' }
+      details: { reason: 'invalid_csrf_token' },
     })
-    
+
     return {
       message: 'Invalid request. Please refresh the page and try again.',
     }
@@ -309,35 +375,38 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
   // the same as the login function, but with register schema
   const formData = Object.fromEntries(data)
   const parsed = registerSchema.safeParse(formData)
-  
+
   // if the form data is invalid, return a message through FormState with the issues
   if (!parsed.success) {
     const fields: Record<string, string> = {}
     for (const key of Object.keys(formData)) {
       fields[key] = formData[key].toString()
     }
-    
+
     // Log invalid registration attempt
     void logSecurityEvent({
       type: 'REGISTER_FAIL',
       email: formData.email?.toString(),
-      details: { reason: 'invalid_form_data', issues: parsed.error.issues.length }
+      details: {
+        reason: 'invalid_form_data',
+        issues: parsed.error.issues.length,
+      },
     })
-    
+
     return {
       message: 'Invalid form data',
       fields,
       issues: parsed.error.issues.map((issue) => issue.message),
     }
   }
-  
+
   // get the email, password, and retyped password from the form data
   const name = parsed.data.name
   const email = parsed.data.email
   const password = parsed.data.password
   const retypedPass = parsed.data.retypedPass
   const role = 'user' as const // Explicitly type as const
-  
+
   // Check if the passwords match, this is also done on the client side
   // but checks on the server side as well, due to the schema being in a separate file
   if (password !== retypedPass) {
@@ -345,9 +414,9 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     void logSecurityEvent({
       type: 'REGISTER_FAIL',
       email: email,
-      details: { reason: 'password_mismatch' }
+      details: { reason: 'password_mismatch' },
     })
-    
+
     return {
       message: 'Passwords do not match',
     }
@@ -360,80 +429,83 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
       .from(users)
       .where(eq(users.email, email))
       .limit(1)
-      .then(rows => rows[0] ?? undefined)
-    
+      .then((rows) => rows[0] ?? undefined)
+
     // return a message if the user already exists
     if (existingUser) {
       // Log duplicate registration attempt
       void logSecurityEvent({
         type: 'REGISTER_FAIL',
         email: email,
-        details: { reason: 'user_exists' }
+        details: { reason: 'user_exists' },
       })
-      
+
       return {
         message: 'User already exists, try logging in instead.',
       }
     }
-    
+
     // hash the password
     const hashedPassword = await hashPassword(password)
-    
+
     // Create the user with email verification required
     type NewUser = typeof users.$inferInsert
-    
+
     const insertUser = async (user: NewUser) => {
       return db.insert(users).values(user).returning({ id: users.id })
     }
-    
-    const newUser: NewUser = { 
-      name: name, 
-      email: email, 
-      password: hashedPassword, 
+
+    const newUser: NewUser = {
+      name: name,
+      email: email,
+      password: hashedPassword,
       role: role,
       emailVerified: false, // Require email verification
-      isActive: true // Account is active but email needs verification
+      isActive: true, // Account is active but email needs verification
     }
     const [createdUser] = await insertUser(newUser)
-    
+
     if (!createdUser) {
       throw new Error('Failed to create user')
     }
-    
+
     // Send email verification instead of creating session immediately
-    const { sendEmailVerification } = await import('~/lib/email/email-service')
     const emailSent = await sendEmailVerification(createdUser.id, email, name)
-    
+
     // Log successful registration
     void logSecurityEvent({
       type: 'REGISTER_SUCCESS',
       userId: createdUser.id,
       email: email,
-      details: { role: role, emailVerificationSent: emailSent }
+      details: { role: role, emailVerificationSent: emailSent },
     })
-    
+
     if (!emailSent) {
-      return { 
-        message: 'Account created successfully, but there was an issue sending the verification email. Please contact support.',
-        redirect: '/auth/login?message=verification_email_issue'
+      return {
+        message:
+          'Account created successfully, but there was an issue sending the verification email. Please contact support.',
+        redirect: '/auth/login?message=verification_email_issue',
       }
     }
-    
-    return { 
-      message: 'Account created successfully! Please check your email and click the verification link before logging in.',
-      redirect: '/auth/login?message=verify_email'
+
+    return {
+      message:
+        'Account created successfully! Please check your email and click the verification link before logging in.',
+      redirect: '/auth/login?message=verify_email',
     }
   } catch (error) {
     console.error('Registration error:', error)
-    
+
     // Log system error
     void logSecurityEvent({
       type: 'REGISTER_FAIL',
       email: email,
-      details: { reason: 'system_error' }
+      details: { reason: 'system_error' },
     })
-    
-    return { message: 'An error occurred during registration. Please try again.' }
+
+    return {
+      message: 'An error occurred during registration. Please try again.',
+    }
   }
 }
 
@@ -443,10 +515,10 @@ export async function logout(_prevState: LogoutState): Promise<LogoutState> {
     const sessionCookie = cookieStore.get('session')
 
     if (!sessionCookie) {
-      return { 
+      return {
         success: false,
-        message: 'No active session found', 
-        issues: ['You are not currently logged in'] 
+        message: 'No active session found',
+        issues: ['You are not currently logged in'],
       }
     }
 
@@ -454,51 +526,53 @@ export async function logout(_prevState: LogoutState): Promise<LogoutState> {
     const session = await getSession()
 
     // Clear the session cookie securely
-    cookieStore.set('session', '', { 
+    cookieStore.set('session', '', {
       expires: new Date(0),
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      path: '/'
+      path: '/',
     })
-    
+
     // Log logout event
     if (session) {
       void logSecurityEvent({
         type: 'LOGOUT',
         userId: session.id,
-        email: session.email
+        email: session.email,
       })
     }
-    
+
     return {
       success: true,
       message: 'Logged out successfully, wait to be redirected.',
-      issues: null
+      issues: null,
     }
   } catch (error) {
     console.error('Logout error:', error)
-    return { 
+    return {
       success: false,
-      message: 'Error logging out', 
-      issues: ['An unexpected error occurred. Please try again.']
+      message: 'Error logging out',
+      issues: ['An unexpected error occurred. Please try again.'],
     }
   }
 }
 
 export async function getUsers(): Promise<User[]> {
-  const rawUsers = await db.select({
-    id: users.id,
-    name: users.name,
-    email: users.email,
-    role: users.role,
-    createdAt: users.createdAt,
-    modifiedAt: users.modifiedAt
-  }).from(users)
+  const rawUsers = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
+      modifiedAt: users.modifiedAt,
+    })
+    .from(users)
 
-  return rawUsers.map(u => ({
+  return rawUsers.map((u) => ({
     ...u,
-    role: u.role === 'admin' ? 'admin' : 'user'
+    role: u.role === 'admin' ? 'admin' : 'user',
   }))
 }
 
