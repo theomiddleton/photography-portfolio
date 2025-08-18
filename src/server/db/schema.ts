@@ -9,6 +9,7 @@ import {
   uuid,
   json,
   bigint,
+  index,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
@@ -77,20 +78,32 @@ export const about = pgTable('about', {
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
-  email: varchar('email', { length: 256 }).notNull(),
-  name: varchar('name', { length: 256 }).notNull(),
-  password: varchar('password', { length: 256 }).notNull(),
-  role: varchar('role', { length: 256 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(), // Added unique constraint and reduced length
+  name: varchar('name', { length: 100 }).notNull(), // Reduced to reasonable length
+  password: text('password').notNull(), // Changed to text for longer hashed passwords
+  role: varchar('role', { length: 10 }).notNull(), // Reduced to fit 'admin'/'user'
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   modifiedAt: timestamp('modifiedAt').defaultNow(),
-})
+  // Security enhancement fields
+  failedLoginAttempts: integer('failedLoginAttempts').default(0).notNull(),
+  accountLockedUntil: timestamp('accountLockedUntil'),
+  lastLoginAt: timestamp('lastLoginAt'),
+  passwordChangedAt: timestamp('passwordChangedAt').defaultNow().notNull(),
+}, (table) => ({
+  emailIndex: index('users_email_idx').on(table.email),
+  roleIndex: index('users_role_idx').on(table.role),
+}))
 
 export const logs = pgTable('logs', {
   id: serial('id').primaryKey(),
-  scope: varchar('scope', { length: 256 }).notNull(),
+  scope: varchar('scope', { length: 50 }).notNull(), // Reduced length for efficiency
   log: text('log').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
-})
+}, (table) => ({
+  scopeIndex: index('logs_scope_idx').on(table.scope),
+  createdAtIndex: index('logs_created_at_idx').on(table.createdAt),
+  scopeCreatedIndex: index('logs_scope_created_idx').on(table.scope, table.createdAt),
+}))
 
 export const videos = pgTable('videos', {
   id: text('id').primaryKey(),

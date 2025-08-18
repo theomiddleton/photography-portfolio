@@ -1,25 +1,44 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '~/components/ui/table'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '~/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
 import { Button } from '~/components/ui/button'
 import { MoreHorizontal } from 'lucide-react'
-import { getUsers, deleteUser, promoteUser, demoteUser } from '~/lib/auth/userActions'
+import {
+  getUsers,
+  deleteUser,
+  promoteUser,
+  demoteUser,
+  type User,
+} from '~/lib/auth/userActions'
 
-import { DeleteUserDialog, PromoteUserDialog, DemoteUserDialog } from '~/components/user/user-dialogs'
-
-interface User {
-  id: number
-  name: string
-  email: string
-  role: string
-  createdAt: Date
-  modifiedAt: Date
-}
+import {
+  DeleteUserDialog,
+  PromoteUserDialog,
+  DemoteUserDialog,
+} from '~/components/user/user-dialogs'
 
 export function UsersTable() {
   const [users, setUsers] = useState<User[]>([])
@@ -38,23 +57,27 @@ export function UsersTable() {
 
   const handleDeleteUser = async (userId: number) => {
     await deleteUser(userId)
-    setUsers(prevUsers => prevUsers.filter(user => user.id !== userId))
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId))
     setUserToDelete(null)
   }
 
   const handlePromoteUser = async (userId: number) => {
     await promoteUser(userId)
-    setUsers(prevUsers => prevUsers.map(user => 
-      user.id === userId ? { ...user, role: 'admin' } : user
-    ))
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user.id === userId ? { ...user, role: 'admin' } : user,
+      ),
+    )
     setUserToPromote(null)
   }
 
   const handleDemoteUser = async (userId: number) => {
     await demoteUser(userId)
-    setUsers(prevUsers => prevUsers.map(user => 
-      user.id === userId ? { ...user, role: 'user' } : user
-    ))
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user.id === userId ? { ...user, role: 'user' } : user,
+      ),
+    )
     setUserToDemote(null)
   }
 
@@ -82,7 +105,9 @@ export function UsersTable() {
               <TableHead className="hidden md:table-cell">Name</TableHead>
               <TableHead className="hidden md:table-cell">Email</TableHead>
               <TableHead className="hidden md:table-cell">Role</TableHead>
-              <TableHead className="hidden md:table-cell">Last Modified</TableHead>
+              <TableHead className="hidden md:table-cell">
+                Last Modified
+              </TableHead>
               <TableHead>
                 <span className="hidden md:table-cell">User Actions</span>
               </TableHead>
@@ -91,12 +116,14 @@ export function UsersTable() {
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">
-                  {user.name}
+                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {user.email}
                 </TableCell>
-                <TableCell className="hidden md:table-cell">{user.email}</TableCell>
                 <TableCell>
-                  <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                  <Badge
+                    variant={user.role === 'admin' ? 'default' : 'secondary'}
+                  >
                     {user.role === 'admin' ? 'Admin' : 'User'}
                   </Badge>
                 </TableCell>
@@ -114,7 +141,9 @@ export function UsersTable() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       {user.role !== 'admin' && (
-                        <DropdownMenuItem onClick={() => setUserToPromote(user)}>
+                        <DropdownMenuItem
+                          onClick={() => setUserToPromote(user)}
+                        >
                           Promote to Admin
                         </DropdownMenuItem>
                       )}
@@ -135,24 +164,25 @@ export function UsersTable() {
         </Table>
       </CardContent>
       <CardFooter>
-        <div className="text-xs text-muted-foreground">
-          Showing <strong>1-{users.length}</strong> of <strong>{users.length}</strong> users
+        <div className="text-muted-foreground text-xs">
+          Showing <strong>1-{users.length}</strong> of{' '}
+          <strong>{users.length}</strong> users
         </div>
       </CardFooter>
 
-      <DeleteUserDialog 
+      <DeleteUserDialog
         userToDelete={userToDelete}
         onCancel={() => setUserToDelete(null)}
         onDelete={handleDeleteUser}
       />
-      
-      <PromoteUserDialog 
+
+      <PromoteUserDialog
         userToPromote={userToPromote}
         onCancel={() => setUserToPromote(null)}
         onPromote={handlePromoteUser}
       />
-      
-      <DemoteUserDialog 
+
+      <DemoteUserDialog
         userToDemote={userToDemote}
         onCancel={() => setUserToDemote(null)}
         onDemote={handleDemoteUser}

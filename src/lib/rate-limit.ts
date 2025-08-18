@@ -11,11 +11,6 @@ const redis = new Redis({
   token: env.UPSTASH_REDIS_REST_TOKEN,
 })
 
-interface RateLimitEntry {
-  count: number
-  resetTime: number
-}
-
 export interface RateLimitConfig {
   name: string // Namespace for the rate limiter to prevent cross-endpoint collisions
   windowMs: number // Time window in milliseconds
@@ -57,8 +52,21 @@ export function rateLimit(config: RateLimitConfig) {
           limit: config.maxRequests,
         }
       } catch (error) {
-        // On Redis failure, fail open (allow request) to avoid blocking legitimate users
+        // On Redis failure, fail closed for critical endpoints, open for others
         console.error('Rate limiter Redis error:', error)
+        
+        // Fail closed for critical auth endpoints
+        const criticalEndpoints = ['passwordAttempt', 'email', 'upload']
+        if (criticalEndpoints.includes(config.name)) {
+          return {
+            success: false,
+            reset: Date.now() + config.windowMs,
+            remaining: 0,
+            limit: config.maxRequests,
+          }
+        }
+        
+        // Fail open for less critical endpoints
         return {
           success: true,
           reset: Date.now() + config.windowMs,
@@ -134,16 +142,40 @@ export function getClientIP(request: Request): string {
   const realIP = request.headers.get('x-real-ip')
   const cfIP = request.headers.get('cf-connecting-ip')
 
+  let clientIP = 'unknown'
+
   if (forwarded) {
-    return forwarded.split(',')[0].trim()
-  }
-  if (realIP) {
-    return realIP
-  }
-  if (cfIP) {
-    return cfIP
+    // Take the first IP in the chain and validate it
+    const firstIP = forwarded.split(',')[0].trim()
+    if (isValidIP(firstIP)) {
+      clientIP = firstIP
+    }
+  } else if (realIP && isValidIP(realIP)) {
+    clientIP = realIP
+  } else if (cfIP && isValidIP(cfIP)) {
+    clientIP = cfIP
   }
 
-  // Fallback to a default identifier
-  return 'unknown'
+  return clientIP
+}
+
+// Basic IP validation to prevent header injection
+function isValidIP(ip: string): boolean {
+  if (!ip || ip.length > 45) return false // Max IPv6 length
+  
+  // IPv4 regex
+  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/
+  // IPv6 regex (simplified)
+  const ipv6Regex = /^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$/
+  
+  if (ipv4Regex.test(ip)) {
+    // Additional validation for IPv4 octets
+    const octets = ip.split('.')
+    return octets.every(octet => {
+      const num = parseInt(octet, 10)
+      return num >= 0 && num <= 255
+    })
+  }
+  
+  return ipv6Regex.test(ip)
 }

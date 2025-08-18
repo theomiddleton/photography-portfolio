@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getSession } from '~/lib/auth/auth'
+import { logSecurityEvent } from '~/lib/security-logging'
+import { securityConfig } from '~/config/security-config'
 
 export async function middleware(request: NextRequest) {
   // Extract the base path (first segment of the URL path)
@@ -9,15 +11,10 @@ export async function middleware(request: NextRequest) {
   // Create response with security headers
   const response = NextResponse.next()
 
-  // Add security headers
-  response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('X-Frame-Options', 'DENY')
-  response.headers.set('X-XSS-Protection', '1; mode=block')
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.stripe.com; frame-src https://js.stripe.com;"
-  )
+  // Add comprehensive security headers
+  for (const [name, value] of Object.entries(securityConfig.headers)) {
+    response.headers.set(name, value)
+  }
 
   // Check if the base path matches any of our protected routes
   if (config.matcher.some((path) => basePath === path.split('/:')[0])) {
@@ -25,11 +22,53 @@ export async function middleware(request: NextRequest) {
 
     // If there's no session or the user is not an admin, redirect to the home page
     if (!session?.role || session.role !== 'admin') {
+      // Log unauthorized access attempt
+      void logSecurityEvent({
+        type: 'ADMIN_ACCESS',
+        email: session?.email,
+        details: {
+          reason: 'unauthorized_access_attempt',
+          path: request.nextUrl.pathname,
+          userAgent: request.headers.get('user-agent'),
+          ip: getClientIP(request),
+        },
+      })
+
       return NextResponse.redirect(new URL('/', request.url))
     }
+
+    // Log successful admin access
+    void logSecurityEvent({
+      type: 'ADMIN_ACCESS',
+      userId: session.id,
+      email: session.email,
+      details: {
+        reason: 'authorized_access',
+        path: request.nextUrl.pathname,
+      },
+    })
   }
 
   return response
+}
+
+// Helper function to extract client IP
+function getClientIP(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for')
+  const realIP = request.headers.get('x-real-ip')
+  const cfIP = request.headers.get('cf-connecting-ip')
+
+  if (forwarded) {
+    return forwarded.split(',')[0].trim()
+  }
+  if (realIP) {
+    return realIP
+  }
+  if (cfIP) {
+    return cfIP
+  }
+
+  return 'unknown'
 }
 
 export const config = {
