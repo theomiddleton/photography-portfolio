@@ -6,11 +6,13 @@ import { users } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 
 import { verifyPassword, hashPassword, createSession } from '~/lib/auth/authHelpers'
+import { getSession } from '~/lib/auth/auth'
+import { logSecurityEvent } from '~/lib/security-logging'
 
 import { loginSchema } from '~/lib/types/loginSchema'
 import { registerSchema } from '~/lib/types/registerSchema'
 
-const JWT_EXPIRATION_HOURS = parseInt(process.env.JWT_EXPIRATION_HOURS || '720')
+const JWT_EXPIRATION_HOURS = parseInt(process.env.JWT_EXPIRATION_HOURS || '168') // Reduced default
 const JWT_EXPIRATION_MS = JWT_EXPIRATION_HOURS * 60 * 60 * 1000
 
 // FormData type
@@ -31,7 +33,7 @@ export interface User {
   id: number
   name: string
   email: string
-  role: string
+  role: 'admin' | 'user'
   createdAt: Date
   modifiedAt: Date
 }
@@ -48,6 +50,14 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
     for (const key of Object.keys(formData)) {
       fields[key] = formData[key].toString()
     }
+    
+    // Log invalid login attempt
+    void logSecurityEvent({
+      type: 'LOGIN_FAIL',
+      email: formData.email?.toString(),
+      details: { reason: 'invalid_form_data', issues: parsed.error.issues.length }
+    })
+    
     return {
       message: 'Invalid form data',
       fields,
@@ -55,47 +65,99 @@ export async function login(prevState: FormState, data: FormData): Promise<FormS
     }
   }
 
-  // Find the user by email
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, parsed.data.email))
-    .limit(1)
-    .then(rows => rows[0] ?? undefined)
-  
-  // if the user isnt found, return a message
-  if (!user) {
-    return { message: 'User not found' }
-  }
-  
-  // check if the password is valid, boolean
-  const isPasswordValid = await verifyPassword(parsed.data.password, user.password)
-  
-  // if the password is invalid, return a message
-  if (!isPasswordValid) {
-    return { message: 'Invalid password' }
-  }
-  
   try {
-    const session = await createSession({ email: user.email, role: user.role, id: user.id })
+    // Find the user by email
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, parsed.data.email))
+      .limit(1)
+      .then(rows => rows[0] ?? undefined)
+    
+    // if the user isnt found, return a generic message to prevent email enumeration
+    if (!user) {
+      // Log failed login attempt
+      void logSecurityEvent({
+        type: 'LOGIN_FAIL',
+        email: parsed.data.email,
+        details: { reason: 'user_not_found' }
+      })
+      
+      return { message: 'Invalid email or password' }
+    }
+    
+    // check if the password is valid, boolean
+    const isPasswordValid = await verifyPassword(parsed.data.password, user.password)
+    
+    // if the password is invalid, return a generic message
+    if (!isPasswordValid) {
+      // Log failed login attempt
+      void logSecurityEvent({
+        type: 'LOGIN_FAIL',
+        userId: user.id,
+        email: user.email,
+        details: { reason: 'invalid_password' }
+      })
+      
+      return { message: 'Invalid email or password' }
+    }
+
+    // Validate user role
+    if (user.role !== 'admin' && user.role !== 'user') {
+      console.error(`Invalid user role detected: ${user.role} for user ${user.id}`)
+      
+      // Log security issue
+      void logSecurityEvent({
+        type: 'LOGIN_FAIL',
+        userId: user.id,
+        email: user.email,
+        details: { reason: 'invalid_role', role: user.role }
+      })
+      
+      return { message: 'Account error. Please contact support.' }
+    }
+    
+    // Create session
+    const session = await createSession({ 
+      email: user.email, 
+      role: user.role as 'admin' | 'user', 
+      id: user.id 
+    })
     
     const cookieStore = await cookies()
     cookieStore.set('session', session, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true, // Always secure
       sameSite: 'strict',
-      expires: new Date(Date.now() + JWT_EXPIRATION_MS)
+      expires: new Date(Date.now() + JWT_EXPIRATION_MS),
+      path: '/' // Explicit path
     })
+    
+    // Log successful login
+    void logSecurityEvent({
+      type: 'LOGIN_SUCCESS',
+      userId: user.id,
+      email: user.email,
+      details: { role: user.role }
+    })
+    
+    // Return redirect path based on role
+    const redirectPath = user.role === 'admin' ? '/admin' : '/'
+    return { 
+      message: 'User logged in',
+      redirect: redirectPath
+    }
   } catch (error) {
-    console.error('Error setting session:', error)
-    return { message: 'Error during login process' }
-  }
-  
-  // Return redirect path based on role
-  const redirectPath = user.role === 'admin' ? '/admin' : '/'
-  return { 
-    message: 'User logged in',
-    redirect: redirectPath
+    console.error('Login error:', error)
+    
+    // Log system error
+    void logSecurityEvent({
+      type: 'LOGIN_FAIL',
+      email: parsed.data.email,
+      details: { reason: 'system_error' }
+    })
+    
+    return { message: 'An error occurred during login. Please try again.' }
   }
 }
 
@@ -110,6 +172,14 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
     for (const key of Object.keys(formData)) {
       fields[key] = formData[key].toString()
     }
+    
+    // Log invalid registration attempt
+    void logSecurityEvent({
+      type: 'REGISTER_FAIL',
+      email: formData.email?.toString(),
+      details: { reason: 'invalid_form_data', issues: parsed.error.issues.length }
+    })
+    
     return {
       message: 'Invalid form data',
       fields,
@@ -122,91 +192,148 @@ export async function register(prevState: FormState, data: FormData): Promise<Fo
   const email = parsed.data.email
   const password = parsed.data.password
   const retypedPass = parsed.data.retypedPass
-  const role = 'user'
+  const role = 'user' as const // Explicitly type as const
   
   // Check if the passwords match, this is also done on the client side
-  // but checks on the server side as well, due to the schema being in a seperate file
+  // but checks on the server side as well, due to the schema being in a separate file
   if (password !== retypedPass) {
+    // Log password mismatch
+    void logSecurityEvent({
+      type: 'REGISTER_FAIL',
+      email: email,
+      details: { reason: 'password_mismatch' }
+    })
+    
     return {
       message: 'Passwords do not match',
     }
   }
-  
-  // hash the password
-  const hashedPassword = await hashPassword(password)
-  
-  // Check if the user already exists
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .execute()
-  
-  // return a message if the user already exists
-  if (user.length > 0) {
-    return {
-      message: 'User already exists, try logging in instead.',
-    }
-  }
-  
-  // Create the user first to get the id
+
   try {
+    // Check if the user already exists first (before expensive hashing)
+    const existingUser = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1)
+      .then(rows => rows[0] ?? undefined)
+    
+    // return a message if the user already exists
+    if (existingUser) {
+      // Log duplicate registration attempt
+      void logSecurityEvent({
+        type: 'REGISTER_FAIL',
+        email: email,
+        details: { reason: 'user_exists' }
+      })
+      
+      return {
+        message: 'User already exists, try logging in instead.',
+      }
+    }
+    
+    // hash the password
+    const hashedPassword = await hashPassword(password)
+    
+    // Create the user first to get the id
     type NewUser = typeof users.$inferInsert
     
     const insertUser = async (user: NewUser) => {
       return db.insert(users).values(user).returning({ id: users.id })
     }
     
-    const newUser: NewUser = { name: name, email: email, password: hashedPassword, role: role }
+    const newUser: NewUser = { 
+      name: name, 
+      email: email, 
+      password: hashedPassword, 
+      role: role 
+    }
     const [createdUser] = await insertUser(newUser)
     
-    // Now create session with the new user's ID
-    try {
-      const session = await createSession({ 
-        email: email, 
-        role: role, 
-        id: createdUser.id 
-      })
-      
-      const cookieStore = await cookies()
-      cookieStore.set('session', session, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        expires: new Date(Date.now() + JWT_EXPIRATION_MS)
-      })
-    } catch (error) {
-      console.error('Error setting session:', error)
-      return { message: 'Error during registration process' }
+    if (!createdUser) {
+      throw new Error('Failed to create user')
     }
     
-    return { message: 'User created' }
+    // Now create session with the new user's ID
+    const session = await createSession({ 
+      email: email, 
+      role: role, 
+      id: createdUser.id 
+    })
+    
+    const cookieStore = await cookies()
+    cookieStore.set('session', session, {
+      httpOnly: true,
+      secure: true, // Always secure
+      sameSite: 'strict',
+      expires: new Date(Date.now() + JWT_EXPIRATION_MS),
+      path: '/' // Explicit path
+    })
+    
+    // Log successful registration
+    void logSecurityEvent({
+      type: 'REGISTER_SUCCESS',
+      userId: createdUser.id,
+      email: email,
+      details: { role: role }
+    })
+    
+    return { message: 'User created successfully' }
   } catch (error) {
-    console.error('Error creating user', error)
-    return { message: 'Error creating user' }
+    console.error('Registration error:', error)
+    
+    // Log system error
+    void logSecurityEvent({
+      type: 'REGISTER_FAIL',
+      email: email,
+      details: { reason: 'system_error' }
+    })
+    
+    return { message: 'An error occurred during registration. Please try again.' }
   }
 }
 
 export async function logout(_prevState: LogoutState): Promise<LogoutState> {
-  const sessionCookie = (await cookies()).get('session')
-
-  if (!sessionCookie) {
-    return { 
-      success: false,
-      message: 'No active session found', 
-      issues: ['You are not currently logged in'] 
-    }
-  }
-
   try {
-    (await cookies()).set('session', '', { expires: new Date(0) })
+    const cookieStore = await cookies()
+    const sessionCookie = cookieStore.get('session')
+
+    if (!sessionCookie) {
+      return { 
+        success: false,
+        message: 'No active session found', 
+        issues: ['You are not currently logged in'] 
+      }
+    }
+
+    // Get session info before clearing for logging
+    const session = await getSession()
+
+    // Clear the session cookie securely
+    cookieStore.set('session', '', { 
+      expires: new Date(0),
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/'
+    })
+    
+    // Log logout event
+    if (session) {
+      void logSecurityEvent({
+        type: 'LOGOUT',
+        userId: session.id,
+        email: session.email
+      })
+    }
+    
     return {
       success: true,
       message: 'Logged out successfully, wait to be redirected.',
       issues: null
     }
   } catch (error) {
-    console.error('Error logging out', error)
+    console.error('Logout error:', error)
     return { 
       success: false,
       message: 'Error logging out', 

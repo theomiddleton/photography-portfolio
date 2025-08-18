@@ -1,6 +1,7 @@
 import { getSession } from '~/lib/auth/auth'
+import type { UserSession } from '~/lib/types/session'
 
-export async function requireAdminAuth() {
+export async function requireAdminAuth(): Promise<UserSession> {
   const session = await getSession()
   
   if (!session?.role || session.role !== 'admin') {
@@ -10,7 +11,7 @@ export async function requireAdminAuth() {
   return session
 }
 
-export async function requireAuth() {
+export async function requireAuth(): Promise<UserSession> {
   const session = await getSession()
   
   if (!session) {
@@ -18,4 +19,13 @@ export async function requireAuth() {
   }
   
   return session
+}
+
+export async function checkAdminRole(): Promise<boolean> {
+  try {
+    const session = await getSession()
+    return session?.role === 'admin'
+  } catch {
+    return false
+  }
 }

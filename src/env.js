@@ -23,7 +23,7 @@ export const env = createEnv({
     R2_REGION: z.string(),
     EDGE_CONFIG: z.string().url(),
     FLAGS_SECRET: z.string(),
-    JWT_SECRET: z.string(),
+    JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters for security'),
     JWT_EXPIRATION_HOURS: z.coerce.number(),
     SITE_URL: z.string().url(),
     ADMIN_EMAIL: z.string().email(),
