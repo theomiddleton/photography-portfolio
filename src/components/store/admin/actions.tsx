@@ -158,10 +158,12 @@ export function AdminActions() {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete all
-                      products from your store, including:
+                      This action cannot be undone. This will permanently delete
+                      all products from your store, including:
                       <ul className="mt-2 list-inside list-disc">
                         <li>All product data from the database</li>
                         <li>All associated product sizes</li>
@@ -175,21 +177,26 @@ export function AdminActions() {
                         <input
                           type="text"
                           value={deleteConfirmation}
-                          onChange={(e) => setDeleteConfirmation(e.target.value)}
-                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          onChange={(e) =>
+                            setDeleteConfirmation(e.target.value)
+                          }
+                          className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                           placeholder="Type confirmation phrase"
                         />
                       </div>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setDeleteConfirmation('')}>
+                    <AlertDialogCancel
+                      onClick={() => setDeleteConfirmation('')}
+                    >
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDelete}
                       disabled={
-                        deleteConfirmation !== 'DELETE ALL PRODUCTS' || isDeleting
+                        deleteConfirmation !== 'DELETE ALL PRODUCTS' ||
+                        isDeleting
                       }
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
                     >

@@ -6,7 +6,10 @@ import { eq, ne, and, desc } from 'drizzle-orm'
 import { EnhancedProductView } from '~/components/store/enhanced-product-view'
 import { siteConfig } from '~/config/site'
 import { isStoreEnabledServer } from '~/lib/store-utils'
-import { generateProductStructuredData, generateBreadcrumbStructuredData } from '~/lib/structured-data'
+import {
+  generateProductStructuredData,
+  generateBreadcrumbStructuredData,
+} from '~/lib/structured-data'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -15,12 +18,19 @@ interface Props {
 export const revalidate = 3600
 
 async function getProduct(slug: string) {
-  const product = await db.select().from(products).where(eq(products.slug, slug)).limit(1)
+  const product = await db
+    .select()
+    .from(products)
+    .where(eq(products.slug, slug))
+    .limit(1)
   return product[0]
 }
 
 async function getProductSizes(productId: string) {
-  return await db.select().from(productSizes).where(eq(productSizes.productId, productId))
+  return await db
+    .select()
+    .from(productSizes)
+    .where(eq(productSizes.productId, productId))
 }
 
 async function getRecommendations(currentProductId: string) {
@@ -45,25 +55,31 @@ async function getRecommendations(currentProductId: string) {
       const sizes = await db
         .select()
         .from(productSizes)
-        .where(and(eq(productSizes.productId, product.id), eq(productSizes.active, true)))
+        .where(
+          and(
+            eq(productSizes.productId, product.id),
+            eq(productSizes.active, true),
+          ),
+        )
         .orderBy(productSizes.basePrice)
 
       const lowestPrice = sizes[0]?.basePrice || 0
       const taxRate = costs[0]?.taxRate || 2000
       const stripeTaxRate = costs[0]?.stripeTaxRate || 150
-      
+
       let priceWithTax = lowestPrice
       if (!siteConfig.features.store.showTax) {
         // Include tax in displayed price when showTax is false
-        const totalTaxRate = (taxRate + stripeTaxRate) / 10000
-        priceWithTax = Math.round(lowestPrice * (1 + totalTaxRate))
+        const taxAmount = Math.round(lowestPrice * (taxRate / 10000))
+        const stripeAmount = Math.round(lowestPrice * (stripeTaxRate / 10000))
+        priceWithTax = lowestPrice + taxAmount + stripeAmount
       }
 
       return {
         ...product,
         priceWithTax,
       }
-    })
+    }),
   )
 
   return productsWithPrices
@@ -71,7 +87,7 @@ async function getRecommendations(currentProductId: string) {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
-  
+
   // Return not found metadata if store is disabled
   if (!isStoreEnabledServer()) {
     return {
@@ -79,7 +95,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       description: 'The requested page could not be found.',
     }
   }
-  
+
   const product = await getProduct(params.slug)
 
   if (!product) {
@@ -90,15 +106,25 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   }
 
   const title = `${product.name} | Print Store`
-  const description = product.description || 'Beautiful photographic print available for purchase'
-  const ogImageUrl = new URL('/api/og', siteConfig.url ?? 'http://localhost:3000')
+  const description =
+    product.description || 'Beautiful photographic print available for purchase'
+  const ogImageUrl = new URL(
+    '/api/og',
+    siteConfig.url ?? 'http://localhost:3000',
+  )
   ogImageUrl.searchParams.set('image', product.imageUrl)
   ogImageUrl.searchParams.set('title', product.name)
 
   return {
     title,
     description,
-    keywords: ['photography print', 'wall art', 'home decor', 'fine art', product.name.toLowerCase()],
+    keywords: [
+      'photography print',
+      'wall art',
+      'home decor',
+      'fine art',
+      product.name.toLowerCase(),
+    ],
     openGraph: {
       title,
       description,
@@ -108,7 +134,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
           width: 1200,
           height: 630,
           alt: product.name,
-        }
+        },
       ],
       siteName: siteConfig.storeName,
       locale: 'en_GB',
@@ -152,7 +178,7 @@ export default async function ProductPage(props: Props) {
 
   const [sizes, recommendations] = await Promise.all([
     getProductSizes(product.id),
-    getRecommendations(product.id)
+    getRecommendations(product.id),
   ])
 
   // Get costs for tax calculation
@@ -171,8 +197,9 @@ export default async function ProductPage(props: Props) {
     let totalPrice = size.basePrice
     if (!siteConfig.features.store.showTax) {
       // Include tax in the displayed price
-      const totalTaxRate = (taxRate + stripeTaxRate) / 10000
-      totalPrice = Math.round(size.basePrice * (1 + totalTaxRate))
+      const taxAmount = Math.round(size.basePrice * (taxRate / 10000))
+      const stripeAmount = Math.round(size.basePrice * (stripeTaxRate / 10000))
+      totalPrice = size.basePrice + taxAmount + stripeAmount
     }
     return {
       ...size,
@@ -186,13 +213,13 @@ export default async function ProductPage(props: Props) {
   const productStructuredData = generateProductStructuredData({
     product,
     sizes,
-    baseUrl
+    baseUrl,
   })
 
   const breadcrumbStructuredData = generateBreadcrumbStructuredData([
     { name: 'Home', url: baseUrl },
     { name: 'Store', url: `${baseUrl}/store` },
-    { name: product.name, url: `${baseUrl}/store/${product.slug}` }
+    { name: product.name, url: `${baseUrl}/store/${product.slug}` },
   ])
 
   return (
@@ -201,13 +228,19 @@ export default async function ProductPage(props: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(productStructuredData).replace(/</g, '\\u003c')  
+          __html: JSON.stringify(productStructuredData).replace(
+            /</g,
+            '\\u003c',
+          ),
         }}
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbStructuredData).replace(/</g, '\\u003c')
+          __html: JSON.stringify(breadcrumbStructuredData).replace(
+            /</g,
+            '\\u003c',
+          ),
         }}
       />
 
@@ -223,4 +256,3 @@ export default async function ProductPage(props: Props) {
     </>
   )
 }
-

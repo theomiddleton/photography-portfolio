@@ -99,7 +99,8 @@ export function Costs({ sizes, initialTax, shippingMethods }: CostsProps) {
     return { color: 'success', icon: CheckCircle, text: 'Healthy' }
   }
 
-  const healthStatus = getHealthStatus()
+  const healthStatus = getHealthStatus()  
+  const HealthIcon = healthStatus.icon 
 
   return (
     <div className="space-y-6">
@@ -118,6 +119,7 @@ export function Costs({ sizes, initialTax, shippingMethods }: CostsProps) {
                 'bg-red-100 text-red-600'
               }`}>
                 <healthStatus.icon className="h-5 w-5" />
+                <HealthIcon className="h-5 w-5" />
               </div>
             </div>
             <Badge variant="secondary" className="mt-2 text-xs">
