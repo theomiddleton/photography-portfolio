@@ -135,6 +135,13 @@ export default function Signup() {
                     Register
                   </Button>
                 </div>
+                
+                {/* Email Verification Notice */}
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                  <p className="text-sm text-blue-800">
+                    📧 After registration, you'll need to verify your email address before logging in.
+                  </p>
+                </div>
               </form>
             </Form>
           </CardContent>

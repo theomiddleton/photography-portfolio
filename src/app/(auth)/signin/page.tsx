@@ -104,6 +104,20 @@ export default function Signin() {
                     </FormItem>
                   )}
                 />
+                
+                {/* Remember Me Checkbox */}
+                <div className="flex items-center space-x-2">
+                  <input
+                    id="rememberMe"
+                    name="rememberMe"
+                    type="checkbox"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="rememberMe" className="text-sm text-gray-600">
+                    Remember me for 30 days
+                  </label>
+                </div>
+                
                 <div className="pt-2">
                   <Button 
                     variant="default" 
@@ -112,6 +126,16 @@ export default function Signin() {
                   >
                     Login
                   </Button>
+                </div>
+                
+                {/* Forgot Password Link */}
+                <div className="text-center">
+                  <Link 
+                    href="/forgot-password" 
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    Forgot your password?
+                  </Link>
                 </div>
               </form>
             </Form>

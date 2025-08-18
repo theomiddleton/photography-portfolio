@@ -71,7 +71,7 @@ export const securityConfig = {
   account: {
     maxFailedAttempts: 5,
     lockoutDurationMinutes: 15,
-    requireEmailVerification: false, // Set to true in production
+    requireEmailVerification: true, // Enable email verification
     passwordChangeInvalidatesSessions: true
   }
 } as const
