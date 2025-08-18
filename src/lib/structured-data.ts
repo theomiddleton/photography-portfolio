@@ -46,28 +46,8 @@ export function generateProductStructuredData({
         name: siteConfig.storeName
       }
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      reviewCount: '47',
-      bestRating: '5',
-      worstRating: '1'
-    },
-    review: [
-      {
-        '@type': 'Review',
-        reviewRating: {
-          '@type': 'Rating',
-          ratingValue: '5',
-          bestRating: '5'
-        },
-        author: {
-          '@type': 'Person',
-          name: 'Sarah M.'
-        },
-        reviewBody: 'Absolutely stunning print quality. The colors are vibrant and the detail is incredible.'
-      }
-    ]
+    // Only include aggregateRating and review if actual data exists
+    // TODO: Implement actual review fetching when review system is implemented
   }
 }
 

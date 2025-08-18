@@ -22,9 +22,8 @@ export async function updateOrder(
 ) {
   // Check if store is enabled
   if (!isStoreEnabledServer()) {
-    throw new Error('Store is not available')
+    return { success: false, error: 'Store is not available' }
   }
-
   try {
     // First check if user exists
     const user = await db.select().from(users).where(eq(users.id, userId)).limit(1)

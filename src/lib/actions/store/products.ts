@@ -54,6 +54,7 @@ export async function getProductWithSizes(productId: string) {
           width: size.width,
           height: size.height,
           basePrice: size.basePrice,
+          sellAtPrice: size.sellAtPrice,
           active: size.active
         }))
       } 
