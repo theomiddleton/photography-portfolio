@@ -26,7 +26,7 @@ export function rateLimit(config: RateLimitConfig) {
   return {
     check: async (
       identifier: string,
-    ): Promise<{ success: boolean; reset: number; remaining: number }> => {
+    ): Promise<{ success: boolean; reset: number; remaining: number; limit: number }> => {
       try {
         const now = Date.now()
         const windowStart = Math.floor(now / config.windowMs) * config.windowMs
@@ -46,6 +46,7 @@ export function rateLimit(config: RateLimitConfig) {
             success: false,
             reset: resetTime,
             remaining: 0,
+            limit: config.maxRequests,
           }
         }
 
@@ -53,6 +54,7 @@ export function rateLimit(config: RateLimitConfig) {
           success: true,
           reset: resetTime,
           remaining: config.maxRequests - current,
+          limit: config.maxRequests,
         }
       } catch (error) {
         // On Redis failure, fail open (allow request) to avoid blocking legitimate users
@@ -61,6 +63,7 @@ export function rateLimit(config: RateLimitConfig) {
           success: true,
           reset: Date.now() + config.windowMs,
           remaining: config.maxRequests - 1,
+          limit: config.maxRequests,
         }
       }
     },
@@ -84,7 +87,7 @@ export function createConfigurableRateLimit(
   return {
     check: async (
       identifier: string,
-    ): Promise<{ success: boolean; reset: number; remaining: number }> => {
+    ): Promise<{ success: boolean; reset: number; remaining: number; limit: number }> => {
       try {
         const baseLimit = siteConfig.rateLimiting.limits[limitType]
         const isAdmin = await isUserAdmin()
@@ -93,7 +96,7 @@ export function createConfigurableRateLimit(
           : baseLimit
 
         const config: RateLimitConfig = {
-          name: limitType,
+          name: String(limitType),
           windowMs: 60 * 1000, // 1 minute
           maxRequests,
         }
@@ -106,6 +109,7 @@ export function createConfigurableRateLimit(
           success: true,
           reset: Date.now() + 60 * 1000,
           remaining: siteConfig.rateLimiting.limits[limitType] - 1,
+          limit: siteConfig.rateLimiting.limits[limitType],
         }
       }
     },

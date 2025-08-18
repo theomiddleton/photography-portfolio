@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   
   if (!rateLimitResult.success) {
     return NextResponse.json(
-      { error: 'Rate limit exceeded. AI generation is limited to 5 requests per minute.' },
+      { error: `Rate limit exceeded. AI generation is limited to ${rateLimitResult.limit} requests per minute.` },
       { status: 429 }
     )
   }
