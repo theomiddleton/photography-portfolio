@@ -1,8 +1,8 @@
 'use server'
 
-import { db } from '~/server/db'
+import { dbWithTx } from '~/server/db'
 import { users } from '~/server/db/schema'
-import { eq, count } from 'drizzle-orm'
+import { eq, count, sql } from 'drizzle-orm'
 import { hashPassword } from '~/lib/auth/authHelpers'
 import { checkAdminSetupRequired } from '~/lib/auth/authDatabase'
 import { validateCSRFFromFormData } from '~/lib/csrf-protection'
@@ -92,76 +92,63 @@ export async function setupFirstAdmin(
   }
 
   try {
-    // Double-check no admin exists (race condition protection)
-    const existingAdminCount = await db
-      .select({ count: count() })
-      .from(users)
-      .where(eq(users.role, 'admin'))
-      .then((result) => result[0]?.count || 0)
+    // Use a transaction with advisory lock to prevent race conditions
+    const result = await dbWithTx.transaction(async (tx) => {
+      // Acquire a transaction-scoped advisory lock for admin setup
+      // Lock ID: 12345678 (arbitrary but consistent for admin setup)
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(12345678)`)
 
-    if (existingAdminCount > 0) {
-      void logSecurityEvent({
-        type: 'ADMIN_SETUP_FAIL',
-        email: parsed.data.email,
-        details: { reason: 'admin_already_exists_race_condition' },
-      })
+      // Re-check admin count inside the transaction after acquiring the lock
+      const existingAdminCount = await tx
+        .select({ count: count() })
+        .from(users)
+        .where(eq(users.role, 'admin'))
+        .then((result) => result[0]?.count || 0)
 
-      return {
-        message: 'Admin setup failed. An admin user was created concurrently.',
-        redirect: '/signin',
+      if (existingAdminCount > 0) {
+        throw new Error('ADMIN_EXISTS')
       }
-    }
 
-    // Check if email is already in use
-    const existingUser = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.email, parsed.data.email))
-      .limit(1)
-      .then((rows) => rows[0])
+      // Check if email is already in use
+      const existingUser = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, parsed.data.email))
+        .limit(1)
+        .then((rows) => rows[0])
 
-    if (existingUser) {
-      void logSecurityEvent({
-        type: 'ADMIN_SETUP_FAIL',
-        email: parsed.data.email,
-        details: { reason: 'email_already_exists' },
-      })
+      if (existingUser) {
+        throw new Error('EMAIL_EXISTS')
+      }
 
-      return {
-        message:
-          'Email address is already in use. Please use a different email.',
-        fields: {
+      // Hash the password
+      const hashedPassword = await hashPassword(parsed.data.password)
+
+      // Create the first admin user
+      const [newAdmin] = await tx
+        .insert(users)
+        .values({
           name: parsed.data.name,
-          email: '',
-        },
+          email: parsed.data.email,
+          password: hashedPassword,
+          role: 'admin',
+          emailVerified: true, // First admin is automatically verified
+          isActive: true,
+        })
+        .returning({ id: users.id, email: users.email })
+
+      if (!newAdmin) {
+        throw new Error('INSERT_FAILED')
       }
-    }
 
-    // Hash the password
-    const hashedPassword = await hashPassword(parsed.data.password)
-
-    // Create the first admin user
-    const [newAdmin] = await db
-      .insert(users)
-      .values({
-        name: parsed.data.name,
-        email: parsed.data.email,
-        password: hashedPassword,
-        role: 'admin',
-        emailVerified: true, // First admin is automatically verified
-        isActive: true,
-      })
-      .returning({ id: users.id, email: users.email })
-
-    if (!newAdmin) {
-      throw new Error('Failed to create admin user')
-    }
+      return newAdmin
+    })
 
     // Log successful admin creation
     void logSecurityEvent({
       type: 'ADMIN_SETUP_SUCCESS',
-      userId: newAdmin.id,
-      email: newAdmin.email,
+      userId: result.id,
+      email: result.email,
       details: { reason: 'first_admin_created' },
     })
 
@@ -173,6 +160,40 @@ export async function setupFirstAdmin(
     }
   } catch (error) {
     console.error('Admin setup error:', error)
+
+    // Handle specific error cases
+    if (error instanceof Error) {
+      if (error.message === 'ADMIN_EXISTS') {
+        void logSecurityEvent({
+          type: 'ADMIN_SETUP_FAIL',
+          email: parsed.data.email,
+          details: { reason: 'admin_already_exists_race_condition' },
+        })
+
+        return {
+          message:
+            'Admin setup failed. An admin user was created concurrently.',
+          redirect: '/signin',
+        }
+      }
+
+      if (error.message === 'EMAIL_EXISTS') {
+        void logSecurityEvent({
+          type: 'ADMIN_SETUP_FAIL',
+          email: parsed.data.email,
+          details: { reason: 'email_already_exists' },
+        })
+
+        return {
+          message:
+            'Email address is already in use. Please use a different email.',
+          fields: {
+            name: parsed.data.name,
+            email: '',
+          },
+        }
+      }
+    }
 
     void logSecurityEvent({
       type: 'ADMIN_SETUP_FAIL',
