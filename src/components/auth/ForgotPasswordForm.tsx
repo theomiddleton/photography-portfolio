@@ -2,23 +2,45 @@
 
 import { useActionState } from 'react'
 import { forgotPassword } from '~/lib/auth/forgotPasswordAction'
-import { generateCSRFToken } from '~/lib/csrf-protection'
+import { generateCSRFTokenWithCookie } from '~/lib/csrf-protection'
 import { useEffect, useState } from 'react'
 
+function FormSkeleton() {
+  return (
+    <div className="animate-pulse space-y-4">
+      <div>
+        <div className="mb-2 h-4 w-24 rounded bg-gray-200"></div>
+        <div className="h-10 w-full rounded-md bg-gray-200"></div>
+      </div>
+      <div className="h-10 w-full rounded-md bg-gray-200"></div>
+    </div>
+  )
+}
+
 export function ForgotPasswordForm() {
-  const [state, action, isPending] = useActionState(forgotPassword, { message: '' })
+  const [state, action, isPending] = useActionState(forgotPassword, {
+    message: '',
+  })
   const [csrfToken, setCsrfToken] = useState('')
 
   useEffect(() => {
-    generateCSRFToken().then(setCsrfToken).catch(console.error)
+    generateCSRFTokenWithCookie().then(setCsrfToken).catch(console.error)
   }, [])
+
+  // Show skeleton while CSRF token is loading
+  if (!csrfToken) {
+    return <FormSkeleton />
+  }
 
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="csrf-token" value={csrfToken} />
-      
+
       <div>
-        <label htmlFor="email" className="block text-sm font-medium mb-2">
+        <label
+          htmlFor="email"
+          className="text-foreground mb-2 block text-sm font-medium"
+        >
           Email Address
         </label>
         <input
@@ -27,27 +49,37 @@ export function ForgotPasswordForm() {
           type="email"
           required
           autoComplete="email"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="border-border bg-background text-foreground focus:border-ring focus:ring-ring w-full rounded-md border px-3 py-2 shadow-sm focus:ring-2 focus:outline-none disabled:opacity-50"
           placeholder="Enter your email address"
+          disabled={isPending}
         />
       </div>
 
       {state.message && (
-        <div className={`p-4 rounded-md ${
-          state.success 
-            ? 'bg-green-50 border border-green-200 text-green-800' 
-            : 'bg-red-50 border border-red-200 text-red-800'
-        }`}>
+        <div
+          className={`rounded-md p-4 ${
+            state.success
+              ? 'border border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200'
+              : 'border border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200'
+          }`}
+        >
           {state.message}
         </div>
       )}
 
       <button
         type="submit"
-        disabled={isPending}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-2 px-4 rounded-md transition-colors"
+        disabled={isPending || !csrfToken}
+        className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-md px-4 py-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isPending ? 'Sending...' : 'Send Reset Link'}
+        {isPending ? (
+          <span className="flex items-center justify-center gap-2">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+            Sending...
+          </span>
+        ) : (
+          'Send Reset Link'
+        )}
       </button>
     </form>
   )

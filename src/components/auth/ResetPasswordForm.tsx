@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { resetPassword } from '~/lib/auth/resetPasswordAction'
-import { generateCSRFToken } from '~/lib/csrf-protection'
+import { generateCSRFTokenWithCookie } from '~/lib/csrf-protection'
 import { useEffect, useState } from 'react'
 import { redirect } from 'next/navigation'
 
@@ -10,12 +10,29 @@ interface ResetPasswordFormProps {
   token: string
 }
 
+function FormSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div>
+        <div className="mb-2 h-4 w-32 rounded bg-muted"></div>
+        <div className="h-10 w-full rounded-md bg-muted"></div>
+      </div>
+      <div>
+        <div className="mb-2 h-4 w-40 rounded bg-muted"></div>
+        <div className="h-10 w-full rounded-md bg-muted"></div>
+      </div>
+      <div className="h-20 w-full rounded-md bg-muted"></div>
+      <div className="h-10 w-full rounded-md bg-muted"></div>
+    </div>
+  )
+}
+
 export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const [state, action, isPending] = useActionState(resetPassword, { message: '' })
   const [csrfToken, setCsrfToken] = useState('')
 
   useEffect(() => {
-    generateCSRFToken().then(setCsrfToken).catch(console.error)
+    generateCSRFTokenWithCookie().then(setCsrfToken).catch(console.error)
   }, [])
 
   useEffect(() => {
@@ -24,13 +41,18 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     }
   }, [state.success, state.redirect])
 
+  // Show skeleton while CSRF token is loading
+  if (!csrfToken) {
+    return <FormSkeleton />
+  }
+
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="csrf-token" value={csrfToken} />
       <input type="hidden" name="token" value={token} />
       
       <div>
-        <label htmlFor="password" className="block text-sm font-medium mb-2">
+        <label htmlFor="password" className="mb-2 block text-sm font-medium text-foreground">
           New Password
         </label>
         <input
@@ -39,13 +61,14 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           type="password"
           required
           autoComplete="new-password"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground shadow-sm focus:border-ring focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
           placeholder="Enter your new password"
+          disabled={isPending}
         />
       </div>
 
       <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
+        <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium text-foreground">
           Confirm New Password
         </label>
         <input
@@ -54,20 +77,23 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           type="password"
           required
           autoComplete="new-password"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground shadow-sm focus:border-ring focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
           placeholder="Confirm your new password"
+          disabled={isPending}
         />
       </div>
 
       {state.message && (
-        <div className={`p-4 rounded-md ${
-          state.success 
-            ? 'bg-green-50 border border-green-200 text-green-800' 
-            : 'bg-red-50 border border-red-200 text-red-800'
-        }`}>
+        <div
+          className={`rounded-md p-4 ${
+            state.success
+              ? 'border border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200'
+              : 'border border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200'
+          }`}
+        >
           {state.message}
           {state.issues && (
-            <ul className="mt-2 text-sm list-disc list-inside">
+            <ul className="mt-2 list-inside list-disc text-sm">
               {state.issues.map((issue, index) => (
                 <li key={index}>{issue}</li>
               ))}
@@ -76,9 +102,9 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         </div>
       )}
 
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-        <h3 className="text-sm font-medium text-blue-800 mb-2">Password Requirements:</h3>
-        <ul className="text-xs text-blue-700 space-y-1">
+      <div className="rounded-md border border-border bg-muted/50 p-4">
+        <h3 className="mb-2 text-sm font-medium text-foreground">Password Requirements:</h3>
+        <ul className="space-y-1 text-xs text-muted-foreground">
           <li>• At least 8 characters long</li>
           <li>• Contains uppercase and lowercase letters</li>
           <li>• Contains at least one number</li>
@@ -88,10 +114,17 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
       <button
         type="submit"
-        disabled={isPending}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-2 px-4 rounded-md transition-colors"
+        disabled={isPending || !csrfToken}
+        className="w-full rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isPending ? 'Resetting...' : 'Reset Password'}
+        {isPending ? (
+          <span className="flex items-center justify-center gap-2">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+            Resetting...
+          </span>
+        ) : (
+          'Reset Password'
+        )}
       </button>
     </form>
   )

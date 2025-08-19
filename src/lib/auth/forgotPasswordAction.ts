@@ -14,6 +14,8 @@ export async function forgotPassword(
   data: FormData
 ): Promise<ForgotPasswordState> {
   // Validate CSRF token
+  console.log('Validating CSRF token for forgot password')
+  console.log('Data received:', data)
   const isValidCSRF = await validateCSRFFromFormData(data)
   if (!isValidCSRF) {
     void logSecurityEvent({

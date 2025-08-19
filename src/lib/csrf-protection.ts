@@ -18,6 +18,21 @@ export async function generateCSRFToken(): Promise<string> {
   return token
 }
 
+export async function generateCSRFTokenWithCookie(): Promise<string> {
+  const token = await generateCSRFToken()
+  const cookieStore = await cookies()
+  
+  cookieStore.set('csrf-token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/',
+    maxAge: 60 * 60 // 1 hour
+  })
+  
+  return token
+}
+
 export async function verifyCSRFToken(token: string): Promise<boolean> {
   if (!token) return false
   
@@ -43,7 +58,7 @@ export async function setCSRFCookie(): Promise<string> {
   
   cookieStore.set('csrf-token', token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     path: '/',
     maxAge: 60 * 60 // 1 hour
@@ -70,10 +85,15 @@ export async function validateCSRFFromHeaders(headers: Headers): Promise<boolean
 }
 
 export async function validateCSRFFromFormData(formData: FormData): Promise<boolean> {
+  console.log('Validating CSRF token from form data')
+  console.log('Form data received:', formData)
   const tokenFromForm = formData.get('csrf-token') as string
+  console.log('Token from form:', tokenFromForm)
   const tokenFromCookie = await getCSRFToken()
+  console.log('Token from cookie:', tokenFromCookie)
   
   if (!tokenFromForm || !tokenFromCookie) {
+    console.warn('CSRF validation failed: missing token')
     return false
   }
   

@@ -47,16 +47,18 @@ export async function verifyPasswordResetToken(token: string): Promise<{
       .from(users)
       .where(eq(users.passwordResetToken, token))
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     if (!user || !user.isActive) {
       return { isValid: false }
     }
 
     // Check if token is valid and not expired
-    if (!user.passwordResetToken || 
-        !safeCompareTokens(token, user.passwordResetToken) ||
-        isExpired(user.passwordResetExpiry)) {
+    if (
+      !user.passwordResetToken ||
+      !safeCompareTokens(token, user.passwordResetToken) ||
+      isExpired(user.passwordResetExpiry)
+    ) {
       return { isValid: false }
     }
 
@@ -77,7 +79,7 @@ export async function verifyPasswordResetToken(token: string): Promise<{
  */
 export async function resetPasswordWithToken(
   token: string,
-  newPassword: string
+  newPassword: string,
 ): Promise<PasswordResetResult> {
   try {
     // Verify the token first
@@ -90,7 +92,8 @@ export async function resetPasswordWithToken(
 
       return {
         success: false,
-        message: 'Invalid or expired reset token. Please request a new password reset.',
+        message:
+          'Invalid or expired reset token. Please request a new password reset.',
       }
     }
 
@@ -132,18 +135,19 @@ export async function resetPasswordWithToken(
         email,
         name,
         'Password Reset Completed',
-        'Your password has been successfully reset. All existing sessions have been logged out for security.'
+        'Your password has been successfully reset. All existing sessions have been logged out for security.',
       )
     }
 
     return {
       success: true,
-      message: 'Password reset successfully. Please log in with your new password.',
-      redirect: '/auth/login?message=password_reset_success',
+      message:
+        'Password reset successfully. Please log in with your new password.',
+      redirect: '/login?message=password_reset_success',
     }
   } catch (error) {
     console.error('Error resetting password:', error)
-    
+
     void logSecurityEvent({
       type: 'PASSWORD_RESET_FAIL',
       details: { reason: 'system_error' },
@@ -151,7 +155,8 @@ export async function resetPasswordWithToken(
 
     return {
       success: false,
-      message: 'An error occurred while resetting your password. Please try again.',
+      message:
+        'An error occurred while resetting your password. Please try again.',
     }
   }
 }
@@ -162,7 +167,7 @@ export async function resetPasswordWithToken(
 export async function changePassword(
   userId: number,
   currentPassword: string,
-  newPassword: string
+  newPassword: string,
 ): Promise<PasswordChangeResult> {
   try {
     // Get current user data
@@ -177,7 +182,7 @@ export async function changePassword(
       .from(users)
       .where(eq(users.id, userId))
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     if (!user || !user.isActive) {
       void logSecurityEvent({
@@ -193,7 +198,10 @@ export async function changePassword(
     }
 
     // Verify current password
-    const isCurrentPasswordValid = await verifyPassword(currentPassword, user.password)
+    const isCurrentPasswordValid = await verifyPassword(
+      currentPassword,
+      user.password,
+    )
     if (!isCurrentPasswordValid) {
       void logSecurityEvent({
         type: 'PASSWORD_CHANGE_FAIL',
@@ -254,7 +262,7 @@ export async function changePassword(
       user.email,
       user.name,
       'Password Changed',
-      'Your account password has been successfully changed. If this wasn\'t you, please contact support immediately.'
+      "Your account password has been successfully changed. If this wasn't you, please contact support immediately.",
     )
 
     return {
@@ -263,7 +271,7 @@ export async function changePassword(
     }
   } catch (error) {
     console.error('Error changing password:', error)
-    
+
     void logSecurityEvent({
       type: 'PASSWORD_CHANGE_FAIL',
       userId,
@@ -272,7 +280,8 @@ export async function changePassword(
 
     return {
       success: false,
-      message: 'An error occurred while changing your password. Please try again.',
+      message:
+        'An error occurred while changing your password. Please try again.',
     }
   }
 }
