@@ -24,7 +24,7 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import Link from 'next/link'
 import { registerSchema } from '~/lib/types/registerSchema'
-import { generateCSRFTokenWithCookie } from '~/lib/csrf-protection'
+
 import { PasswordRequirements } from './PasswordRequirements'
 
 interface RegisterState {
@@ -55,7 +55,20 @@ export function SignupForm({ register }: SignupFormProps) {
   })
 
   useEffect(() => {
-    generateCSRFTokenWithCookie().then(setCsrfToken).catch(console.error)
+    async function fetchCsrfToken() {
+      try {
+        const response = await fetch('/api/csrf-token')
+        const data = await response.json()
+        if (data.success) {
+          setCsrfToken(data.token)
+        } else {
+          console.error('Failed to fetch CSRF token:', data.error)
+        }
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error)
+      }
+    }
+    fetchCsrfToken()
   }, [])
 
   const formRef = useRef<HTMLFormElement>(null)

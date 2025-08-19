@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { resetPassword } from '~/lib/auth/resetPasswordAction'
-import { generateCSRFTokenWithCookie } from '~/lib/csrf-protection'
+
 import { useEffect, useState } from 'react'
 import { redirect } from 'next/navigation'
 import { PasswordRequirements } from '~/components/auth/PasswordRequirements'
@@ -34,7 +34,20 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const [password, setPassword] = useState('')
 
   useEffect(() => {
-    generateCSRFTokenWithCookie().then(setCsrfToken).catch(console.error)
+    async function fetchCsrfToken() {
+      try {
+        const response = await fetch('/api/csrf-token')
+        const data = await response.json()
+        if (data.success) {
+          setCsrfToken(data.token)
+        } else {
+          console.error('Failed to fetch CSRF token:', data.error)
+        }
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error)
+      }
+    }
+    fetchCsrfToken()
   }, [])
 
   useEffect(() => {

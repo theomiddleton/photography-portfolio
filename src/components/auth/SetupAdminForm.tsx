@@ -7,7 +7,7 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Loader2, Shield, User, Mail, Lock } from 'lucide-react'
-import { generateCSRFTokenWithCookie } from '~/lib/csrf-protection'
+
 
 interface SetupAdminState {
   message: string
@@ -34,8 +34,17 @@ export function SetupAdminForm({
   // Generate CSRF token on component mount
   useEffect(() => {
     async function fetchCsrfToken() {
-      const token = await generateCSRFTokenWithCookie()
-      setCsrfToken(token)
+      try {
+        const response = await fetch('/api/csrf-token')
+        const data = await response.json()
+        if (data.success) {
+          setCsrfToken(data.token)
+        } else {
+          console.error('Failed to fetch CSRF token:', data.error)
+        }
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error)
+      }
     }
     fetchCsrfToken()
   }, [])

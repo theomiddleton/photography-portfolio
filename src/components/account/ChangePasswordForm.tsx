@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { changePasswordAction } from '~/lib/auth/changePasswordAction'
-import { generateCSRFTokenWithCookie } from '~/lib/csrf-protection'
+
 import { useEffect, useState } from 'react'
 import { PasswordRequirements } from '~/components/auth/PasswordRequirements'
 
@@ -20,10 +20,16 @@ export function ChangePasswordForm() {
     setCsrfLoading(true)
 
     try {
-      const token = await generateCSRFTokenWithCookie()
-      setCsrfToken(token)
+      const response = await fetch('/api/csrf-token')
+      const data = await response.json()
+      if (data.success) {
+        setCsrfToken(data.token)
+      } else {
+        console.error('Failed to fetch CSRF token:', data.error)
+        setCsrfError('Failed to initialize security token. Please try again.')
+      }
     } catch (error) {
-      console.error('Error generating CSRF token:', error)
+      console.error('Error fetching CSRF token:', error)
       setCsrfError('Failed to initialize security token. Please try again.')
     } finally {
       setCsrfLoading(false)

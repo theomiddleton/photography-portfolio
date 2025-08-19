@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { forgotPassword } from '~/lib/auth/forgotPasswordAction'
-import { generateCSRFTokenWithCookie } from '~/lib/csrf-protection'
+
 import { useEffect, useState } from 'react'
 
 function FormSkeleton() {
@@ -24,7 +24,20 @@ export function ForgotPasswordForm() {
   const [csrfToken, setCsrfToken] = useState('')
 
   useEffect(() => {
-    generateCSRFTokenWithCookie().then(setCsrfToken).catch(console.error)
+    async function fetchCsrfToken() {
+      try {
+        const response = await fetch('/api/csrf-token')
+        const data = await response.json()
+        if (data.success) {
+          setCsrfToken(data.token)
+        } else {
+          console.error('Failed to fetch CSRF token:', data.error)
+        }
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error)
+      }
+    }
+    fetchCsrfToken()
   }, [])
 
   // Show skeleton while CSRF token is loading

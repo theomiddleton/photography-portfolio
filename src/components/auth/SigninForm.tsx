@@ -24,7 +24,7 @@ import { Input } from '~/components/ui/input'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { loginSchema } from '~/lib/types/loginSchema'
-import { generateCSRFTokenWithCookie } from '~/lib/csrf-protection'
+
 
 interface SigninFormProps {
   login: (prevState: any, data: FormData) => Promise<any>
@@ -50,7 +50,20 @@ export function SigninForm({ login }: SigninFormProps) {
 
   // Generate CSRF token on component mount
   useEffect(() => {
-    void generateCSRFTokenWithCookie().then(setCsrfToken)
+    async function fetchCsrfToken() {
+      try {
+        const response = await fetch('/api/csrf-token')
+        const data = await response.json()
+        if (data.success) {
+          setCsrfToken(data.token)
+        } else {
+          console.error('Failed to fetch CSRF token:', data.error)
+        }
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error)
+      }
+    }
+    fetchCsrfToken()
   }, [])
 
   // Handle redirect if login is successful
