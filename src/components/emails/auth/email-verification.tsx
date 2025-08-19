@@ -58,11 +58,11 @@ export const EmailVerification = ({
 
   return (
     <Html>
-      <Head />
       <Preview>
         Verify your email address to complete your account setup
       </Preview>
       <Tailwind>
+        <Head />
         <Body className="bg-white font-sans">
           <Container className="mx-auto max-w-2xl px-4 py-8">
             <Section className="mb-8 rounded-lg bg-gray-50 p-6 text-center">

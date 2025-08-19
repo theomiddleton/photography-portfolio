@@ -17,6 +17,7 @@ import {
   SecurityNotification,
   SecurityNotificationText,
 } from '~/components/emails/auth'
+import { siteConfig } from '~/config/site'
 
 const resend = new Resend(env.RESEND_API_KEY)
 
@@ -60,7 +61,7 @@ export async function sendEmailVerification(
     // Send email
     const emailProps = { name, email, token, expiryMinutes }
     const { error } = await resend.emails.send({
-      from: `Portfolio <noreply@${new URL(env.SITE_URL).hostname}>`,
+      from: `Portfolio <${siteConfig.emails.noReply}>`,
       to: [email],
       subject: 'Verify Your Email Address',
       html: await render(EmailVerification(emailProps)),
@@ -150,7 +151,7 @@ export async function sendPasswordReset(email: string): Promise<boolean> {
     // Send email
     const emailProps = { name: user.name, email, token, expiryMinutes }
     const { error } = await resend.emails.send({
-      from: `Portfolio <noreply@${new URL(env.SITE_URL).hostname}>`,
+      from: `Portfolio <${siteConfig.emails.noReply}>`,
       to: [email],
       subject: 'Reset Your Password',
       html: await render(PasswordReset(emailProps)),
@@ -197,7 +198,7 @@ export async function sendSecurityNotification(
   try {
     const emailProps = { name, event, details }
     const { error } = await resend.emails.send({
-      from: `Portfolio Security <noreply@${new URL(env.SITE_URL).hostname}>`,
+      from: `Portfolio Security <${siteConfig.emails.noReply}>`,
       to: [email],
       subject: `Security Alert: ${event}`,
       html: await render(SecurityNotification(emailProps)),

@@ -85,15 +85,10 @@ export async function validateCSRFFromHeaders(headers: Headers): Promise<boolean
 }
 
 export async function validateCSRFFromFormData(formData: FormData): Promise<boolean> {
-  console.log('Validating CSRF token from form data')
-  console.log('Form data received:', formData)
   const tokenFromForm = formData.get('csrf-token') as string
-  console.log('Token from form:', tokenFromForm)
   const tokenFromCookie = await getCSRFToken()
-  console.log('Token from cookie:', tokenFromCookie)
   
   if (!tokenFromForm || !tokenFromCookie) {
-    console.warn('CSRF validation failed: missing token')
     return false
   }
   
