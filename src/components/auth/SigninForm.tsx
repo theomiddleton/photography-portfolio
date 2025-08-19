@@ -221,7 +221,7 @@ export function SigninForm({ login }: SigninFormProps) {
             )}
           </CardContent>
           <CardFooter className="text-center text-sm">
-            Don&apos;t have an account?{' '}
+            Don&apos;t have an account? {' '}
             <Link href="/signup" className="underline">
               Sign up
             </Link>
