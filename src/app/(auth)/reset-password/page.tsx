@@ -29,27 +29,29 @@ export default async function ResetPasswordPage({
   }
 
   return (
-    <div className="container mx-auto max-w-md px-4 py-8">
-      <div className="space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Reset Password</h1>
-          <p className="text-muted-foreground mt-2 text-sm">
-            Enter your new password below.
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="container mx-auto max-w-lg">
+        <div className="space-y-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Reset Password</h1>
+            <p className="text-muted-foreground mt-2 text-sm">
+              Enter your new password below.
+            </p>
+          </div>
 
-        <ResetPasswordForm token={token} />
+          <ResetPasswordForm token={token} />
 
-        <div className="text-center">
-          <p className="text-muted-foreground text-sm">
-            Remember your password?{' '}
-            <a
-              href="/signin"
-              className="text-primary font-medium hover:underline"
-            >
-              Sign in
-            </a>
-          </p>
+          <div className="text-center">
+            <p className="text-muted-foreground text-sm">
+              Remember your password?{' '}
+              <a
+                href="/signin"
+                className="text-primary font-medium hover:underline"
+              >
+                Sign in
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

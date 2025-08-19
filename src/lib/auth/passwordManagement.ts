@@ -143,7 +143,7 @@ export async function resetPasswordWithToken(
       success: true,
       message:
         'Password reset successfully. Please log in with your new password.',
-      redirect: '/login?message=password_reset_success',
+      redirect: '/reset-password-success',
     }
   } catch (error) {
     console.error('Error resetting password:', error)

@@ -4,12 +4,14 @@ import { useActionState } from 'react'
 import { changePasswordAction } from '~/lib/auth/changePasswordAction'
 import { generateCSRFTokenWithCookie } from '~/lib/csrf-protection'
 import { useEffect, useState } from 'react'
+import { PasswordRequirements } from '~/components/auth/PasswordRequirements'
 
 export function ChangePasswordForm() {
   const [state, action, isPending] = useActionState(changePasswordAction, {
     message: '',
   })
   const [csrfToken, setCsrfToken] = useState('')
+  const [newPassword, setNewPassword] = useState('')
 
   useEffect(() => {
     generateCSRFTokenWithCookie().then(setCsrfToken).catch(console.error)
@@ -76,6 +78,8 @@ export function ChangePasswordForm() {
           className="border-border bg-background text-foreground focus:border-ring focus:ring-ring w-full rounded-md border px-3 py-2 shadow-sm focus:ring-2 focus:outline-none disabled:opacity-50"
           placeholder="Enter your new password"
           disabled={isPending}
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
         />
       </div>
 
@@ -98,6 +102,8 @@ export function ChangePasswordForm() {
         />
       </div>
 
+      {newPassword && <PasswordRequirements password={newPassword} />}
+
       {state.message && (
         <div
           className={`rounded-md p-4 ${
@@ -116,18 +122,6 @@ export function ChangePasswordForm() {
           )}
         </div>
       )}
-
-      <div className="border-border bg-muted/50 rounded-md border p-4">
-        <h3 className="text-foreground mb-2 text-sm font-medium">
-          Password Requirements:
-        </h3>
-        <ul className="text-muted-foreground space-y-1 text-xs">
-          <li>• At least 8 characters long</li>
-          <li>• Contains uppercase and lowercase letters</li>
-          <li>• Contains at least one number</li>
-          <li>• Contains at least one special character</li>
-        </ul>
-      </div>
 
       <button
         type="submit"

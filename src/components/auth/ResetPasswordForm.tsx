@@ -5,6 +5,7 @@ import { resetPassword } from '~/lib/auth/resetPasswordAction'
 import { generateCSRFTokenWithCookie } from '~/lib/csrf-protection'
 import { useEffect, useState } from 'react'
 import { redirect } from 'next/navigation'
+import { PasswordRequirements } from '~/components/auth/PasswordRequirements'
 
 interface ResetPasswordFormProps {
   token: string
@@ -30,6 +31,7 @@ function FormSkeleton() {
 export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const [state, action, isPending] = useActionState(resetPassword, { message: '' })
   const [csrfToken, setCsrfToken] = useState('')
+  const [password, setPassword] = useState('')
 
   useEffect(() => {
     generateCSRFTokenWithCookie().then(setCsrfToken).catch(console.error)
@@ -64,6 +66,8 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground shadow-sm focus:border-ring focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
           placeholder="Enter your new password"
           disabled={isPending}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
       </div>
 
@@ -83,6 +87,8 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         />
       </div>
 
+      {password && <PasswordRequirements password={password} />}
+
       {state.message && (
         <div
           className={`rounded-md p-4 ${
@@ -101,16 +107,6 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           )}
         </div>
       )}
-
-      <div className="rounded-md border border-border bg-muted/50 p-4">
-        <h3 className="mb-2 text-sm font-medium text-foreground">Password Requirements:</h3>
-        <ul className="space-y-1 text-xs text-muted-foreground">
-          <li>• At least 8 characters long</li>
-          <li>• Contains uppercase and lowercase letters</li>
-          <li>• Contains at least one number</li>
-          <li>• Contains at least one special character</li>
-        </ul>
-      </div>
 
       <button
         type="submit"
