@@ -147,12 +147,23 @@ export function SigninForm({ login }: SigninFormProps) {
                   )}
                 />
 
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    name="rememberMe"
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <label htmlFor="rememberMe" className="text-sm text-gray-600">
+                    Remember me for 30 days
+                  </label>
+                </div>
+
                 <Button type="submit" className="w-full">
                   Login
                 </Button>
               </form>
-            </Form>
-
+            </Form>{' '}
             {state.message && (
               <div className="border-destructive/50 bg-destructive/10 text-destructive mt-4 flex items-center gap-2 rounded-md border p-3 text-sm">
                 <X className="h-4 w-4" />
