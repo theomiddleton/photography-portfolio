@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 
 export default async function AccountPage() {
   const session = await getSession()
-  
+
   if (!session) {
-    redirect('/auth/login?redirect=/account')
+    redirect('/signin?redirect=/account')
   }
 
   return (
@@ -20,11 +20,11 @@ export default async function AccountPage() {
       <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold">Account Settings</h1>
-          <p className="mt-2 text-muted-foreground">
+          <p className="text-muted-foreground mt-2">
             Manage your account security, preferences, and data.
           </p>
         </div>
-        
+
         <AccountDashboard />
       </div>
     </div>

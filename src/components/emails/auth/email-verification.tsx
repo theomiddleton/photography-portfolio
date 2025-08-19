@@ -28,7 +28,7 @@ export const EmailVerificationText = ({
   token,
   expiryMinutes,
 }: EmailVerificationProps) => {
-  const verificationUrl = `${env.SITE_URL}/auth/verify-email?token=${token}`
+  const verificationUrl = `${env.SITE_URL}/verify-email?token=${token}`
 
   return `Verify Your Email Address
 
@@ -54,7 +54,7 @@ export const EmailVerification = ({
   token,
   expiryMinutes,
 }: EmailVerificationProps) => {
-  const verificationUrl = `${env.SITE_URL}/auth/verify-email?token=${token}`
+  const verificationUrl = `${env.SITE_URL}/verify-email?token=${token}`
 
   return (
     <Html>

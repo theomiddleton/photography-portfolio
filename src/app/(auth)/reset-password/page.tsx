@@ -12,18 +12,20 @@ interface ResetPasswordPageProps {
   searchParams: Promise<{ token?: string }>
 }
 
-export default async function ResetPasswordPage({ searchParams }: ResetPasswordPageProps) {
+export default async function ResetPasswordPage({
+  searchParams,
+}: ResetPasswordPageProps) {
   const params = await searchParams
   const token = params.token
 
   if (!token) {
-    redirect('/auth/forgot-password?error=missing_token')
+    redirect('/forgot-password?error=missing_token')
   }
 
   // Verify the token is valid before showing the form
   const verification = await verifyPasswordResetToken(token)
   if (!verification.isValid) {
-    redirect('/auth/forgot-password?error=invalid_token')
+    redirect('/forgot-password?error=invalid_token')
   }
 
   return (
@@ -31,17 +33,20 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
       <div className="space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Reset Password</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-2 text-sm">
             Enter your new password below.
           </p>
         </div>
-        
+
         <ResetPasswordForm token={token} />
-        
+
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Remember your password?{' '}
-            <a href="/auth/login" className="font-medium text-primary hover:underline">
+            <a
+              href="/signin"
+              className="text-primary font-medium hover:underline"
+            >
               Sign in
             </a>
           </p>

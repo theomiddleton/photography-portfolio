@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 
 export default async function ChangePasswordPage() {
   const session = await getSession()
-  
+
   if (!session) {
-    redirect('/auth/login?redirect=/account/change-password')
+    redirect('/signin?redirect=/account/change-password')
   }
 
   return (
@@ -20,17 +20,17 @@ export default async function ChangePasswordPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Change Password</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-2 text-sm">
             Enter your current password and choose a new secure password.
           </p>
         </div>
-        
+
         <ChangePasswordForm />
-        
+
         <div className="text-center">
-          <a 
-            href="/account" 
-            className="text-sm text-muted-foreground hover:text-primary"
+          <a
+            href="/account"
+            className="text-muted-foreground hover:text-primary text-sm"
           >
             ← Back to Account Settings
           </a>

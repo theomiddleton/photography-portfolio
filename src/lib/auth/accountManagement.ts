@@ -20,7 +20,7 @@ interface AccountActionResult {
 export async function deactivateAccount(
   userId: number,
   password: string,
-  reason?: string
+  reason?: string,
 ): Promise<AccountActionResult> {
   try {
     // Get current user data
@@ -35,7 +35,7 @@ export async function deactivateAccount(
       .from(users)
       .where(eq(users.id, userId))
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     if (!user) {
       return {
@@ -95,17 +95,18 @@ export async function deactivateAccount(
       user.email,
       user.name,
       'Account Deactivated',
-      `Your account has been deactivated${reason ? ` for the following reason: ${reason}` : ''}. You can reactivate it by logging in again.`
+      `Your account has been deactivated${reason ? ` for the following reason: ${reason}` : ''}. You can reactivate it by logging in again.`,
     )
 
     return {
       success: true,
-      message: 'Account deactivated successfully. You can reactivate it by logging in again.',
-      redirect: '/auth/login?message=account_deactivated',
+      message:
+        'Account deactivated successfully. You can reactivate it by logging in again.',
+      redirect: '/signin?message=account_deactivated',
     }
   } catch (error) {
     console.error('Error deactivating account:', error)
-    
+
     void logSecurityEvent({
       type: 'ACCOUNT_DEACTIVATION_FAIL',
       userId,
@@ -114,7 +115,8 @@ export async function deactivateAccount(
 
     return {
       success: false,
-      message: 'An error occurred while deactivating your account. Please try again.',
+      message:
+        'An error occurred while deactivating your account. Please try again.',
     }
   }
 }
@@ -124,7 +126,7 @@ export async function deactivateAccount(
  */
 export async function reactivateAccount(
   email: string,
-  password: string
+  password: string,
 ): Promise<AccountActionResult> {
   try {
     // Get user data
@@ -140,7 +142,7 @@ export async function reactivateAccount(
       .from(users)
       .where(eq(users.email, email))
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     if (!user) {
       return {
@@ -197,17 +199,17 @@ export async function reactivateAccount(
       user.email,
       user.name,
       'Account Reactivated',
-      'Your account has been successfully reactivated. Welcome back!'
+      'Your account has been successfully reactivated. Welcome back!',
     )
 
     return {
       success: true,
       message: 'Account reactivated successfully. You can now log in.',
-      redirect: '/auth/login?message=account_reactivated',
+      redirect: '/signin?message=account_reactivated',
     }
   } catch (error) {
     console.error('Error reactivating account:', error)
-    
+
     void logSecurityEvent({
       type: 'ACCOUNT_REACTIVATION_FAIL',
       email,
@@ -216,7 +218,8 @@ export async function reactivateAccount(
 
     return {
       success: false,
-      message: 'An error occurred while reactivating your account. Please try again.',
+      message:
+        'An error occurred while reactivating your account. Please try again.',
     }
   }
 }
@@ -227,7 +230,7 @@ export async function reactivateAccount(
 export async function deleteAccount(
   userId: number,
   password: string,
-  confirmationText: string
+  confirmationText: string,
 ): Promise<AccountActionResult> {
   try {
     // Require exact confirmation text
@@ -250,7 +253,7 @@ export async function deleteAccount(
       .from(users)
       .where(eq(users.id, userId))
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     if (!user) {
       return {
@@ -314,7 +317,7 @@ export async function deleteAccount(
       type: 'ACCOUNT_DELETED',
       userId,
       email: user.email, // Log original email before anonymization
-      details: { 
+      details: {
         method: 'user_request',
         originalEmail: user.email,
         anonymizedEmail,
@@ -327,17 +330,17 @@ export async function deleteAccount(
       user.email, // Send to original email
       user.name,
       'Account Deleted',
-      'Your account has been permanently deleted as requested. This action cannot be undone. If you did not request this deletion, please contact support immediately.'
+      'Your account has been permanently deleted as requested. This action cannot be undone. If you did not request this deletion, please contact support immediately.',
     )
 
     return {
       success: true,
-      message: 'Account deleted successfully. We\'re sorry to see you go.',
+      message: "Account deleted successfully. We're sorry to see you go.",
       redirect: '/?message=account_deleted',
     }
   } catch (error) {
     console.error('Error deleting account:', error)
-    
+
     void logSecurityEvent({
       type: 'ACCOUNT_DELETION_FAIL',
       userId,
@@ -346,7 +349,8 @@ export async function deleteAccount(
 
     return {
       success: false,
-      message: 'An error occurred while deleting your account. Please try again.',
+      message:
+        'An error occurred while deleting your account. Please try again.',
     }
   }
 }
@@ -384,7 +388,7 @@ export async function getAccountStatus(userId: number): Promise<{
       .from(users)
       .where(eq(users.id, userId))
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     if (!user) return null
 

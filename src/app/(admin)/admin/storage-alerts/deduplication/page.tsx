@@ -6,7 +6,7 @@ export default async function Deduplication() {
   const session = await getSession()
 
   if (!session || session.role !== 'admin') {
-    redirect('/auth/login')
+    redirect('/signin')
   }
 
   return <DeduplicationPage />

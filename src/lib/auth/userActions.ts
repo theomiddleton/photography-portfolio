@@ -182,7 +182,7 @@ export async function login(
         if (reactivationResult.success) {
           return {
             message: 'Account reactivated successfully. Please log in again.',
-            redirect: '/auth/login?message=account_reactivated',
+            redirect: '/signin?message=account_reactivated',
           }
         }
       }
@@ -210,7 +210,7 @@ export async function login(
         message:
           'Please verify your email address before logging in. Check your inbox for a verification link.',
         redirect:
-          '/auth/verify-email-notice?email=' + encodeURIComponent(user.email),
+          '/verify-email-notice?email=' + encodeURIComponent(user.email),
       }
     }
 
@@ -484,14 +484,14 @@ export async function register(
       return {
         message:
           'Account created successfully, but there was an issue sending the verification email. Please contact support.',
-        redirect: '/auth/login?message=verification_email_issue',
+        redirect: '/signin?message=verification_email_issue',
       }
     }
 
     return {
       message:
         'Account created successfully! Please check your email and click the verification link before logging in.',
-      redirect: '/auth/login?message=verify_email',
+      redirect: '/signin?message=verify_email',
     }
   } catch (error) {
     console.error('Registration error:', error)

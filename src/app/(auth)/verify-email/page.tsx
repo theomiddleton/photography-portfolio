@@ -11,12 +11,14 @@ interface VerifyEmailPageProps {
   searchParams: Promise<{ token?: string }>
 }
 
-export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageProps) {
+export default async function VerifyEmailPage({
+  searchParams,
+}: VerifyEmailPageProps) {
   const params = await searchParams
   const token = params.token
 
   if (!token) {
-    redirect('/auth/login?error=missing_verification_token')
+    redirect('/signin?error=missing_verification_token')
   }
 
   // Verify the email token
@@ -32,14 +34,16 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
         {result.success ? (
           <>
             <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-              <h1 className="text-xl font-semibold text-green-800">Email Verified!</h1>
+              <h1 className="text-xl font-semibold text-green-800">
+                Email Verified!
+              </h1>
               <p className="mt-2 text-green-700">{result.message}</p>
             </div>
-            
+
             <div>
-              <a 
-                href="/auth/login" 
-                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              <a
+                href="/signin"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium"
               >
                 Sign In
               </a>
@@ -48,20 +52,25 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
         ) : (
           <>
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-              <h1 className="text-xl font-semibold text-red-800">Verification Failed</h1>
+              <h1 className="text-xl font-semibold text-red-800">
+                Verification Failed
+              </h1>
               <p className="mt-2 text-red-700">{result.message}</p>
             </div>
-            
+
             <div className="space-y-2">
-              <a 
-                href="/auth/verify-email-notice" 
-                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              <a
+                href="/verify-email-notice"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium"
               >
                 Request New Link
               </a>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 or{' '}
-                <a href="/auth/login" className="font-medium text-primary hover:underline">
+                <a
+                  href="/signin"
+                  className="text-primary font-medium hover:underline"
+                >
                   go to sign in
                 </a>
               </p>

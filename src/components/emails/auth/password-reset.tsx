@@ -28,7 +28,7 @@ export const PasswordResetText = ({
   token,
   expiryMinutes,
 }: PasswordResetProps) => {
-  const resetUrl = `${env.SITE_URL}/auth/reset-password?token=${token}`
+  const resetUrl = `${env.SITE_URL}/reset-password?token=${token}`
 
   return `Reset Your Password
 
@@ -58,7 +58,7 @@ export const PasswordReset = ({
   token,
   expiryMinutes,
 }: PasswordResetProps) => {
-  const resetUrl = `${env.SITE_URL}/auth/reset-password?token=${token}`
+  const resetUrl = `${env.SITE_URL}/reset-password?token=${token}`
 
   return (
     <Html>

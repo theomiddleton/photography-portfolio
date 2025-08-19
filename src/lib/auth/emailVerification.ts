@@ -16,7 +16,9 @@ interface EmailVerificationResult {
 /**
  * Verify an email verification token
  */
-export async function verifyEmailToken(token: string): Promise<EmailVerificationResult> {
+export async function verifyEmailToken(
+  token: string,
+): Promise<EmailVerificationResult> {
   if (!token) {
     return {
       success: false,
@@ -38,7 +40,7 @@ export async function verifyEmailToken(token: string): Promise<EmailVerification
       .from(users)
       .where(eq(users.emailVerificationToken, token))
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     if (!user) {
       void logSecurityEvent({
@@ -77,15 +79,16 @@ export async function verifyEmailToken(token: string): Promise<EmailVerification
       return {
         success: true,
         message: 'Email is already verified.',
-        redirect: '/auth/login?message=already_verified',
+        redirect: '/signin?message=already_verified',
       }
     }
 
     // Check if token is valid and not expired
-    if (!user.emailVerificationToken || 
-        !safeCompareTokens(token, user.emailVerificationToken) ||
-        isExpired(user.emailVerificationExpiry)) {
-      
+    if (
+      !user.emailVerificationToken ||
+      !safeCompareTokens(token, user.emailVerificationToken) ||
+      isExpired(user.emailVerificationExpiry)
+    ) {
       void logSecurityEvent({
         type: 'EMAIL_VERIFICATION_FAIL',
         userId: user.id,
@@ -95,7 +98,8 @@ export async function verifyEmailToken(token: string): Promise<EmailVerification
 
       return {
         success: false,
-        message: 'Verification token has expired. Please request a new verification email.',
+        message:
+          'Verification token has expired. Please request a new verification email.',
       }
     }
 
@@ -120,11 +124,11 @@ export async function verifyEmailToken(token: string): Promise<EmailVerification
     return {
       success: true,
       message: 'Email verified successfully! You can now log in.',
-      redirect: '/auth/login?message=email_verified',
+      redirect: '/signin?message=email_verified',
     }
   } catch (error) {
     console.error('Error verifying email token:', error)
-    
+
     void logSecurityEvent({
       type: 'EMAIL_VERIFICATION_FAIL',
       details: { reason: 'system_error' },
@@ -132,7 +136,8 @@ export async function verifyEmailToken(token: string): Promise<EmailVerification
 
     return {
       success: false,
-      message: 'An error occurred while verifying your email. Please try again.',
+      message:
+        'An error occurred while verifying your email. Please try again.',
     }
   }
 }
@@ -140,7 +145,9 @@ export async function verifyEmailToken(token: string): Promise<EmailVerification
 /**
  * Resend email verification
  */
-export async function resendEmailVerification(email: string): Promise<EmailVerificationResult> {
+export async function resendEmailVerification(
+  email: string,
+): Promise<EmailVerificationResult> {
   try {
     const user = await db
       .select({
@@ -154,7 +161,7 @@ export async function resendEmailVerification(email: string): Promise<EmailVerif
       .from(users)
       .where(eq(users.email, email))
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     if (!user) {
       // Don't reveal if email exists or not
@@ -166,7 +173,8 @@ export async function resendEmailVerification(email: string): Promise<EmailVerif
 
       return {
         success: true,
-        message: 'If the email address exists and is not verified, a verification email has been sent.',
+        message:
+          'If the email address exists and is not verified, a verification email has been sent.',
       }
     }
 
@@ -200,7 +208,8 @@ export async function resendEmailVerification(email: string): Promise<EmailVerif
 
     // Check rate limiting - don't allow resending within 5 minutes
     if (user.emailVerificationExpiry) {
-      const timeSinceLastSent = Date.now() - (user.emailVerificationExpiry.getTime() - 60 * 60 * 1000) // expiry - 1 hour
+      const timeSinceLastSent =
+        Date.now() - (user.emailVerificationExpiry.getTime() - 60 * 60 * 1000) // expiry - 1 hour
       const fiveMinutes = 5 * 60 * 1000
 
       if (timeSinceLastSent < fiveMinutes) {
@@ -213,13 +222,18 @@ export async function resendEmailVerification(email: string): Promise<EmailVerif
 
         return {
           success: false,
-          message: 'Please wait at least 5 minutes before requesting another verification email.',
+          message:
+            'Please wait at least 5 minutes before requesting another verification email.',
         }
       }
     }
 
     // Send new verification email
-    const emailSent = await sendEmailVerification(user.id, user.email, user.name)
+    const emailSent = await sendEmailVerification(
+      user.id,
+      user.email,
+      user.name,
+    )
 
     if (!emailSent) {
       void logSecurityEvent({
@@ -248,7 +262,7 @@ export async function resendEmailVerification(email: string): Promise<EmailVerif
     }
   } catch (error) {
     console.error('Error resending email verification:', error)
-    
+
     void logSecurityEvent({
       type: 'EMAIL_VERIFICATION_RESEND',
       email,
@@ -257,7 +271,8 @@ export async function resendEmailVerification(email: string): Promise<EmailVerif
 
     return {
       success: false,
-      message: 'An error occurred while sending verification email. Please try again.',
+      message:
+        'An error occurred while sending verification email. Please try again.',
     }
   }
 }
@@ -272,7 +287,7 @@ export async function isEmailVerified(userId: number): Promise<boolean> {
       .from(users)
       .where(eq(users.id, userId))
       .limit(1)
-      .then(rows => rows[0])
+      .then((rows) => rows[0])
 
     return user?.emailVerified ?? false
   } catch (error) {
@@ -284,12 +299,14 @@ export async function isEmailVerified(userId: number): Promise<boolean> {
 /**
  * Get users with unverified emails (for admin/cleanup purposes)
  */
-export async function getUnverifiedUsers(limit: number = 50): Promise<Array<{
-  id: number
-  email: string
-  name: string
-  createdAt: Date
-}>> {
+export async function getUnverifiedUsers(limit: number = 50): Promise<
+  Array<{
+    id: number
+    email: string
+    name: string
+    createdAt: Date
+  }>
+> {
   try {
     return await db
       .select({
