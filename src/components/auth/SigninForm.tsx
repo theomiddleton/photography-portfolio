@@ -92,8 +92,9 @@ export function SigninForm({ login }: SigninFormProps) {
             }
           }
         `}</style>
-        <div className="container flex h-screen w-screen flex-col items-center justify-center">
-          <Card className="mx-auto max-w-lg">
+        <div className="min-h-screen space-y-12">
+          <div className="mx-auto max-w-lg px-4 py-24">
+            <Card className="w-full">
             <CardHeader>
               <CardTitle className="text-2xl">Login</CardTitle>
             </CardHeader>
@@ -115,6 +116,7 @@ export function SigninForm({ login }: SigninFormProps) {
               <div className="bg-muted h-4 w-48 rounded"></div>
             </CardFooter>
           </Card>
+          </div>
         </div>
       </>
     )
@@ -136,8 +138,9 @@ export function SigninForm({ login }: SigninFormProps) {
           }
         }
       `}</style>
-      <div className="container flex h-screen w-screen flex-col items-center justify-center">
-        <Card ref={cardRef} className="mx-auto max-w-lg">
+      <div className="min-h-screen space-y-12">
+        <div className="mx-auto max-w-lg px-4 py-24">
+          <Card ref={cardRef} className="w-full">
           <CardHeader>
             <CardTitle className="text-2xl">Login</CardTitle>
           </CardHeader>
@@ -224,6 +227,7 @@ export function SigninForm({ login }: SigninFormProps) {
             </Link>
           </CardFooter>
         </Card>
+        </div>
       </div>
     </>
   )

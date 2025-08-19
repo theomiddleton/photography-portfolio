@@ -25,6 +25,7 @@ import { Input } from '~/components/ui/input'
 import Link from 'next/link'
 import { registerSchema } from '~/lib/types/registerSchema'
 import { generateCSRFTokenWithCookie } from '~/lib/csrf-protection'
+import { PasswordRequirements } from './PasswordRequirements'
 
 interface RegisterState {
   message: string
@@ -41,6 +42,7 @@ export function SignupForm({ register }: SignupFormProps) {
     message: '',
   })
   const [csrfToken, setCsrfToken] = useState('')
+  const [passwordValue, setPasswordValue] = useState('')
   const form = useForm<z.output<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -181,9 +183,19 @@ export function SignupForm({ register }: SignupFormProps) {
                           type="password"
                           placeholder="**********"
                           {...field}
+                          onChange={(e) => {
+                            field.onChange(e)
+                            setPasswordValue(e.target.value)
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
+                      {/* Show password requirements in real-time */}
+                      {passwordValue && (
+                        <div className="mt-2">
+                          <PasswordRequirements password={passwordValue} />
+                        </div>
+                      )}
                     </FormItem>
                   )}
                 />

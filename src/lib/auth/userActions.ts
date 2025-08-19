@@ -394,7 +394,7 @@ export async function register(
     })
 
     return {
-      message: 'Invalid form data',
+      message: 'Please check that all requirements are met and try again.',
       fields,
       issues: parsed.error.issues.map((issue) => issue.message),
     }
@@ -425,7 +425,7 @@ export async function register(
   try {
     // Check if the user already exists first (before expensive hashing)
     const existingUser = await db
-      .select({ id: users.id })
+      .select({ id: users.id, emailVerified: users.emailVerified })
       .from(users)
       .where(eq(users.email, email))
       .limit(1)
@@ -437,11 +437,22 @@ export async function register(
       void logSecurityEvent({
         type: 'REGISTER_FAIL',
         email: email,
-        details: { reason: 'user_exists' },
+        details: { 
+          reason: 'user_exists',
+          emailVerified: existingUser.emailVerified 
+        },
       })
 
+      if (!existingUser.emailVerified) {
+        return {
+          message: 'An account with this email already exists but is not verified. Please check your email for the verification link, or sign in if you have already verified your account.',
+          redirect: '/verify-email-notice?email=' + encodeURIComponent(email),
+        }
+      }
+
       return {
-        message: 'User already exists, try logging in instead.',
+        message: 'An account with this email already exists. Please sign in instead.',
+        redirect: '/signin?message=account_exists',
       }
     }
 
@@ -491,10 +502,25 @@ export async function register(
     return {
       message:
         'Account created successfully! Please check your email and click the verification link before logging in.',
-      redirect: '/signin?message=verify_email',
+      redirect: '/verify-email-notice?email=' + encodeURIComponent(email),
     }
   } catch (error) {
     console.error('Registration error:', error)
+
+    // Check if this is a unique constraint violation (duplicate email)
+    if (error instanceof Error && error.message.includes('unique')) {
+      // Log duplicate attempt
+      void logSecurityEvent({
+        type: 'REGISTER_FAIL',
+        email: email,
+        details: { reason: 'duplicate_email_constraint' },
+      })
+
+      return {
+        message: 'An account with this email already exists. Please sign in instead.',
+        redirect: '/signin?message=account_exists',
+      }
+    }
 
     // Log system error
     void logSecurityEvent({
