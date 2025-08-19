@@ -3,10 +3,12 @@ import type { NextRequest } from 'next/server'
 import { getSession } from '~/lib/auth/auth'
 import { logSecurityEvent } from '~/lib/security-logging'
 import { securityConfig } from '~/config/security-config'
+import { checkAdminSetupRequired } from '~/lib/auth/setupAdmin'
 
 export async function middleware(request: NextRequest) {
   // Extract the base path (first segment of the URL path)
   const basePath = '/' + request.nextUrl.pathname.split('/')[1]
+  const fullPath = request.nextUrl.pathname
 
   // Create response with security headers
   const response = NextResponse.next()
@@ -14,6 +16,15 @@ export async function middleware(request: NextRequest) {
   // Add comprehensive security headers
   for (const [name, value] of Object.entries(securityConfig.headers)) {
     response.headers.set(name, value)
+  }
+
+  // Check if admin setup is required (except for setup-admin page itself)
+  if (fullPath !== '/setup-admin' && !fullPath.startsWith('/api/')) {
+    const setupRequired = await checkAdminSetupRequired()
+    if (setupRequired) {
+      // Only redirect to setup-admin if user is not already there
+      return NextResponse.redirect(new URL('/setup-admin', request.url))
+    }
   }
 
   // Check if the base path matches any of our protected routes

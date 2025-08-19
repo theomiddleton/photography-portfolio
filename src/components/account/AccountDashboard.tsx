@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSessionsAction, revokeAllSessionsAction } from '~/lib/auth/accountActions'
-import { getAccountStatus } from '~/lib/auth/accountManagement'
+import { getSessionsAction, revokeAllSessionsAction, getAccountInfoAction } from '~/lib/auth/accountActions'
 import { useActionState } from 'react'
 
 interface AccountInfo {
   id: number
   email: string
   name: string
+  role: 'admin' | 'user'
   isActive: boolean
   emailVerified: boolean
   lastLoginAt: Date | null
@@ -38,8 +38,11 @@ export function AccountDashboard() {
       try {
         setLoading(true)
         
-        // Load account info (we'd need to create a client-accessible version)
-        // For now, we'll create a simple version
+        // Load account info
+        const accountResult = await getAccountInfoAction()
+        if (accountResult.success && accountResult.accountInfo) {
+          setAccountInfo(accountResult.accountInfo)
+        }
         
         // Load sessions
         const sessionsResult = await getSessionsAction()
@@ -93,6 +96,69 @@ export function AccountDashboard() {
 
   return (
     <div className="space-y-8">
+      {/* Account Overview */}
+      {accountInfo && (
+        <div className="border rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">Account Overview</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-medium mb-2">Personal Information</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Name:</span>
+                  <span className="font-medium">{accountInfo.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Email:</span>
+                  <span className="font-medium">{accountInfo.email}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Role:</span>
+                  <span className={`font-medium px-2 py-1 rounded text-xs ${
+                    accountInfo.role === 'admin' 
+                      ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' 
+                      : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                  }`}>
+                    {accountInfo.role === 'admin' ? 'Administrator' : 'User'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Member Since:</span>
+                  <span>{formatDate(accountInfo.createdAt)}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-2">Account Status</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Email Verified:</span>
+                  <span className={accountInfo.emailVerified ? 'text-green-600' : 'text-red-600'}>
+                    {accountInfo.emailVerified ? '✓ Verified' : '✗ Unverified'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Account Status:</span>
+                  <span className={accountInfo.isActive ? 'text-green-600' : 'text-red-600'}>
+                    {accountInfo.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Active Sessions:</span>
+                  <span className="font-medium">{accountInfo.activeSessions}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Last Login:</span>
+                  <span>{formatDate(accountInfo.lastLoginAt)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <a
@@ -127,49 +193,6 @@ export function AccountDashboard() {
           <h3 className="font-medium text-red-600">Sign Out All Devices</h3>
           <p className="text-sm text-red-500 mt-1">Revoke all active sessions</p>
         </button>
-      </div>
-
-      {/* Account Security */}
-      <div className="border rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Security Overview</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-medium mb-2">Account Status</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Email Verified:</span>
-                <span className="text-green-600">✓ Verified</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Account Status:</span>
-                <span className="text-green-600">Active</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Active Sessions:</span>
-                <span className="font-medium">{sessions.length}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="font-medium mb-2">Security Timeline</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Last Login:</span>
-                <span>Recent</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Password Changed:</span>
-                <span>Recent</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Account Created:</span>
-                <span>Recent</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Active Sessions */}

@@ -5,7 +5,17 @@ import { cn } from '~/lib/utils'
 import { Icons } from '~/components/ui/icons'
 import { MainNav } from '~/components/main-nav'
 import { buttonVariants } from '~/components/ui/button'
-import { Instagram, Twitter, Facebook } from 'lucide-react'
+import { Button } from '~/components/ui/button'
+import { Instagram, Twitter, Facebook, User, Settings, Shield } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
+import { LogoutForm } from '~/components/logout-form'
 
 export async function SiteHeader() {
   const session = await getSession()
@@ -16,6 +26,7 @@ export async function SiteHeader() {
       <div className="container flex h-14 max-w-(--breakpoint-2xl) items-center justify-between">
         <MainNav isAdmin={isAdmin} />
         <nav className="flex items-center">
+          {/* Social Media Links */}
           {siteConfig.links.instagram && (
             <Link
               href={siteConfig.links.instagram}
@@ -109,6 +120,57 @@ export async function SiteHeader() {
                 <Icons.logo className="h-6 w-6 fill-current" />
                 <span className="sr-only">Website</span>
               </div>
+            </Link>
+          )}
+
+          {/* Profile Dropdown - only show if user is logged in */}
+          {session ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="w-9 px-0">
+                  <User className="h-4 w-4" />
+                  <span className="sr-only">User menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{session.email}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {session.role === 'admin' ? 'Administrator' : 'User'}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/account">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Account Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin">
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <LogoutForm />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              href="/signin"
+              className={cn(
+                buttonVariants({
+                  variant: 'ghost',
+                }),
+                'w-auto px-3',
+              )}
+            >
+              Sign In
             </Link>
           )}
         </nav>

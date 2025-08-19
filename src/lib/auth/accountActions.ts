@@ -8,6 +8,9 @@ import {
 import { getSession } from '~/lib/auth/auth'
 import { validateCSRFFromFormData } from '~/lib/csrf-protection'
 import { logSecurityEvent } from '~/lib/security-logging'
+import { db } from '~/server/db'
+import { users } from '~/server/db/schema'
+import { eq } from 'drizzle-orm'
 
 interface AccountActionState {
   message: string
@@ -163,6 +166,85 @@ export async function getSessionsAction(): Promise<SessionManagementState> {
 
     return {
       message: 'An error occurred while loading sessions.',
+    }
+  }
+}
+
+interface AccountInfoState {
+  message: string
+  success?: boolean
+  accountInfo?: {
+    id: number
+    email: string
+    name: string
+    role: 'admin' | 'user'
+    isActive: boolean
+    emailVerified: boolean
+    lastLoginAt: Date | null
+    passwordChangedAt: Date
+    createdAt: Date
+    activeSessions: number
+  }
+}
+
+export async function getAccountInfoAction(): Promise<AccountInfoState> {
+  try {
+    // Check if user is authenticated
+    const session = await getSession()
+    if (!session) {
+      return {
+        message: 'You must be logged in to view account information.',
+      }
+    }
+
+    // Get user account information from database
+    const user = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        name: users.name,
+        role: users.role,
+        isActive: users.isActive,
+        emailVerified: users.emailVerified,
+        lastLoginAt: users.lastLoginAt,
+        passwordChangedAt: users.passwordChangedAt,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(eq(users.id, session.id))
+      .limit(1)
+      .then((rows) => rows[0])
+
+    if (!user) {
+      return {
+        message: 'Account information not found.',
+      }
+    }
+
+    // Get active sessions count
+    const sessions = await getUserActiveSessions(session.id)
+
+    return {
+      message: 'Account information loaded successfully.',
+      success: true,
+      accountInfo: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role as 'admin' | 'user',
+        isActive: user.isActive,
+        emailVerified: user.emailVerified,
+        lastLoginAt: user.lastLoginAt,
+        passwordChangedAt: user.passwordChangedAt,
+        createdAt: user.createdAt,
+        activeSessions: sessions.length,
+      },
+    }
+  } catch (error) {
+    console.error('Get account info error:', error)
+
+    return {
+      message: 'An error occurred while loading account information.',
     }
   }
 }
