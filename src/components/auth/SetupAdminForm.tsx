@@ -47,10 +47,37 @@ export function SetupAdminForm({
     }
   }, [state.success, state.redirect, router])
 
+  // Show skeleton while CSRF token is loading
+  if (!csrfToken) {
+    return (
+      <div className="grid gap-6">
+        <div className="animate-pulse space-y-4">
+          <div>
+            <div className="bg-muted mb-2 h-4 w-20 rounded"></div>
+            <div className="bg-muted h-10 w-full rounded-md"></div>
+          </div>
+          <div>
+            <div className="bg-muted mb-2 h-4 w-16 rounded"></div>
+            <div className="bg-muted h-10 w-full rounded-md"></div>
+          </div>
+          <div>
+            <div className="bg-muted mb-2 h-4 w-20 rounded"></div>
+            <div className="bg-muted h-10 w-full rounded-md"></div>
+          </div>
+          <div>
+            <div className="bg-muted mb-2 h-4 w-32 rounded"></div>
+            <div className="bg-muted h-10 w-full rounded-md"></div>
+          </div>
+          <div className="bg-muted h-10 w-full rounded-md"></div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="grid gap-6">
       <form action={action} className="grid gap-4">
-        <input type="hidden" name="csrfToken" value={csrfToken} />
+        <input type="hidden" name="csrf-token" value={csrfToken} />
 
         <div className="grid gap-2">
           <Label htmlFor="name">Full Name</Label>

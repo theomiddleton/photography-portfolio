@@ -62,7 +62,7 @@ export function SignupForm({ register }: SignupFormProps) {
   if (!csrfToken) {
     return (
       <div className="min-h-screen">
-        <div className="mx-auto max-w-md px-4 py-24">
+        <div className="mx-auto max-w-lg px-4 py-24">
           <Card className="w-full">
             <CardHeader>
               <CardTitle className="text-center text-2xl font-bold">
@@ -99,7 +99,7 @@ export function SignupForm({ register }: SignupFormProps) {
 
   return (
     <div className="min-h-screen space-y-12">
-      <div className="mx-auto max-w-md px-4 py-24">
+      <div className="mx-auto max-w-lg px-4 py-24">
         <Card className="w-full">
           <CardHeader>
             <CardTitle className="text-center text-2xl font-bold">

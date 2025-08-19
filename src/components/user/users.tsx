@@ -31,6 +31,7 @@ import {
   deleteUser,
   promoteUser,
   demoteUser,
+  logoutUser,
   type User,
 } from '~/lib/auth/userActions'
 
@@ -38,6 +39,7 @@ import {
   DeleteUserDialog,
   PromoteUserDialog,
   DemoteUserDialog,
+  LogoutUserDialog,
 } from '~/components/user/user-dialogs'
 
 export function UsersTable() {
@@ -45,6 +47,7 @@ export function UsersTable() {
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
   const [userToPromote, setUserToPromote] = useState<User | null>(null)
   const [userToDemote, setUserToDemote] = useState<User | null>(null)
+  const [userToLogout, setUserToLogout] = useState<User | null>(null)
 
   useEffect(() => {
     fetchUsers()
@@ -79,6 +82,12 @@ export function UsersTable() {
       ),
     )
     setUserToDemote(null)
+  }
+
+  const handleLogoutUser = async (userId: number) => {
+    await logoutUser(userId)
+    setUsers((prevUsers) => prevUsers) // Keep users list unchanged, just revoke sessions
+    setUserToLogout(null)
   }
 
   const formatDate = (date: Date): string => {
@@ -140,6 +149,11 @@ export function UsersTable() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem
+                        onClick={() => setUserToLogout(user)}
+                      >
+                        Force Logout
+                      </DropdownMenuItem>
                       {user.role !== 'admin' && (
                         <DropdownMenuItem
                           onClick={() => setUserToPromote(user)}
@@ -186,6 +200,12 @@ export function UsersTable() {
         userToDemote={userToDemote}
         onCancel={() => setUserToDemote(null)}
         onDemote={handleDemoteUser}
+      />
+
+      <LogoutUserDialog
+        userToLogout={userToLogout}
+        onCancel={() => setUserToLogout(null)}
+        onLogout={handleLogoutUser}
       />
     </Card>
   )

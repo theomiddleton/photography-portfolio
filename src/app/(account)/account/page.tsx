@@ -16,7 +16,7 @@ export default async function AccountPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-8">
+    <div className="container mx-auto max-w-4xl px-4 py-8 pb-16">
       <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold">Account Settings</h1>

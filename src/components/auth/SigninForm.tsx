@@ -74,6 +74,52 @@ export function SigninForm({ login }: SigninFormProps) {
     }
   }, [state.message, isFirstAttempt])
 
+  // Show loading skeleton while CSRF token is loading
+  if (!csrfToken) {
+    return (
+      <>
+        <style jsx>{`
+          @keyframes shake {
+            0%,
+            100% {
+              transform: translateX(0);
+            }
+            25% {
+              transform: translateX(-5px);
+            }
+            75% {
+              transform: translateX(5px);
+            }
+          }
+        `}</style>
+        <div className="container flex h-screen w-screen flex-col items-center justify-center">
+          <Card className="mx-auto max-w-lg">
+            <CardHeader>
+              <CardTitle className="text-2xl">Login</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="animate-pulse space-y-4">
+                <div>
+                  <div className="bg-muted mb-2 h-4 w-16 rounded"></div>
+                  <div className="bg-muted h-10 w-full rounded-md"></div>
+                </div>
+                <div>
+                  <div className="bg-muted mb-2 h-4 w-20 rounded"></div>
+                  <div className="bg-muted h-10 w-full rounded-md"></div>
+                </div>
+                <div className="bg-muted h-6 w-40 rounded"></div>
+                <div className="bg-muted h-10 w-full rounded-md"></div>
+              </div>
+            </CardContent>
+            <CardFooter className="text-center text-sm">
+              <div className="bg-muted h-4 w-48 rounded"></div>
+            </CardFooter>
+          </Card>
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
       <style jsx>{`
@@ -91,14 +137,14 @@ export function SigninForm({ login }: SigninFormProps) {
         }
       `}</style>
       <div className="container flex h-screen w-screen flex-col items-center justify-center">
-        <Card ref={cardRef} className="mx-auto max-w-sm">
+        <Card ref={cardRef} className="mx-auto max-w-lg">
           <CardHeader>
             <CardTitle className="text-2xl">Login</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form action={formAction} className="grid gap-4">
-                <input type="hidden" name="csrfToken" value={csrfToken} />
+                <input type="hidden" name="csrf-token" value={csrfToken} />
 
                 <FormField
                   control={form.control}

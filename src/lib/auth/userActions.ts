@@ -2,7 +2,7 @@
 
 import { cookies, headers } from 'next/headers'
 import { db } from '~/server/db'
-import { users } from '~/server/db/schema'
+import { users, userSessions } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 
 import {
@@ -594,5 +594,23 @@ export async function demoteUser(userId: number): Promise<User[]> {
     .update(users)
     .set({ role: 'user', modifiedAt: new Date() })
     .where(eq(users.id, userId))
+  return getUsers()
+}
+
+// Force logout a user by revoking all their sessions (admin only)
+export async function logoutUser(userId: number): Promise<User[]> {
+  // Delete all sessions for the user
+  await db.delete(userSessions).where(eq(userSessions.userId, userId))
+  
+  // Log the security event
+  try {
+    await logSecurityEvent({ 
+      type: 'USER_LOGOUT_FORCED', 
+      details: { targetUserId: userId } 
+    })
+  } catch (error) {
+    console.error('Failed to log security event:', error)
+  }
+  
   return getUsers()
 }

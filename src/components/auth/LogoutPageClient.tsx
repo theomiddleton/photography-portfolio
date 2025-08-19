@@ -39,7 +39,7 @@ export function LogoutPageClient({ logout }: LogoutPageClientProps) {
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
-      <Card className="mx-auto max-w-sm">
+      <Card className="mx-auto max-w-lg">
         <CardHeader>
           <CardTitle className="text-2xl">Logout</CardTitle>
         </CardHeader>
