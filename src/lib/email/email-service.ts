@@ -1,7 +1,7 @@
 'use server'
 
 import { Resend } from 'resend'
-import { render } from '@react-email/components'
+import { render } from '@react-email/render'
 import { env } from '~/env.js'
 import { generateSecureToken } from '~/lib/auth/tokenHelpers'
 import { db } from '~/server/db'
