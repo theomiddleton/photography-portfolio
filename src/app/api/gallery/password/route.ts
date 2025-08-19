@@ -3,12 +3,13 @@ import { z } from 'zod'
 import { db } from '~/server/db'
 import { galleries } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
-import { verifyPassword, createGalleryPasswordCookie } from '~/lib/auth/authHelpers'
+import { verifyPassword } from '~/lib/auth/authHelpers'
+import { createGalleryPasswordCookie } from '~/lib/auth/authSession'
 import { getSession } from '~/lib/auth/auth'
-import { 
-  checkRateLimit, 
-  logFailedAttempt, 
-  logGalleryAccess 
+import {
+  checkRateLimit,
+  logFailedAttempt,
+  logGalleryAccess,
 } from '~/lib/actions/gallery/access-control'
 import { passwordAttemptRateLimit, getClientIP } from '~/lib/rate-limit'
 
@@ -22,11 +23,11 @@ export async function POST(request: NextRequest) {
     // IP-based rate limiting
     const clientIP = getClientIP(request)
     const rateLimitResult = await passwordAttemptRateLimit.check(clientIP)
-    
+
     if (!rateLimitResult.success) {
       return NextResponse.json(
         { error: 'Too many attempts from this IP. Please try again later.' },
-        { status: 429 }
+        { status: 429 },
       )
     }
 
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (isRateLimited) {
       return NextResponse.json(
         { error: 'Too many failed attempts. Please try again later.' },
-        { status: 429 }
+        { status: 429 },
       )
     }
 
@@ -54,10 +55,7 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     if (!gallery.length) {
-      return NextResponse.json(
-        { error: 'Gallery not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Gallery not found' }, { status: 404 })
     }
 
     const galleryData = gallery[0]
@@ -80,22 +78,22 @@ export async function POST(request: NextRequest) {
     if (!galleryData.galleryPassword) {
       return NextResponse.json(
         { error: 'Gallery password not configured' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Verify password
-    const isValidPassword = await verifyPassword(password, galleryData.galleryPassword)
+    const isValidPassword = await verifyPassword(
+      password,
+      galleryData.galleryPassword,
+    )
 
     if (!isValidPassword) {
       // Log failed attempt and increment rate limiting
       await logFailedAttempt(gallerySlug)
       await logGalleryAccess(galleryData.id, 'password_fail')
-      
-      return NextResponse.json(
-        { error: 'Invalid password' },
-        { status: 401 }
-      )
+
+      return NextResponse.json({ error: 'Invalid password' }, { status: 401 })
     }
 
     // Log successful access
@@ -104,7 +102,7 @@ export async function POST(request: NextRequest) {
     // Create cookie for successful authentication
     const cookieData = await createGalleryPasswordCookie(
       gallerySlug,
-      galleryData.passwordCookieDuration
+      galleryData.passwordCookieDuration,
     )
 
     const response = NextResponse.json({ success: true })
@@ -115,7 +113,7 @@ export async function POST(request: NextRequest) {
     console.error('Gallery password verification error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

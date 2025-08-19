@@ -1,11 +1,20 @@
 'use client'
 
 import { useActionState } from 'react'
-import { logout } from '~/lib/auth/userActions'
 import { DropdownMenuItem } from '~/components/ui/dropdown-menu'
 import { LogOut } from 'lucide-react'
 
-export function LogoutForm() {
+interface LogoutState {
+  success: boolean
+  message: string
+  issues: string[] | null
+}
+
+interface LogoutFormProps {
+  logout: (prevState: LogoutState, data: FormData) => Promise<LogoutState>
+}
+
+export function LogoutForm({ logout }: LogoutFormProps) {
   const [state, action] = useActionState(logout, {
     success: false,
     message: '',

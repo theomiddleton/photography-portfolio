@@ -1,7 +1,8 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { checkAdminSetupRequired } from '~/lib/auth/setupAdmin'
+import { checkAdminSetupRequired } from '~/lib/auth/authDatabase'
 import { getSession } from '~/lib/auth/auth'
+import { setupFirstAdmin } from '~/lib/auth/setupAdmin'
 import { SetupAdminForm } from '~/components/auth/SetupAdminForm'
 
 export const metadata: Metadata = {
@@ -29,11 +30,12 @@ export default async function SetupAdminPage() {
           <h1 className="text-2xl font-semibold tracking-tight">
             Setup Administrator
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Create the first admin account to get started. This page will only be available until the first admin is created.
+          <p className="text-muted-foreground text-sm">
+            Create the first admin account to get started. This page will only
+            be available until the first admin is created.
           </p>
         </div>
-        <SetupAdminForm />
+        <SetupAdminForm setupFirstAdmin={setupFirstAdmin} />
       </div>
     </div>
   )

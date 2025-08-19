@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getSession } from '~/lib/auth/auth'
+import { getSession } from '~/lib/auth/authSession'
 import { logSecurityEvent } from '~/lib/security-logging'
 import { securityConfig } from '~/config/security-config'
-import { checkAdminSetupRequired } from '~/lib/auth/setupAdmin'
 
 export async function middleware(request: NextRequest) {
   // Extract the base path (first segment of the URL path)
@@ -18,14 +17,8 @@ export async function middleware(request: NextRequest) {
     response.headers.set(name, value)
   }
 
-  // Check if admin setup is required (except for setup-admin page itself)
-  if (fullPath !== '/setup-admin' && !fullPath.startsWith('/api/')) {
-    const setupRequired = await checkAdminSetupRequired()
-    if (setupRequired) {
-      // Only redirect to setup-admin if user is not already there
-      return NextResponse.redirect(new URL('/setup-admin', request.url))
-    }
-  }
+  // Note: Admin setup check is now handled in individual page components
+  // to avoid database calls in Edge Runtime middleware
 
   // Check if the base path matches any of our protected routes
   if (config.matcher.some((path) => basePath === path.split('/:')[0])) {

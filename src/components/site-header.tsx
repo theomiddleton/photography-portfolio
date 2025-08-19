@@ -1,12 +1,20 @@
 import Link from 'next/link'
 import { getSession } from '~/lib/auth/auth'
+import { logout } from '~/lib/auth/userActions'
 import { siteConfig } from '~/config/site'
 import { cn } from '~/lib/utils'
 import { Icons } from '~/components/ui/icons'
 import { MainNav } from '~/components/main-nav'
 import { buttonVariants } from '~/components/ui/button'
 import { Button } from '~/components/ui/button'
-import { Instagram, Twitter, Facebook, User, Settings, Shield } from 'lucide-react'
+import {
+  Instagram,
+  Twitter,
+  Facebook,
+  User,
+  Settings,
+  Shield,
+} from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +30,7 @@ export async function SiteHeader() {
   const isAdmin = session?.role === 'admin'
 
   return (
-    <header className="fixed top-0 z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
+    <header className="border-border/40 bg-background/95 supports-backdrop-filter:bg-background/60 fixed top-0 z-40 w-full border-b backdrop-blur-sm">
       <div className="container flex h-14 max-w-(--breakpoint-2xl) items-center justify-between">
         <MainNav isAdmin={isAdmin} />
         <nav className="flex items-center">
@@ -135,8 +143,10 @@ export async function SiteHeader() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{session.email}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                    <p className="text-sm leading-none font-medium">
+                      {session.email}
+                    </p>
+                    <p className="text-muted-foreground text-xs leading-none">
                       {session.role === 'admin' ? 'Administrator' : 'User'}
                     </p>
                   </div>
@@ -157,7 +167,7 @@ export async function SiteHeader() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <LogoutForm />
+                <LogoutForm logout={logout} />
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (

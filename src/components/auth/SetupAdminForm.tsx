@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { setupFirstAdmin } from '~/lib/auth/setupAdmin'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
@@ -10,7 +9,22 @@ import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Loader2, Shield, User, Mail, Lock } from 'lucide-react'
 import { generateCSRFToken } from '~/lib/csrf-protection'
 
-export function SetupAdminForm() {
+interface SetupAdminState {
+  message: string
+  success?: boolean
+  redirect?: string
+  fields?: Record<string, string>
+  issues?: string[]
+}
+
+export function SetupAdminForm({
+  setupFirstAdmin,
+}: {
+  setupFirstAdmin: (
+    prevState: SetupAdminState,
+    data: FormData,
+  ) => Promise<SetupAdminState>
+}) {
   const router = useRouter()
   const [state, action, isPending] = useActionState(setupFirstAdmin, {
     message: '',
@@ -37,11 +51,11 @@ export function SetupAdminForm() {
     <div className="grid gap-6">
       <form action={action} className="grid gap-4">
         <input type="hidden" name="csrfToken" value={csrfToken} />
-        
+
         <div className="grid gap-2">
           <Label htmlFor="name">Full Name</Label>
           <div className="relative">
-            <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <User className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
             <Input
               id="name"
               name="name"
@@ -61,7 +75,7 @@ export function SetupAdminForm() {
         <div className="grid gap-2">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Mail className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
             <Input
               id="email"
               name="email"
@@ -81,7 +95,7 @@ export function SetupAdminForm() {
         <div className="grid gap-2">
           <Label htmlFor="password">Password</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Lock className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
             <Input
               id="password"
               name="password"
@@ -98,7 +112,7 @@ export function SetupAdminForm() {
         <div className="grid gap-2">
           <Label htmlFor="confirmPassword">Confirm Password</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Lock className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
             <Input
               id="confirmPassword"
               name="confirmPassword"
@@ -113,7 +127,7 @@ export function SetupAdminForm() {
         </div>
 
         {state.message && (
-          <Alert variant={state.success ? "default" : "destructive"}>
+          <Alert variant={state.success ? 'default' : 'destructive'}>
             <AlertDescription>{state.message}</AlertDescription>
           </Alert>
         )}
@@ -121,7 +135,7 @@ export function SetupAdminForm() {
         {state.issues && state.issues.length > 0 && (
           <Alert variant="destructive">
             <AlertDescription>
-              <ul className="list-disc list-inside space-y-1">
+              <ul className="list-inside list-disc space-y-1">
                 {state.issues.map((issue, index) => (
                   <li key={index}>{issue}</li>
                 ))}
@@ -137,9 +151,9 @@ export function SetupAdminForm() {
         </Button>
       </form>
 
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-muted-foreground text-center text-sm">
         <p className="mb-2">Password Requirements:</p>
-        <ul className="text-xs space-y-1">
+        <ul className="space-y-1 text-xs">
           <li>• At least 8 characters long</li>
           <li>• Use a combination of letters, numbers, and symbols</li>
           <li>• This will be the only admin creation page</li>

@@ -1,22 +1,25 @@
-// 'use server'
+'use server'
 
 import { db } from '~/server/db'
 import { users } from '~/server/db/schema'
-import { eq, or, count } from 'drizzle-orm'
+import { eq, count } from 'drizzle-orm'
 import { hashPassword } from '~/lib/auth/authHelpers'
+import { checkAdminSetupRequired } from '~/lib/auth/authDatabase'
 import { validateCSRFFromFormData } from '~/lib/csrf-protection'
 import { logSecurityEvent } from '~/lib/security-logging'
 import { z } from 'zod'
 
-const setupAdminSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
-  email: z.string().email('Invalid email address').max(255, 'Email too long'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-})
+const setupAdminSchema = z
+  .object({
+    name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+    email: z.string().email('Invalid email address').max(255, 'Email too long'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  })
 
 interface SetupAdminState {
   message: string
@@ -24,27 +27,6 @@ interface SetupAdminState {
   redirect?: string
   fields?: Record<string, string>
   issues?: string[]
-}
-
-/**
- * Check if the system needs initial admin setup
- */
-export async function checkAdminSetupRequired(): Promise<boolean> {
-  try {
-    // Check if any admin users exist
-    const adminCount = await db
-      .select({ count: count() })
-      .from(users)
-      .where(eq(users.role, 'admin'))
-      .then((result) => result[0]?.count || 0)
-
-    // If no admins exist, setup is required
-    return adminCount === 0
-  } catch (error) {
-    console.error('Error checking admin setup requirement:', error)
-    // On error, assume setup is not required for security
-    return false
-  }
 }
 
 /**
@@ -146,7 +128,8 @@ export async function setupFirstAdmin(
       })
 
       return {
-        message: 'Email address is already in use. Please use a different email.',
+        message:
+          'Email address is already in use. Please use a different email.',
         fields: {
           name: parsed.data.name,
           email: '',
@@ -183,7 +166,8 @@ export async function setupFirstAdmin(
     })
 
     return {
-      message: 'Admin account created successfully! You can now sign in with your credentials.',
+      message:
+        'Admin account created successfully! You can now sign in with your credentials.',
       success: true,
       redirect: '/signin?message=admin_setup_complete',
     }
