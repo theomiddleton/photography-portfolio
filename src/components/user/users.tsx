@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Table,
   TableBody,
@@ -34,22 +34,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
+import { Pagination } from '~/components/ui/pagination'
 import { 
   MoreHorizontal, 
   Search, 
-  Filter,
   Users,
   UserCheck,
   Shield,
   Eye,
-  ChevronLeft,
-  ChevronRight,
   RefreshCw,
-  Download,
   Calendar
 } from 'lucide-react'
 import {
-  getUsers,
   deleteUser,
   promoteUser,
   demoteUser,
@@ -67,7 +63,7 @@ import {
   LogoutUserDialog,
 } from '~/components/user/user-dialogs'
 
-const ITEMS_PER_PAGE = 20
+const DEFAULT_ITEMS_PER_PAGE = 20
 
 interface UserStats {
   total: number
@@ -84,8 +80,8 @@ export function UsersTable() {
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user'>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'locked' | 'unverified'>('all')
   const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE)
   const [totalUsers, setTotalUsers] = useState(0)
-  const [hasMore, setHasMore] = useState(false)
   
   // Dialog states
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
@@ -94,34 +90,28 @@ export function UsersTable() {
   const [userToLogout, setUserToLogout] = useState<User | null>(null)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
-  const fetchUsers = async (page = 1, resetUsers = true) => {
+  const fetchUsers = useCallback(async (page = 1) => {
     setLoading(true)
     try {
       const searchOptions: UserSearchOptions = {
         search: searchTerm,
         role: roleFilter,
         status: statusFilter,
-        limit: ITEMS_PER_PAGE,
-        offset: (page - 1) * ITEMS_PER_PAGE,
+        limit: itemsPerPage,
+        offset: (page - 1) * itemsPerPage,
       }
 
       const result = await searchUsers(searchOptions)
       
-      if (resetUsers) {
-        setUsers(result.users)
-      } else {
-        setUsers(prev => [...prev, ...result.users])
-      }
-      
+      setUsers(result.users)
       setTotalUsers(result.total)
-      setHasMore(result.hasMore)
       setCurrentPage(page)
     } catch (error) {
       console.error('Failed to fetch users:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [searchTerm, roleFilter, statusFilter, itemsPerPage])
 
   const fetchStats = async () => {
     try {
@@ -133,9 +123,16 @@ export function UsersTable() {
   }
 
   useEffect(() => {
-    fetchUsers(1, true)
+    setCurrentPage(1) // Reset to first page when filters change
+  }, [searchTerm, roleFilter, statusFilter, itemsPerPage])
+
+  useEffect(() => {
+    fetchUsers(currentPage)
+  }, [currentPage, fetchUsers])
+
+  useEffect(() => {
     fetchStats()
-  }, [searchTerm, roleFilter, statusFilter])
+  }, [])
 
   const handleDeleteUser = async (userId: number) => {
     await deleteUser(userId)
@@ -172,14 +169,17 @@ export function UsersTable() {
   }
 
   const handleRefresh = () => {
-    fetchUsers(1, true)
+    fetchUsers(currentPage)
     fetchStats()
   }
 
-  const handleLoadMore = () => {
-    if (hasMore && !loading) {
-      fetchUsers(currentPage + 1, false)
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage)
+    setCurrentPage(1) // Reset to first page when changing items per page
   }
 
   const formatDate = (date: Date | null): string => {
@@ -207,7 +207,7 @@ export function UsersTable() {
     return <Badge variant="default" className="bg-green-500">Active</Badge>
   }
 
-  const totalPages = Math.ceil(totalUsers / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(totalUsers / itemsPerPage)
 
   return (
     <div className="space-y-6">
@@ -460,25 +460,16 @@ export function UsersTable() {
           </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {users.length} of {totalUsers} users
-          </div>
-          
-          {hasMore && (
-            <Button
-              onClick={handleLoadMore}
-              variant="outline"
-              size="sm"
-              disabled={loading}
-            >
-              {loading ? (
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                'Load More'
-              )}
-            </Button>
-          )}
+        <CardFooter>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalUsers}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            className="w-full"
+          />
         </CardFooter>
       </Card>
 
