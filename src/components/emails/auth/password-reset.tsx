@@ -28,7 +28,7 @@ export const PasswordResetText = ({
   token,
   expiryMinutes,
 }: PasswordResetProps) => {
-  const resetUrl = `${env.SITE_URL}/reset-password?token=${token}`
+  const resetUrl = `${env.SITE_URL}/reset-password?token=${encodeURIComponent(token)}`  
 
   return `Reset Your Password
 

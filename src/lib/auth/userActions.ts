@@ -22,10 +22,16 @@ import { validateCSRFFromFormData } from '~/lib/csrf-protection'
 import { loginSchema } from '~/lib/types/loginSchema'
 import { registerSchema } from '~/lib/types/registerSchema'
 
-import { getUserAgent, createUserSession } from '~/lib/auth/sessionManagement'
+import {
+  getUserAgent,
+  createUserSession,
+  revokeSession,
+  revokeAllUserSessions,
+} from '~/lib/auth/sessionManagement'
 import { reactivateAccount } from '~/lib/auth/accountManagement'
 import { sendEmailVerification } from '~/lib/email/email-service'
 import { sanitizeIPAddress } from '~/lib/input-sanitization'
+import { requireAdminAuth } from '~/lib/auth/permissions'  
 
 const JWT_EXPIRATION_HOURS = parseInt(process.env.JWT_EXPIRATION_HOURS || '168') // Reduced default
 const JWT_EXPIRATION_MS = JWT_EXPIRATION_HOURS * 60 * 60 * 1000
@@ -312,6 +318,7 @@ export async function login(
       email: user.email,
       role: user.role as 'admin' | 'user',
       id: user.id,
+      sessionToken: sessionToken, // Include the database session token
     })
 
     cookieStore.set('session', session, {
@@ -450,21 +457,23 @@ export async function register(
       void logSecurityEvent({
         type: 'REGISTER_FAIL',
         email: email,
-        details: { 
+        details: {
           reason: 'user_exists',
-          emailVerified: existingUser.emailVerified 
+          emailVerified: existingUser.emailVerified,
         },
       })
 
       if (!existingUser.emailVerified) {
         return {
-          message: 'An account with this email already exists but is not verified. Please check your email for the verification link, or sign in if you have already verified your account.',
+          message:
+            'An account with this email already exists but is not verified. Please check your email for the verification link, or sign in if you have already verified your account.',
           redirect: '/verify-email-notice?email=' + encodeURIComponent(email),
         }
       }
 
       return {
-        message: 'An account with this email already exists. Please sign in instead.',
+        message:
+          'An account with this email already exists. Please sign in instead.',
         redirect: '/signin?message=account_exists',
       }
     }
@@ -530,7 +539,8 @@ export async function register(
       })
 
       return {
-        message: 'An account with this email already exists. Please sign in instead.',
+        message:
+          'An account with this email already exists. Please sign in instead.',
         redirect: '/signin?message=account_exists',
       }
     }
@@ -561,8 +571,40 @@ export async function logout(_prevState: LogoutState): Promise<LogoutState> {
       }
     }
 
-    // Get session info before clearing for logging
+    // Get session info before clearing for logging and revocation
     const session = await getSession()
+
+    // Revoke only the current database session if we have session info
+    if (session?.id && session?.sessionToken) {
+      try {
+        const revokeSuccess = await revokeSession(
+          session.sessionToken,
+          'user_logout',
+        )
+        console.log(
+          `Revoked current session (${revokeSuccess ? 'success' : 'failed'}) for user ${session.id}`,
+        )
+
+        if (!revokeSuccess) {
+          console.warn(
+            'Failed to revoke current session, but continuing with logout',
+          )
+        }
+      } catch (error) {
+        console.error('Error revoking current session during logout:', error)
+        // Continue with logout even if session revocation fails
+        void logSecurityEvent({
+          type: 'LOGOUT',
+          userId: session.id,
+          email: session.email,
+          details: { sessionRevocationError: true },
+        })
+      }
+    } else {
+      console.warn(
+        'No session token found in JWT, cannot revoke specific session',
+      )
+    }
 
     // Clear the session cookie securely
     cookieStore.set('session', '', {
@@ -646,19 +688,61 @@ export async function demoteUser(userId: number): Promise<User[]> {
 
 // Force logout a user by revoking all their sessions (admin only)
 export async function logoutUser(userId: number): Promise<User[]> {
-  // Delete all sessions for the user
-  await db.delete(userSessions).where(eq(userSessions.userId, userId))
-  
-  // Log the security event
+  // Ensure the caller is an admin: resolve session and check role/isAdmin flag
+  class AuthorizationError extends Error {
+    status = 403
+    constructor(message = 'Admin privileges required') {
+      super(message)
+      this.name = 'AuthorizationError'
+    }
+  }
+
+  const caller = await getSession()
+  if (!(caller && (caller.role === 'admin' || (caller as unknown as { isAdmin?: boolean }).isAdmin))) {
+    // Audit the failed authorization attempt, then throw 403
+    void logSecurityEvent({
+      type: 'AUTHORIZATION_FAIL',
+      details: {
+        action: 'logoutUser',
+        targetUserId: userId,
+        callerId: caller?.id ?? null,
+        callerEmail: caller?.email ?? null,
+      },
+    })
+    throw new AuthorizationError()
+  }
   try {
-    await logSecurityEvent({ 
-      type: 'USER_LOGOUT_FORCED', 
-      details: { targetUserId: userId } 
+    // Revoke ALL database sessions for the target user (admin action)
+    const revokedCount = await revokeAllUserSessions(
+      userId,
+      undefined,
+      'admin_forced_logout',
+    )
+
+    // Also delete all sessions from the database (for cleanup)
+    await db.delete(userSessions).where(eq(userSessions.userId, userId))
+
+    // Log the security event
+    void logSecurityEvent({
+      type: 'USER_LOGOUT_FORCED',
+      details: {
+        targetUserId: userId,
+        sessionsRevoked: revokedCount,
+      },
     })
   } catch (error) {
-    console.error('Failed to log security event:', error)
+    console.error('Failed to revoke sessions or log security event:', error)
+
+    // Log the error but still return users list
+    void logSecurityEvent({
+      type: 'USER_LOGOUT_FORCED',
+      details: {
+        targetUserId: userId,
+        error: 'session_revocation_failed',
+      },
+    })
   }
-  
+
   return getUsers()
 }
 
@@ -676,13 +760,15 @@ export interface UserSearchResult {
   hasMore: boolean
 }
 
-export async function searchUsers(options: UserSearchOptions = {}): Promise<UserSearchResult> {
+export async function searchUsers(
+  options: UserSearchOptions = {},
+): Promise<UserSearchResult> {
   const {
     search = '',
     role = 'all',
     status = 'all',
     limit = 50,
-    offset = 0
+    offset = 0,
   } = options
 
   // Build where conditions
@@ -693,8 +779,8 @@ export async function searchUsers(options: UserSearchOptions = {}): Promise<User
     conditions.push(
       or(
         like(users.name, `%${search.trim()}%`),
-        like(users.email, `%${search.trim()}%`)
-      )
+        like(users.email, `%${search.trim()}%`),
+      ),
     )
   }
 
@@ -708,10 +794,7 @@ export async function searchUsers(options: UserSearchOptions = {}): Promise<User
     switch (status) {
       case 'active':
         conditions.push(
-          and(
-            eq(users.isActive, true),
-            eq(users.emailVerified, true)
-          )
+          and(eq(users.isActive, true), eq(users.emailVerified, true)),
         )
         break
       case 'inactive':
@@ -723,7 +806,7 @@ export async function searchUsers(options: UserSearchOptions = {}): Promise<User
             eq(users.isActive, true),
             // accountLockedUntil is not null and in the future
             // Note: This is a simplified check, in production you'd check if date > now
-          )
+          ),
         )
         break
       case 'unverified':
@@ -773,15 +856,24 @@ export async function searchUsers(options: UserSearchOptions = {}): Promise<User
   return {
     users: userList,
     total,
-    hasMore: offset + userList.length < total
+    hasMore: offset + userList.length < total,
   }
 }
 
 export async function getUserStats() {
   const [totalUsers] = await db.select({ count: count() }).from(users)
-  const [adminUsers] = await db.select({ count: count() }).from(users).where(eq(users.role, 'admin'))
-  const [activeUsers] = await db.select({ count: count() }).from(users).where(eq(users.isActive, true))
-  const [verifiedUsers] = await db.select({ count: count() }).from(users).where(eq(users.emailVerified, true))
+  const [adminUsers] = await db
+    .select({ count: count() })
+    .from(users)
+    .where(eq(users.role, 'admin'))
+  const [activeUsers] = await db
+    .select({ count: count() })
+    .from(users)
+    .where(eq(users.isActive, true))
+  const [verifiedUsers] = await db
+    .select({ count: count() })
+    .from(users)
+    .where(eq(users.emailVerified, true))
 
   return {
     total: totalUsers?.count || 0,

@@ -96,9 +96,14 @@ export const DemoteUserDialog: React.FC<DemoteUserDialogProps> = ({ userToDemote
   </AlertDialog>
 )
 
-export const LogoutUserDialog: React.FC<LogoutUserDialogProps> = ({ userToLogout, onCancel, onLogout }) => (
-  <AlertDialog open={!!userToLogout} onOpenChange={onCancel}>
-    <AlertDialogContent>
+export const LogoutUserDialog: React.FC<LogoutUserDialogProps> = ({ userToLogout, onCancel, onLogout }) => (  
+  <AlertDialog  
+    open={!!userToLogout}  
+    onOpenChange={(open) => {  
+      if (!open) onCancel()  
+    }}  
+  >  
+    <AlertDialogContent>  
       <AlertDialogHeader>
         <AlertDialogTitle>Force User Logout</AlertDialogTitle>
         <AlertDialogDescription>

@@ -10,9 +10,10 @@ interface LogoutState {
   issues: string[] | null
 }
 
-interface LogoutFormProps {
-  logout: (prevState: LogoutState, data: FormData) => Promise<LogoutState>
-}
+interface LogoutFormProps {  
+  logout: (prevState: LogoutState, data: FormData) => Promise<LogoutState>  
+  csrfToken?: string  
+}  
 
 export function LogoutForm({ logout }: LogoutFormProps) {
   const [state, action] = useActionState(logout, {

@@ -11,6 +11,7 @@ import { logSecurityEvent } from '~/lib/security-logging'
 import { db } from '~/server/db'
 import { users } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
+import { cookies } from 'next/headers'
 
 interface AccountActionState {
   message: string
@@ -154,7 +155,16 @@ export async function getSessionsAction(): Promise<SessionManagementState> {
       }
     }
 
-    const sessions = await getUserActiveSessions(session.id)
+    const rawSessions = await getUserActiveSessions(session.id)
+    const sessions = rawSessions.map((s) => ({
+      id: s.id,
+      ipAddress: s.ipAddress,
+      userAgent: s.userAgent,
+      isRememberMe: s.isRememberMe,  
+      lastUsedAt: s.lastUsedAt,  
+      createdAt: s.createdAt,  
+      expiresAt: s.expiresAt,  
+    }))  
 
     return {
       message: 'Sessions loaded successfully.',
@@ -270,13 +280,15 @@ export async function revokeAllSessionsAction(
   }
 
   const keepCurrent = data.get('keepCurrent') === 'true'
+  const cookieStore = cookies()
+  const exceptToken = keepCurrent ? (await cookieStore).get('session_token')?.value : undefined
 
   try {
-    const revokedCount = await revokeAllUserSessions(
-      session.id,
-      keepCurrent ? 'current_session_token' : undefined, // We'd need to get the actual token
-      'user_requested',
-    )
+    const revokedCount = await revokeAllUserSessions(  
+      session.id,  
+      exceptToken,  
+      'user_requested',  
+    )  
 
     void logSecurityEvent({
       type: 'ALL_SESSIONS_REVOKED',
