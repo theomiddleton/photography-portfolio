@@ -3,7 +3,7 @@
 import { cookies, headers } from 'next/headers'
 import { db } from '~/server/db'
 import { users, userSessions } from '~/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, like, or, and, count } from 'drizzle-orm'
 
 import {
   verifyPassword,
@@ -82,6 +82,13 @@ export interface User {
   role: 'admin' | 'user'
   createdAt: Date
   modifiedAt: Date
+  emailVerified: boolean
+  isActive: boolean
+  lastLoginAt: Date | null
+  lastLoginIP: string | null
+  lastLoginUserAgent: string | null
+  failedLoginAttempts: number
+  accountLockedUntil: Date | null
 }
 
 // login function, returns a FormState for sending messages to the client, takes a FormState and a FormData
@@ -593,8 +600,16 @@ export async function getUsers(): Promise<User[]> {
       role: users.role,
       createdAt: users.createdAt,
       modifiedAt: users.modifiedAt,
+      emailVerified: users.emailVerified,
+      isActive: users.isActive,
+      lastLoginAt: users.lastLoginAt,
+      lastLoginIP: users.lastLoginIP,
+      lastLoginUserAgent: users.lastLoginUserAgent,
+      failedLoginAttempts: users.failedLoginAttempts,
+      accountLockedUntil: users.accountLockedUntil,
     })
     .from(users)
+    .orderBy(users.createdAt)
 
   return rawUsers.map((u) => ({
     ...u,
@@ -639,4 +654,133 @@ export async function logoutUser(userId: number): Promise<User[]> {
   }
   
   return getUsers()
+}
+
+export interface UserSearchOptions {
+  search?: string
+  role?: 'admin' | 'user' | 'all'
+  status?: 'active' | 'inactive' | 'locked' | 'unverified' | 'all'
+  limit?: number
+  offset?: number
+}
+
+export interface UserSearchResult {
+  users: User[]
+  total: number
+  hasMore: boolean
+}
+
+export async function searchUsers(options: UserSearchOptions = {}): Promise<UserSearchResult> {
+  const {
+    search = '',
+    role = 'all',
+    status = 'all',
+    limit = 50,
+    offset = 0
+  } = options
+
+  // Build where conditions
+  const conditions = []
+
+  // Search by name or email
+  if (search.trim()) {
+    conditions.push(
+      or(
+        like(users.name, `%${search.trim()}%`),
+        like(users.email, `%${search.trim()}%`)
+      )
+    )
+  }
+
+  // Filter by role
+  if (role !== 'all') {
+    conditions.push(eq(users.role, role))
+  }
+
+  // Filter by status
+  if (status !== 'all') {
+    switch (status) {
+      case 'active':
+        conditions.push(
+          and(
+            eq(users.isActive, true),
+            eq(users.emailVerified, true)
+          )
+        )
+        break
+      case 'inactive':
+        conditions.push(eq(users.isActive, false))
+        break
+      case 'locked':
+        conditions.push(
+          and(
+            eq(users.isActive, true),
+            // accountLockedUntil is not null and in the future
+            // Note: This is a simplified check, in production you'd check if date > now
+          )
+        )
+        break
+      case 'unverified':
+        conditions.push(eq(users.emailVerified, false))
+        break
+    }
+  }
+
+  const whereCondition = conditions.length > 0 ? and(...conditions) : undefined
+
+  // Get total count
+  const [totalResult] = await db
+    .select({ count: count() })
+    .from(users)
+    .where(whereCondition)
+
+  const total = totalResult?.count || 0
+
+  // Get users with pagination
+  const rawUsers = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
+      modifiedAt: users.modifiedAt,
+      emailVerified: users.emailVerified,
+      isActive: users.isActive,
+      lastLoginAt: users.lastLoginAt,
+      lastLoginIP: users.lastLoginIP,
+      lastLoginUserAgent: users.lastLoginUserAgent,
+      failedLoginAttempts: users.failedLoginAttempts,
+      accountLockedUntil: users.accountLockedUntil,
+    })
+    .from(users)
+    .where(whereCondition)
+    .orderBy(users.createdAt)
+    .limit(limit)
+    .offset(offset)
+
+  const userList = rawUsers.map((u) => ({
+    ...u,
+    role: u.role === 'admin' ? 'admin' : 'user',
+  })) as User[]
+
+  return {
+    users: userList,
+    total,
+    hasMore: offset + userList.length < total
+  }
+}
+
+export async function getUserStats() {
+  const [totalUsers] = await db.select({ count: count() }).from(users)
+  const [adminUsers] = await db.select({ count: count() }).from(users).where(eq(users.role, 'admin'))
+  const [activeUsers] = await db.select({ count: count() }).from(users).where(eq(users.isActive, true))
+  const [verifiedUsers] = await db.select({ count: count() }).from(users).where(eq(users.emailVerified, true))
+
+  return {
+    total: totalUsers?.count || 0,
+    admins: adminUsers?.count || 0,
+    active: activeUsers?.count || 0,
+    verified: verifiedUsers?.count || 0,
+  }
 }

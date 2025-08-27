@@ -6,6 +6,7 @@ import { resetPassword } from '~/lib/auth/resetPasswordAction'
 import { useEffect, useState } from 'react'
 import { redirect } from 'next/navigation'
 import { PasswordRequirements } from '~/components/auth/PasswordRequirements'
+import { PasswordInput } from '~/components/ui/password-input'
 
 interface ResetPasswordFormProps {
   token: string
@@ -70,13 +71,11 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         <label htmlFor="password" className="mb-2 block text-sm font-medium text-foreground">
           New Password
         </label>
-        <input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           required
           autoComplete="new-password"
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground shadow-sm focus:border-ring focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
           placeholder="Enter your new password"
           disabled={isPending}
           value={password}
@@ -88,13 +87,11 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium text-foreground">
           Confirm New Password
         </label>
-        <input
+        <PasswordInput
           id="confirmPassword"
           name="confirmPassword"
-          type="password"
           required
           autoComplete="new-password"
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground shadow-sm focus:border-ring focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50"
           placeholder="Confirm your new password"
           disabled={isPending}
         />

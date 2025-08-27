@@ -5,6 +5,7 @@ import { changePasswordAction } from '~/lib/auth/changePasswordAction'
 
 import { useEffect, useState } from 'react'
 import { PasswordRequirements } from '~/components/auth/PasswordRequirements'
+import { PasswordInput } from '~/components/ui/password-input'
 
 export function ChangePasswordForm() {
   const [state, action, isPending] = useActionState(changePasswordAction, {
@@ -108,13 +109,11 @@ export function ChangePasswordForm() {
           >
             Current Password
           </label>
-          <input
+          <PasswordInput
             id="currentPassword"
             name="currentPassword"
-            type="password"
             required
             autoComplete="current-password"
-            className="border-border bg-background text-foreground focus:border-ring focus:ring-ring w-full rounded-md border px-3 py-2 shadow-sm focus:ring-2 focus:outline-none disabled:opacity-50"
             placeholder="Enter your current password"
             disabled={isPending}
           />
@@ -127,13 +126,11 @@ export function ChangePasswordForm() {
           >
             New Password
           </label>
-          <input
+          <PasswordInput
             id="newPassword"
             name="newPassword"
-            type="password"
             required
             autoComplete="new-password"
-            className="border-border bg-background text-foreground focus:border-ring focus:ring-ring w-full rounded-md border px-3 py-2 shadow-sm focus:ring-2 focus:outline-none disabled:opacity-50"
             placeholder="Enter your new password"
             disabled={isPending}
             value={newPassword}
@@ -148,13 +145,11 @@ export function ChangePasswordForm() {
           >
             Confirm New Password
           </label>
-          <input
+          <PasswordInput
             id="confirmPassword"
             name="confirmPassword"
-            type="password"
             required
             autoComplete="new-password"
-            className="border-border bg-background text-foreground focus:border-ring focus:ring-ring w-full rounded-md border px-3 py-2 shadow-sm focus:ring-2 focus:outline-none disabled:opacity-50"
             placeholder="Confirm your new password"
             disabled={isPending}
           />

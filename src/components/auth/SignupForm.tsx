@@ -22,6 +22,7 @@ import {
 } from '~/components/ui/form'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+import { PasswordInput } from '~/components/ui/password-input'
 import Link from 'next/link'
 import { registerSchema } from '~/lib/types/registerSchema'
 
@@ -191,9 +192,8 @@ export function SignupForm({ register }: SignupFormProps) {
                     <FormItem>
                       <FormLabel htmlFor="password">Password</FormLabel>
                       <FormControl>
-                        <Input
+                        <PasswordInput
                           id="password"
-                          type="password"
                           placeholder="**********"
                           {...field}
                           onChange={(e) => {
@@ -221,9 +221,8 @@ export function SignupForm({ register }: SignupFormProps) {
                         Reenter your password
                       </FormLabel>
                       <FormControl>
-                        <Input
+                        <PasswordInput
                           id="retypedPass"
-                          type="password"
                           placeholder="**********"
                           {...field}
                         />

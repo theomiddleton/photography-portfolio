@@ -21,6 +21,7 @@ import {
 } from '~/components/ui/form'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+import { PasswordInput } from '~/components/ui/password-input'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { loginSchema } from '~/lib/types/loginSchema'
@@ -197,11 +198,10 @@ export function SigninForm({ login }: SigninFormProps) {
                         </Link>
                       </div>
                       <FormControl>
-                        <Input
+                        <PasswordInput
                           {...field}
                           id="password"
                           name="password"
-                          type="password"
                           required
                         />
                       </FormControl>

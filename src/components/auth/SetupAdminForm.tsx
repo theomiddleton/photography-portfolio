@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+import { PasswordInput } from '~/components/ui/password-input'
 import { Label } from '~/components/ui/label'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Loader2, Shield, User, Mail, Lock } from 'lucide-react'
@@ -132,10 +133,9 @@ export function SetupAdminForm({
           <Label htmlFor="password">Password</Label>
           <div className="relative">
             <Lock className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               autoComplete="new-password"
               className="pl-9"
               disabled={isPending}
@@ -149,10 +149,9 @@ export function SetupAdminForm({
           <Label htmlFor="confirmPassword">Confirm Password</Label>
           <div className="relative">
             <Lock className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
-            <Input
+            <PasswordInput
               id="confirmPassword"
               name="confirmPassword"
-              type="password"
               autoComplete="new-password"
               className="pl-9"
               disabled={isPending}
