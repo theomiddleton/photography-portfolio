@@ -109,6 +109,15 @@ export const users = pgTable('users', {
   emailVerificationTokenIndex: index('users_email_verification_token_idx').on(table.emailVerificationToken),
   passwordResetTokenIndex: index('users_password_reset_token_idx').on(table.passwordResetToken),
   isActiveIndex: index('users_is_active_idx').on(table.isActive),
+  // Additional performance indexes
+  emailVerifiedIndex: index('users_email_verified_idx').on(table.emailVerified),
+  lastLoginIndex: index('users_last_login_idx').on(table.lastLoginAt),
+  passwordResetExpiryIndex: index('users_password_reset_expiry_idx').on(table.passwordResetExpiry),
+  emailVerificationExpiryIndex: index('users_email_verification_expiry_idx').on(table.emailVerificationExpiry),
+  accountLockedIndex: index('users_account_locked_idx').on(table.accountLockedUntil),
+  // Composite indexes for common queries
+  activeVerifiedIndex: index('users_active_verified_idx').on(table.isActive, table.emailVerified),
+  roleActiveIndex: index('users_role_active_idx').on(table.role, table.isActive),
 }))
 
 // User sessions table for tracking active sessions
@@ -129,6 +138,12 @@ export const userSessions = pgTable('userSessions', {
   sessionTokenIndex: index('user_sessions_session_token_idx').on(table.sessionToken),
   expiresAtIndex: index('user_sessions_expires_at_idx').on(table.expiresAt),
   activeSessionsIndex: index('user_sessions_active_idx').on(table.userId, table.revokedAt),
+  // Additional performance indexes
+  lastUsedIndex: index('user_sessions_last_used_idx').on(table.lastUsedAt),
+  rememberMeIndex: index('user_sessions_remember_me_idx').on(table.isRememberMe),
+  // Composite indexes for cleanup and monitoring
+  expiryCleanupIndex: index('user_sessions_cleanup_idx').on(table.expiresAt, table.revokedAt),
+  userActiveSessionsIndex: index('user_sessions_user_active_idx').on(table.userId, table.expiresAt, table.revokedAt),
 }))
 
 export const logs = pgTable('logs', {

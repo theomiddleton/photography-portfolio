@@ -2,7 +2,7 @@
 
 import { db } from '~/server/db'
 import { userSessions, users } from '~/server/db/schema'
-import { eq, and, gt, isNull, lt } from 'drizzle-orm'
+import { eq, and, gt, isNull, lt, sql, inArray } from 'drizzle-orm'
 import { generateSecureToken } from './tokenHelpers'
 import { logSecurityEvent } from '~/lib/security-logging'
 import { headers } from 'next/headers'
@@ -192,45 +192,73 @@ export async function revokeAllUserSessions(
   reason: string = 'security_action'
 ): Promise<number> {
   try {
-    const conditions = [
-      eq(userSessions.userId, userId),
-      isNull(userSessions.revokedAt),
-    ]
+    let result: { rowCount: number } | undefined
 
     if (exceptSessionToken) {
-      conditions.push(eq(userSessions.sessionToken, exceptSessionToken))
-    }
+      // First get all sessions except the current one, then revoke them
+      const sessionsToRevoke = await db
+        .select({ id: userSessions.id })
+        .from(userSessions)
+        .where(
+          and(
+            eq(userSessions.userId, userId),
+            isNull(userSessions.revokedAt),
+            // Use SQL NOT operator to exclude current session
+            sql`${userSessions.sessionToken} != ${exceptSessionToken}`
+          )
+        )
 
-    const result = await db
-      .update(userSessions)
-      .set({
-        revokedAt: new Date(),
-        revokeReason: reason,
-      })
-      .where(
-        exceptSessionToken 
-          ? and(
+      if (sessionsToRevoke.length > 0) {
+        const sessionIds = sessionsToRevoke.map(s => s.id)
+        result = await db
+          .update(userSessions)
+          .set({
+            revokedAt: new Date(),
+            revokeReason: reason,
+          })
+          .where(
+            and(
               eq(userSessions.userId, userId),
-              isNull(userSessions.revokedAt),
-              // Note: We want to revoke all EXCEPT the current session
-              // So we need to use NOT equals - but drizzle doesn't have a direct not equals
-              // We'll handle this differently by selecting sessions to revoke first
+              inArray(userSessions.id, sessionIds)
             )
-          : and(
-              eq(userSessions.userId, userId),
-              isNull(userSessions.revokedAt)
-            )
-      )
+          )
+      } else {
+        result = { rowCount: 0 }
+      }
+    } else {
+      // Revoke all sessions for the user
+      result = await db
+        .update(userSessions)
+        .set({
+          revokedAt: new Date(),
+          revokeReason: reason,
+        })
+        .where(
+          and(
+            eq(userSessions.userId, userId),
+            isNull(userSessions.revokedAt)
+          )
+        )
+    }
 
     void logSecurityEvent({
       type: 'ALL_SESSIONS_REVOKED',
       userId,
-      details: { reason, exceptCurrent: !!exceptSessionToken },
+      details: { 
+        reason, 
+        exceptCurrent: !!exceptSessionToken,
+        sessionsRevoked: result.rowCount || 0
+      },
     })
 
     return result.rowCount || 0
   } catch (error) {
     console.error('Error revoking all user sessions:', error)
+    void logSecurityEvent({
+      type: 'SESSION_REVOKE_FAIL',
+      userId,
+      details: { reason: 'system_error', error: error instanceof Error ? error.message : 'unknown' },
+    })
     return 0
   }
 }
@@ -269,27 +297,86 @@ export async function getUserActiveSessions(userId: number): Promise<SessionInfo
 }
 
 /**
- * Clean up expired sessions
+ * Clean up expired sessions with batch processing to prevent memory issues
  */
 export async function cleanupExpiredSessions(): Promise<number> {
   try {
-    const result = await db
-      .update(userSessions)
-      .set({
-        revokedAt: new Date(),
-        revokeReason: 'expired',
-      })
-      .where(
-        and(
-          lt(userSessions.expiresAt, new Date()),
-          isNull(userSessions.revokedAt)
+    const batchSize = 1000 // Process in batches to prevent memory issues
+    let totalCleaned = 0
+    let hasMore = true
+    
+    while (hasMore) {
+      // Get a batch of expired sessions
+      const expiredSessions = await db
+        .select({ id: userSessions.id })
+        .from(userSessions)
+        .where(
+          and(
+            lt(userSessions.expiresAt, new Date()),
+            isNull(userSessions.revokedAt)
+          )
         )
-      )
+        .limit(batchSize)
+      
+      if (expiredSessions.length === 0) {
+        hasMore = false
+        break
+      }
+      
+      // Update this batch
+      const sessionIds = expiredSessions.map(s => s.id)
+      const result = await db
+        .update(userSessions)
+        .set({
+          revokedAt: new Date(),
+          revokeReason: 'expired',
+        })
+        .where(inArray(userSessions.id, sessionIds))
+      
+      const batchCleaned = result.rowCount || 0
+      totalCleaned += batchCleaned
+      
+      // Log progress for large cleanups
+      if (totalCleaned > 0 && totalCleaned % 5000 === 0) {
+        console.log(`Session cleanup progress: ${totalCleaned} sessions processed`)
+      }
+      
+      // If we got fewer results than batch size, we're done
+      if (expiredSessions.length < batchSize) {
+        hasMore = false
+      }
+      
+      // Small delay to prevent overwhelming the database
+      if (hasMore) {
+        await new Promise(resolve => setTimeout(resolve, 10))
+      }
+    }
 
-    console.log(`Cleaned up ${result.rowCount || 0} expired sessions`)
-    return result.rowCount || 0
+    if (totalCleaned > 0) {
+      console.log(`Cleaned up ${totalCleaned} expired sessions`)
+      
+      // Log security event for large cleanups
+      if (totalCleaned > 100) {
+        void logSecurityEvent({
+          type: 'SESSION_REFRESH_FAIL', // Reusing closest event type
+          details: { 
+            type: 'mass_session_cleanup', 
+            sessionsRemoved: totalCleaned 
+          },
+        })
+      }
+    }
+    
+    return totalCleaned
   } catch (error) {
     console.error('Error cleaning up expired sessions:', error)
+    void logSecurityEvent({
+      type: 'SESSION_REFRESH_FAIL',
+      details: { 
+        type: 'cleanup_error', 
+        error: error instanceof Error ? error.message : 'unknown' 
+      },
+    })
     return 0
   }
 }

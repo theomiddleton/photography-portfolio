@@ -54,24 +54,40 @@ export async function checkRateLimit(
     // Remove expired entries
     pipeline.zremrangebyscore(key, 0, now - window)
     
-    // Count current entries
+    // Count current entries (before adding new one)
     pipeline.zcard(key)
     
-    // Add current request
-    pipeline.zadd(key, { score: now, member: `${now}-${Math.random()}` })
-    
-    // Set expiration
-    pipeline.expire(key, window)
-    
     const results = await pipeline.exec()
-    const currentCount = results[1] as number + 1 // +1 for the request we just added
+    
+    // Check for pipeline errors
+    if (!results || results.some(result => result[0] !== null)) {
+      throw new Error('Redis pipeline operation failed')
+    }
+    
+    const currentCount = results[1][1] as number
+
+    // Check if we're over the limit before adding
+    if (currentCount >= config.limit) {
+      const resetTime = now + window
+      return {
+        success: false,
+        remaining: 0,
+        resetTime,
+        limit: config.limit,
+      }
+    }
+
+    // Add current request only if within limit
+    const addPipeline = redis.pipeline()
+    addPipeline.zadd(key, { score: now, member: `${now}-${Math.random()}` })
+    addPipeline.expire(key, window)
+    await addPipeline.exec()
 
     const resetTime = now + window
-    const remaining = Math.max(0, config.limit - currentCount)
-    const success = currentCount <= config.limit
+    const remaining = Math.max(0, config.limit - currentCount - 1)
 
     return {
-      success,
+      success: true,
       remaining,
       resetTime,
       limit: config.limit,
@@ -79,6 +95,7 @@ export async function checkRateLimit(
   } catch (error) {
     console.error('Rate limiting error:', error)
     // Fail open - allow the request if Redis is down
+    // In production, you might want to fail closed for critical operations
     return {
       success: true,
       remaining: config.limit - 1,

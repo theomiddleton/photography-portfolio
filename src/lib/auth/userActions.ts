@@ -300,14 +300,20 @@ export async function login(
       return { message: 'Failed to create session. Please try again.' }
     }
 
-    // Create JWT session for Next.js compatibility
+    // Clear any existing session cookie to prevent session fixation
+    const cookieStore = await cookies()
+    const existingSession = cookieStore.get('session')
+    if (existingSession) {
+      cookieStore.delete('session')
+    }
+
+    // Create JWT session for Next.js compatibility with fresh token
     const session = await createSession({
       email: user.email,
       role: user.role as 'admin' | 'user',
       id: user.id,
     })
 
-    const cookieStore = await cookies()
     cookieStore.set('session', session, {
       httpOnly: true,
       secure: true, // Always secure

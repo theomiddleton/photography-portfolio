@@ -14,8 +14,6 @@ export async function forgotPassword(
   data: FormData
 ): Promise<ForgotPasswordState> {
   // Validate CSRF token
-  console.log('Validating CSRF token for forgot password')
-  console.log('Data received:', data)
   const isValidCSRF = await validateCSRFFromFormData(data)
   if (!isValidCSRF) {
     void logSecurityEvent({
@@ -36,6 +34,10 @@ export async function forgotPassword(
     }
   }
 
+  // Start timing to prevent timing attacks
+  const startTime = Date.now()
+  const minProcessingTime = 500 // Minimum 500ms to prevent timing enumeration
+
   try {
     // Always return success to prevent email enumeration
     const result = await sendPasswordReset(email)
@@ -45,6 +47,12 @@ export async function forgotPassword(
       email,
       details: { result: result ? 'sent' : 'failed' }
     })
+
+    // Ensure consistent timing regardless of whether email exists
+    const processingTime = Date.now() - startTime
+    if (processingTime < minProcessingTime) {
+      await new Promise(resolve => setTimeout(resolve, minProcessingTime - processingTime))
+    }
 
     return {
       message: 'If an account with that email exists, a password reset link has been sent.',
@@ -58,6 +66,12 @@ export async function forgotPassword(
       email,
       details: { reason: 'system_error' }
     })
+
+    // Ensure consistent timing even on error
+    const processingTime = Date.now() - startTime
+    if (processingTime < minProcessingTime) {
+      await new Promise(resolve => setTimeout(resolve, minProcessingTime - processingTime))
+    }
 
     return {
       message: 'An error occurred. Please try again later.',

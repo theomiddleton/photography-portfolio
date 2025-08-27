@@ -116,40 +116,68 @@ export async function sendPasswordReset(email: string): Promise<boolean> {
       return true // Still return true to prevent email enumeration
     }
 
-    // Find user by email
-    const user = await db
-      .select({ id: users.id, name: users.name, isActive: users.isActive })
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1)
-      .then((rows) => rows[0])
+    // Use a transaction to prevent race conditions
+    const result = await db.transaction(async (tx) => {
+      // Find user by email with row locking
+      const user = await tx
+        .select({ 
+          id: users.id, 
+          name: users.name, 
+          isActive: users.isActive,
+          passwordResetToken: users.passwordResetToken,
+          passwordResetExpiry: users.passwordResetExpiry
+        })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1)
+        .then((rows) => rows[0])
 
-    if (!user || !user.isActive) {
-      // Don't reveal if email exists or not
+      if (!user || !user.isActive) {
+        return { success: false, reason: 'user_not_found_or_inactive' }
+      }
+
+      // Check if there's already a recent token (prevent spam)
+      const now = new Date()
+      if (user.passwordResetToken && user.passwordResetExpiry && user.passwordResetExpiry > now) {
+        const timeSinceLastReset = now.getTime() - (user.passwordResetExpiry.getTime() - 30 * 60 * 1000)
+        if (timeSinceLastReset < 60 * 1000) { // Less than 1 minute ago
+          return { success: false, reason: 'token_recently_generated', user }
+        }
+      }
+
+      const token = generateSecureToken()
+      const expiryMinutes = 30 // 30 minutes
+      const expiry = new Date(Date.now() + expiryMinutes * 60 * 1000)
+
+      // Store token in database atomically
+      await tx
+        .update(users)
+        .set({
+          passwordResetToken: token,
+          passwordResetExpiry: expiry,
+          modifiedAt: new Date(),
+        })
+        .where(eq(users.id, user.id))
+
+      return { success: true, user, token, expiryMinutes }
+    })
+
+    if (!result.success) {
       void logSecurityEvent({
         type: 'PASSWORD_RESET_REQUEST',
         email,
-        details: { result: 'user_not_found_or_inactive' },
+        details: { result: result.reason },
       })
       return true // Return true to prevent email enumeration
     }
 
-    const token = generateSecureToken()
-    const expiryMinutes = 30 // 30 minutes
-    const expiry = new Date(Date.now() + expiryMinutes * 60 * 1000)
-
-    // Store token in database
-    await db
-      .update(users)
-      .set({
-        passwordResetToken: token,
-        passwordResetExpiry: expiry,
-        modifiedAt: new Date(),
-      })
-      .where(eq(users.id, user.id))
-
-    // Send email
-    const emailProps = { name: user.name, email, token, expiryMinutes }
+    // Send email outside of transaction
+    const emailProps = { 
+      name: result.user.name, 
+      email, 
+      token: result.token, 
+      expiryMinutes: result.expiryMinutes 
+    }
     const { error } = await resend.emails.send({
       from: `Portfolio <${siteConfig.emails.noReply}>`,
       to: [email],
@@ -162,7 +190,7 @@ export async function sendPasswordReset(email: string): Promise<boolean> {
       console.error('Password reset send error:', error)
       void logSecurityEvent({
         type: 'EMAIL_SEND_FAIL',
-        userId: user.id,
+        userId: result.user.id,
         email,
         details: { type: 'password_reset', error: error.message },
       })
@@ -171,7 +199,7 @@ export async function sendPasswordReset(email: string): Promise<boolean> {
 
     void logSecurityEvent({
       type: 'EMAIL_SEND_SUCCESS',
-      userId: user.id,
+      userId: result.user.id,
       email,
       details: { type: 'password_reset' },
     })
