@@ -3,7 +3,7 @@
 import { db } from '~/server/db'
 import { users } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
-import { safeCompareTokens, isExpired } from './tokenHelpers'
+import { safeCompareTokens, isExpired, hashToken } from './tokenHelpers'
 import { logSecurityEvent } from '~/lib/security-logging'
 import { sendEmailVerification } from '~/lib/email/email-service'
 
@@ -83,10 +83,12 @@ export async function verifyEmailToken(
       }
     }
 
+    const hashedToken = hashToken(token)
+
     // Check if token is valid and not expired
     if (
       !user.emailVerificationToken ||
-      !safeCompareTokens(token, user.emailVerificationToken) ||
+      !safeCompareTokens(hashedToken, user.emailVerificationToken) ||
       isExpired(user.emailVerificationExpiry)
     ) {
       void logSecurityEvent({
