@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { checkAdminSetupRequired } from '~/lib/auth/authDatabase'
+import { checkAdminSetupRequiredSafe } from '~/lib/auth/authDatabase'
 import { getSession } from '~/lib/auth/auth'
 import { setupFirstAdmin } from '~/lib/auth/setupAdmin'
 import { SetupAdminForm } from '~/components/auth/SetupAdminForm'
@@ -18,7 +18,7 @@ export default async function SetupAdminPage() {
   }
 
   // Check if admin setup is required
-  const setupRequired = await checkAdminSetupRequired()
+  const setupRequired = await checkAdminSetupRequiredSafe()
   if (!setupRequired) {
     redirect('/signin?message=admin_exists')
   }

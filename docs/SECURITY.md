@@ -149,11 +149,11 @@ curl -X POST /api/auth/register -d '{"password":"weak"}'
 # Should fail with complexity requirements
 
 # Test rate limiting
-for i in {1..10}; do curl -X POST /api/signin -d '{"email":"test@test.com","password":"wrong"}'; done
+for i in {1..10}; do curl -X POST /api/auth/signin -d '{"email":"test@test.com","password":"wrong"}'; done
 # Should show rate limiting after attempts
 
 # Test CSRF protection
-curl -X POST /api/signin -d '{"email":"test@test.com","password":"password"}'
+curl -X POST /api/auth/signin -d '{"email":"test@test.com","password":"password"}' 
 # Should fail without CSRF token
 ```
 

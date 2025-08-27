@@ -4,7 +4,6 @@ import { dbWithTx } from '~/server/db'
 import { users } from '~/server/db/schema'
 import { eq, count, sql } from 'drizzle-orm'
 import { hashPassword } from '~/lib/auth/authHelpers'
-import { checkAdminSetupRequired } from '~/lib/auth/authDatabase'
 import { validateCSRFFromFormData } from '~/lib/csrf-protection'
 import { logSecurityEvent } from '~/lib/security-logging'
 import { z } from 'zod'
@@ -49,20 +48,6 @@ export async function setupFirstAdmin(
     }
   }
 
-  // Check if admin setup is actually required
-  const setupRequired = await checkAdminSetupRequired()
-  if (!setupRequired) {
-    void logSecurityEvent({
-      type: 'ADMIN_SETUP_FAIL',
-      details: { reason: 'admin_already_exists' },
-    })
-
-    return {
-      message: 'Admin setup is not required. Admin users already exist.',
-      redirect: '/signin',
-    }
-  }
-
   // Parse and validate form data
   const formData = Object.fromEntries(data)
   const parsed = setupAdminSchema.safeParse(formData)
@@ -92,13 +77,16 @@ export async function setupFirstAdmin(
   }
 
   try {
-    // Use a transaction with advisory lock to prevent race conditions
+    // Use a transaction with SERIALIZABLE isolation and advisory lock to prevent race conditions
     const result = await dbWithTx.transaction(async (tx) => {
-      // Acquire a transaction-scoped advisory lock for admin setup
-      // Lock ID: 12345678 (arbitrary but consistent for admin setup)
-      await tx.execute(sql`SELECT pg_advisory_xact_lock(12345678)`)
+      // Set SERIALIZABLE isolation level for maximum consistency
+      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL SERIALIZABLE`)
 
-      // Re-check admin count inside the transaction after acquiring the lock
+      // Acquire a transaction-scoped advisory lock for admin setup
+      // Using a meaningful hash of "admin_setup" for the lock ID
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(0x41444D494E)`) // 'ADMIN' as hex
+
+      // Check admin count inside the transaction after acquiring the lock
       const existingAdminCount = await tx
         .select({ count: count() })
         .from(users)

@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import { resetPassword } from '~/lib/auth/resetPasswordAction'
 
 import { useEffect, useState } from 'react'
-import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { PasswordRequirements } from '~/components/auth/PasswordRequirements'
 import { PasswordInput } from '~/components/ui/password-input'
 
@@ -14,25 +14,28 @@ interface ResetPasswordFormProps {
 
 function FormSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse">
+    <div className="animate-pulse space-y-4">
       <div>
-        <div className="mb-2 h-4 w-32 rounded bg-muted"></div>
-        <div className="h-10 w-full rounded-md bg-muted"></div>
+        <div className="bg-muted mb-2 h-4 w-32 rounded"></div>
+        <div className="bg-muted h-10 w-full rounded-md"></div>
       </div>
       <div>
-        <div className="mb-2 h-4 w-40 rounded bg-muted"></div>
-        <div className="h-10 w-full rounded-md bg-muted"></div>
+        <div className="bg-muted mb-2 h-4 w-40 rounded"></div>
+        <div className="bg-muted h-10 w-full rounded-md"></div>
       </div>
-      <div className="h-20 w-full rounded-md bg-muted"></div>
-      <div className="h-10 w-full rounded-md bg-muted"></div>
+      <div className="bg-muted h-20 w-full rounded-md"></div>
+      <div className="bg-muted h-10 w-full rounded-md"></div>
     </div>
   )
 }
 
 export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
-  const [state, action, isPending] = useActionState(resetPassword, { message: '' })
+  const [state, action, isPending] = useActionState(resetPassword, {
+    message: '',
+  })
   const [csrfToken, setCsrfToken] = useState('')
   const [password, setPassword] = useState('')
+  const router = useRouter()
 
   useEffect(() => {
     async function fetchCsrfToken() {
@@ -53,9 +56,9 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
   useEffect(() => {
     if (state.success && state.redirect) {
-      redirect(state.redirect)
+      router.replace(state.redirect)
     }
-  }, [state.success, state.redirect])
+  }, [state.success, state.redirect, router])
 
   // Show skeleton while CSRF token is loading
   if (!csrfToken) {
@@ -66,9 +69,12 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     <form action={action} className="space-y-4">
       <input type="hidden" name="csrf-token" value={csrfToken} />
       <input type="hidden" name="token" value={token} />
-      
+
       <div>
-        <label htmlFor="password" className="mb-2 block text-sm font-medium text-foreground">
+        <label
+          htmlFor="password"
+          className="text-foreground mb-2 block text-sm font-medium"
+        >
           New Password
         </label>
         <PasswordInput
@@ -84,7 +90,10 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       </div>
 
       <div>
-        <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium text-foreground">
+        <label
+          htmlFor="confirmPassword"
+          className="text-foreground mb-2 block text-sm font-medium"
+        >
           Confirm New Password
         </label>
         <PasswordInput
@@ -121,7 +130,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       <button
         type="submit"
         disabled={isPending || !csrfToken}
-        className="w-full rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-md px-4 py-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? (
           <span className="flex items-center justify-center gap-2">

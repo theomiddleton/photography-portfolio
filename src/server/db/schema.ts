@@ -103,59 +103,102 @@ export const users = pgTable('users', {
   // Session tracking fields
   lastLoginIP: varchar('lastLoginIP', { length: 45 }), // IPv6 compatible
   lastLoginUserAgent: varchar('lastLoginUserAgent', { length: 500 }),
-}, (table) => ({
+},
+(table) => ({
   emailIndex: index('users_email_idx').on(table.email),
   roleIndex: index('users_role_idx').on(table.role),
-  emailVerificationTokenIndex: index('users_email_verification_token_idx').on(table.emailVerificationToken),
-  passwordResetTokenIndex: index('users_password_reset_token_idx').on(table.passwordResetToken),
+  emailVerificationTokenIndex: index('users_email_verification_token_idx').on(
+    table.emailVerificationToken,
+  ),
+  passwordResetTokenIndex: index('users_password_reset_token_idx').on(
+    table.passwordResetToken,
+  ),
   isActiveIndex: index('users_is_active_idx').on(table.isActive),
   // Additional performance indexes
-  emailVerifiedIndex: index('users_email_verified_idx').on(table.emailVerified),
+  emailVerifiedIndex: index('users_email_verified_idx').on(
+    table.emailVerified,
+  ),
   lastLoginIndex: index('users_last_login_idx').on(table.lastLoginAt),
-  passwordResetExpiryIndex: index('users_password_reset_expiry_idx').on(table.passwordResetExpiry),
-  emailVerificationExpiryIndex: index('users_email_verification_expiry_idx').on(table.emailVerificationExpiry),
-  accountLockedIndex: index('users_account_locked_idx').on(table.accountLockedUntil),
+  passwordResetExpiryIndex: index('users_password_reset_expiry_idx').on(
+    table.passwordResetExpiry,
+  ),
+  emailVerificationExpiryIndex: index(
+    'users_email_verification_expiry_idx',
+  ).on(table.emailVerificationExpiry),
+  accountLockedIndex: index('users_account_locked_idx').on(
+    table.accountLockedUntil,
+  ),
   // Composite indexes for common queries
-  activeVerifiedIndex: index('users_active_verified_idx').on(table.isActive, table.emailVerified),
-  roleActiveIndex: index('users_role_active_idx').on(table.role, table.isActive),
-}))
+  activeVerifiedIndex: index('users_active_verified_idx').on(
+    table.isActive,
+    table.emailVerified,
+  ),
+  roleActiveIndex: index('users_role_active_idx').on(
+    table.role,
+    table.isActive,
+  ),
+  }),
+)
 
 // User sessions table for tracking active sessions
 export const userSessions = pgTable('userSessions', {
-  id: serial('id').primaryKey(),
-  userId: integer('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  sessionToken: varchar('sessionToken', { length: 255 }).notNull().unique(),
-  ipAddress: varchar('ipAddress', { length: 45 }), // IPv6 compatible
-  userAgent: varchar('userAgent', { length: 500 }),
-  isRememberMe: boolean('isRememberMe').default(false).notNull(),
-  expiresAt: timestamp('expiresAt').notNull(),
-  lastUsedAt: timestamp('lastUsedAt').defaultNow().notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  revokedAt: timestamp('revokedAt'),
-  revokeReason: varchar('revokeReason', { length: 100 }),
-}, (table) => ({
-  userIdIndex: index('user_sessions_user_id_idx').on(table.userId),
-  sessionTokenIndex: index('user_sessions_session_token_idx').on(table.sessionToken),
-  expiresAtIndex: index('user_sessions_expires_at_idx').on(table.expiresAt),
-  activeSessionsIndex: index('user_sessions_active_idx').on(table.userId, table.revokedAt),
-  // Additional performance indexes
-  lastUsedIndex: index('user_sessions_last_used_idx').on(table.lastUsedAt),
-  rememberMeIndex: index('user_sessions_remember_me_idx').on(table.isRememberMe),
-  // Composite indexes for cleanup and monitoring
-  expiryCleanupIndex: index('user_sessions_cleanup_idx').on(table.expiresAt, table.revokedAt),
-  userActiveSessionsIndex: index('user_sessions_user_active_idx').on(table.userId, table.expiresAt, table.revokedAt),
-}))
+    id: serial('id').primaryKey(),
+    userId: integer('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    sessionToken: varchar('sessionToken', { length: 255 }).notNull().unique(),
+    ipAddress: varchar('ipAddress', { length: 45 }), // IPv6 compatible
+    userAgent: varchar('userAgent', { length: 500 }),
+    isRememberMe: boolean('isRememberMe').default(false).notNull(),
+    expiresAt: timestamp('expiresAt').notNull(),
+    lastUsedAt: timestamp('lastUsedAt').defaultNow().notNull(),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    revokedAt: timestamp('revokedAt'),
+    revokeReason: varchar('revokeReason', { length: 100 }),
+  },
+  (table) => ({
+    userIdIndex: index('user_sessions_user_id_idx').on(table.userId),
+    sessionTokenIndex: index('user_sessions_session_token_idx').on(
+      table.sessionToken,
+    ),
+    expiresAtIndex: index('user_sessions_expires_at_idx').on(table.expiresAt),
+    activeSessionsIndex: index('user_sessions_active_idx').on(
+      table.userId,
+      table.revokedAt,
+    ),
+    // Additional performance indexes
+    lastUsedIndex: index('user_sessions_last_used_idx').on(table.lastUsedAt),
+    rememberMeIndex: index('user_sessions_remember_me_idx').on(
+      table.isRememberMe,
+    ),
+    // Composite indexes for cleanup and monitoring
+    expiryCleanupIndex: index('user_sessions_cleanup_idx').on(
+      table.expiresAt,
+      table.revokedAt,
+    ),
+    userActiveSessionsIndex: index('user_sessions_user_active_idx').on(
+      table.userId,
+      table.expiresAt,
+      table.revokedAt,
+    ),
+  }),
+)
 
 export const logs = pgTable('logs', {
-  id: serial('id').primaryKey(),
-  scope: varchar('scope', { length: 50 }).notNull(), // Reduced length for efficiency
-  log: text('log').notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-}, (table) => ({
-  scopeIndex: index('logs_scope_idx').on(table.scope),
-  createdAtIndex: index('logs_created_at_idx').on(table.createdAt),
-  scopeCreatedIndex: index('logs_scope_created_idx').on(table.scope, table.createdAt),
-}))
+    id: serial('id').primaryKey(),
+    scope: varchar('scope', { length: 50 }).notNull(), // Reduced length for efficiency
+    log: text('log').notNull(),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+  },
+  (table) => ({
+    scopeIndex: index('logs_scope_idx').on(table.scope),
+    createdAtIndex: index('logs_created_at_idx').on(table.createdAt),
+    scopeCreatedIndex: index('logs_scope_created_idx').on(
+      table.scope,
+      table.createdAt,
+    ),
+  }),
+)
 
 export const videos = pgTable('videos', {
   id: text('id').primaryKey(),
@@ -304,7 +347,9 @@ export const storeBadges = pgTable('storeBadges', {
 
 export const storeProductDetails = pgTable('storeProductDetails', {
   id: uuid('id').defaultRandom().primaryKey(),
-  productId: uuid('productId').references(() => products.id, { onDelete: 'cascade' }),
+  productId: uuid('productId').references(() => products.id, {
+    onDelete: 'cascade',
+  }),
   label: text('label').notNull(), // e.g., "Material", "Finish", "Frame"
   value: text('value').notNull(), // e.g., "Premium photo paper", "Matte or glossy", "Optional wood or metal"
   order: integer('order').default(0).notNull(),
@@ -333,7 +378,9 @@ export const galleryConfig = pgTable('galleryConfig', {
   columnsTablet: integer('columnsTablet').notNull().default(2),
   columnsDesktop: integer('columnsDesktop').notNull().default(3),
   columnsLarge: integer('columnsLarge').notNull().default(4),
-  galleryStyle: varchar('galleryStyle', { length: 50 }).notNull().default('masonry'),
+  galleryStyle: varchar('galleryStyle', { length: 50 })
+    .notNull()
+    .default('masonry'),
   gapSize: varchar('gapSize', { length: 20 }).notNull().default('medium'),
   updatedAt: timestamp('updatedAt').defaultNow(),
 })
@@ -344,26 +391,40 @@ export const galleries = pgTable('galleries', {
   slug: text('slug').notNull().unique(),
   description: text('description'),
   layout: text('layout', {
-    enum: ['masonry', 'grid', 'square', 'list']
-  }).notNull().default('masonry'),
-  columns: json('columns').$type<{
-    mobile: number
-    tablet: number
-    desktop: number
-  }>().default({ mobile: 1, tablet: 2, desktop: 3 }),
+    enum: ['masonry', 'grid', 'square', 'list'],
+  })
+    .notNull()
+    .default('masonry'),
+  columns: json('columns')
+    .$type<{
+      mobile: number
+      tablet: number
+      desktop: number
+    }>()
+    .default({ mobile: 1, tablet: 2, desktop: 3 }),
   isPublic: boolean('isPublic').default(true).notNull(),
   coverImageId: uuid('coverImageId'),
   viewCount: integer('viewCount').default(0).notNull(),
   category: text('category').default('general'),
   tags: text('tags'), // Comma-separated tags
   template: text('template', {
-    enum: ['portfolio', 'wedding', 'landscape', 'street', 'product', 'event', 'custom']
+    enum: [
+      'portfolio',
+      'wedding',
+      'landscape',
+      'street',
+      'product',
+      'event',
+      'custom',
+    ],
   }).default('custom'),
   allowEmbedding: boolean('allowEmbedding').default(true).notNull(),
   embedPassword: text('embedPassword'), // Optional password for embedded galleries
   isPasswordProtected: boolean('isPasswordProtected').default(false).notNull(),
   galleryPassword: text('galleryPassword'), // Hashed password for gallery access
-  passwordCookieDuration: integer('passwordCookieDuration').default(30).notNull(), // Duration in days
+  passwordCookieDuration: integer('passwordCookieDuration')
+    .default(30)
+    .notNull(), // Duration in days
   shareableLink: text('shareableLink').unique(), // UUID for sharing
   showInNav: boolean('showInNav').default(false).notNull(), // Show in navigation menu
   createdAt: timestamp('createdAt').defaultNow().notNull(),
@@ -372,7 +433,9 @@ export const galleries = pgTable('galleries', {
 
 export const galleryImages = pgTable('galleryImages', {
   id: uuid('id').defaultRandom().primaryKey(),
-  galleryId: uuid('galleryId').references(() => galleries.id, { onDelete: 'cascade' }).notNull(),
+  galleryId: uuid('galleryId')
+    .references(() => galleries.id, { onDelete: 'cascade' })
+    .notNull(),
   uuid: varchar('uuid', { length: 36 }).notNull(),
   fileName: varchar('fileName', { length: 256 }).notNull(),
   fileUrl: varchar('fileUrl', { length: 512 }).notNull(),
@@ -395,7 +458,9 @@ export const galleryImages = pgTable('galleryImages', {
 
 export const galleryAccessLogs = pgTable('galleryAccessLogs', {
   id: serial('id').primaryKey(),
-  galleryId: uuid('galleryId').references(() => galleries.id, { onDelete: 'cascade' }).notNull(),
+  galleryId: uuid('galleryId')
+    .references(() => galleries.id, { onDelete: 'cascade' })
+    .notNull(),
   ipAddress: varchar('ipAddress', { length: 45 }).notNull(),
   userAgent: text('userAgent'),
   accessType: varchar('accessType', { length: 20 }).notNull(), // 'password_success', 'password_fail', 'temp_link', 'admin_access'
@@ -404,7 +469,9 @@ export const galleryAccessLogs = pgTable('galleryAccessLogs', {
 
 export const galleryTempLinks = pgTable('galleryTempLinks', {
   id: uuid('id').defaultRandom().primaryKey(),
-  galleryId: uuid('galleryId').references(() => galleries.id, { onDelete: 'cascade' }).notNull(),
+  galleryId: uuid('galleryId')
+    .references(() => galleries.id, { onDelete: 'cascade' })
+    .notNull(),
   token: varchar('token', { length: 64 }).notNull().unique(),
   expiresAt: timestamp('expiresAt').notNull(),
   maxUses: integer('maxUses').default(10).notNull(),
@@ -508,11 +575,13 @@ export const multiGalleryPages = pgTable('multiGalleryPages', {
 
 export const multiGallerySections = pgTable('multiGallerySections', {
   id: uuid('id').defaultRandom().primaryKey(),
-  pageId: uuid('pageId').notNull().references(() => multiGalleryPages.id, { onDelete: 'cascade' }),
+  pageId: uuid('pageId')
+    .notNull()
+    .references(() => multiGalleryPages.id, { onDelete: 'cascade' }),
   order: integer('order').notNull().default(0),
   title: text('title'),
   description: text('description'),
-  
+
   // Gallery Configuration (similar to mainGalleryConfig but per section)
   layout: varchar('layout', { length: 50 }).notNull().default('masonry'),
   gridVariant: varchar('gridVariant', { length: 50 }).default('standard'),
@@ -523,50 +592,66 @@ export const multiGallerySections = pgTable('multiGallerySections', {
   gapSize: varchar('gapSize', { length: 20 }).notNull().default('medium'),
   borderRadius: varchar('borderRadius', { length: 20 }).default('medium'),
   aspectRatio: varchar('aspectRatio', { length: 20 }).default('auto'),
-  
+
   // Hero Image Configuration
   enableHeroImage: boolean('enableHeroImage').default(false).notNull(),
   heroImageId: integer('heroImageId'),
-  heroImagePosition: varchar('heroImagePosition', { length: 20 }).default('top'),
+  heroImagePosition: varchar('heroImagePosition', { length: 20 }).default(
+    'top',
+  ),
   heroImageSize: varchar('heroImageSize', { length: 20 }).default('large'),
   heroImageStyle: varchar('heroImageStyle', { length: 20 }).default('featured'),
-  
+
   // Display Options
   showImageTitles: boolean('showImageTitles').default(true).notNull(),
-  showImageDescriptions: boolean('showImageDescriptions').default(false).notNull(),
+  showImageDescriptions: boolean('showImageDescriptions')
+    .default(false)
+    .notNull(),
   showImageMetadata: boolean('showImageMetadata').default(false).notNull(),
   enableLightbox: boolean('enableLightbox').default(true).notNull(),
-  enableInfiniteScroll: boolean('enableInfiniteScroll').default(false).notNull(),
+  enableInfiniteScroll: boolean('enableInfiniteScroll')
+    .default(false)
+    .notNull(),
   imagesPerPage: integer('imagesPerPage').default(50).notNull(),
-  
+
   // Animation and Visual Effects
   enableAnimations: boolean('enableAnimations').default(true).notNull(),
   animationType: varchar('animationType', { length: 20 }).default('fade'),
   hoverEffect: varchar('hoverEffect', { length: 20 }).default('zoom'),
-  backgroundColor: varchar('backgroundColor', { length: 20 }).default('default'),
+  backgroundColor: varchar('backgroundColor', { length: 20 }).default(
+    'default',
+  ),
   overlayColor: varchar('overlayColor', { length: 20 }).default('black'),
   overlayOpacity: integer('overlayOpacity').default(20).notNull(),
-  
+
   // Performance Options
   enableLazyLoading: boolean('enableLazyLoading').default(true).notNull(),
   imageQuality: varchar('imageQuality', { length: 20 }).default('auto'),
-  enableProgressiveLoading: boolean('enableProgressiveLoading').default(false).notNull(),
-  
+  enableProgressiveLoading: boolean('enableProgressiveLoading')
+    .default(false)
+    .notNull(),
+
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 })
 
 export const multiGallerySectionImages = pgTable('multiGallerySectionImages', {
   id: uuid('id').defaultRandom().primaryKey(),
-  sectionId: uuid('sectionId').notNull().references(() => multiGallerySections.id, { onDelete: 'cascade' }),
-  imageId: integer('imageId').notNull().references(() => imageData.id, { onDelete: 'cascade' }),
+  sectionId: uuid('sectionId')
+    .notNull()
+    .references(() => multiGallerySections.id, { onDelete: 'cascade' }),
+  imageId: integer('imageId')
+    .notNull()
+    .references(() => imageData.id, { onDelete: 'cascade' }),
   order: integer('order').notNull().default(0),
   addedAt: timestamp('addedAt').defaultNow().notNull(),
 })
 
 export const multiGallerySeparators = pgTable('multiGallerySeparators', {
   id: uuid('id').defaultRandom().primaryKey(),
-  pageId: uuid('pageId').notNull().references(() => multiGalleryPages.id, { onDelete: 'cascade' }),
+  pageId: uuid('pageId')
+    .notNull()
+    .references(() => multiGalleryPages.id, { onDelete: 'cascade' }),
   position: integer('position').notNull(), // Position between sections (0 = before first, 1 = between first and second, etc.)
   type: varchar('type', { length: 50 }).notNull().default('divider'), // divider, text, image, spacer
   content: text('content'), // Text content or image URL
@@ -576,36 +661,48 @@ export const multiGallerySeparators = pgTable('multiGallerySeparators', {
 })
 
 // Relations for Multi-Gallery System
-export const multiGalleryPageRelations = relations(multiGalleryPages, ({ many }) => ({
-  sections: many(multiGallerySections),
-  separators: many(multiGallerySeparators),
-}))
+export const multiGalleryPageRelations = relations(
+  multiGalleryPages,
+  ({ many }) => ({
+    sections: many(multiGallerySections),
+    separators: many(multiGallerySeparators),
+  }),
+)
 
-export const multiGallerySectionRelations = relations(multiGallerySections, ({ one, many }) => ({
-  page: one(multiGalleryPages, {
-    fields: [multiGallerySections.pageId],
-    references: [multiGalleryPages.id],
+export const multiGallerySectionRelations = relations(
+  multiGallerySections,
+  ({ one, many }) => ({
+    page: one(multiGalleryPages, {
+      fields: [multiGallerySections.pageId],
+      references: [multiGalleryPages.id],
+    }),
+    images: many(multiGallerySectionImages),
   }),
-  images: many(multiGallerySectionImages),
-}))
+)
 
-export const multiGallerySectionImageRelations = relations(multiGallerySectionImages, ({ one }) => ({
-  section: one(multiGallerySections, {
-    fields: [multiGallerySectionImages.sectionId],
-    references: [multiGallerySections.id],
+export const multiGallerySectionImageRelations = relations(
+  multiGallerySectionImages,
+  ({ one }) => ({
+    section: one(multiGallerySections, {
+      fields: [multiGallerySectionImages.sectionId],
+      references: [multiGallerySections.id],
+    }),
+    image: one(imageData, {
+      fields: [multiGallerySectionImages.imageId],
+      references: [imageData.id],
+    }),
   }),
-  image: one(imageData, {
-    fields: [multiGallerySectionImages.imageId],
-    references: [imageData.id],
-  }),
-}))
+)
 
-export const multiGallerySeparatorRelations = relations(multiGallerySeparators, ({ one }) => ({
-  page: one(multiGalleryPages, {
-    fields: [multiGallerySeparators.pageId],
-    references: [multiGalleryPages.id],
+export const multiGallerySeparatorRelations = relations(
+  multiGallerySeparators,
+  ({ one }) => ({
+    page: one(multiGalleryPages, {
+      fields: [multiGallerySeparators.pageId],
+      references: [multiGalleryPages.id],
+    }),
   }),
-}))
+)
 
 // Storage Usage Monitoring Tables
 export const storageUsage = pgTable('storageUsage', {
@@ -615,12 +712,16 @@ export const storageUsage = pgTable('storageUsage', {
   objectCount: integer('objectCount').notNull(),
   measurementDate: timestamp('measurementDate').defaultNow().notNull(),
   alertTriggered: boolean('alertTriggered').default(false).notNull(),
-  alertThresholdBytes: bigint('alertThresholdBytes', { mode: 'number' }).default(9000000000), // 9GB default
+  alertThresholdBytes: bigint('alertThresholdBytes', {
+    mode: 'number',
+  }).default(9000000000), // 9GB default
 })
 
 export const alertDismissals = pgTable('alertDismissals', {
   id: serial('id').primaryKey(),
-  userId: integer('userId').references(() => users.id).notNull(),
+  userId: integer('userId')
+    .references(() => users.id)
+    .notNull(),
   alertType: varchar('alertType', { length: 100 }).notNull(), // 'storage_warning', 'storage_critical', etc.
   bucketName: varchar('bucketName', { length: 256 }),
   dismissedAt: timestamp('dismissedAt').defaultNow().notNull(),
@@ -645,8 +746,12 @@ export const duplicateFiles = pgTable('duplicateFiles', {
 export const usageAlertConfig = pgTable('usageAlertConfig', {
   id: serial('id').primaryKey(),
   bucketName: varchar('bucketName', { length: 256 }).notNull().unique(),
-  warningThresholdPercent: integer('warningThresholdPercent').default(80).notNull(), // % of total limit
-  criticalThresholdPercent: integer('criticalThresholdPercent').default(95).notNull(), // % of total limit
+  warningThresholdPercent: integer('warningThresholdPercent')
+    .default(80)
+    .notNull(), // % of total limit
+  criticalThresholdPercent: integer('criticalThresholdPercent')
+    .default(95)
+    .notNull(), // % of total limit
   emailAlertsEnabled: boolean('emailAlertsEnabled').default(true).notNull(),
   lastWarningEmailSent: timestamp('lastWarningEmailSent'),
   lastCriticalEmailSent: timestamp('lastCriticalEmailSent'),
@@ -656,9 +761,15 @@ export const usageAlertConfig = pgTable('usageAlertConfig', {
 
 export const globalStorageConfig = pgTable('globalStorageConfig', {
   id: serial('id').primaryKey(),
-  totalStorageLimit: bigint('totalStorageLimit', { mode: 'number' }).default(10000000000).notNull(), // 10GB total
-  warningThresholdPercent: integer('warningThresholdPercent').default(80).notNull(), // 80% of total
-  criticalThresholdPercent: integer('criticalThresholdPercent').default(95).notNull(), // 95% of total
+  totalStorageLimit: bigint('totalStorageLimit', { mode: 'number' })
+    .default(10000000000)
+    .notNull(), // 10GB total
+  warningThresholdPercent: integer('warningThresholdPercent')
+    .default(80)
+    .notNull(), // 80% of total
+  criticalThresholdPercent: integer('criticalThresholdPercent')
+    .default(95)
+    .notNull(), // 95% of total
   emailAlertsEnabled: boolean('emailAlertsEnabled').default(true).notNull(),
   lastWarningEmailSent: timestamp('lastWarningEmailSent'),
   lastCriticalEmailSent: timestamp('lastCriticalEmailSent'),
@@ -674,19 +785,23 @@ export const storageUsageRelations = relations(storageUsage, ({ one }) => ({
   }),
 }))
 
-export const alertDismissalRelations = relations(alertDismissals, ({ one }) => ({
-  user: one(users, {
-    fields: [alertDismissals.userId],
-    references: [users.id],
+export const alertDismissalRelations = relations(
+  alertDismissals,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [alertDismissals.userId],
+      references: [users.id],
+    }),
   }),
-}))
+)
 
 // Export types
 export type User = typeof users.$inferSelect
 export type UserSession = typeof userSessions.$inferSelect
 export type MultiGalleryPage = typeof multiGalleryPages.$inferSelect
 export type MultiGallerySection = typeof multiGallerySections.$inferSelect
-export type MultiGallerySectionImage = typeof multiGallerySectionImages.$inferSelect
+export type MultiGallerySectionImage =
+  typeof multiGallerySectionImages.$inferSelect
 export type MultiGallerySeparator = typeof multiGallerySeparators.$inferSelect
 export type StorageUsage = typeof storageUsage.$inferSelect
 export type AlertDismissal = typeof alertDismissals.$inferSelect
