@@ -47,52 +47,44 @@ export async function checkRateLimit(
   const now = Math.floor(Date.now() / 1000)
   const window = config.window
 
-  try {
-    // Use Redis pipeline for atomic operations
-    const pipeline = redis.pipeline()
-    
-    // Remove expired entries
-    pipeline.zremrangebyscore(key, 0, now - window)
-    
-    // Count current entries (before adding new one)
-    pipeline.zcard(key)
-    
-    const results = await pipeline.exec()
-    
-    // Check for pipeline errors
-    if (!results || results.some(result => result[0] !== null)) {
-      throw new Error('Redis pipeline operation failed')
-    }
-    
-    const currentCount = results[1][1] as number
+  try {  
+    // Generate a unique member string up front  
+    const member = `${now}-${Math.random()}`  
 
-    // Check if we're over the limit before adding
-    if (currentCount >= config.limit) {
-      const resetTime = now + window
-      return {
-        success: false,
-        remaining: 0,
-        resetTime,
-        limit: config.limit,
-      }
-    }
+    // In one pipeline: prune expired, add this request, count in-window, set TTL  
+    const pipeline = redis.pipeline()  
+    pipeline.zremrangebyscore(key, 0, now - window)  
+    pipeline.zadd(key, { score: now, member })  
+    pipeline.zcount(key, now - window, now)  
+    pipeline.expire(key, window)  
 
-    // Add current request only if within limit
-    const addPipeline = redis.pipeline()
-    addPipeline.zadd(key, { score: now, member: `${now}-${Math.random()}` })
-    addPipeline.expire(key, window)
-    await addPipeline.exec()
+    const res = await pipeline.exec()  
+    if (!res || res.some(r => r[0] !== null)) {  
+      throw new Error('Redis pipeline operation failed')  
+    }  
 
-    const resetTime = now + window
-    const remaining = Math.max(0, config.limit - currentCount - 1)
+    // zcount result is at index 2  
+    const currentCount = res[2][1] as number  
 
-    return {
-      success: true,
-      remaining,
-      resetTime,
-      limit: config.limit,
-    }
-  } catch (error) {
+    // If we’ve exceeded the limit, remove our own entry to rollback  
+    if (currentCount > config.limit) {  
+      await redis.zrem(key, member)  
+      return {  
+        success: false,  
+        remaining: 0,  
+        resetTime: now + window,  
+        limit: config.limit,  
+      }  
+    }  
+
+    // Otherwise succeed  
+    return {  
+      success: true,  
+      remaining: Math.max(0, config.limit - currentCount),  
+      resetTime: now + window,  
+      limit: config.limit,  
+    }  
+  } catch (error) {  
     console.error('Rate limiting error:', error)
     // Fail open - allow the request if Redis is down
     // In production, you might want to fail closed for critical operations

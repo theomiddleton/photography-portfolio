@@ -2,9 +2,9 @@
 
 import { db } from '~/server/db'
 import { users } from '~/server/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, gt } from 'drizzle-orm'
 import { hashPassword, verifyPassword } from './authHelpers'
-import { safeCompareTokens, isExpired } from './tokenHelpers'
+import { safeCompareTokens, isExpired, hashToken } from '~/lib/auth/tokenHelpers'
 import { logSecurityEvent } from '~/lib/security-logging'
 import { sendSecurityNotification } from '~/lib/email/email-service'
 import { revokeAllUserSessions } from './sessionManagement'
@@ -45,7 +45,7 @@ export async function verifyPasswordResetToken(token: string): Promise<{
         isActive: users.isActive,
       })
       .from(users)
-      .where(eq(users.passwordResetToken, token))
+      .where(eq(users.passwordResetToken, hashToken(token)))
       .limit(1)
       .then((rows) => rows[0])
 
@@ -56,7 +56,7 @@ export async function verifyPasswordResetToken(token: string): Promise<{
     // Check if token is valid and not expired
     if (
       !user.passwordResetToken ||
-      !safeCompareTokens(token, user.passwordResetToken) ||
+      !safeCompareTokens(hashToken(token), user.passwordResetToken) ||
       isExpired(user.passwordResetExpiry)
     ) {
       return { isValid: false }
@@ -99,20 +99,42 @@ export async function resetPasswordWithToken(
 
     const { userId, email, name } = verification
 
+    // Validate strength
+    const strength = await validatePasswordStrength(newPassword)
+    if (!strength.isValid) {
+      return { success: false, message: strength.issues[0] || 'Weak password.' }
+    }
     // Hash the new password
     const hashedPassword = await hashPassword(newPassword)
 
     // Update password and clear reset token
-    await db
-      .update(users)
-      .set({
-        password: hashedPassword,
-        passwordResetToken: null,
-        passwordResetExpiry: null,
-        passwordChangedAt: new Date(),
-        modifiedAt: new Date(),
-      })
-      .where(eq(users.id, userId))
+    const tokenHash = hashToken(token)  
+    const result = await db  
+      .update(users)  
+      .set({  
+        password: hashedPassword,  
+        passwordResetToken: null,  
+        passwordResetExpiry: null,  
+        passwordChangedAt: new Date(),  
+        modifiedAt: new Date(),  
+      })  
+      .where(  
+        and(  
+          eq(users.id, userId),  
+          eq(users.passwordResetToken, tokenHash),  
+          gt(users.passwordResetExpiry, new Date()),  
+        ),  
+      )  
+  
+    // If no rows were updated, the token was already used or expired  
+    // (prevents double-use under concurrency)  
+    if ((result as unknown as { rowCount?: number }).rowCount === 0) {  
+      return {  
+        success: false,  
+        message:  
+          'This reset link has already been used or expired. Please request a new password reset.',  
+      }  
+    } 
 
     // Record password change for security tracking
     await recordPasswordChange(userId)
@@ -232,7 +254,18 @@ export async function changePassword(
       }
     }
 
-    // Hash the new password
+    // Validate strength  
+    const strength = await validatePasswordStrength(newPassword)  
+    if (!strength.isValid) {  
+      void logSecurityEvent({  
+        type: 'PASSWORD_CHANGE_FAIL',  
+        userId,  
+        email: user.email,  
+        details: { reason: 'weak_password', issues: strength.issues.slice(0, 3) },  
+      })  
+      return { success: false, message: strength.issues[0] || 'Weak password.' }  
+    }  
+    // Hash the new password 
     const hashedPassword = await hashPassword(newPassword)
 
     // Update password
@@ -248,7 +281,10 @@ export async function changePassword(
     // Record password change for security tracking
     await recordPasswordChange(userId)
 
-    // Log successful password change
+    // Revoke sessions after password change  
+    await revokeAllUserSessions(userId, undefined, 'password_changed')  
+  
+    // Log successful password change 
     void logSecurityEvent({
       type: 'PASSWORD_CHANGE_SUCCESS',
       userId,

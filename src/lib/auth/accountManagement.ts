@@ -5,8 +5,9 @@ import { users } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { logSecurityEvent } from '~/lib/security-logging'
 import { sendSecurityNotification } from '~/lib/email/email-service'
-import { revokeAllUserSessions } from './sessionManagement'
-import { verifyPassword } from './authHelpers'
+import { revokeAllUserSessions } from '~/lib/auth/sessionManagement'
+import { verifyPassword, hashPassword } from '~/lib/auth/authHelpers'
+import { generateSecureToken } from '~/lib/auth/tokenHelpers' 
 
 interface AccountActionResult {
   success: boolean
@@ -294,12 +295,13 @@ export async function deleteAccount(
     const anonymizedEmail = `deleted_${userId}_${Date.now()}@deleted.local`
     const anonymizedName = `Deleted User ${userId}`
 
+    const deletedPasswordHash = await hashPassword(generateSecureToken())
     await db
       .update(users)
       .set({
         email: anonymizedEmail,
         name: anonymizedName,
-        password: 'deleted_account', // Clear password
+        password: deletedPasswordHash, // Random invalid hash; prevents login
         isActive: false,
         deactivatedAt: new Date(),
         deactivationReason: 'Account deleted by user request',

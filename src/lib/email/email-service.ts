@@ -3,7 +3,7 @@
 import { Resend } from 'resend'
 import { render } from '@react-email/render'
 import { env } from '~/env.js'
-import { generateSecureToken } from '~/lib/auth/tokenHelpers'
+import { generateSecureToken, hashToken } from '~/lib/auth/tokenHelpers'
 import { db } from '~/server/db'
 import { users } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
@@ -45,6 +45,7 @@ export async function sendEmailVerification(
     }
 
     const token = generateSecureToken()
+    const tokenHash = hashToken(token)
     const expiryMinutes = 60 // 1 hour
     const expiry = new Date(Date.now() + expiryMinutes * 60 * 1000)
 
@@ -52,7 +53,7 @@ export async function sendEmailVerification(
     await db
       .update(users)
       .set({
-        emailVerificationToken: token,
+        emailVerificationToken: tokenHash,
         emailVerificationExpiry: expiry,
         modifiedAt: new Date(),
       })
