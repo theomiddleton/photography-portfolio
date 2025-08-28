@@ -90,6 +90,7 @@ const defaultConfig = {
     // Admin multiplier - admins get 3x the base limits
     adminMultiplier: 3,
   },
+  configLocation: 'Default',
 }
 
 // Site configuration with environment variable overrides
@@ -181,5 +182,6 @@ export const siteConfig = {
     // Admin multiplier - admins get 3x the base limits
     adminMultiplier: getEnv('NEXT_PUBLIC_ADMIN_MULTIPLIER', defaultConfig.rateLimiting.adminMultiplier),
   },
+  configLocation: getEnv('NEXT_PUBLIC_CONFIG_LOCATION', defaultConfig.configLocation),
 }
 export type SiteConfig = typeof siteConfig
