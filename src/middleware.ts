@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getSession } from '~/lib/auth/auth'
+import { getSession } from '~/lib/auth/authSession'
 import { logSecurityEvent } from '~/lib/security-logging'
 import { securityConfig } from '~/config/security-config'
 
 export async function middleware(request: NextRequest) {
   // Extract the base path (first segment of the URL path)
   const basePath = '/' + request.nextUrl.pathname.split('/')[1]
+  const fullPath = request.nextUrl.pathname
 
   // Create response with security headers
   const response = NextResponse.next()
@@ -15,6 +16,9 @@ export async function middleware(request: NextRequest) {
   for (const [name, value] of Object.entries(securityConfig.headers)) {
     response.headers.set(name, value)
   }
+
+  // Note: Admin setup check is now handled in individual page components
+  // to avoid database calls in Edge Runtime middleware
 
   // Check if the base path matches any of our protected routes
   if (config.matcher.some((path) => basePath === path.split('/:')[0])) {

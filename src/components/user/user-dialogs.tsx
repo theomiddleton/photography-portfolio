@@ -30,6 +30,12 @@ interface DemoteUserDialogProps {
   onDemote: (userId: number) => void
 }
 
+interface LogoutUserDialogProps {
+  userToLogout: User | null
+  onCancel: () => void
+  onLogout: (userId: number) => void
+}
+
 export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({ userToDelete, onCancel, onDelete }) => (
   <AlertDialog open={!!userToDelete} onOpenChange={onCancel}>
     <AlertDialogContent>
@@ -84,6 +90,32 @@ export const DemoteUserDialog: React.FC<DemoteUserDialogProps> = ({ userToDemote
         <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>
         <AlertDialogAction onClick={() => userToDemote && onDemote(userToDemote.id)}>
           Demote
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+)
+
+export const LogoutUserDialog: React.FC<LogoutUserDialogProps> = ({ userToLogout, onCancel, onLogout }) => (  
+  <AlertDialog  
+    open={!!userToLogout}  
+    onOpenChange={(open) => {  
+      if (!open) onCancel()  
+    }}  
+  >  
+    <AlertDialogContent>  
+      <AlertDialogHeader>
+        <AlertDialogTitle>Force User Logout</AlertDialogTitle>
+        <AlertDialogDescription>
+          This action will immediately log out the user from all their active sessions.
+          The user will need to sign in again to access their account.
+          Are you sure you want to continue?
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>
+        <AlertDialogAction onClick={() => userToLogout && onLogout(userToLogout.id)}>
+          Force Logout
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
