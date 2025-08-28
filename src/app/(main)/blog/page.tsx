@@ -1,11 +1,49 @@
 import React from 'react'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { db } from '~/server/db'
 import { desc, and, eq } from 'drizzle-orm'
 import { blogPosts } from '~/server/db/schema'
 import { formatDistance } from 'date-fns'
+import { siteConfig } from '~/config/site'
 
 const POSTS_PER_PAGE = 10
+
+export const metadata: Metadata = {
+  title: `Photography Blog | ${siteConfig.ownerName}`,
+  description: `Read the latest photography blog posts by ${siteConfig.ownerName}. Discover photography tips, behind-the-scenes stories, gear reviews, and artistic insights from a professional photographer.`,
+  keywords: [
+    'photography blog',
+    'photography tips',
+    'photographer insights',
+    `${siteConfig.ownerName} blog`,
+    'photography tutorials',
+    'photography stories',
+    'photography techniques',
+    'camera gear reviews',
+    'photography inspiration',
+    'behind the scenes photography'
+  ].join(', '),
+  authors: [{ name: siteConfig.ownerName }],
+  creator: siteConfig.ownerName,
+  openGraph: {
+    title: `Photography Blog | ${siteConfig.ownerName}`,
+    description: `Explore photography insights, tips, and stories from professional photographer ${siteConfig.ownerName}.`,
+    url: `${siteConfig.url}/blog`,
+    siteName: siteConfig.seo.openGraph.siteName,
+    images: siteConfig.seo.openGraph.images,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Photography Blog | ${siteConfig.ownerName}`,
+    description: `Explore photography insights, tips, and stories from professional photographer ${siteConfig.ownerName}.`,
+    images: siteConfig.seo.openGraph.images,
+  },
+  alternates: {
+    canonical: `${siteConfig.url}/blog`,
+  },
+}
 
 export default async function BlogPage({
   searchParams,

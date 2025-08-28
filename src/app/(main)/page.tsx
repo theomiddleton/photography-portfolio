@@ -1,4 +1,5 @@
 import React from 'react'
+import type { Metadata } from 'next'
 import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
 import { imageData, galleryConfig } from '~/server/db/schema'
@@ -10,6 +11,40 @@ import { getSession } from '~/lib/auth/auth'
 import type { GalleryConfigData } from '~/lib/actions/gallery/gallery-config'
 
 export const revalidate = 3600 // Set to 1 hour as a fallback, primarily using on-demand revalidation
+
+export const metadata: Metadata = {
+  title: `${siteConfig.ownerName} | Professional Photography Portfolio`,
+  description: `Discover the stunning photography portfolio of ${siteConfig.ownerName}. Professional photographer specializing in portraits, landscapes, and events. Browse gallery and contact for photography services.`,
+  keywords: [
+    `${siteConfig.ownerName}`,
+    'professional photographer',
+    'photography portfolio',
+    'portrait photographer',
+    'landscape photography',
+    'event photography',
+    'photography services',
+    'photo gallery',
+    'visual storytelling',
+    'artistic photography'
+  ].join(', '),
+  openGraph: {
+    title: `${siteConfig.ownerName} | Professional Photography Portfolio`,
+    description: `Explore ${siteConfig.ownerName}'s professional photography portfolio featuring stunning portraits, landscapes, and event photography.`,
+    url: siteConfig.url,
+    siteName: siteConfig.seo.openGraph.siteName,
+    images: siteConfig.seo.openGraph.images,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${siteConfig.ownerName} | Professional Photography Portfolio`,
+    description: `Explore ${siteConfig.ownerName}'s professional photography portfolio featuring stunning portraits, landscapes, and event photography.`,
+    images: siteConfig.seo.openGraph.images,
+  },
+  alternates: {
+    canonical: siteConfig.url,
+  },
+}
 
 export default async function Home() {
   // Get only visible image data from the database, ordered by the 'order' field

@@ -56,6 +56,7 @@ export async function generateMetadata({
       .select({
         title: blogPosts.title,
         description: blogPosts.description,
+        publishedAt: blogPosts.publishedAt,
       })
       .from(blogPosts)
       .where(and(eq(blogPosts.slug, slug), eq(blogPosts.published, true)))
@@ -64,32 +65,64 @@ export async function generateMetadata({
 
     if (!post) {
       return {
-        title: 'Post Not Found',
+        title: 'Post Not Found | Photography Blog',
         description: 'The requested blog post could not be found.',
       }
     }
 
+    const title = `${post.title} | ${siteConfig.ownerName} Photography Blog`
+    const description = post.description || `Read this photography blog post by ${siteConfig.ownerName}. Discover insights, tips, and stories from a professional photographer.`
+
     return {
-      title: post.title,
-      description: post.description || '',
+      title,
+      description,
+      keywords: [
+        post.title.toLowerCase(),
+        'photography blog',
+        'photography tips',
+        `${siteConfig.ownerName}`,
+        'professional photographer',
+        'photography insights',
+        'photography story'
+      ].join(', '),
+      authors: [{ name: siteConfig.ownerName }],
+      creator: siteConfig.ownerName,
       openGraph: {
-        title: post.title,
-        description: post.description || '',
+        title,
+        description,
+        url: `${siteConfig.url}/blog/${slug}`,
+        siteName: siteConfig.seo.openGraph.siteName,
         images: siteConfig.seo.openGraph.images,
         type: 'article',
+        publishedTime: post.publishedAt?.toISOString(),
+        authors: [siteConfig.ownerName],
       },
       twitter: {
         card: 'summary_large_image',
-        title: post.title,
-        description: post.description || '',
+        title,
+        description,
         images: siteConfig.seo.openGraph.images,
+        creator: '@theomiddleton_',
+      },
+      alternates: {
+        canonical: `${siteConfig.url}/blog/${slug}`,
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-snippet': -1,
+          'max-image-preview': 'large',
+        },
       },
     }
   } catch (error) {
     console.error('[Static] Error generating metadata:', error)
     return {
-      title: 'Blog Post',
-      description: 'A blog post',
+      title: `Blog Post | ${siteConfig.ownerName} Photography`,
+      description: `A photography blog post by ${siteConfig.ownerName}`,
     }
   }
 }

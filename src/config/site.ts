@@ -1,7 +1,7 @@
 export const siteConfig = {
-  title: 'Portfolio',
-  description: 'Photography portfolio of Theo Middleton',
-  storeName: 'T Middleton Store',
+  title: 'Professional Photography Portfolio',
+  description: 'Theo Middleton - Professional photographer specializing in portrait, landscape, and event photography. Discover stunning visual storytelling through expert composition and lighting.',
+  storeName: 'Theo Middleton Photography Store',
   ownerName: 'Theo Middleton',
   imageBucketUrl: 'https://img.theomiddleton.me',
   blogBucketUrl: 'https://blog-img.theomiddleton.me',
@@ -25,15 +25,20 @@ export const siteConfig = {
     openGraph: {
       type: 'website',
       locale: 'en_US',
-      siteName: 'Portfolio Project',
+      siteName: 'Theo Middleton Photography Portfolio',
       images: [
         {
           url: 'https://files.theomiddleton.me/og-images/2-boats.jpg',
           width: 1200,
           height: 630,
-          alt: 'Open Graph Image',
+          alt: 'Theo Middleton Photography - Professional photographer portfolio showcasing landscape and portrait work',
         },
       ],
+    },
+    keywords: {
+      primary: ['photographer', 'photography portfolio', 'professional photography', 'Theo Middleton'],
+      secondary: ['portrait photography', 'landscape photography', 'event photography', 'photo prints', 'visual storytelling'],
+      local: ['photographer near me', 'local photographer', 'photography services']
     },
   },
   emails: {

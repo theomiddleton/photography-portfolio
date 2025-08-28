@@ -9,14 +9,39 @@ import { generateStoreStructuredData, generateBreadcrumbStructuredData } from '~
 import { siteConfig } from '~/config/site'
 
 export const metadata: Metadata = {
-  title: 'Print Store | Photography Portfolio',
-  description: 'Purchase beautiful photographic prints from our curated collection. High-quality wall art for your home and office.',
+  title: `Photography Prints Store | ${siteConfig.ownerName}`,
+  description: `Purchase beautiful photographic prints from ${siteConfig.ownerName}'s curated collection. High-quality fine art photography prints for your home and office. Professional photography wall art available in multiple sizes.`,
+  keywords: [
+    'photography prints',
+    'fine art prints',
+    'wall art',
+    'home decor',
+    'photographic prints',
+    `${siteConfig.ownerName} prints`,
+    'professional photography art',
+    'gallery quality prints',
+    'photography store',
+    'art prints online'
+  ].join(', '),
+  authors: [{ name: siteConfig.ownerName }],
+  creator: siteConfig.ownerName,
   openGraph: {
-    title: 'Print Store | Photography Portfolio',
-    description: 'Purchase beautiful photographic prints from our curated collection',
+    title: `Photography Prints Store | ${siteConfig.ownerName}`,
+    description: `Purchase beautiful photographic prints from ${siteConfig.ownerName}'s professional collection. High-quality art for your space.`,
     type: 'website',
+    url: `${siteConfig.url}/store`,
+    siteName: siteConfig.seo.openGraph.siteName,
+    images: siteConfig.seo.openGraph.images,
   },
-  keywords: ['photography prints', 'wall art', 'home decor', 'fine art photography', 'photographic prints'],
+  twitter: {
+    card: 'summary_large_image',
+    title: `Photography Prints Store | ${siteConfig.ownerName}`,
+    description: `Purchase beautiful photographic prints from ${siteConfig.ownerName}'s professional collection.`,
+    images: siteConfig.seo.openGraph.images,
+  },
+  alternates: {
+    canonical: `${siteConfig.url}/store`,
+  },
 }
 
 export const revalidate = 3600 // Revalidate every hour

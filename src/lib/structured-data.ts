@@ -104,3 +104,88 @@ export function generateBreadcrumbStructuredData(items: Array<{
     }))
   }
 }
+
+interface ImageStructuredDataProps {
+  image: {
+    id: number
+    name: string | null
+    description: string | null
+    fileUrl: string
+    tags: string | null
+  }
+  baseUrl: string
+}
+
+interface BlogPostStructuredDataProps {
+  post: {
+    title: string
+    description: string | null
+    slug: string
+    publishedAt: Date | null
+    content: string
+  }
+  baseUrl: string
+}
+
+export function generateImageStructuredData({ 
+  image, 
+  baseUrl 
+}: ImageStructuredDataProps) {
+  const keywords = image.tags ? image.tags.split(',').map(tag => tag.trim()).filter(Boolean) : []
+  
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Photograph',
+    name: image.name || `Professional photograph by ${siteConfig.ownerName}`,
+    description: image.description || `A stunning photograph captured by professional photographer ${siteConfig.ownerName}`,
+    url: `${baseUrl}/photo/${image.id}`,
+    image: image.fileUrl,
+    creator: {
+      '@type': 'Person',
+      name: siteConfig.ownerName,
+      jobTitle: 'Professional Photographer',
+      url: baseUrl
+    },
+    copyrightHolder: {
+      '@type': 'Person',
+      name: siteConfig.ownerName
+    },
+    keywords: keywords.length > 0 ? keywords : ['photography', 'professional photography', 'fine art'],
+    inLanguage: 'en-US',
+    dateCreated: new Date().toISOString().split('T')[0], // Use current date as fallback
+    genre: 'Photography'
+  }
+}
+
+export function generateBlogPostStructuredData({ 
+  post, 
+  baseUrl 
+}: BlogPostStructuredDataProps) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.description || '',
+    url: `${baseUrl}/blog/${post.slug}`,
+    datePublished: post.publishedAt?.toISOString(),
+    dateModified: post.publishedAt?.toISOString(),
+    author: {
+      '@type': 'Person',
+      name: siteConfig.ownerName,
+      jobTitle: 'Professional Photographer',
+      url: baseUrl
+    },
+    publisher: {
+      '@type': 'Person',
+      name: siteConfig.ownerName,
+      url: baseUrl
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${baseUrl}/blog/${post.slug}`
+    },
+    articleSection: 'Photography',
+    inLanguage: 'en-US',
+    image: siteConfig.seo.openGraph.images[0]?.url
+  }
+}

@@ -37,24 +37,71 @@ export async function generateMetadata(props: { params: Promise<{ id: number }> 
 
   if (result.length === 0) {
     return {
-      title: 'Photo Not Found',
+      title: 'Photo Not Found | Photography Portfolio',
+      description: 'The requested photograph could not be found in the portfolio.',
     }
   }
 
   const image = result[0]
-  const canonicalUrl = `${siteConfig.url}/photos/${params.id}`
+  const canonicalUrl = `${siteConfig.url}/photo/${params.id}`
+  
+  // Enhanced title and description for SEO
+  const title = image.name ? 
+    `${image.name} | ${siteConfig.ownerName} Photography` : 
+    `Photography by ${siteConfig.ownerName} | Professional Portfolio`
+  
+  const description = image.description ? 
+    `${image.description} - Professional photography by ${siteConfig.ownerName}. View this stunning photograph and explore more in the portfolio.` :
+    `Professional photograph by ${siteConfig.ownerName}. Explore this and more stunning images in the photography portfolio.`
+
+  // Generate keywords from tags and add photography-specific terms
+  const tagKeywords = image.tags ? image.tags.split(',').map(tag => tag.trim()).filter(Boolean) : []
+  const keywords = [
+    ...tagKeywords,
+    `${siteConfig.ownerName} photography`,
+    'professional photographer',
+    'photography portfolio',
+    'fine art photography',
+    image.name ? image.name.toLowerCase() : 'photograph'
+  ].join(', ')
 
   return {
-    title: image.name,
-    description: image.description,
-    keywords: image.tags.split(',').map(tag => tag.trim()),
+    title,
+    description,
+    keywords,
+    authors: [{ name: siteConfig.ownerName }],
+    creator: siteConfig.ownerName,
     openGraph: {
-      title: image.name,
-      description: image.description,
+      title,
+      description,
+      images: [{
+        url: image.fileUrl,
+        width: 1200,
+        height: 630,
+        alt: image.name || `Professional photograph by ${siteConfig.ownerName}`,
+      }],
+      url: canonicalUrl,
+      siteName: siteConfig.seo.openGraph.siteName,
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
       images: [image.fileUrl],
+      creator: '@theomiddleton_',
     },
     alternates: {
       canonical: canonicalUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-image-preview': 'large',
+      },
     },
   }
 }
