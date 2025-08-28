@@ -32,7 +32,7 @@ jobs:
 
       # --- START: Added .env file creation step ---
       - name: Create .env file
-        run: echo "${{ secrets.DOTENV_FILE_CONTENTS }}" > .env
+        run: echo "${{ secrets.ENV_CONTENTS }}" > .env
         # Ensure this secret is properly set in your repository's GitHub Actions secrets.
         # It should contain the complete content of your .env file.
       # --- END: Added .env file creation step ---
