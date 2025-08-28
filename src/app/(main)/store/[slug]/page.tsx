@@ -130,7 +130,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     ...seoKeywords.store.slice(0, 4), // First 4 store keywords
     ...seoKeywords.technical.slice(0, 2), // First 2 technical keywords
     product.name.toLowerCase(),
-    ...(product.tags ? product.tags.split(',').map(t => t.trim().toLowerCase()) : [])
+    ...(product.description ? product.description.split(' ').slice(0, 3).map(word => word.toLowerCase().replace(/[^\w]/g, '')) : [])
   ]
 
   return generateSEOMetadata({

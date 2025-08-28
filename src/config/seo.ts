@@ -1,6 +1,6 @@
 /**
  * Comprehensive SEO Configuration
- * 
+ *
  * This configuration provides a centralized, customizable approach to SEO
  * without hardcoded keywords or data. All values can be easily modified
  * to adapt to different photographers, content types, and markets.
@@ -15,26 +15,22 @@ export const seoKeywords = {
     'photos',
     'images',
     'art',
-    'visual storytelling',
-    'creative photography',
-    'professional photography'
+    'visual art',
+    'landscape photography',
+    'travel photography',
   ],
-  
+
   // Genre-specific keywords
   genres: [
-    'portrait',
     'landscape',
     'street photography',
-    'wedding',
-    'fine art',
     'documentary',
-    'commercial',
     'nature',
     'urban',
     'black and white',
-    'color photography'
+    'film photography',
   ],
-  
+
   // Technical keywords
   technical: [
     'high resolution',
@@ -42,9 +38,8 @@ export const seoKeywords = {
     'print quality',
     'professional grade',
     'archival quality',
-    'limited edition'
   ],
-  
+
   // Store/product keywords
   store: [
     'photography print',
@@ -56,9 +51,8 @@ export const seoKeywords = {
     'canvas print',
     'framed print',
     'photographic art',
-    'interior design'
   ],
-  
+
   // Blog/content keywords
   content: [
     'photography tips',
@@ -66,18 +60,18 @@ export const seoKeywords = {
     'photography tutorial',
     'creative process',
     'photo story',
+    'personal blog',
     'photography blog',
-    'visual narrative'
+    'visual narrative',
   ],
-  
+
   // Location-based (can be customized per user)
   locations: [
-    'studio photography',
     'on location',
     'travel photography',
     'local photographer',
-    'destination photography'
-  ]
+    'destination photography',
+  ],
 }
 
 // SEO defaults and templates
@@ -91,21 +85,21 @@ export const seoDefaults = {
         index: true,
         follow: true,
         'max-video-preview': -1,
-        'max-image-preview': 'large',
+        'max-image-preview': 'large' as const,
         'max-snippet': -1,
       },
     },
     viewport: 'width=device-width, initial-scale=1',
     themeColor: '#000000',
   },
-  
+
   // OpenGraph defaults
   openGraph: {
     type: 'website',
     locale: 'en_US',
     card: 'summary_large_image',
   },
-  
+
   // Default image dimensions
   images: {
     openGraph: {
@@ -131,7 +125,7 @@ export const pageConfigs = {
     priority: 1.0,
     changeFreq: 'weekly' as const,
   },
-  
+
   about: {
     titleTemplate: 'About %s | %s', // About ownerName | title
     descriptionTemplate: 'Learn about %s, %s', // ownerName, profession
@@ -144,10 +138,10 @@ export const pageConfigs = {
     priority: 0.9,
     changeFreq: 'monthly' as const,
   },
-  
+
   blog: {
     titleTemplate: '%s | Blog', // title | Blog
-    descriptionTemplate: '%s - Photography insights and stories', // ownerName
+    descriptionTemplate: '%s - Blog', // ownerName
     keywords: [
       ...seoKeywords.content.slice(0, 4),
       ...seoKeywords.photography.slice(0, 2),
@@ -155,7 +149,7 @@ export const pageConfigs = {
     priority: 0.8,
     changeFreq: 'daily' as const,
   },
-  
+
   blogPost: {
     titleTemplate: '%s | %s Blog', // postTitle | ownerName
     descriptionTemplate: '%s', // post excerpt/description
@@ -166,7 +160,7 @@ export const pageConfigs = {
     priority: 0.7,
     changeFreq: 'monthly' as const,
   },
-  
+
   gallery: {
     titleTemplate: '%s Gallery | %s', // galleryName | ownerName
     descriptionTemplate: '%s photography gallery by %s', // galleryName | ownerName
@@ -179,7 +173,7 @@ export const pageConfigs = {
     priority: 0.7,
     changeFreq: 'weekly' as const,
   },
-  
+
   store: {
     titleTemplate: 'Print Store | %s', // ownerName
     descriptionTemplate: 'High-quality photography prints by %s', // ownerName
@@ -190,7 +184,7 @@ export const pageConfigs = {
     priority: 0.8,
     changeFreq: 'weekly' as const,
   },
-  
+
   product: {
     titleTemplate: '%s | Print Store', // productName
     descriptionTemplate: '%s - %s', // productName | productDescription or default
@@ -201,13 +195,15 @@ export const pageConfigs = {
     priority: 0.6,
     changeFreq: 'monthly' as const,
   },
-  
+
   video: {
     titleTemplate: '%s | %s Videos', // videoTitle | ownerName
     descriptionTemplate: '%s video by %s', // videoTitle | ownerName
     keywords: [
       'photography video',
       'behind the scenes',
+      'film',
+      'short film',
       ...seoKeywords.photography.slice(0, 2),
       ...seoKeywords.content.slice(0, 2),
     ],
@@ -241,7 +237,7 @@ export const structuredDataTemplates = {
     description: config.description,
     ...(config.address && { address: config.address }),
   }),
-  
+
   website: (config: {
     name: string
     url: string
@@ -261,7 +257,7 @@ export const structuredDataTemplates = {
       },
     }),
   }),
-  
+
   photographAction: (config: {
     name: string
     url: string
@@ -284,7 +280,7 @@ export const structuredDataTemplates = {
     ...(config.dateCreated && { dateCreated: config.dateCreated }),
     ...(config.keywords && { keywords: config.keywords }),
   }),
-  
+
   product: (config: {
     name: string
     description: string
@@ -311,7 +307,7 @@ export const structuredDataTemplates = {
       ...config.offers,
     },
   }),
-  
+
   blogPosting: (config: {
     headline: string
     description: string
@@ -344,18 +340,18 @@ export const seoUtils = {
   generateKeywords: (
     type: keyof typeof pageConfigs,
     customKeywords: string[] = [],
-    maxKeywords: number = 10
+    maxKeywords: number = 10,
   ): string[] => {
     const baseKeywords = pageConfigs[type]?.keywords || []
     const allKeywords = [...baseKeywords, ...customKeywords]
     return allKeywords.slice(0, maxKeywords)
   },
-  
+
   // Generate a meta description with fallback
   generateDescription: (
     template: string,
     variables: Record<string, string>,
-    fallback: string = ''
+    fallback: string = '',
   ): string => {
     let description = template
     Object.entries(variables).forEach(([key, value]) => {
@@ -363,11 +359,11 @@ export const seoUtils = {
     })
     return description || fallback
   },
-  
+
   // Generate a title with template
   generateTitle: (
     template: string,
-    variables: Record<string, string>
+    variables: Record<string, string>,
   ): string => {
     let title = template
     Object.entries(variables).forEach(([key, value]) => {
@@ -375,11 +371,11 @@ export const seoUtils = {
     })
     return title
   },
-  
+
   // Clean and optimize keywords
   cleanKeywords: (keywords: string[]): string[] => {
     return keywords
-      .map(k => k.toLowerCase().trim())
+      .map((k) => k.toLowerCase().trim())
       .filter((k, i, arr) => k && arr.indexOf(k) === i) // Remove duplicates and empty
       .slice(0, 15) // Limit to 15 keywords max
   },

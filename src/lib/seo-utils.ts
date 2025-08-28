@@ -1,16 +1,16 @@
 import type { Metadata } from 'next'
 import { siteConfig } from '~/config/site'
-import { 
-  seoKeywords, 
-  seoDefaults, 
-  pageConfigs, 
+import {
+  seoKeywords,
+  seoDefaults,
+  pageConfigs,
   structuredDataTemplates,
-  seoUtils 
+  seoUtils,
 } from '~/config/seo'
 
 /**
  * SEO Metadata Generation Utilities
- * 
+ *
  * These utilities generate dynamic, configurable SEO metadata
  * without hardcoded keywords or data.
  */
@@ -48,43 +48,44 @@ interface SEOConfig {
 export function generateSEOMetadata(config: SEOConfig): Metadata {
   const pageType = config.type || 'home'
   const pageConfig = pageConfigs[pageType]
-  
+
   // Generate title
-  const title = config.title 
-    ? (config.customTemplate?.title 
-        ? seoUtils.generateTitle(config.customTemplate.title, {
-            s: config.title,
-            ownerName: siteConfig.ownerName,
-            title: siteConfig.title
-          })
-        : config.title)
+  const title = config.title
+    ? config.customTemplate?.title
+      ? seoUtils.generateTitle(config.customTemplate.title, {
+          s: config.title,
+          ownerName: siteConfig.ownerName,
+          title: siteConfig.title,
+        })
+      : config.title
     : seoUtils.generateTitle(pageConfig.titleTemplate, {
         s: siteConfig.ownerName,
         ownerName: siteConfig.ownerName,
-        title: siteConfig.title
+        title: siteConfig.title,
       })
-  
+
   // Generate description
-  const description = config.description 
+  const description = config.description
     ? config.description
     : seoUtils.generateDescription(
         pageConfig.descriptionTemplate,
         {
           s: siteConfig.description,
           ownerName: siteConfig.ownerName,
-          profession: siteConfig.seo.profession
+          profession: siteConfig.seo.profession,
         },
-        siteConfig.description
+        siteConfig.description,
       )
-  
+
   // Generate keywords
   const keywords = seoUtils.cleanKeywords([
     ...(config.keywords || []),
-    ...seoUtils.generateKeywords(pageType, [], 8)
+    ...seoUtils.generateKeywords(pageType, [], 8),
   ])
-  
+
   // Generate OpenGraph data
-  const openGraphImages = config.openGraph?.images || siteConfig.seo.openGraph.images
+  const openGraphImages =
+    config.openGraph?.images || siteConfig.seo.openGraph.images
   const openGraph = {
     ...seoDefaults.openGraph,
     title: config.openGraph?.title || title,
@@ -95,23 +96,34 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
     type: config.openGraph?.type || seoDefaults.openGraph.type,
     locale: siteConfig.seo.openGraph.locale,
   }
-  
+
   // Generate Twitter card data
   const twitter = {
     card: 'summary_large_image' as const,
     title: config.openGraph?.title || title,
     description: config.openGraph?.description || description,
-    images: openGraphImages.map(img => img.url),
+    images: openGraphImages.map((img) => img.url),
     ...(siteConfig.seo.twitter.site && { site: siteConfig.seo.twitter.site }),
-    ...(siteConfig.seo.twitter.creator && { creator: siteConfig.seo.twitter.creator }),
+    ...(siteConfig.seo.twitter.creator && {
+      creator: siteConfig.seo.twitter.creator,
+    }),
   }
-  
+
   // Generate robots configuration
   const robots = {
-    ...seoDefaults.meta.robots,
+    index: seoDefaults.meta.robots.index,
+    follow: seoDefaults.meta.robots.follow,
+    googleBot: {
+      index: seoDefaults.meta.robots.googleBot.index,
+      follow: seoDefaults.meta.robots.googleBot.follow,
+      'max-video-preview':
+        seoDefaults.meta.robots.googleBot['max-video-preview'],
+      'max-image-preview': 'large' as const,
+      'max-snippet': seoDefaults.meta.robots.googleBot['max-snippet'],
+    },
     ...(config.robots && config.robots),
   }
-  
+
   return {
     title,
     description,
@@ -137,7 +149,7 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
  */
 export function generateStructuredData(
   type: 'person' | 'website' | 'photograph' | 'product' | 'blogPost',
-  data: any
+  data: any,
 ) {
   switch (type) {
     case 'person':
@@ -157,7 +169,7 @@ export function generateStructuredData(
         }),
         ...data,
       })
-    
+
     case 'website':
       return structuredDataTemplates.website({
         name: `${siteConfig.ownerName} ${siteConfig.title}`,
@@ -166,25 +178,25 @@ export function generateStructuredData(
         searchUrl: `${siteConfig.url}/search?q={search_term_string}`,
         ...data,
       })
-    
+
     case 'photograph':
       return structuredDataTemplates.photographAction({
         creator: siteConfig.ownerName,
         ...data,
       })
-    
+
     case 'product':
       return structuredDataTemplates.product({
         brand: siteConfig.storeName,
         ...data,
       })
-    
+
     case 'blogPost':
       return structuredDataTemplates.blogPosting({
         author: siteConfig.ownerName,
         ...data,
       })
-    
+
     default:
       return null
   }
@@ -198,8 +210,11 @@ export function generateOGImageUrl(params: {
   image?: string
   type?: string
 }): string {
-  const ogImageUrl = new URL('/api/og', siteConfig.url || 'http://localhost:3000')
-  
+  const ogImageUrl = new URL(
+    '/api/og',
+    siteConfig.url || 'http://localhost:3000',
+  )
+
   if (params.title) {
     ogImageUrl.searchParams.set('title', params.title)
   }
@@ -209,7 +224,7 @@ export function generateOGImageUrl(params: {
   if (params.type) {
     ogImageUrl.searchParams.set('type', params.type)
   }
-  
+
   return ogImageUrl.toString()
 }
 
@@ -219,22 +234,22 @@ export function generateOGImageUrl(params: {
 export function generateKeywordDescription(
   content: string,
   contentType: keyof typeof seoKeywords,
-  maxLength: number = 160
+  maxLength: number = 160,
 ): string {
   const relevantKeywords = seoKeywords[contentType]?.slice(0, 3) || []
   const keywordPhrase = relevantKeywords.join(', ')
-  
+
   // Try to naturally incorporate keywords into description
   let description = content
   if (description.length < maxLength - keywordPhrase.length - 10) {
     description += ` Featuring ${keywordPhrase}.`
   }
-  
+
   // Truncate if too long
   if (description.length > maxLength) {
     description = description.substring(0, maxLength - 3) + '...'
   }
-  
+
   return description
 }
 
@@ -248,10 +263,12 @@ export function getPageSEOConfig(pageType: keyof typeof pageConfigs) {
 /**
  * Generate breadcrumb structured data
  */
-export function generateBreadcrumbData(breadcrumbs: Array<{
-  name: string
-  url: string
-}>) {
+export function generateBreadcrumbData(
+  breadcrumbs: Array<{
+    name: string
+    url: string
+  }>,
+) {
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
