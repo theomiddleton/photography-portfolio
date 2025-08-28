@@ -4,7 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '~/lib/utils'
-import { siteConfig } from '~/config/site'
+import { useSiteConfig } from '~/hooks/use-site-config'
 import { Icons } from '~/components/ui/icons'
 import { MenuIcon, ChevronDownIcon } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -26,6 +26,7 @@ export function MainNav({ isAdmin }: MainNavProps) {
   const pathname = usePathname()
   const [open, setOpen] = React.useState(false)
   const [galleries, setGalleries] = React.useState<Array<{ id: string; title: string; slug: string }>>([])
+  const siteConfig = useSiteConfig()
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)')

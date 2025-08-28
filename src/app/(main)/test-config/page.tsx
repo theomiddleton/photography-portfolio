@@ -1,6 +1,10 @@
-import { siteConfig } from '~/config/site'
+'use client'
+
+import { useSiteConfig } from '~/hooks/use-site-config'
 
 export default function TestConfigPage() {
+  const siteConfig = useSiteConfig()
+  
   return (
     <div className="min-h-screen py-18">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
