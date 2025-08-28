@@ -190,7 +190,7 @@ export function StorePage({ initialProducts }: StorePageProps) {
               <p className="text-gray-600 mb-4">
                 {searchQuery 
                   ? `No prints match your search for "${searchQuery}"`
-                  : "No prints match your current filters"
+                  : 'No prints match your current filters'
                 }
               </p>
               {(searchQuery || filters.priceRange[0] !== filterOptions.minPrice || filters.priceRange[1] !== filterOptions.maxPrice) && (

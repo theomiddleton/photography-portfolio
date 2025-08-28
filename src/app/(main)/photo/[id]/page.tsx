@@ -5,6 +5,8 @@ import { notFound } from 'next/navigation'
 import { AltImagePage } from '~/components/alt-image-page'
 import type { Metadata } from 'next'
 import { siteConfig } from '~/config/site'
+import { generateImageStructuredData } from '~/lib/structured-data'
+import Script from 'next/script'
 
 // Define a specific type for the selected data
 interface SelectedImageData {
@@ -149,11 +151,31 @@ export default async function Photo(props: { params: Promise<{ id: number }> }) 
   const prevImageUrl = prevImage.length > 0 ? prevImage[0].fileUrl : undefined
   const nextImageUrl = nextImage.length > 0 ? nextImage[0].fileUrl : undefined
   
-  // Shows different page based on the flag, altImagePage is a cleaner look
   const image: SelectedImageData = result[0]
-  return <AltImagePage 
-    data={image} 
-    prevImageUrl={prevImageUrl}
-    nextImageUrl={nextImageUrl}
-  />
+  
+  // Generate structured data for the image
+  const imageStructuredData = generateImageStructuredData({
+    image,
+    baseUrl: siteConfig.url
+  })
+  
+  return (
+    <>
+      {/* Structured Data for Image */}
+      <Script
+        id="image-schema"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(imageStructuredData)
+        }}
+      />
+      
+      <AltImagePage 
+        data={image} 
+        prevImageUrl={prevImageUrl}
+        nextImageUrl={nextImageUrl}
+      />
+    </>
+  )
 }

@@ -134,7 +134,7 @@ export async function deleteAccountAction(
 interface SessionManagementState {
   message: string
   success?: boolean
-  sessions?: Array<{
+  sessions?: {
     id: number
     ipAddress: string | null
     userAgent: string | null
@@ -142,7 +142,7 @@ interface SessionManagementState {
     lastUsedAt: Date
     createdAt: Date
     expiresAt: Date
-  }>
+  }[]
 }
 
 export async function getSessionsAction(): Promise<SessionManagementState> {

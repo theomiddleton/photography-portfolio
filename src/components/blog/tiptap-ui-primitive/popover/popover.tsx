@@ -1,5 +1,5 @@
-import * as React from "react"
-import type { Placement } from "@floating-ui/react"
+import * as React from 'react'
+import type { Placement } from '@floating-ui/react'
 import {
   useFloating,
   autoUpdate,
@@ -14,7 +14,7 @@ import {
   FloatingFocusManager,
   limitShift,
   FloatingPortal,
-} from "@floating-ui/react"
+} from '@floating-ui/react'
 // Remove SCSS import
 // import "@/components/tiptap-ui-primitive/popover/popover.scss"
 
@@ -22,8 +22,8 @@ type PopoverContextValue = ReturnType<typeof usePopover> & {
   setLabelId: (id: string | undefined) => void
   setDescriptionId: (id: string | undefined) => void
   updatePosition: (
-    side: "top" | "right" | "bottom" | "left",
-    align: "start" | "center" | "end"
+    side: 'top' | 'right' | 'bottom' | 'left',
+    align: 'start' | 'center' | 'end'
   ) => void
 }
 
@@ -32,8 +32,8 @@ interface PopoverOptions {
   modal?: boolean
   open?: boolean
   onOpenChange?: (open: boolean) => void
-  side?: "top" | "right" | "bottom" | "left"
-  align?: "start" | "center" | "end"
+  side?: 'top' | 'right' | 'bottom' | 'left'
+  align?: 'start' | 'center' | 'end'
 }
 
 interface PopoverProps extends PopoverOptions {
@@ -45,7 +45,7 @@ const PopoverContext = React.createContext<PopoverContextValue | null>(null)
 function usePopoverContext() {
   const context = React.useContext(PopoverContext)
   if (!context) {
-    throw new Error("Popover components must be wrapped in <Popover />")
+    throw new Error('Popover components must be wrapped in <Popover />')
   }
   return context
 }
@@ -55,8 +55,8 @@ function usePopover({
   modal,
   open: controlledOpen,
   onOpenChange: setControlledOpen,
-  side = "bottom",
-  align = "center",
+  side = 'bottom',
+  align = 'center',
 }: PopoverOptions = {}) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(initialOpen)
   const [labelId, setLabelId] = React.useState<string>()
@@ -72,7 +72,7 @@ function usePopover({
     () => [
       offset(4),
       flip({
-        fallbackAxisSideDirection: "end",
+        fallbackAxisSideDirection: 'end',
         crossAxis: false,
       }),
       shift({
@@ -98,8 +98,8 @@ function usePopover({
 
   const updatePosition = React.useCallback(
     (
-      newSide: "top" | "right" | "bottom" | "left",
-      newAlign: "start" | "center" | "end"
+      newSide: 'top' | 'right' | 'bottom' | 'left',
+      newAlign: 'start' | 'center' | 'end'
     ) => {
       setCurrentPlacement(`${newSide}-${newAlign}` as Placement)
     },
@@ -162,7 +162,7 @@ const PopoverTrigger = React.forwardRef<HTMLElement, TriggerElementProps>(
           ref,
           ...props,
           ...(children.props as any),
-          "data-state": context.open ? "open" : "closed",
+          'data-state': context.open ? 'open' : 'closed',
         })
       )
     }
@@ -170,7 +170,7 @@ const PopoverTrigger = React.forwardRef<HTMLElement, TriggerElementProps>(
     return (
       <button
         ref={ref}
-        data-state={context.open ? "open" : "closed"}
+        data-state={context.open ? 'open' : 'closed'}
         {...context.getReferenceProps(props)}
       >
         {children}
@@ -180,18 +180,18 @@ const PopoverTrigger = React.forwardRef<HTMLElement, TriggerElementProps>(
 )
 
 interface PopoverContentProps extends React.HTMLProps<HTMLDivElement> {
-  side?: "top" | "right" | "bottom" | "left"
-  align?: "start" | "center" | "end"
+  side?: 'top' | 'right' | 'bottom' | 'left'
+  align?: 'start' | 'center' | 'end'
   portal?: boolean
-  portalProps?: Omit<React.ComponentProps<typeof FloatingPortal>, "children">
+  portalProps?: Omit<React.ComponentProps<typeof FloatingPortal>, 'children'>
 }
 
 const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
   function PopoverContent(
     {
       className,
-      side = "bottom",
-      align = "center",
+      side = 'bottom',
+      align = 'center',
       style,
       portal = true,
       portalProps = {},
@@ -257,7 +257,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
   }
 )
 
-PopoverTrigger.displayName = "PopoverTrigger"
-PopoverContent.displayName = "PopoverContent"
+PopoverTrigger.displayName = 'PopoverTrigger'
+PopoverContent.displayName = 'PopoverContent'
 
 export { Popover, PopoverTrigger, PopoverContent }

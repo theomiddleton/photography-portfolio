@@ -69,8 +69,8 @@ export function GetStartedMessage({
               </h3>
               <p className="text-sm text-green-800 dark:text-green-400">
                 {userRole === 'admin' 
-                  ? "You have administrator access. Start by uploading your first images and customizing your portfolio."
-                  : "Your account is set up. An administrator can help you get started with content."
+                  ? 'You have administrator access. Start by uploading your first images and customizing your portfolio.'
+                  : 'Your account is set up. An administrator can help you get started with content.'
                 }
               </p>
             </div>
@@ -145,7 +145,7 @@ export function GetStartedMessage({
 
         <div className="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">
           <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {isUserSignedIn ? "Next Steps" : "Getting Started Guide"}
+            {isUserSignedIn ? 'Next Steps' : 'Getting Started Guide'}
           </h3>
           
           <div className="grid gap-4 text-left sm:grid-cols-2">

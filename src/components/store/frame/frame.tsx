@@ -87,7 +87,7 @@ export function Frame({
   return (
     <div
       ref={containerRef}
-      className={cn("relative w-full", className)}
+      className={cn('relative w-full', className)}
       style={{
         aspectRatio: `${width} / ${height}`,
         maxWidth: '100%',
@@ -98,11 +98,11 @@ export function Frame({
         {/* Frame - constructed with borders */}
         <div 
           className={cn(
-            "absolute inset-0 z-10",
+            'absolute inset-0 z-10',
             frameStyles[frameStyle],
             frameStyle === 'floating'
-              ? "shadow-[0_35px_60px_-15px_rgba(0,0,0,0.2)]" // Floating shadow
-              : "shadow-[0_8px_16px_rgba(0,0,0,0.2)]" // Regular shadow
+              ? 'shadow-[0_35px_60px_-15px_rgba(0,0,0,0.2)]' // Floating shadow
+              : 'shadow-[0_8px_16px_rgba(0,0,0,0.2)]' // Regular shadow
           )}
         >
           {/* Wood grain effect - only on frame borders */}
@@ -116,7 +116,7 @@ export function Frame({
           {/* Inner frame opening */}
           <div
             className={cn(
-              "absolute",
+              'absolute',
               frameStyle === 'floating' ? 'inset-0' : 'bg-white'
             )}
             style={{
@@ -129,9 +129,9 @@ export function Frame({
         </div>
 
         {/* Mat - constructed with borders */}
-        {matColor !== "none" && (
+        {matColor !== 'none' && (
           <div
-            className={cn("absolute z-20", matStyles[matColor], "shadow-[0_2px_8px_rgba(0,0,0,0.15)]")}
+            className={cn('absolute z-20', matStyles[matColor], 'shadow-[0_2px_8px_rgba(0,0,0,0.15)]')}
             style={{
               top: frameThickness,
               right: frameThickness,
