@@ -30,13 +30,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # --- START: Added .env file creation step ---
-      - name: Create .env file
-        run: echo "${{ secrets.ENV_CONTENTS }}" > .env
-        # Ensure this secret is properly set in your repository's GitHub Actions secrets.
-        # It should contain the complete content of your .env file.
-      # --- END: Added .env file creation step ---
-
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
@@ -48,3 +41,10 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      # # --- START: Added .env file creation step ---
+      # - name: Create .env file
+      #   run: echo "${{ secrets.ENV_CONTENTS }}" > .env
+      #   # Ensure this secret is properly set in your repository's GitHub Actions secrets.
+      #   # It should contain the complete content of your .env file.
+      # # --- END: Added .env file creation step ---
