@@ -99,6 +99,12 @@ const defaultConfig = {
  */
 export function getServerSiteConfig() {
   // During build time and server-side rendering, create config with environment variables
+  const configLocation = getEnv('NEXT_PUBLIC_CONFIG_LOCATION', defaultConfig.configLocation)
+  
+  // Log configuration location during build for debugging
+  if (process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV) {
+    console.log(`🔧 Site Configuration loaded from: ${configLocation}`)
+  }
   return {
     title: getEnv('NEXT_PUBLIC_SITE_TITLE', defaultConfig.title),
     description: getEnv('NEXT_PUBLIC_SITE_DESCRIPTION', defaultConfig.description),
@@ -187,7 +193,7 @@ export function getServerSiteConfig() {
       // Admin multiplier - admins get 3x the base limits
       adminMultiplier: getEnv('NEXT_PUBLIC_ADMIN_MULTIPLIER', defaultConfig.rateLimiting.adminMultiplier),
     },
-    configLocation: getEnv('NEXT_PUBLIC_CONFIG_LOCATION', defaultConfig.configLocation),
+    configLocation,
   }
 }
 

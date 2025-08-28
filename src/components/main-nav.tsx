@@ -4,7 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '~/lib/utils'
-import { useSiteConfig } from '~/hooks/use-site-config'
+import { SiteConfig } from '~/lib/server-site-config'
 import { Icons } from '~/components/ui/icons'
 import { MenuIcon, ChevronDownIcon } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -20,13 +20,14 @@ import { isStoreEnabledClient } from '~/lib/store-utils'
 
 interface MainNavProps {
   isAdmin?: boolean
+  siteConfig: SiteConfig
 }
 
-export function MainNav({ isAdmin }: MainNavProps) {
+export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
   const pathname = usePathname()
   const [open, setOpen] = React.useState(false)
   const [galleries, setGalleries] = React.useState<Array<{ id: string; title: string; slug: string }>>([])
-  const siteConfig = useSiteConfig()
+  // siteConfig is now passed as a prop, eliminating hydration issues
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)')
