@@ -9,6 +9,7 @@ import { TipTapRenderer } from '~/components/blog/tiptap-renderer'
 import { formatDate } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
 import { siteConfig } from '~/config/site'
+import { seoUtils } from '~/lib/seo-utils'
 
 // Allow dynamic params for new posts
 export const dynamicParams = true
@@ -70,42 +71,18 @@ export async function generateMetadata({
       }
     }
 
-    const title = `${post.title} | ${siteConfig.ownerName} Photography Blog`
-    const description = post.description || `Read this photography blog post by ${siteConfig.ownerName}. Discover insights, tips, and stories from a professional photographer.`
-
     return {
-      title,
-      description,
-      keywords: [
-        post.title.toLowerCase(),
-        'photography blog',
-        'photography tips',
-        `${siteConfig.ownerName}`,
-        'professional photographer',
-        'photography insights',
-        'photography story'
-      ].join(', '),
+      ...seoUtils.getBlogPostMetadata(post.title, post.description, slug),
       authors: [{ name: siteConfig.ownerName }],
       creator: siteConfig.ownerName,
       openGraph: {
-        title,
-        description,
-        url: `${siteConfig.url}/blog/${slug}`,
-        siteName: siteConfig.seo.openGraph.siteName,
-        images: siteConfig.seo.openGraph.images,
-        type: 'article',
+        ...seoUtils.getBlogPostMetadata(post.title, post.description, slug).openGraph,
         publishedTime: post.publishedAt?.toISOString(),
         authors: [siteConfig.ownerName],
       },
       twitter: {
-        card: 'summary_large_image',
-        title,
-        description,
-        images: siteConfig.seo.openGraph.images,
+        ...seoUtils.getBlogPostMetadata(post.title, post.description, slug).twitter,
         creator: '@theomiddleton_',
-      },
-      alternates: {
-        canonical: `${siteConfig.url}/blog/${slug}`,
       },
       robots: {
         index: true,

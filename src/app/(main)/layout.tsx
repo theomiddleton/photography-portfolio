@@ -1,33 +1,23 @@
 import { siteConfig } from '~/config/site'
 import { SiteHeader } from '~/components/site-header'
 import { SiteFooter } from '~/components/site-footer'
+import { seoUtils } from '~/lib/seo-utils'
 import Script from 'next/script'
 
 export const metadata = {
   title: {
-    default: `${siteConfig.ownerName} | Professional Photography Portfolio`,
+    default: seoUtils.getHomepageMetadata().title,
     template: `%s | ${siteConfig.ownerName} Photography`,
   },
   description: siteConfig.description,
-  keywords: [
-    ...siteConfig.seo.keywords.primary,
-    ...siteConfig.seo.keywords.secondary,
-    ...siteConfig.seo.keywords.local
-  ].join(', '),
+  keywords: seoUtils.getKeywords(['primary', 'secondary', 'local']),
   authors: [{ name: siteConfig.ownerName }],
   creator: siteConfig.ownerName,
   openGraph: {
-    ...siteConfig.seo.openGraph,
-    title: `${siteConfig.ownerName} | Professional Photography Portfolio`,
-    description: siteConfig.description,
-    url: siteConfig.url,
-    siteName: siteConfig.seo.openGraph.siteName,
+    ...seoUtils.getHomepageMetadata().openGraph,
   },
   twitter: {
-    card: 'summary_large_image',
-    title: `${siteConfig.ownerName} | Professional Photography Portfolio`,
-    description: siteConfig.description,
-    images: siteConfig.seo.openGraph.images,
+    ...seoUtils.getHomepageMetadata().twitter,
     creator: '@theomiddleton_',
   },
   robots: {
@@ -59,32 +49,7 @@ export default function MainLayout({
         type="application/ld+json"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Person',
-            name: siteConfig.ownerName,
-            url: siteConfig.url,
-            image: siteConfig.seo.openGraph.images[0].url,
-            sameAs: Object.values(siteConfig.links).filter(Boolean),
-            jobTitle: 'Professional Photographer',
-            description: siteConfig.description,
-            knowsAbout: [
-              'Photography',
-              'Portrait Photography',
-              'Landscape Photography',
-              'Event Photography',
-              'Photo Editing',
-              'Visual Storytelling'
-            ],
-            hasOccupation: {
-              '@type': 'Occupation',
-              name: 'Photographer',
-              occupationLocation: {
-                '@type': 'Country',
-                name: 'United Kingdom'
-              }
-            }
-          }),
+          __html: JSON.stringify(seoUtils.getPersonSchema()),
         }}
       />
       <Script
@@ -92,53 +57,7 @@ export default function MainLayout({
         type="application/ld+json"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'ProfessionalService',
-            name: `${siteConfig.ownerName} Photography`,
-            description: 'Professional photography services specializing in portraits, landscapes, and events',
-            url: siteConfig.url,
-            image: siteConfig.seo.openGraph.images[0].url,
-            founder: {
-              '@type': 'Person',
-              name: siteConfig.ownerName
-            },
-            serviceType: 'Photography Services',
-            areaServed: {
-              '@type': 'Country',
-              name: 'United Kingdom'
-            },
-            hasOfferCatalog: {
-              '@type': 'OfferCatalog',
-              name: 'Photography Services',
-              itemListElement: [
-                {
-                  '@type': 'Offer',
-                  itemOffered: {
-                    '@type': 'Service',
-                    name: 'Portrait Photography',
-                    description: 'Professional portrait photography sessions'
-                  }
-                },
-                {
-                  '@type': 'Offer',
-                  itemOffered: {
-                    '@type': 'Service',
-                    name: 'Event Photography',
-                    description: 'Professional event and occasion photography'
-                  }
-                },
-                {
-                  '@type': 'Offer',
-                  itemOffered: {
-                    '@type': 'Service',
-                    name: 'Landscape Photography',
-                    description: 'Artistic landscape and nature photography'
-                  }
-                }
-              ]
-            }
-          }),
+          __html: JSON.stringify(seoUtils.getBusinessSchema()),
         }}
       />
       <Script
@@ -161,7 +80,7 @@ export default function MainLayout({
             mainEntity: {
               '@type': 'Person',
               name: siteConfig.ownerName,
-              jobTitle: 'Professional Photographer'
+              jobTitle: siteConfig.seo.profession.title
             }
           }),
         }}

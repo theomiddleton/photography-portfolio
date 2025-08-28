@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { TipTapRenderer } from '~/components/blog/tiptap-renderer'
 import type { Metadata } from 'next'
 import { siteConfig } from '~/config/site'
+import { seoUtils } from '~/lib/seo-utils'
 
 export const revalidate = 3600 // Revalidate every hour
 
@@ -22,17 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const aboutData = result[0]
 
   if (!aboutData) {
-    return {
-      title: `About ${siteConfig.ownerName} | Professional Photographer`,
-      description: `Learn about ${siteConfig.ownerName}, a professional photographer specializing in portrait, landscape, and event photography. Discover the story behind the lens.`,
-      keywords: [
-        `About ${siteConfig.ownerName}`,
-        'professional photographer bio',
-        'photographer background',
-        'photography experience',
-        'photographer story'
-      ].join(', '),
-    }
+    return seoUtils.getAboutMetadata()
   }
 
   let contentText = ''
@@ -60,37 +51,7 @@ export async function generateMetadata(): Promise<Metadata> {
     contentText = ''
   }
 
-  const description = contentText || `Learn about ${siteConfig.ownerName}, a professional photographer with expertise in portrait, landscape, and event photography.`
-
-  return {
-    title: `${aboutData.title} | ${siteConfig.ownerName} Photography`,
-    description,
-    keywords: [
-      `About ${siteConfig.ownerName}`,
-      'professional photographer',
-      'photographer bio',
-      'photography background',
-      'creative vision',
-      'photography experience'
-    ].join(', '),
-    openGraph: {
-      title: `${aboutData.title} | ${siteConfig.ownerName} Photography`,
-      description,
-      url: `${siteConfig.url}/about`,
-      siteName: siteConfig.seo.openGraph.siteName,
-      images: siteConfig.seo.openGraph.images,
-      type: 'profile',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${aboutData.title} | ${siteConfig.ownerName} Photography`,
-      description,
-      images: siteConfig.seo.openGraph.images,
-    },
-    alternates: {
-      canonical: `${siteConfig.url}/about`,
-    },
-  }
+  return seoUtils.getAboutMetadata(aboutData.title, contentText)
 }
 
 export default async function About() {

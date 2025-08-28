@@ -7,42 +7,9 @@ import { StorePage } from '~/components/store/store-page'
 import { isStoreEnabledServer } from '~/lib/store-utils'
 import { generateStoreStructuredData, generateBreadcrumbStructuredData } from '~/lib/structured-data'
 import { siteConfig } from '~/config/site'
+import { seoUtils } from '~/lib/seo-utils'
 
-export const metadata: Metadata = {
-  title: `Photography Prints Store | ${siteConfig.ownerName}`,
-  description: `Purchase beautiful photographic prints from ${siteConfig.ownerName}'s curated collection. High-quality fine art photography prints for your home and office. Professional photography wall art available in multiple sizes.`,
-  keywords: [
-    'photography prints',
-    'fine art prints',
-    'wall art',
-    'home decor',
-    'photographic prints',
-    `${siteConfig.ownerName} prints`,
-    'professional photography art',
-    'gallery quality prints',
-    'photography store',
-    'art prints online'
-  ].join(', '),
-  authors: [{ name: siteConfig.ownerName }],
-  creator: siteConfig.ownerName,
-  openGraph: {
-    title: `Photography Prints Store | ${siteConfig.ownerName}`,
-    description: `Purchase beautiful photographic prints from ${siteConfig.ownerName}'s professional collection. High-quality art for your space.`,
-    type: 'website',
-    url: `${siteConfig.url}/store`,
-    siteName: siteConfig.seo.openGraph.siteName,
-    images: siteConfig.seo.openGraph.images,
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: `Photography Prints Store | ${siteConfig.ownerName}`,
-    description: `Purchase beautiful photographic prints from ${siteConfig.ownerName}'s professional collection.`,
-    images: siteConfig.seo.openGraph.images,
-  },
-  alternates: {
-    canonical: `${siteConfig.url}/store`,
-  },
-}
+export const metadata: Metadata = seoUtils.getStoreMetadata()
 
 export const revalidate = 3600 // Revalidate every hour
 

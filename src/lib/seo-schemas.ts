@@ -1,6 +1,9 @@
 import { siteConfig } from '~/config/site'
 
 export function generatePhotographyFAQSchema(baseUrl: string) {
+  const specialties = siteConfig.seo.profession.specialties.join(', ')
+  const profession = siteConfig.seo.profession.title.toLowerCase()
+  
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -10,7 +13,7 @@ export function generatePhotographyFAQSchema(baseUrl: string) {
         name: `What types of photography does ${siteConfig.ownerName} specialize in?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${siteConfig.ownerName} specializes in professional portrait photography, landscape photography, and event photography. Each session is tailored to capture unique moments and create stunning visual stories.`
+          text: `${siteConfig.ownerName} specializes in professional ${specialties} photography. Each session is tailored to capture unique moments and create stunning visual stories.`
         }
       },
       {
@@ -50,6 +53,9 @@ export function generatePhotographyFAQSchema(baseUrl: string) {
 }
 
 export function generateLocalBusinessSchema(baseUrl: string) {
+  const specialties = siteConfig.seo.profession.specialties
+  const profession = siteConfig.seo.profession.title
+  
   return {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -63,41 +69,25 @@ export function generateLocalBusinessSchema(baseUrl: string) {
     founder: {
       '@type': 'Person',
       name: siteConfig.ownerName,
-      jobTitle: 'Professional Photographer'
+      jobTitle: profession
     },
-    serviceType: 'Photography Services',
+    serviceType: siteConfig.seo.profession.businessType,
     areaServed: {
       '@type': 'Country',
-      name: 'United Kingdom'
+      name: siteConfig.seo.profession.areaServed
     },
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
-      name: 'Photography Services',
+      name: siteConfig.seo.profession.businessType,
       itemListElement: [
-        {
+        ...specialties.map(specialty => ({
           '@type': 'Offer',
           itemOffered: {
             '@type': 'Service',
-            name: 'Portrait Photography',
-            description: 'Professional portrait photography for individuals, couples, and families'
+            name: `${specialty.charAt(0).toUpperCase() + specialty.slice(1)} Photography`,
+            description: `Professional ${specialty} photography for individuals, couples, and families`
           }
-        },
-        {
-          '@type': 'Offer',
-          itemOffered: {
-            '@type': 'Service',
-            name: 'Event Photography',
-            description: 'Professional photography for events, celebrations, and special occasions'
-          }
-        },
-        {
-          '@type': 'Offer',
-          itemOffered: {
-            '@type': 'Service',
-            name: 'Landscape Photography',
-            description: 'Artistic landscape and nature photography for personal and commercial use'
-          }
-        },
+        })),
         {
           '@type': 'Offer',
           itemOffered: {
@@ -108,12 +98,15 @@ export function generateLocalBusinessSchema(baseUrl: string) {
         }
       ]
     },
-    priceRange: '$$',
+    priceRange: siteConfig.seo.profession.priceRange,
     sameAs: Object.values(siteConfig.links).filter(Boolean)
   }
 }
 
 export function generateOrganizationSchema(baseUrl: string) {
+  const specialties = siteConfig.seo.profession.specialties
+  const profession = siteConfig.seo.profession.title
+  
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -131,13 +124,11 @@ export function generateOrganizationSchema(baseUrl: string) {
     founder: {
       '@type': 'Person',
       name: siteConfig.ownerName,
-      jobTitle: 'Professional Photographer'
+      jobTitle: profession
     },
     knowsAbout: [
       'Photography',
-      'Portrait Photography',
-      'Landscape Photography',
-      'Event Photography',
+      ...specialties.map(specialty => `${specialty.charAt(0).toUpperCase() + specialty.slice(1)} Photography`),
       'Photo Editing',
       'Visual Arts',
       'Digital Photography',

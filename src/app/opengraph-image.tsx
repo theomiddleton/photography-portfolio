@@ -12,6 +12,10 @@ export const size = {
 export const contentType = 'image/png'
 
 export default async function Image() {
+  const specialties = siteConfig.seo.profession.specialties
+    .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(' • ')
+  
   return new ImageResponse(
     (
       <div
@@ -69,7 +73,7 @@ export default async function Image() {
               fontWeight: 300,
             }}
           >
-            Professional Photographer
+            {siteConfig.seo.profession.title}
           </p>
           
           <p
@@ -81,7 +85,7 @@ export default async function Image() {
               lineHeight: 1.4,
             }}
           >
-            Portrait • Landscape • Event Photography
+            {specialties} Photography
           </p>
         </div>
         

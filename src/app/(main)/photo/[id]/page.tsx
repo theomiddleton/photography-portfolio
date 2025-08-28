@@ -6,6 +6,7 @@ import { AltImagePage } from '~/components/alt-image-page'
 import type { Metadata } from 'next'
 import { siteConfig } from '~/config/site'
 import { generateImageStructuredData } from '~/lib/structured-data'
+import { seoUtils } from '~/lib/seo-utils'
 import Script from 'next/script'
 
 // Define a specific type for the selected data
@@ -45,56 +46,36 @@ export async function generateMetadata(props: { params: Promise<{ id: number }> 
   }
 
   const image = result[0]
-  const canonicalUrl = `${siteConfig.url}/photo/${params.id}`
-  
-  // Enhanced title and description for SEO
-  const title = image.name ? 
-    `${image.name} | ${siteConfig.ownerName} Photography` : 
-    `Photography by ${siteConfig.ownerName} | Professional Portfolio`
-  
-  const description = image.description ? 
+  const photoName = image.name || 'Professional Photograph'
+  const photoDescription = image.description ? 
     `${image.description} - Professional photography by ${siteConfig.ownerName}. View this stunning photograph and explore more in the portfolio.` :
-    `Professional photograph by ${siteConfig.ownerName}. Explore this and more stunning images in the photography portfolio.`
+    undefined
 
-  // Generate keywords from tags and add photography-specific terms
+  // Generate keywords from tags
   const tagKeywords = image.tags ? image.tags.split(',').map(tag => tag.trim()).filter(Boolean) : []
-  const keywords = [
-    ...tagKeywords,
-    `${siteConfig.ownerName} photography`,
-    'professional photographer',
-    'photography portfolio',
-    'fine art photography',
-    image.name ? image.name.toLowerCase() : 'photograph'
-  ].join(', ')
+  const additionalKeywords = [...tagKeywords, photoName.toLowerCase()].filter(Boolean)
 
+  const metadata = seoUtils.getPhotoMetadata(photoName, params.id.toString(), photoDescription)
+  
   return {
-    title,
-    description,
-    keywords,
+    ...metadata,
+    keywords: [metadata.keywords, ...additionalKeywords].filter(Boolean).join(', '),
     authors: [{ name: siteConfig.ownerName }],
     creator: siteConfig.ownerName,
     openGraph: {
-      title,
-      description,
+      ...metadata.openGraph,
       images: [{
         url: image.fileUrl,
         width: 1200,
         height: 630,
-        alt: image.name || `Professional photograph by ${siteConfig.ownerName}`,
+        alt: photoName,
       }],
-      url: canonicalUrl,
-      siteName: siteConfig.seo.openGraph.siteName,
-      type: 'article',
+      type: 'article' as const,
     },
     twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
+      ...metadata.twitter,
       images: [image.fileUrl],
       creator: '@theomiddleton_',
-    },
-    alternates: {
-      canonical: canonicalUrl,
     },
     robots: {
       index: true,
@@ -102,6 +83,7 @@ export async function generateMetadata(props: { params: Promise<{ id: number }> 
       googleBot: {
         index: true,
         follow: true,
+        'max-snippet': -1,
         'max-image-preview': 'large',
       },
     },
