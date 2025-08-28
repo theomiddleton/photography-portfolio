@@ -18,7 +18,7 @@ export default function TestConfigPage() {
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6">          
           <div className="rounded-lg bg-white p-6 shadow">
             <span className="font-medium text-gray-700">Config Location:</span>
             <p className="text-gray-900">{siteConfig.configLocation}</p>
