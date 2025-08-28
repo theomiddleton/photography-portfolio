@@ -39,9 +39,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/success', changeFrequency: 'yearly', priority: 0.3 },
   ] as const
 
-  // Auth routes (lower priority, infrequent updates)
-  const authRoutes = ['/login', '/signup', '/forgot-password', '/verify-email', '/reset-password']
-
   try {
     // Get published blog posts
     const publishedBlogPosts = await db
@@ -111,7 +108,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (isStoreEnabledServer()) {
       storeRoutes = [
         { path: '/store', changeFrequency: 'daily', priority: 0.8 },
-        { path: '/store/checkout', changeFrequency: 'monthly', priority: 0.6 },
       ]
 
       // Get active products
@@ -136,16 +132,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           lastModified: new Date(),
           changeFrequency: route.changeFrequency as MetadataRoute.Sitemap[number]['changeFrequency'],
           priority: route.priority,
-        })
-      })
-
-      // Auth routes (lower priority)
-      authRoutes.forEach((route) => {
-        sitemapEntries.push({
-          url: `${baseUrl}${route}`,
-          lastModified: new Date(),
-          changeFrequency: 'yearly' as const,
-          priority: 0.3,
         })
       })
 
@@ -233,7 +219,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
     })
 
-    return sitemapEntries
+    // Dedupe by URL; keep the entry with the newer lastModified  
+    const byUrl = new Map<string, MetadataRoute.Sitemap[number]>()  
+    for (const e of sitemapEntries) {  
+      const prev = byUrl.get(e.url)  
+      if (!prev) {  
+        byUrl.set(e.url, e)  
+      } else {  
+        const prevDate = prev.lastModified ? new Date(prev.lastModified as any).getTime() : 0  
+        const curDate = e.lastModified ? new Date(e.lastModified as any).getTime() : 0  
+        byUrl.set(e.url, curDate >= prevDate ? e : prev)  
+      }  
+    }  
+    return Array.from(byUrl.values()) 
 
   } catch (error) {
     console.error('Error generating sitemap:', error)
