@@ -12,9 +12,13 @@ on:
       - .github/workflows/copilot-setup-steps.yml
 
 jobs:
+  
   # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
   copilot-setup-steps:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]
 
     # Set the permissions to the lowest permissions possible needed for your steps.
     # Copilot will be given its own token for its operations.
@@ -25,20 +29,15 @@ jobs:
     # You can define any steps you want, and they will run before the agent starts.
     # If you do not check out your code, Copilot will do this for you.
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # - name: Set up Node.js
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: "20"
-      #     cache: "npm"
-
+      - uses: actions/checkout@v4
       - name: Install pnpm
-        run: curl -fsSL https://get.pnpm.io/install.sh | sh -
-
-      - name: Enable pnpm
-        run: source /home/runner/.bashrc
-
-      - name: Install JavaScript dependencies
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+      - name: Install dependencies
         run: pnpm install
