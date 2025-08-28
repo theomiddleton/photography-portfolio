@@ -1,3 +1,17 @@
+/**
+ * Comprehensive SEO-optimized sitemap for the portfolio website
+ * 
+ * Features:
+ * - Includes all public dynamic content (blog posts, custom pages, videos, galleries, images, store products)
+ * - Excludes admin routes for security and SEO (handled by robots.txt)
+ * - Optimized priorities and change frequencies for different content types
+ * - Recent blog posts get higher priority and more frequent updates
+ * - Performance limits to prevent memory issues with large datasets
+ * - Proper error handling with fallback sitemap
+ * - Daily revalidation for optimal performance
+ * - Supports multiple domains (primary and alternate)
+ */
+
 import type { MetadataRoute } from 'next'
 import { siteConfig } from '~/config/site'
 import { db } from '~/server/db'
@@ -8,10 +22,9 @@ import {
   videos, 
   galleries, 
   multiGalleryPages,
-  products,
-  productSizes 
+  products
 } from '~/server/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { isStoreEnabledServer } from '~/lib/store-utils'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -26,8 +39,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/success', changeFrequency: 'yearly', priority: 0.3 },
   ] as const
 
-  // Auth routes (lower priority, monthly updates)
-  const authRoutes = ['/login', '/signup', '/forgot-password']
+  // Auth routes (lower priority, infrequent updates)
+  const authRoutes = ['/login', '/signup', '/forgot-password', '/verify-email', '/reset-password']
 
   try {
     // Get published blog posts
@@ -39,6 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
       .from(blogPosts)
       .where(eq(blogPosts.published, true))
+      .limit(1000) // Reasonable limit for performance
 
     // Get published custom pages
     const publishedCustomPages = await db
@@ -48,6 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
       .from(customPages)
       .where(eq(customPages.isPublished, true))
+      .limit(500) // Reasonable limit
 
     // Get visible videos
     const visibleVideos = await db
@@ -57,6 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
       .from(videos)
       .where(eq(videos.isVisible, true))
+      .limit(500) // Reasonable limit
 
     // Get public galleries
     const publicGalleries = await db
@@ -66,6 +82,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
       .from(galleries)
       .where(eq(galleries.isPublic, true))
+      .limit(200) // Reasonable limit
 
     // Get public multi-gallery pages
     const publicMultiGalleryPages = await db
@@ -75,8 +92,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
       .from(multiGalleryPages)
       .where(eq(multiGalleryPages.isPublic, true))
+      .limit(200) // Reasonable limit
 
-    // Get visible images for photo routes
+    // Get visible images for photo routes (limit for performance)
     const visibleImages = await db
       .select({
         id: imageData.id,
@@ -84,10 +102,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
       .from(imageData)
       .where(eq(imageData.visible, true))
+      .limit(5000) // Reasonable limit for large image collections
 
     // Store routes and products (if store is enabled)
-    let storeRoutes: Array<{ path: string; changeFrequency: string; priority: number; lastModified?: Date }> = []
-    let storeProducts: Array<{ slug: string; lastModified: Date | null }> = []
+    let storeRoutes: { path: string; changeFrequency: string; priority: number; lastModified?: Date }[] = []
+    let storeProducts: { slug: string; lastModified: Date | null }[] = []
     
     if (isStoreEnabledServer()) {
       storeRoutes = [
@@ -103,6 +122,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         })
         .from(products)
         .where(eq(products.active, true))
+        .limit(1000) // Reasonable limit for store products
     }
 
     // Build sitemap entries
@@ -139,13 +159,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         })
       })
 
-      // Blog posts
+      // Blog posts (higher priority for recent posts)
       publishedBlogPosts.forEach((post) => {
+        const isRecent = post.publishedAt && 
+          new Date(post.publishedAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 days
+        
         sitemapEntries.push({
           url: `${baseUrl}/blog/${post.slug}`,
           lastModified: post.lastModified || post.publishedAt || new Date(),
-          changeFrequency: 'weekly' as const,
-          priority: 0.7,
+          changeFrequency: isRecent ? 'daily' : 'weekly' as const,
+          priority: isRecent ? 0.8 : 0.7,
         })
       })
 
