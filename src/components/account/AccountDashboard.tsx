@@ -109,8 +109,8 @@ export function AccountDashboard() {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
-          <p className="mt-2 text-sm text-gray-600">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900 dark:border-gray-100"></div>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
             Loading account information...
           </p>
         </div>
@@ -122,8 +122,8 @@ export function AccountDashboard() {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="max-w-md text-center">
-          <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-            <div className="mb-4 text-red-600">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-950">
+            <div className="mb-4 text-red-600 dark:text-red-400">
               <svg
                 className="mx-auto h-12 w-12"
                 fill="none"
@@ -138,13 +138,13 @@ export function AccountDashboard() {
                 />
               </svg>
             </div>
-            <h3 className="mb-2 text-lg font-medium text-red-800">
+            <h3 className="mb-2 text-lg font-medium text-red-800 dark:text-red-200">
               Error Loading Account
             </h3>
-            <p className="mb-4 text-red-700">{error}</p>
+            <p className="mb-4 text-red-700 dark:text-red-300">{error}</p>
             <button
               onClick={() => loadAccountData().catch(console.error)}
-              className="rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
+              className="rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
             >
               Try Again
             </button>
@@ -158,74 +158,76 @@ export function AccountDashboard() {
     <div className="space-y-8">
       {/* Account Overview */}
       {accountInfo && (
-        <div className="rounded-lg border p-6">
-          <h2 className="mb-4 text-xl font-semibold">Account Overview</h2>
+        <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+          <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">Account Overview</h2>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <h3 className="mb-2 font-medium">Personal Information</h3>
+              <h3 className="mb-2 font-medium text-gray-800 dark:text-gray-200">Personal Information</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span>Name:</span>
-                  <span className="font-medium">{accountInfo.name}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Name:</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">{accountInfo.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Email:</span>
-                  <span className="font-medium">{accountInfo.email}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Email:</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">{accountInfo.email}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Role:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Role:</span>
                   <span
                     className={`rounded px-2 py-1 text-xs font-medium ${
                       accountInfo.role === 'admin'
-                        ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                        ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300'
+                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300'
                     }`}
                   >
                     {accountInfo.role === 'admin' ? 'Administrator' : 'User'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Member Since:</span>
-                  <span>{formatDate(accountInfo.createdAt)}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Member Since:</span>
+                  <span className="text-gray-900 dark:text-gray-100">{formatDate(accountInfo.createdAt)}</span>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="mb-2 font-medium">Account Status</h3>
+              <h3 className="mb-2 font-medium text-gray-800 dark:text-gray-200">Account Status</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span>Email Verified:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Email Verified:</span>
                   <span
                     className={
                       accountInfo.emailVerified
-                        ? 'text-green-600'
-                        : 'text-red-600'
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
                     }
                   >
                     {accountInfo.emailVerified ? '✓ Verified' : '✗ Unverified'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Account Status:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Account Status:</span>
                   <span
                     className={
-                      accountInfo.isActive ? 'text-green-600' : 'text-red-600'
+                      accountInfo.isActive 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
                     }
                   >
                     {accountInfo.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Active Sessions:</span>
-                  <span className="font-medium">
+                  <span className="text-gray-600 dark:text-gray-400">Active Sessions:</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
                     {accountInfo.activeSessions}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Last Login:</span>
-                  <span>{formatDate(accountInfo.lastLoginAt)}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Last Login:</span>
+                  <span className="text-gray-900 dark:text-gray-100">{formatDate(accountInfo.lastLoginAt)}</span>
                 </div>
               </div>
             </div>
@@ -237,10 +239,10 @@ export function AccountDashboard() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <a
           href="/account/change-password"
-          className="rounded-lg border p-4 transition-colors hover:bg-gray-50"
+          className="rounded-lg border border-gray-200 bg-white p-4 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-750"
         >
-          <h3 className="font-medium">Change Password</h3>
-          <p className="mt-1 text-sm text-gray-600">
+          <h3 className="font-medium text-gray-900 dark:text-gray-100">Change Password</h3>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Update your account password
           </p>
         </a>
@@ -250,10 +252,10 @@ export function AccountDashboard() {
             // Handle email change
             alert('Email change functionality coming soon')
           }}
-          className="rounded-lg border p-4 text-left transition-colors hover:bg-gray-50"
+          className="rounded-lg border border-gray-200 bg-white p-4 text-left transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-750"
         >
-          <h3 className="font-medium">Change Email</h3>
-          <p className="mt-1 text-sm text-gray-600">
+          <h3 className="font-medium text-gray-900 dark:text-gray-100">Change Email</h3>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Update your email address
           </p>
         </button>
@@ -270,19 +272,19 @@ export function AccountDashboard() {
               revokeAction(formData)
             }
           }}
-          className="rounded-lg border border-red-200 p-4 text-left transition-colors hover:bg-red-50"
+          className="rounded-lg border border-red-200 bg-white p-4 text-left transition-colors hover:bg-red-50 dark:border-red-800 dark:bg-gray-800 dark:hover:bg-red-950/20"
         >
-          <h3 className="font-medium text-red-600">Sign Out All Devices</h3>
-          <p className="mt-1 text-sm text-red-500">
+          <h3 className="font-medium text-red-600 dark:text-red-400">Sign Out All Devices</h3>
+          <p className="mt-1 text-sm text-red-500 dark:text-red-500">
             Revoke all active sessions
           </p>
         </button>
       </div>
 
       {/* Active Sessions */}
-      <div className="rounded-lg border p-6">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Active Sessions</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Active Sessions</h2>
           <button
             onClick={() => {
               if (
@@ -296,7 +298,7 @@ export function AccountDashboard() {
               }
             }}
             disabled={isRevoking}
-            className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
+            className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
           >
             {isRevoking ? 'Revoking...' : 'Revoke All Others'}
           </button>
@@ -306,8 +308,8 @@ export function AccountDashboard() {
           <div
             className={`mb-4 rounded-md p-3 text-sm ${
               revokeState.success
-                ? 'border border-green-200 bg-green-50 text-green-800'
-                : 'border border-red-200 bg-red-50 text-red-800'
+                ? 'border border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-300'
+                : 'border border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-300'
             }`}
           >
             {revokeState.message}
@@ -315,28 +317,28 @@ export function AccountDashboard() {
         )}
 
         {sessions.length === 0 ? (
-          <p className="py-4 text-center text-gray-600">
+          <p className="py-4 text-center text-gray-600 dark:text-gray-400">
             No active sessions found.
           </p>
         ) : (
           <div className="space-y-3">
             {sessions.map((session) => (
-              <div key={session.id} className="rounded-lg border p-4">
+              <div key={session.id} className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2">
-                      <h3 className="font-medium">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100">
                         {getBrowserInfo(session.userAgent)} on{' '}
                         {getDeviceInfo(session.userAgent)}
                       </h3>
                       {session.isRememberMe && (
-                        <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                        <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
                           Remember Me
                         </span>
                       )}
                     </div>
 
-                    <div className="mt-2 space-y-1 text-sm text-gray-600">
+                    <div className="mt-2 space-y-1 text-sm text-gray-600 dark:text-gray-400">
                       <p>IP Address: {session.ipAddress || 'Unknown'}</p>
                       <p>Last Used: {formatDate(session.lastUsedAt)}</p>
                       <p>Created: {formatDate(session.createdAt)}</p>
@@ -351,7 +353,7 @@ export function AccountDashboard() {
                         alert('Individual session revocation coming soon')
                       }
                     }}
-                    className="text-sm text-red-600 hover:text-red-800"
+                    className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                   >
                     Revoke
                   </button>
@@ -363,14 +365,14 @@ export function AccountDashboard() {
       </div>
 
       {/* Danger Zone */}
-      <div className="rounded-lg border border-red-200 p-6">
-        <h2 className="mb-4 text-xl font-semibold text-red-600">Danger Zone</h2>
+      <div className="rounded-lg border border-red-200 bg-white p-6 dark:border-red-800 dark:bg-gray-800">
+        <h2 className="mb-4 text-xl font-semibold text-red-600 dark:text-red-400">Danger Zone</h2>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-lg bg-red-50 p-4">
+          <div className="flex items-center justify-between rounded-lg bg-red-50 p-4 dark:bg-red-950/20">
             <div>
-              <h3 className="font-medium">Deactivate Account</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">Deactivate Account</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Temporarily disable your account (reversible)
               </p>
             </div>
@@ -382,16 +384,16 @@ export function AccountDashboard() {
                   alert('Account deactivation functionality coming soon')
                 }
               }}
-              className="rounded-md bg-red-100 px-4 py-2 text-red-800 transition-colors hover:bg-red-200"
+              className="rounded-md bg-red-100 px-4 py-2 text-red-800 transition-colors hover:bg-red-200 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/70"
             >
               Deactivate
             </button>
           </div>
 
-          <div className="flex items-center justify-between rounded-lg bg-red-50 p-4">
+          <div className="flex items-center justify-between rounded-lg bg-red-50 p-4 dark:bg-red-950/20">
             <div>
-              <h3 className="font-medium">Delete Account</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">Delete Account</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Permanently delete your account and all data
               </p>
             </div>
@@ -405,7 +407,7 @@ export function AccountDashboard() {
                   alert('Account deletion functionality coming soon')
                 }
               }}
-              className="rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
+              className="rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
             >
               Delete
             </button>
