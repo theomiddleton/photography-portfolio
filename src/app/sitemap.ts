@@ -1,79 +1,252 @@
+/**
+ * Comprehensive SEO-optimized sitemap for the portfolio website
+ * 
+ * Features:
+ * - Includes all public dynamic content (blog posts, custom pages, videos, galleries, images, store products)
+ * - Excludes admin routes for security and SEO (handled by robots.txt)
+ * - Optimized priorities and change frequencies for different content types
+ * - Recent blog posts get higher priority and more frequent updates
+ * - Performance limits to prevent memory issues with large datasets
+ * - Proper error handling with fallback sitemap
+ * - Daily revalidation for optimal performance
+ * - Supports multiple domains (primary and alternate)
+ */
+
 import type { MetadataRoute } from 'next'
 import { siteConfig } from '~/config/site'
 import { db } from '~/server/db'
-import { imageData } from '~/server/db/schema'
+import { 
+  imageData, 
+  blogPosts, 
+  customPages, 
+  videos, 
+  galleries, 
+  multiGalleryPages,
+  products
+} from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
+import { isStoreEnabledServer } from '~/lib/store-utils'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrls = [siteConfig.url, siteConfig.altUrl]
-  const images = await db
-    .select({
-      id: imageData.id,
-      lastModified: imageData.modifiedAt,
+  
+  // Static routes with SEO-optimized priorities and change frequencies
+  const staticRoutes = [
+    { path: '', changeFrequency: 'weekly', priority: 1.0 },
+    { path: '/about', changeFrequency: 'monthly', priority: 0.9 },
+    { path: '/blog', changeFrequency: 'daily', priority: 0.8 },
+    { path: '/files', changeFrequency: 'weekly', priority: 0.6 },
+    { path: '/success', changeFrequency: 'yearly', priority: 0.3 },
+  ] as const
+
+  try {
+    // Get published blog posts
+    const publishedBlogPosts = await db
+      .select({
+        slug: blogPosts.slug,
+        lastModified: blogPosts.updatedAt,
+        publishedAt: blogPosts.publishedAt,
+      })
+      .from(blogPosts)
+      .where(eq(blogPosts.published, true))
+      .limit(1000) // Reasonable limit for performance
+
+    // Get published custom pages
+    const publishedCustomPages = await db
+      .select({
+        slug: customPages.slug,
+        lastModified: customPages.updatedAt,
+      })
+      .from(customPages)
+      .where(eq(customPages.isPublished, true))
+      .limit(500) // Reasonable limit
+
+    // Get visible videos
+    const visibleVideos = await db
+      .select({
+        slug: videos.slug,
+        lastModified: videos.modifiedAt,
+      })
+      .from(videos)
+      .where(eq(videos.isVisible, true))
+      .limit(500) // Reasonable limit
+
+    // Get public galleries
+    const publicGalleries = await db
+      .select({
+        slug: galleries.slug,
+        lastModified: galleries.updatedAt,
+      })
+      .from(galleries)
+      .where(eq(galleries.isPublic, true))
+      .limit(200) // Reasonable limit
+
+    // Get public multi-gallery pages
+    const publicMultiGalleryPages = await db
+      .select({
+        slug: multiGalleryPages.slug,
+        lastModified: multiGalleryPages.updatedAt,
+      })
+      .from(multiGalleryPages)
+      .where(eq(multiGalleryPages.isPublic, true))
+      .limit(200) // Reasonable limit
+
+    // Get visible images for photo routes (limit for performance)
+    const visibleImages = await db
+      .select({
+        id: imageData.id,
+        lastModified: imageData.modifiedAt,
+      })
+      .from(imageData)
+      .where(eq(imageData.visible, true))
+      .limit(5000) // Reasonable limit for large image collections
+
+    // Store routes and products (if store is enabled)
+    let storeRoutes: { path: string; changeFrequency: string; priority: number; lastModified?: Date }[] = []
+    let storeProducts: { slug: string; lastModified: Date | null }[] = []
+    
+    if (isStoreEnabledServer()) {
+      storeRoutes = [
+        { path: '/store', changeFrequency: 'daily', priority: 0.8 },
+      ]
+
+      // Get active products
+      storeProducts = await db
+        .select({
+          slug: products.slug,
+          lastModified: products.updatedAt,
+        })
+        .from(products)
+        .where(eq(products.active, true))
+        .limit(1000) // Reasonable limit for store products
+    }
+
+    // Build sitemap entries
+    const sitemapEntries: MetadataRoute.Sitemap = []
+
+    baseUrls.forEach((baseUrl) => {
+      // Static routes
+      staticRoutes.forEach((route) => {
+        sitemapEntries.push({
+          url: `${baseUrl}${route.path}`,
+          lastModified: new Date(),
+          changeFrequency: route.changeFrequency as MetadataRoute.Sitemap[number]['changeFrequency'],
+          priority: route.priority,
+        })
+      })
+
+      // Store routes
+      storeRoutes.forEach((route) => {
+        sitemapEntries.push({
+          url: `${baseUrl}${route.path}`,
+          lastModified: route.lastModified || new Date(),
+          changeFrequency: route.changeFrequency as MetadataRoute.Sitemap[number]['changeFrequency'],
+          priority: route.priority,
+        })
+      })
+
+      // Blog posts (higher priority for recent posts)
+      publishedBlogPosts.forEach((post) => {
+        const isRecent = post.publishedAt && 
+          new Date(post.publishedAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 days
+        
+        sitemapEntries.push({
+          url: `${baseUrl}/blog/${post.slug}`,
+          lastModified: post.lastModified || post.publishedAt || new Date(),
+          changeFrequency: isRecent ? 'daily' : 'weekly' as const,
+          priority: isRecent ? 0.8 : 0.7,
+        })
+      })
+
+      // Custom pages
+      publishedCustomPages.forEach((page) => {
+        sitemapEntries.push({
+          url: `${baseUrl}/p/${page.slug}`,
+          lastModified: page.lastModified || new Date(),
+          changeFrequency: 'monthly' as const,
+          priority: 0.6,
+        })
+      })
+
+      // Videos
+      visibleVideos.forEach((video) => {
+        sitemapEntries.push({
+          url: `${baseUrl}/video/${video.slug}`,
+          lastModified: video.lastModified || new Date(),
+          changeFrequency: 'monthly' as const,
+          priority: 0.6,
+        })
+      })
+
+      // Galleries
+      publicGalleries.forEach((gallery) => {
+        sitemapEntries.push({
+          url: `${baseUrl}/g/${gallery.slug}`,
+          lastModified: gallery.lastModified || new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
+        })
+      })
+
+      // Multi-gallery pages
+      publicMultiGalleryPages.forEach((page) => {
+        sitemapEntries.push({
+          url: `${baseUrl}/g/${page.slug}`,
+          lastModified: page.lastModified || new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
+        })
+      })
+
+      // Individual photos
+      visibleImages.forEach((image) => {
+        sitemapEntries.push({
+          url: `${baseUrl}/photo/${image.id}`,
+          lastModified: image.lastModified || new Date(),
+          changeFrequency: 'monthly' as const,
+          priority: 0.5,
+        })
+      })
+
+      // Store products
+      storeProducts.forEach((product) => {
+        sitemapEntries.push({
+          url: `${baseUrl}/store/${product.slug}`,
+          lastModified: product.lastModified || new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
+        })
+      })
     })
-    .from(imageData)
-    .where(eq(imageData.visible, true))
 
-  const routes = [
-    { path: '', changeFrequency: 'weekly', priority: 1 },
-    { path: '/about', changeFrequency: 'monthly', priority: 0.8 },
-    { path: '/blog', changeFrequency: 'weekly', priority: 0.7 },
-    { path: '/store', changeFrequency: 'weekly', priority: 0.7 },
-    { path: '/admin', changeFrequency: 'weekly', priority: 0.8 },
-    { path: '/auth-test', changeFrequency: 'weekly', priority: 0.5 },
-  ]
+    // Dedupe by URL; keep the entry with the newer lastModified  
+    const byUrl = new Map<string, MetadataRoute.Sitemap[number]>()  
+    for (const e of sitemapEntries) {  
+      const prev = byUrl.get(e.url)  
+      if (!prev) {  
+        byUrl.set(e.url, e)  
+      } else {  
+        const prevDate = prev.lastModified ? new Date(prev.lastModified as any).getTime() : 0  
+        const curDate = e.lastModified ? new Date(e.lastModified as any).getTime() : 0  
+        byUrl.set(e.url, curDate >= prevDate ? e : prev)  
+      }  
+    }  
+    return Array.from(byUrl.values()) 
 
-  const authRoutes = ['/login', '/logout', '/signin', '/signup']
-  const adminRoutes = [
-    '/admin/about',
-    '/admin/blog',
-    '/admin/blog/edit',
-    '/admin/blog/new',
-    '/admin/emails',
-    '/admin/manage',
-    '/admin/migrate',
-    '/admin/pages',
-    '/admin/pages/new',
-    '/admin/store',
-    '/admin/store/costs',
-    '/admin/store/frame',
-    '/admin/upload',
-    '/admin/users',
-    '/admin/videos',
-    '/admin/videos/new',
-  ]
-  const storeRoutes = ['/store/checkout']
-
-  return baseUrls.flatMap((baseUrl) => [
-    ...routes.map((route) => ({
-      url: `${baseUrl}${route.path}`,
-      lastModified: new Date(),
-      changeFrequency: route.changeFrequency as MetadataRoute.Sitemap[number]['changeFrequency'],
-      priority: route.priority,
-    })),
-    ...images.map((image) => ({
-      url: `${baseUrl}/photo/${image.id}`,
-      lastModified: new Date(image.lastModified),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    })),
-    ...authRoutes.map((route) => ({
-      url: `${baseUrl}${route}`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
-    })),
-    ...adminRoutes.map((route) => ({
-      url: `${baseUrl}${route}`,
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
-      priority: 0.6,
-    })),
-    ...storeRoutes.map((route) => ({
-      url: `${baseUrl}${route}`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.6,
-    })),
-  ])
+  } catch (error) {
+    console.error('Error generating sitemap:', error)
+    
+    // Fallback to basic sitemap if database queries fail
+    return baseUrls.flatMap((baseUrl) => 
+      staticRoutes.map((route) => ({
+        url: `${baseUrl}${route.path}`,
+        lastModified: new Date(),
+        changeFrequency: route.changeFrequency as MetadataRoute.Sitemap[number]['changeFrequency'],
+        priority: route.priority,
+      }))
+    )
+  }
 }
+
+// Revalidate sitemap daily for performance
+export const revalidate = 86400
