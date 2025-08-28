@@ -37,5 +37,8 @@ jobs:
       - name: Install pnpm
         run: curl -fsSL https://get.pnpm.io/install.sh | sh -
 
+      - name: Enable pnpm
+        run: source /home/runner/.bashrc
+
       - name: Install JavaScript dependencies
         run: pnpm install
