@@ -6,6 +6,7 @@ import { siteConfig } from '~/config/site'
 import { ImageGallery } from '~/components/image-gallery-grid'
 import { GetStartedMessage } from '~/components/GetStartedMessage'
 import { checkAdminSetupRequiredSafe } from '~/lib/auth/authDatabase'
+import { getSession } from '~/lib/auth/auth'
 import type { GalleryConfigData } from '~/lib/actions/gallery/gallery-config'
 
 export const revalidate = 3600 // Set to 1 hour as a fallback, primarily using on-demand revalidation
@@ -73,6 +74,11 @@ export default async function Home() {
 
   // Check if admin setup is required (for first-time setup message)
   const isAdminSetupRequired = await checkAdminSetupRequiredSafe()
+  
+  // Check if user is signed in
+  const session = await getSession()
+  const isUserSignedIn = !!session
+  const userRole = session?.role
 
   // If no images exist, show the getting started message
   if (imageUrls.length === 0) {
@@ -84,7 +90,11 @@ export default async function Home() {
               {siteConfig.headers.main}
             </h1>
           )}
-          <GetStartedMessage isAdminSetupRequired={isAdminSetupRequired} />
+          <GetStartedMessage 
+            isAdminSetupRequired={isAdminSetupRequired} 
+            isUserSignedIn={isUserSignedIn}
+            userRole={userRole}
+          />
         </div>
       </main>
     )
