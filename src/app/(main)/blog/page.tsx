@@ -4,6 +4,16 @@ import { db } from '~/server/db'
 import { desc, and, eq } from 'drizzle-orm'
 import { blogPosts } from '~/server/db/schema'
 import { formatDistance } from 'date-fns'
+import type { Metadata } from 'next'
+import { generateSEOMetadata } from '~/lib/seo-utils'
+import { siteConfig } from '~/config/site'
+
+export const metadata: Metadata = generateSEOMetadata({
+  type: 'blog',
+  title: `Blog | ${siteConfig.ownerName}`,
+  description: `Photography insights, stories and behind-the-scenes content by ${siteConfig.ownerName}.`,
+  canonicalUrl: '/blog',
+})
 
 const POSTS_PER_PAGE = 10
 

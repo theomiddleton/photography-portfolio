@@ -21,7 +21,18 @@ export const siteConfig = {
   headers: {
     main: '',
   },
+  // Enhanced SEO Configuration
   seo: {
+    // Basic SEO settings
+    jobTitle: 'Photographer', // Configurable job title
+    profession: 'professional photographer', // Used in descriptions
+    location: {
+      // Optional location information for local SEO
+      locality: '', // e.g., 'London'
+      region: '', // e.g., 'England'
+      country: 'GB', // ISO country code
+    },
+    // OpenGraph configuration
     openGraph: {
       type: 'website',
       locale: 'en_US',
@@ -31,9 +42,20 @@ export const siteConfig = {
           url: 'https://files.theomiddleton.me/og-images/2-boats.jpg',
           width: 1200,
           height: 630,
-          alt: 'Open Graph Image',
+          alt: 'Photography Portfolio - Theo Middleton',
         },
       ],
+    },
+    // Twitter card configuration
+    twitter: {
+      site: '', // @username
+      creator: '', // @username
+    },
+    // Additional meta tags
+    meta: {
+      keywords: [], // Will be populated dynamically per page
+      author: 'Theo Middleton',
+      themeColor: '#000000',
     },
   },
   emails: {
