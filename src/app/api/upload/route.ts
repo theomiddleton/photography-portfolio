@@ -17,7 +17,7 @@ import { revalidatePath } from 'next/cache'
 import { logAction } from '~/lib/logging'
 import { getSession } from '~/lib/auth/auth'
 import { uploadRateLimit, getClientIP } from '~/lib/rate-limit'
-import { stripe } from '~/lib/stripe'
+import { getStripe } from '~/lib/stripe'
 import { waitUntil } from '@vercel/functions'
 import { generateObject } from 'ai'
 import { google } from '@ai-sdk/google'
@@ -266,6 +266,12 @@ export async function POST(request: Request) {
         .returning()
 
       if (isSale) {
+        // Check if store/stripe is available before proceeding
+        const stripe = getStripe()
+        if (!stripe) {
+          throw new Error('Store functionality is not available. Please configure Stripe credentials.')
+        }
+        
         // Use waitUntil for Stripe operations since they can happen after response
         const stripeProductIds: string[] = []
 

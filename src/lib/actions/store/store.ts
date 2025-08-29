@@ -1,6 +1,6 @@
 'use server'
 
-import { stripe } from '~/lib/stripe'
+import { requireStripe } from '~/lib/stripe'
 import { db, dbWithTx } from '~/server/db'
 import {
   orders,
@@ -66,6 +66,7 @@ export async function createCheckoutSession(
 
       // If there's an existing pending order, return its client secret
       if (existingOrder[0]) {
+        const stripe = requireStripe()
         const paymentIntent = await stripe.paymentIntents.retrieve(
           existingOrder[0].stripeSessionId,
         )
@@ -86,6 +87,7 @@ export async function createCheckoutSession(
       // Create a payment intent with idempotency key
       const idempotencyKey = `checkout_${validProductId}_${validSizeId}_${validShippingMethodId}_${Date.now()}`
       
+      const stripe = requireStripe()
       const paymentIntent = await stripe.paymentIntents.create({
         amount: orderDetails.total,
         currency: 'gbp',
@@ -244,6 +246,7 @@ export async function updateOrderStatus(
 
   try {
     // Verify payment status with Stripe first
+    const stripe = requireStripe()
     const paymentIntent = await stripe.paymentIntents.retrieve(validSessionId)
 
     if (paymentIntent.status !== 'succeeded') {
