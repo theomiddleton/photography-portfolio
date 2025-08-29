@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { getSession } from '~/lib/auth/auth'
 import { logout } from '~/lib/auth/userActions'
-import { siteConfig } from '~/config/site'
+import { getServerSiteConfig } from '~/config/site'
 import { cn } from '~/lib/utils'
 import { Icons } from '~/components/ui/icons'
 import { MainNav } from '~/components/main-nav'
@@ -28,11 +28,12 @@ import { LogoutForm } from '~/components/logout-form'
 export async function SiteHeader() {
   const session = await getSession()
   const isAdmin = session?.role === 'admin'
+  const siteConfig = getServerSiteConfig()
 
   return (
     <header className="border-border/40 bg-background/95 supports-backdrop-filter:bg-background/60 fixed top-0 z-40 w-full border-b backdrop-blur-sm">
       <div className="container flex h-14 max-w-(--breakpoint-2xl) items-center justify-between">
-        <MainNav isAdmin={isAdmin} />
+        <MainNav isAdmin={isAdmin} siteConfig={siteConfig} />
         <nav className="flex items-center">
           {/* Social Media Links */}
           {siteConfig.links.instagram && (

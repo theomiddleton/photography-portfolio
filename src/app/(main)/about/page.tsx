@@ -5,6 +5,8 @@ import { about } from '~/server/db/schema'
 import { notFound } from 'next/navigation'
 import { TipTapRenderer } from '~/components/blog/tiptap-renderer'
 import type { Metadata } from 'next'
+import { generateSEOMetadata, generateKeywordDescription } from '~/lib/seo-utils'
+import { siteConfig } from '~/config/site'
 
 export const revalidate = 3600 // Revalidate every hour
 
@@ -21,10 +23,12 @@ export async function generateMetadata(): Promise<Metadata> {
   const aboutData = result[0]
 
   if (!aboutData) {
-    return {
-      title: 'About',
-      description: 'About page not found',
-    }
+    return generateSEOMetadata({
+      type: 'about',
+      title: `About ${siteConfig.ownerName}`,
+      description: `Learn about ${siteConfig.ownerName}, ${siteConfig.seo.profession}.`,
+      canonicalUrl: '/about',
+    })
   }
 
   let contentText = ''
@@ -51,10 +55,17 @@ export async function generateMetadata(): Promise<Metadata> {
     contentText = ''
   }
 
-  return {
-    title: aboutData.title,
-    description: contentText || 'About page',
-  }
+  // Generate SEO-optimized description
+  const description = contentText 
+    ? generateKeywordDescription(contentText, 'photography', 160)
+    : `Learn about ${siteConfig.ownerName}, ${siteConfig.seo.profession}.`
+
+  return generateSEOMetadata({
+    type: 'about',
+    title: aboutData.title || `About ${siteConfig.ownerName}`,
+    description,
+    canonicalUrl: '/about',
+  })
 }
 
 export default async function About() {

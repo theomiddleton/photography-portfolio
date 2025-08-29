@@ -10,6 +10,12 @@ import {
   generateProductStructuredData,
   generateBreadcrumbStructuredData,
 } from '~/lib/structured-data'
+import { 
+  generateSEOMetadata, 
+  generateOGImageUrl, 
+  generateKeywordDescription 
+} from '~/lib/seo-utils'
+import { seoKeywords } from '~/config/seo'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -90,77 +96,72 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
   // Return not found metadata if store is disabled
   if (!isStoreEnabledServer()) {
-    return {
+    return generateSEOMetadata({
       title: 'Page Not Found',
       description: 'The requested page could not be found.',
-    }
+      robots: { index: false, follow: false },
+    })
   }
 
   const product = await getProduct(params.slug)
 
   if (!product) {
-    return {
+    return generateSEOMetadata({
       title: 'Print Not Found',
       description: 'The requested print could not be found.',
-    }
+      robots: { index: false, follow: false },
+    })
   }
 
-  const title = `${product.name} | Print Store`
-  const description =
-    product.description || 'Beautiful photographic print available for purchase'
-  const ogImageUrl = new URL(
-    '/api/og',
-    siteConfig.url ?? 'http://localhost:3000',
-  )
-  ogImageUrl.searchParams.set('image', product.imageUrl)
-  ogImageUrl.searchParams.set('title', product.name)
+  // Generate dynamic product description with keywords
+  const productDescription = product.description 
+    ? generateKeywordDescription(product.description, 'store', 160)
+    : 'Beautiful photographic print available for purchase'
 
-  return {
-    title,
-    description,
-    keywords: [
-      'photography print',
-      'wall art',
-      'home decor',
-      'fine art',
-      product.name.toLowerCase(),
-    ],
+  // Generate OG image URL
+  const ogImageUrl = generateOGImageUrl({
+    image: product.imageUrl,
+    title: product.name,
+    type: 'product'
+  })
+
+  // Generate custom keywords combining store keywords with product-specific ones  
+  const customKeywords = Array.from(  
+    new Set([  
+      ...seoKeywords.store.slice(0, 4), // First 4 store keywords  
+      ...seoKeywords.technical.slice(0, 2), // First 2 technical keywords  
+      product.name.toLowerCase(),  
+      ...(product.description  
+        ? product.description  
+            .split(/\s+/)  
+            .slice(0, 3)  
+            .map((w) => w.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ''))  
+        : []),  
+    ]),  
+  )  
+    .filter(Boolean)  
+    .slice(0, 12) 
+
+  return generateSEOMetadata({
+    type: 'product',
+    title: `${product.name} | ${siteConfig.storeName}`, 
+    description: productDescription,
+    keywords: customKeywords,
     openGraph: {
-      title,
-      description,
+      title: `${product.name} | ${siteConfig.storeName}`,
+      description: productDescription,
       images: [
         {
-          url: ogImageUrl.toString(),
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: product.name,
         },
       ],
-      siteName: siteConfig.storeName,
-      locale: 'en_GB',
-      type: 'website',
+      type: 'product',
     },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [product.imageUrl],
-    },
-    alternates: {
-      canonical: `/store/${params.slug}`,
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    },
-  }
+    canonicalUrl: `/store/${params.slug}`,
+  })
 }
 
 export default async function ProductPage(props: Props) {
