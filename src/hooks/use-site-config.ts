@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { SiteConfig, defaultConfig } from '~/lib/server-site-config'
+import { SiteConfig, defaultConfig } from '~/config/site'
 
 /**
  * Custom hook to handle site configuration with proper hydration
