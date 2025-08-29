@@ -27,6 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: 'about',
       title: `About ${siteConfig.ownerName}`,
       description: `Learn about ${siteConfig.ownerName}, ${siteConfig.seo.profession}.`,
+      canonicalUrl: '/about',
     })
   }
 
@@ -61,7 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return generateSEOMetadata({
     type: 'about',
-    title: aboutData.title,
+    title: aboutData.title || `About ${siteConfig.ownerName}`,
     description,
     canonicalUrl: '/about',
   })

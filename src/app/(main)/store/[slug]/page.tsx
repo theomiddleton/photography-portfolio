@@ -125,17 +125,26 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     type: 'product'
   })
 
-  // Generate custom keywords combining store keywords with product-specific ones
-  const customKeywords = [
-    ...seoKeywords.store.slice(0, 4), // First 4 store keywords
-    ...seoKeywords.technical.slice(0, 2), // First 2 technical keywords
-    product.name.toLowerCase(),
-    ...(product.description ? product.description.split(' ').slice(0, 3).map(word => word.toLowerCase().replace(/[^\w]/g, '')) : [])
-  ]
+  // Generate custom keywords combining store keywords with product-specific ones  
+  const customKeywords = Array.from(  
+    new Set([  
+      ...seoKeywords.store.slice(0, 4), // First 4 store keywords  
+      ...seoKeywords.technical.slice(0, 2), // First 2 technical keywords  
+      product.name.toLowerCase(),  
+      ...(product.description  
+        ? product.description  
+            .split(/\s+/)  
+            .slice(0, 3)  
+            .map((w) => w.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ''))  
+        : []),  
+    ]),  
+  )  
+    .filter(Boolean)  
+    .slice(0, 12) 
 
   return generateSEOMetadata({
     type: 'product',
-    title: `${product.name} | Print Store`,
+    title: `${product.name} | ${siteConfig.storeName}`, 
     description: productDescription,
     keywords: customKeywords,
     openGraph: {
@@ -149,7 +158,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
           alt: product.name,
         },
       ],
-      type: 'website',
+      type: 'product',
     },
     canonicalUrl: `/store/${params.slug}`,
   })

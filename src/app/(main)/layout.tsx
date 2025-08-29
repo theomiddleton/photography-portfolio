@@ -34,7 +34,7 @@ export default function MainLayout({
         type="application/ld+json"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(websiteSchema),
+          __html: JSON.stringify(websiteSchema).replace(/</g, '\\u003c'),
         }}
       />
       <SiteHeader />

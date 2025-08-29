@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { db } from '~/server/db'
-import { desc, and, eq } from 'drizzle-orm'
+import { desc, and, eq, count } from 'drizzle-orm'
 import { blogPosts } from '~/server/db/schema'
 import { formatDistance } from 'date-fns'
 import type { Metadata } from 'next'
@@ -39,12 +39,11 @@ export default async function BlogPage({
     .orderBy(desc(blogPosts.publishedAt))
     .limit(POSTS_PER_PAGE)
     .offset(offset)
-
-  const totalPosts = await db
-    .select({ count: blogPosts.id })
-    .from(blogPosts)
-    .where(and(eq(blogPosts.published, true)))
-    .then((res) => res.length)
+    
+  const [{ value: totalPosts = 0 }] = await db  
+    .select({ value: count() })  
+    .from(blogPosts)  
+    .where(eq(blogPosts.published, true)) 
 
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE)
 
