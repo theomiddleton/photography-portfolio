@@ -12,25 +12,27 @@ export function useSiteConfig(): SiteConfig {
   const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
-    // After hydration, fetch config from API
-    const fetchConfig = async () => {
-      try {
-        const response = await fetch('/api/site-config')
-        if (response.ok) {
-          const serverConfig = await response.json()
-          setConfig(serverConfig)
-        } else {
-          console.error('Failed to fetch site config, using defaults')
-        }
-      } catch (error) {
-        console.error('Error fetching site config:', error)
-        // Keep default config on error
-      }
-      setIsHydrated(true)
-    }
-
-    fetchConfig()
-  }, [])
+    const ac = new AbortController()  
+    ;(async () => {  
+      try {  
+        const response = await fetch('/api/site-config', {  
+          cache: 'no-store',  
+          signal: ac.signal,  
+        })  
+        if (!response.ok) {  
+          console.error('Failed to fetch site config, using defaults')  
+          return  
+        }  
+        const serverConfig = await response.json()  
+        if (!ac.signal.aborted) setConfig(serverConfig)  
+      } catch (error) {  
+        if ((error as any)?.name !== 'AbortError') {  
+          console.error('Error fetching site config:', error)  
+        }  
+      }  
+    })()  
+    return () => ac.abort()  
+  }, [])  
 
   return config
 }
