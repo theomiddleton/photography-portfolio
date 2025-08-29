@@ -1,12 +1,19 @@
 import { withAxiom } from 'next-axiom'
 import type { NextConfig } from 'next'
 
+// Import site config to get the configured image domain
+const getImageDomain = () => {
+  // Use environment variable directly or fallback to wildcard
+  const domain = process.env.NEXT_PUBLIC_IMAGE_DOMAIN
+  return domain ? `**.${domain}` : '**'
+}
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.theomiddleton.me',
+        hostname: getImageDomain(),
         port: '',
       },
     ],

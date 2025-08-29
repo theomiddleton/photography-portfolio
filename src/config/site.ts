@@ -14,6 +14,7 @@ const defaultConfig = {
   filesBucketUrl: 'https://your-domain.com/files',
   url: 'https://your-domain.com',
   altUrl: 'https://your-alt-domain.com',
+  imageDomain: 'your-domain.com', // Domain pattern for Next.js image optimization
   links: {
     github: '',
     website: 'https://your-domain.com',
@@ -118,6 +119,7 @@ export function getServerSiteConfig() {
     filesBucketUrl: getEnv('NEXT_PUBLIC_FILES_BUCKET_URL', defaultConfig.filesBucketUrl),
     url: getEnv('NEXT_PUBLIC_SITE_URL', defaultConfig.url),
     altUrl: getEnv('NEXT_PUBLIC_ALT_URL', defaultConfig.altUrl),
+    imageDomain: getEnv('NEXT_PUBLIC_IMAGE_DOMAIN', defaultConfig.imageDomain),
     links: {
       github: getEnv('NEXT_PUBLIC_GITHUB_URL', defaultConfig.links.github),
       website: getEnv('NEXT_PUBLIC_WEBSITE_URL', defaultConfig.links.website),
