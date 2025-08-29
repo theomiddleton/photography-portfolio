@@ -116,8 +116,8 @@ export const seoDefaults = {
 // Page-specific SEO configurations
 export const pageConfigs = {
   home: {
-    titleTemplate: '%s | %s', // ownerName | title
-    descriptionTemplate: '%s - %s', // description | ownerName photography
+    titleTemplate: '%ownerName% | %title%', // ownerName | title
+    descriptionTemplate: '%description% - %ownerName% photography', // description | ownerName photography
     keywords: [
       ...seoKeywords.photography.slice(0, 4),
       ...seoKeywords.genres.slice(0, 3),
@@ -127,8 +127,8 @@ export const pageConfigs = {
   },
 
   about: {
-    titleTemplate: 'About %s | %s', // About ownerName | title
-    descriptionTemplate: 'Learn about %s, %s', // ownerName, profession
+    titleTemplate: 'About %ownerName% | %title%', // About ownerName | title
+    descriptionTemplate: 'Learn about %ownerName%, %profession%', // ownerName, profession
     keywords: [
       ...seoKeywords.photography.slice(0, 3),
       'about',
@@ -140,8 +140,8 @@ export const pageConfigs = {
   },
 
   blog: {
-    titleTemplate: '%s | Blog', // title | Blog
-    descriptionTemplate: '%s - Blog', // ownerName
+    titleTemplate: '%title% | Blog', // title | Blog
+    descriptionTemplate: '%ownerName% - Blog', // ownerName - Blog
     keywords: [
       ...seoKeywords.content.slice(0, 4),
       ...seoKeywords.photography.slice(0, 2),
@@ -151,8 +151,8 @@ export const pageConfigs = {
   },
 
   blogPost: {
-    titleTemplate: '%s | %s Blog', // postTitle | ownerName
-    descriptionTemplate: '%s', // post excerpt/description
+    titleTemplate: '%postTitle% | %ownerName% Blog', // postTitle | ownerName Blog
+    descriptionTemplate: '%description%', // post excerpt/description
     keywords: [
       ...seoKeywords.content.slice(0, 2),
       ...seoKeywords.photography.slice(0, 2),
@@ -162,8 +162,8 @@ export const pageConfigs = {
   },
 
   gallery: {
-    titleTemplate: '%s Gallery | %s', // galleryName | ownerName
-    descriptionTemplate: '%s photography gallery by %s', // galleryName | ownerName
+    titleTemplate: '%galleryName% Gallery | %ownerName%', // galleryName Gallery | ownerName
+    descriptionTemplate: '%galleryName% photography gallery by %ownerName%', // galleryName photography gallery by ownerName
     keywords: [
       ...seoKeywords.photography.slice(0, 3),
       'gallery',
@@ -175,8 +175,8 @@ export const pageConfigs = {
   },
 
   store: {
-    titleTemplate: 'Print Store | %s', // ownerName
-    descriptionTemplate: 'High-quality photography prints by %s', // ownerName
+    titleTemplate: 'Print Store | %ownerName%', // Print Store | ownerName
+    descriptionTemplate: 'High-quality photography prints by %ownerName%', // High-quality photography prints by ownerName
     keywords: [
       ...seoKeywords.store.slice(0, 6),
       ...seoKeywords.photography.slice(0, 2),
@@ -186,8 +186,8 @@ export const pageConfigs = {
   },
 
   product: {
-    titleTemplate: '%s | Print Store', // productName
-    descriptionTemplate: '%s - %s', // productName | productDescription or default
+    titleTemplate: '%productName% | Print Store', // productName | Print Store
+    descriptionTemplate: '%productName% - %productDescription%', // productName - productDescription
     keywords: [
       ...seoKeywords.store.slice(0, 4),
       ...seoKeywords.technical.slice(0, 2),
@@ -197,8 +197,8 @@ export const pageConfigs = {
   },
 
   video: {
-    titleTemplate: '%s | %s Videos', // videoTitle | ownerName
-    descriptionTemplate: '%s video by %s', // videoTitle | ownerName
+    titleTemplate: '%videoTitle% | %ownerName% Videos', // videoTitle | ownerName Videos
+    descriptionTemplate: '%videoTitle% video by %ownerName%', // videoTitle video by ownerName
     keywords: [
       'photography video',
       'behind the scenes',
@@ -353,10 +353,10 @@ export const seoUtils = {
     variables: Record<string, string>,
     fallback: string = '',
   ): string => {
-    let description = template
-    Object.entries(variables).forEach(([key, value]) => {
-      description = description.replace(new RegExp(`%${key}%`, 'g'), value)
-    })
+    let description = template  
+    for (const [key, value] of Object.entries(variables)) {  
+      description = description.split(`%${key}%`).join(value)  
+    } 
     return description || fallback
   },
 
@@ -365,10 +365,10 @@ export const seoUtils = {
     template: string,
     variables: Record<string, string>,
   ): string => {
-    let title = template
-    Object.entries(variables).forEach(([key, value]) => {
-      title = title.replace(new RegExp(`%${key}%`, 'g'), value)
-    })
+    let title = template  
+    for (const [key, value] of Object.entries(variables)) {  
+      title = title.split(`%${key}%`).join(value)  
+    }  
     return title
   },
 

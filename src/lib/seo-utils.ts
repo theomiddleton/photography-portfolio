@@ -49,33 +49,31 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
   const pageType = config.type || 'home'
   const pageConfig = pageConfigs[pageType]
 
-  // Generate title
-  const title = config.title
-    ? config.customTemplate?.title
-      ? seoUtils.generateTitle(config.customTemplate.title, {
-          s: config.title,
-          ownerName: siteConfig.ownerName,
-          title: siteConfig.title,
-        })
-      : config.title
-    : seoUtils.generateTitle(pageConfig.titleTemplate, {
-        s: siteConfig.ownerName,
-        ownerName: siteConfig.ownerName,
-        title: siteConfig.title,
-      })
+  // Generate title  
+  const title = config.title  
+    ? (config.customTemplate?.title  
+        ? seoUtils.generateTitle(config.customTemplate.title, {  
+            title: config.title,  
+            ownerName: siteConfig.ownerName,  
+          })  
+        : config.title)  
+    : seoUtils.generateTitle(pageConfig.titleTemplate, {  
+        ownerName: siteConfig.ownerName,  
+        title: siteConfig.title,  
+      })  
 
-  // Generate description
-  const description = config.description
-    ? config.description
-    : seoUtils.generateDescription(
-        pageConfig.descriptionTemplate,
-        {
-          s: siteConfig.description,
-          ownerName: siteConfig.ownerName,
-          profession: siteConfig.seo.profession,
-        },
-        siteConfig.description,
-      )
+  // Generate description  
+  const description =  
+    config.description ||  
+    seoUtils.generateDescription(  
+      pageConfig.descriptionTemplate,  
+      {  
+        description: siteConfig.description,  
+        ownerName: siteConfig.ownerName,  
+        profession: siteConfig.seo.profession,  
+      },  
+      siteConfig.description,  
+    )  
 
   // Generate keywords
   const keywords = seoUtils.cleanKeywords([
@@ -85,7 +83,7 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
 
   // Generate OpenGraph data
   const openGraphImages =
-    config.openGraph?.images || siteConfig.seo.openGraph.images
+    config.openGraph?.images || siteConfig.seo.openGraph.images || []
   const openGraph = {
     ...seoDefaults.openGraph,
     title: config.openGraph?.title || title,
@@ -102,7 +100,7 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
     card: 'summary_large_image' as const,
     title: config.openGraph?.title || title,
     description: config.openGraph?.description || description,
-    images: openGraphImages.map((img) => img.url),
+    images: openGraphImages.map((img) => ('url' in img ? img.url : (img as any))),
     ...(siteConfig.seo.twitter.site && { site: siteConfig.seo.twitter.site }),
     ...(siteConfig.seo.twitter.creator && {
       creator: siteConfig.seo.twitter.creator,
@@ -128,7 +126,7 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
     title,
     description,
     keywords: keywords.join(', '),
-    authors: [{ name: siteConfig.seo.meta.author }],
+    authors: [{ name: siteConfig.seo.meta.author || siteConfig.ownerName }],
     openGraph,
     twitter,
     robots,
