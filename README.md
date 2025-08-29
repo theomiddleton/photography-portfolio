@@ -475,6 +475,12 @@ vercel
 
 ### Option 2: Cloudflare Pages
 
+### ⚠️ Warning – For non vercel deployments
+
+While a key pillar of this project is its customisability, deploying anywhere but Vercel may need significant changes to the code and change the performance and behaviour of the app. The project makes use of various Vercel-specific functions, such as `cron`, `waitUntil`, and the Next Image optimiser, among others.
+
+This app has been built on and for Vercel hobby tier.
+
 ```bash
 # Build the project
 pnpm run build
