@@ -1,6 +1,6 @@
 'use server'
 
-import { stripe } from '~/lib/stripe'
+import { requireStripe } from '~/lib/stripe'
 import { dbWithTx as db } from '~/server/db'
 import { products, productSizes, orders } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
@@ -14,6 +14,8 @@ export interface DeleteStoreResult {
 
 export async function deleteAllProducts(): Promise<DeleteStoreResult> {
   try {
+    const stripe = requireStripe()
+    
     // Get all products with their sizes
     const allProducts = await db
       .select()

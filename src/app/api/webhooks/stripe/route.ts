@@ -1,5 +1,5 @@
 import { headers } from 'next/headers'
-import { stripe } from '~/lib/stripe'
+import { requireStripe } from '~/lib/stripe'
 import { db } from '~/server/db'
 import { orders } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
@@ -12,6 +12,9 @@ export async function POST(request: Request) {
   if (!isStoreEnabledServer()) {
     return new Response('Not Found', { status: 404 })
   }
+
+  // Get stripe instance - this will throw if not properly configured
+  const stripe = requireStripe()
 
   // Rate limiting
   const clientIP = getClientIP(request)

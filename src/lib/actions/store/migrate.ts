@@ -4,17 +4,13 @@ import { db } from '~/server/db'
 import { products, productSizes, basePrintSizes, imageData } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { slugify } from '~/lib/utils'
-import Stripe from 'stripe'
+import { requireStripe } from '~/lib/stripe'
 import { revalidatePath } from 'next/cache'
-
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not defined in environment variables')
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export async function migrateImagesToProducts() {
   try {
+    const stripe = requireStripe()
+    
     const images = await db.select().from(imageData)
 
     const sizes = await db.select().from(basePrintSizes).where(eq(basePrintSizes.active, true))
