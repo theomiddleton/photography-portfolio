@@ -19,6 +19,7 @@ import { Sparkles, Loader2 } from 'lucide-react'
 import { useGenerateMetadata } from '~/hooks/use-generate-metadata'
 import { toast } from 'sonner'
 import { isAIEnabledClient } from '~/lib/ai-utils'
+import { siteConfig } from '~/config/site'
 
 interface UploadImgProps {
   bucket: 'image' | 'blog' | 'about' | 'custom'
@@ -478,7 +479,7 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
               <p className="mt-2">or drag and drop</p>
             </div>
             <p className="text-xs leading-5 text-gray-600">
-              {file?.name ? file.name : 'JPEG or PNG up to 100MB'}
+              {file?.name ? file.name : `JPEG or PNG up to ${siteConfig.uploadLimits[bucket]}MB`}
             </p>
           </div>
         </div>

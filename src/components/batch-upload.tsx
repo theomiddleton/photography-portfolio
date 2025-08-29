@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { useGenerateMetadata } from '~/hooks/use-generate-metadata'
 import { toast } from 'sonner'
+import { siteConfig } from '~/config/site'
 import {
   formatBytes,
   useFileUpload,
@@ -69,7 +70,7 @@ export function BatchUpload({
   draftId,
   onImageUpload,
 }: BatchUploadProps) {
-  const maxSizeMB = 20
+  const maxSizeMB = siteConfig.uploadLimits[bucket]
   const maxSize = maxSizeMB * 1024 * 1024
   const maxFiles = 20
 
