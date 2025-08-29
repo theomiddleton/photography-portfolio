@@ -1,12 +1,13 @@
 # Enhanced Authentication System
 
-This document provides a comprehensive overview of the enhanced authentication system implemented for the portfolio project.
+This document provides a comprehensive overview of the enhanced authentication system implemented for the photography portfolio.
 
 ## 🚀 Features Implemented
 
 ### Core Authentication Enhancements
 
 #### 1. Email Verification System
+
 - **Registration Flow**: New users must verify their email before logging in
 - **Secure Tokens**: Cryptographically secure tokens with 1-hour expiration
 - **Rate Limiting**: Protection against email bombing (2 emails per 5 minutes)
@@ -14,6 +15,7 @@ This document provides a comprehensive overview of the enhanced authentication s
 - **Resend Functionality**: Users can request new verification emails
 
 #### 2. Password Reset System
+
 - **Forgot Password Flow**: Secure password reset via email
 - **Token-Based Security**: 30-minute expiration for reset tokens
 - **Rate Limiting**: 3 password reset requests per hour per email
@@ -21,6 +23,7 @@ This document provides a comprehensive overview of the enhanced authentication s
 - **Session Invalidation**: All sessions revoked after password reset
 
 #### 3. Enhanced Session Management
+
 - **Device Tracking**: IP address and user agent logging
 - **Remember Me**: Extended sessions (30 days vs 7 days)
 - **Session Revocation**: Logout from all devices functionality
@@ -28,6 +31,7 @@ This document provides a comprehensive overview of the enhanced authentication s
 - **Security Logging**: Comprehensive audit trail
 
 #### 4. Account Management
+
 - **Password Change**: Secure password change for authenticated users
 - **Account Deactivation**: Reversible account deactivation
 - **Account Deletion**: Secure account deletion with data anonymization
@@ -35,6 +39,7 @@ This document provides a comprehensive overview of the enhanced authentication s
 - **Account Dashboard**: Comprehensive management interface
 
 #### 5. Security Enhancements
+
 - **Rate Limiting**: Redis-based rate limiting for all sensitive operations
 - **CSRF Protection**: All forms protected against CSRF attacks
 - **Timing Attack Prevention**: Safe token comparison functions
@@ -44,13 +49,14 @@ This document provides a comprehensive overview of the enhanced authentication s
 ## 📋 Database Schema Changes
 
 ### Extended Users Table
+
 ```sql
 -- Email verification fields
 emailVerified BOOLEAN DEFAULT FALSE
 emailVerificationToken VARCHAR(255)
 emailVerificationExpiry TIMESTAMP
 
--- Password reset fields  
+-- Password reset fields
 passwordResetToken VARCHAR(255)
 passwordResetExpiry TIMESTAMP
 
@@ -65,6 +71,7 @@ lastLoginUserAgent VARCHAR(500)
 ```
 
 ### New UserSessions Table
+
 ```sql
 CREATE TABLE userSessions (
   id SERIAL PRIMARY KEY,
@@ -84,16 +91,19 @@ CREATE TABLE userSessions (
 ## 🖥️ Frontend Pages
 
 ### Authentication Pages
+
 - `/forgot-password` - Password reset request form
 - `/reset-password` - Password reset form with token validation
 - `/verify-email` - Email verification handler
 - `/verify-email-notice` - Verification instructions and resend form
 
 ### Account Management Pages
+
 - `/account` - Account dashboard with security overview
 - `/account/change-password` - Password change form
 
 ### Enhanced Login/Registration
+
 - Added "Remember Me" checkbox to login form
 - Added "Forgot Password" link to login form
 - Added email verification notice to registration form
@@ -101,27 +111,31 @@ CREATE TABLE userSessions (
 ## ⚛️ React Components
 
 ### Authentication Components
+
 - `ForgotPasswordForm` - Password reset request
 - `ResetPasswordForm` - Password reset with validation
 - `ResendVerificationForm` - Email verification resend
 
 ### Account Management Components
+
 - `ChangePasswordForm` - Password change for authenticated users
 - `AccountDashboard` - Comprehensive account management interface
 
 ## 🔒 Security Features
 
 ### Rate Limiting Configuration
+
 ```typescript
 const rateLimitConfigs = {
-  'login': { window: 900, limit: 5 },           // 5 attempts per 15 minutes
-  'register': { window: 3600, limit: 3 },      // 3 registrations per hour
-  'password_reset': { window: 3600, limit: 3 }, // 3 resets per hour
-  'email_verification': { window: 300, limit: 2 }, // 2 emails per 5 minutes
+  login: { window: 900, limit: 5 }, // 5 attempts per 15 minutes
+  register: { window: 3600, limit: 3 }, // 3 registrations per hour
+  password_reset: { window: 3600, limit: 3 }, // 3 resets per hour
+  email_verification: { window: 300, limit: 2 }, // 2 emails per 5 minutes
 }
 ```
 
 ### Password Requirements
+
 - Minimum 8 characters, maximum 128 characters
 - At least one uppercase letter
 - At least one lowercase letter
@@ -130,6 +144,7 @@ const rateLimitConfigs = {
 - Protection against common weak patterns
 
 ### Token Security
+
 - Cryptographically secure random token generation
 - Timing attack resistant token comparison
 - Appropriate expiration times for different token types
@@ -138,12 +153,15 @@ const rateLimitConfigs = {
 ## 📧 Email System
 
 ### Email Templates
+
 Professional HTML email templates for:
+
 - Email verification with clear call-to-action
 - Password reset with security warnings
 - Security notifications for important events
 
 ### Email Service Features
+
 - Resend integration with proper error handling
 - Rate limiting protection
 - Comprehensive logging
@@ -152,21 +170,27 @@ Professional HTML email templates for:
 ## 🔧 Implementation Details
 
 ### Server Actions
+
 All forms use Next.js server actions with proper:
+
 - CSRF token validation
 - Input sanitization and validation
 - Error handling and user feedback
 - Security event logging
 
 ### Session Management
+
 Enhanced session management with:
+
 - JWT compatibility maintained
 - Database session tracking
 - Device information storage
 - Session revocation capabilities
 
 ### Security Logging
+
 Comprehensive logging for:
+
 - Authentication events (login, register, logout)
 - Security events (password changes, account actions)
 - Email operations (send success/failure)
@@ -175,6 +199,7 @@ Comprehensive logging for:
 ## 🚀 Deployment Notes
 
 ### Environment Variables Required
+
 ```env
 # Email service
 RESEND_API_KEY=your_resend_api_key
@@ -182,7 +207,7 @@ RESEND_API_KEY=your_resend_api_key
 # Database
 DATABASE_URL=your_database_url
 
-# Redis for rate limiting  
+# Redis for rate limiting
 UPSTASH_REDIS_REST_URL=your_redis_url
 UPSTASH_REDIS_REST_TOKEN=your_redis_token
 
@@ -194,12 +219,15 @@ SITE_URL=https://yourdomain.com
 ```
 
 ### Database Migration
+
 Run the generated migration to add new schema fields:
+
 ```bash
 pnpm run migrate
 ```
 
 ### Testing Checklist
+
 - [ ] User registration with email verification
 - [ ] Email verification link handling
 - [ ] Password reset flow end-to-end
@@ -213,19 +241,24 @@ pnpm run migrate
 ## 🔍 Monitoring and Maintenance
 
 ### Log Monitoring
+
 Monitor security logs for:
+
 - Unusual login patterns
 - Failed authentication attempts
 - Rate limiting violations
 - Account security events
 
 ### Session Cleanup
+
 Implement automated cleanup for:
+
 - Expired sessions (daily)
 - Old security logs (monthly retention)
 - Unused verification tokens (daily)
 
 ### Performance Considerations
+
 - Database indexes on email verification and password reset tokens
 - Redis configuration for rate limiting
 - Email service rate limits and deliverability

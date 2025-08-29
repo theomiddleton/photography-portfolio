@@ -1,6 +1,6 @@
 # EXIF Data Extraction Implementation
 
-This document describes the comprehensive EXIF data extraction functionality implemented for the portfolio project.
+This document describes the comprehensive EXIF data extraction functionality implemented for the photography portfolio.
 
 ## Overview
 
@@ -9,6 +9,7 @@ The implementation provides robust and thorough EXIF data extraction for uploade
 ## Features
 
 ### 🔍 Comprehensive EXIF Extraction
+
 - **Camera Information**: Make, model, lens details
 - **Exposure Settings**: ISO, aperture, shutter speed, exposure compensation
 - **Image Properties**: Dimensions, orientation, color space
@@ -17,12 +18,14 @@ The implementation provides robust and thorough EXIF data extraction for uploade
 - **Raw Data**: Complete EXIF data stored as JSON for future use
 
 ### 🛡️ Robust Error Handling
+
 - Graceful handling of images without EXIF data
 - Validation and sanitization of extracted data
 - Proper error logging and reporting
 - Fallback to safe defaults when extraction fails
 
 ### ⚡ Performance Optimizations
+
 - Background processing for non-blocking uploads
 - Selective parsing to skip unnecessary data (ICC profiles, JFIF)
 - Efficient data validation with length checks
@@ -79,9 +82,11 @@ rawExifData JSON
 ## API Endpoints
 
 ### 1. POST `/api/images/exif`
+
 Extracts EXIF data from an already uploaded image.
 
 **Request Body:**
+
 ```json
 {
   "imageId": "uuid-of-image",
@@ -90,6 +95,7 @@ Extracts EXIF data from an already uploaded image.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -109,15 +115,18 @@ Extracts EXIF data from an already uploaded image.
 ```
 
 ### 2. POST `/api/files/upload` (Enhanced)
+
 File upload with optional EXIF extraction.
 
 **Form Data:**
+
 - `file`: Image file
 - `bucket`: Destination bucket
 - `prefix`: Optional prefix for the file key
 - `extractExif`: Set to "true" to extract EXIF data
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -133,11 +142,13 @@ File upload with optional EXIF extraction.
 ```
 
 ### 3. POST `/api/upload` (Enhanced)
+
 Main upload endpoint with automatic background EXIF processing for image bucket uploads.
 
 ## Usage Examples
 
 ### Automatic EXIF Processing
+
 When uploading to the image bucket, EXIF data is automatically extracted in the background:
 
 ```javascript
@@ -147,12 +158,13 @@ const response = await fetch('/api/upload', {
   body: JSON.stringify({
     filename: 'photo.jpg',
     name: 'Beautiful Landscape',
-    bucket: 'image'
-  })
+    bucket: 'image',
+  }),
 })
 ```
 
 ### Manual EXIF Extraction
+
 Extract EXIF data from an existing image:
 
 ```javascript
@@ -160,12 +172,13 @@ const response = await fetch('/api/images/exif', {
   method: 'POST',
   body: JSON.stringify({
     imageId: 'uuid-of-image',
-    imageUrl: 'https://example.com/image.jpg'
-  })
+    imageUrl: 'https://example.com/image.jpg',
+  }),
 })
 ```
 
 ### File Upload with EXIF
+
 Upload a file with immediate EXIF extraction:
 
 ```javascript
@@ -176,7 +189,7 @@ formData.append('extractExif', 'true')
 
 const response = await fetch('/api/files/upload', {
   method: 'POST',
-  body: formData
+  body: formData,
 })
 ```
 
@@ -213,6 +226,7 @@ node test-exif-comprehensive.mjs
 ```
 
 The test suite covers:
+
 - Library functionality
 - Error handling
 - Data formatting

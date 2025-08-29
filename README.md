@@ -1,4 +1,4 @@
-# Portfolio Project
+# Photography Portfolio
 
 A full-featured photography portfolio and e-commerce platform built with Next.js 15, featuring an image gallery, blog, print store, and comprehensive admin dashboard.
 
@@ -39,7 +39,7 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 
 - **📸 Image Gallery**: Responsive masonry/grid layouts with lightbox viewing
 - **📝 Blog System**: Rich text editor with TipTap, image uploads, and publishing workflow
-- **🛒 Print Store**: E-commerce platform with Stripe integration for selling photography prints *(can be disabled)*
+- **🛒 Print Store**: E-commerce platform with Stripe integration for selling photography prints _(can be disabled)_
 - **👨‍💼 Admin Dashboard**: Complete content management system
 - **🖼️ Custom Galleries**: Create password-protected and public galleries
 - **📱 Responsive Design**: Mobile-first design with excellent performance
@@ -171,6 +171,7 @@ For step-by-step instructions, webhook configuration, and troubleshooting, see t
 **Security & Production Readiness:**
 
 When enabled, the store includes comprehensive security measures:
+
 - Webhook verification and payment validation
 - Rate limiting and input validation
 - Authorization checks and audit logging
@@ -190,12 +191,12 @@ When enabled, the store includes comprehensive security measures:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/theomiddleton/portfolio-project
-   cd portfolio-project
+   git clone https://github.com/theomiddleton/photography-portfolio
+   cd photography-portfolio
    ```
 
 ```
-portfolio-project/
+photography-portfolio/
 ├── lightroom-plugin/           # Adobe Lightroom Classic plugin
 │   ├── Info.lua               # Plugin configuration
 │   ├── ExportServiceProvider.lua # Main export logic
@@ -322,6 +323,7 @@ The store system provides a complete e-commerce platform for selling photography
    - Get your API keys from Developers > API keys
 
 2. **Configure Environment Variables**
+
    ```bash
    STRIPE_SECRET_KEY="sk_test_..."  # Use sk_live_ for production
    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."  # Use pk_live_ for production
@@ -336,11 +338,12 @@ The store system provides a complete e-commerce platform for selling photography
    - Copy webhook secret to `STRIPE_WEBHOOK_SECRET`
 
 4. **Enable Store in Configuration**
+
    ```typescript
    // src/config/site.ts
    export const siteConfig = {
      features: {
-       storeEnabled: true,  // Enable store functionality
+       storeEnabled: true, // Enable store functionality
      },
    }
    ```
@@ -377,21 +380,21 @@ The application uses Upstash Redis for distributed rate limiting across API endp
 
 The application includes robust rate limiting to ensure fair usage and protect against abuse. Below are the rate limits for various endpoints, all configurable:
 
-- **File Upload API**: 10 requests per minute per IP  
-- **Image Processing API**: 20 requests per minute per IP  
-- **AI Generation API**: 5 requests per minute per IP (due to high computational cost)  
-- **Password Attempt API**: 10 requests per minute per IP  
-- **Email API**: 5 requests per minute per IP  
-- **Webhook API**: 100 requests per minute per IP (optimized for Stripe webhooks)  
-- **Checkout API**: 10 requests per minute per IP  
-- **Cache Revalidation API**: 20 requests per minute per IP  
+- **File Upload API**: 10 requests per minute per IP
+- **Image Processing API**: 20 requests per minute per IP
+- **AI Generation API**: 5 requests per minute per IP (due to high computational cost)
+- **Password Attempt API**: 10 requests per minute per IP
+- **Email API**: 5 requests per minute per IP
+- **Webhook API**: 100 requests per minute per IP (optimized for Stripe webhooks)
+- **Checkout API**: 10 requests per minute per IP
+- **Cache Revalidation API**: 20 requests per minute per IP
 
 #### Admin Multiplier
 
 Administrators benefit from increased rate limits to accommodate higher operational needs. Admin accounts receive a configurable multiplier, defaulting to **3x the base limits** for all endpoints. For example:
 
-- **File Upload API (Admin)**: 30 requests per minute per IP  
-- **AI Generation API (Admin)**: 15 requests per minute per IP  
+- **File Upload API (Admin)**: 30 requests per minute per IP
+- **AI Generation API (Admin)**: 15 requests per minute per IP
 
 This multiplier ensures that administrative tasks can be performed efficiently without impacting regular users.
 
@@ -403,6 +406,7 @@ This multiplier ensures that administrative tasks can be performed efficiently w
    - Copy the REST URL and token from the database details
 
 2. **Configure Environment Variables**
+
    ```bash
    UPSTASH_REDIS_REST_URL="https://your-redis-instance.upstash.io"
    UPSTASH_REDIS_REST_TOKEN="your-upstash-redis-token"
@@ -503,7 +507,7 @@ pnpm dlx wrangler pages deploy out
 export default {
   config() {
     return {
-      name: 'portfolio-project',
+      name: 'photography-portfolio',
       region: 'us-east-1',
     }
   },
@@ -553,8 +557,8 @@ CMD ["node", "server.js"]
 ```
 
 ```bash
-docker build -t portfolio-project .
-docker run -p 3000:3000 portfolio-project
+docker build -t photography-portfolio .
+docker run -p 3000:3000 photography-portfolio
 ```
 
 ## 🗄️ Database Options
@@ -756,7 +760,7 @@ pnpm run studio       # Open Drizzle Studio - view and edit database
 ## 🏗️ Project Structure
 
 ```
-portfolio-project/
+photography-portfolio/
 ├── src/
 │   ├── app/                    # Next.js 15 App Router
 │   │   ├── (admin)/           # Admin dashboard routes
@@ -844,7 +848,7 @@ When the store is enabled, you can customize specific features:
 - **`showTax`**: Controls tax display behavior:
   - `true`: Shows tax as separate line item (e.g., "Subtotal: £25.00, Tax: £5.00")
   - `false`: Includes tax in all prices (e.g., "Subtotal: £30.00" with tax included)
-  
+
 These options are useful for different regions and business models.
 
 #### For Portfolio-Only Users
@@ -964,6 +968,7 @@ For detailed installation and usage instructions, see [`lightroom-plugin/INSTALL
 - Secure file handling
 
 ### General Security Features
+
 - JWT-based authentication
 - Role-based access control
 - CSRF protection
@@ -972,6 +977,7 @@ For detailed installation and usage instructions, see [`lightroom-plugin/INSTALL
 - Rate limiting capabilities
 
 ### E-commerce Security (when store is enabled)
+
 - **Stripe webhook verification**: Cryptographic signature validation
 - **Payment validation**: Server-side amount verification
 - **Input sanitization**: All store inputs validated and sanitized

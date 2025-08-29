@@ -2,7 +2,7 @@
 
 ## Overview
 
-This portfolio project implements enterprise-grade security measures to protect user data, prevent unauthorized access, and ensure secure operation of both portfolio and e-commerce features. This document outlines our security architecture, authentication systems, and provides guidance for responsible disclosure of security issues.
+This photography portfolio implements enterprise-grade security measures to protect user data, prevent unauthorized access, and ensure secure operation of both portfolio and e-commerce features. This document outlines our security architecture, authentication systems, and provides guidance for responsible disclosure of security issues.
 
 ## 🔐 Authentication & Authorization
 
@@ -376,7 +376,7 @@ We use automated tools to monitor dependencies:
 
 ## 📝 License
 
-This security policy is part of the portfolio project and is subject to the same license terms. For more information, see [LICENSE](LICENSE).
+This security policy is part of the photography portfolio and is subject to the same license terms. For more information, see [LICENSE](LICENSE).
 
 **Last Updated**: August 2025
 

@@ -47,6 +47,7 @@ Before setting up the store, ensure you have:
 Navigate to **Developers > API keys** in your Stripe dashboard:
 
 #### Test Mode Keys (for development)
+
 ```bash
 # Publishable key (starts with pk_test_)
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_51Abc..."
@@ -56,6 +57,7 @@ STRIPE_SECRET_KEY="sk_test_51Abc..."
 ```
 
 #### Live Mode Keys (for production)
+
 ```bash
 # Publishable key (starts with pk_live_)
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_live_51Abc..."
@@ -93,8 +95,8 @@ Enable the store in your site configuration:
 export const siteConfig = {
   // ... other configuration
   features: {
-    storeEnabled: true,  // Set to false to disable store
-    aiEnabled: true,     // AI features (optional)
+    storeEnabled: true, // Set to false to disable store
+    aiEnabled: true, // AI features (optional)
   },
 }
 ```
@@ -238,16 +240,19 @@ export const siteConfig = {
 The `showTax` setting controls how taxes are displayed to customers:
 
 **When `showTax: true` (Default)**
+
 - Tax is shown as a separate line item during checkout
 - Product prices show base price only
 - Customer sees: "Subtotal: £25.00, Tax: £5.00, Total: £30.00"
 
 **When `showTax: false`**
+
 - Tax is included in all displayed prices
 - No separate tax line shown to customer
 - Customer sees: "Subtotal: £30.00, Total: £30.00" (tax included)
 
 This is useful for:
+
 - **B2C sales in regions where tax-inclusive pricing is standard** (EU, UK)
 - **Simplified checkout experience** without tax complexity
 - **Compliance with local regulations** requiring tax-inclusive display
@@ -255,6 +260,7 @@ This is useful for:
 #### Reviews Configuration
 
 Set `reviewsEnabled: true/false` to show/hide the entire reviews system:
+
 - Product rating displays under product titles
 - Customer review sections on product pages
 - Review submission forms
@@ -375,7 +381,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 The store includes automatic rate limiting:
 
 - **Checkout**: 10 attempts per minute per IP
-- **Email**: 5 attempts per minute per IP  
+- **Email**: 5 attempts per minute per IP
 - **Webhooks**: 100 calls per minute per IP
 
 ### Data Protection
@@ -394,11 +400,11 @@ The store includes automatic rate limiting:
 - [API Reference](https://stripe.com/docs/api)
 - [Test Card Numbers](https://stripe.com/docs/testing#cards)
 
-### Portfolio Project Resources
+### Photography Portfolio Resources
 
 - [Security Documentation](./STORE_SECURITY.md)
 - [General Setup Guide](../README.md)
-- [Issues and Support](https://github.com/theomiddleton/portfolio-project/issues)
+- [Issues and Support](https://github.com/theomiddleton/photography-portfolio/issues)
 
 ### Getting Help
 
@@ -406,7 +412,7 @@ If you encounter issues:
 
 1. Check this guide and the troubleshooting section
 2. Review [STORE_SECURITY.md](./STORE_SECURITY.md) for security requirements
-3. Search existing [GitHub issues](https://github.com/theomiddleton/portfolio-project/issues)
+3. Search existing [GitHub issues](https://github.com/theomiddleton/photography-portfolio/issues)
 4. Create a new issue with:
    - Clear description of the problem
    - Steps to reproduce
