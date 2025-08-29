@@ -38,7 +38,9 @@ import { Separator } from '~/components/ui/separator'
 import { isNodeInSchema } from '~/lib/tiptap-utils'
 
 // --- Config ---
-const MAX_THUMBNAIL_SIZE_MB = 20
+import { siteConfig } from '~/config/site'
+
+const MAX_THUMBNAIL_SIZE_MB = siteConfig.uploadLimits.blog
 const MAX_THUMBNAIL_SIZE = MAX_THUMBNAIL_SIZE_MB * 1024 * 1024
 
 // --- Button Component ---

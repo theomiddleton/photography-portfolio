@@ -197,11 +197,11 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate file size (max 50MB)
-    const maxSizeBytes = 50 * 1024 * 1024
+    // Validate file size (configurable limit for image bucket)
+    const maxSizeBytes = siteConfig.uploadLimits.image * 1024 * 1024
     if (imageBuffer.length > maxSizeBytes) {
       return NextResponse.json(
-        { success: false, error: 'File too large. Maximum size is 50MB.' },
+        { success: false, error: `File too large. Maximum size is ${siteConfig.uploadLimits.image}MB.` },
         { status: 413 },
       )
     }

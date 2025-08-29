@@ -6,8 +6,9 @@ import {
   isNodeSelection,
   posToDOMRect,
 } from '@tiptap/react'
+import { siteConfig } from '~/config/site'
 
-export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+export const MAX_FILE_SIZE = siteConfig.uploadLimits.blog * 1024 * 1024 // Configurable blog upload limit
 export type OverflowPosition = 'none' | 'top' | 'bottom' | 'both'
 
 /**

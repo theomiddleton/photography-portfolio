@@ -91,6 +91,14 @@ const defaultConfig = {
     // Admin multiplier - admins get 3x the base limits
     adminMultiplier: 3,
   },
+  uploadLimits: {
+    // Upload size limits in MB for different buckets
+    image: 20, // Main gallery images
+    blog: 5, // Blog editor images  
+    about: 20, // About page images
+    custom: 20, // Custom bucket images
+    files: 20, // General file uploads
+  },
   configLocation: 'Default',
 }
 
@@ -194,6 +202,14 @@ export function getServerSiteConfig() {
       },
       // Admin multiplier - admins get 3x the base limits
       adminMultiplier: getEnv('NEXT_PUBLIC_ADMIN_MULTIPLIER', defaultConfig.rateLimiting.adminMultiplier),
+    },
+    uploadLimits: {
+      // Upload size limits in MB for different buckets
+      image: getEnv('NEXT_PUBLIC_UPLOAD_LIMIT_IMAGE', defaultConfig.uploadLimits.image),
+      blog: getEnv('NEXT_PUBLIC_UPLOAD_LIMIT_BLOG', defaultConfig.uploadLimits.blog),
+      about: getEnv('NEXT_PUBLIC_UPLOAD_LIMIT_ABOUT', defaultConfig.uploadLimits.about),
+      custom: getEnv('NEXT_PUBLIC_UPLOAD_LIMIT_CUSTOM', defaultConfig.uploadLimits.custom),
+      files: getEnv('NEXT_PUBLIC_UPLOAD_LIMIT_FILES', defaultConfig.uploadLimits.files),
     },
     configLocation,
   }
