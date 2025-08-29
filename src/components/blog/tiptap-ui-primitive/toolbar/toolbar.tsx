@@ -1,18 +1,18 @@
-import * as React from "react"
-import { Separator } from "~/components/blog/tiptap-ui-primitive/separator"
+import * as React from 'react'
+import { Separator } from '~/components/blog/tiptap-ui-primitive/separator'
 
 type BaseProps = React.HTMLAttributes<HTMLDivElement>
 
 interface ToolbarProps extends BaseProps {
-  variant?: "floating" | "fixed"
+  variant?: 'floating' | 'fixed'
 }
 
 const mergeRefs = <T,>(
-  refs: Array<React.RefObject<T> | React.Ref<T> | null | undefined>
+  refs: (React.RefObject<T> | React.Ref<T> | null | undefined)[]
 ): React.RefCallback<T> => {
   return (value) => {
     refs.forEach((ref) => {
-      if (typeof ref === "function") {
+      if (typeof ref === 'function') {
         ref(value)
       } else if (ref != null) {
         ;(ref as React.RefObject<T | null>).current = value
@@ -113,8 +113,8 @@ const useToolbarKeyboardNav = (
       }
     }
 
-    toolbar.addEventListener("keydown", handleKeyDown)
-    return () => toolbar.removeEventListener("keydown", handleKeyDown)
+    toolbar.addEventListener('keydown', handleKeyDown)
+    return () => toolbar.removeEventListener('keydown', handleKeyDown)
   }, [toolbarRef])
 }
 
@@ -140,7 +140,7 @@ const useToolbarVisibility = (
     // Check if any group has visible children
     const hasVisibleChildren = Array.from(toolbar.children).some((child) => {
       if (!(child instanceof HTMLElement)) return false
-      if (child.getAttribute("role") === "group") {
+      if (child.getAttribute('role') === 'group') {
         return child.children.length > 0
       }
       return false
@@ -212,8 +212,8 @@ const useSeparatorVisibility = (
     }
 
     const areBothGroups =
-      prevSibling.getAttribute("role") === "group" &&
-      nextSibling.getAttribute("role") === "group"
+      prevSibling.getAttribute('role') === 'group' &&
+      nextSibling.getAttribute('role') === 'group'
 
     const haveBothChildren =
       prevSibling.children.length > 0 && nextSibling.children.length > 0
@@ -226,7 +226,7 @@ const useSeparatorVisibility = (
 }
 
 export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
-  ({ children, className, variant = "fixed", ...props }, ref) => {
+  ({ children, className, variant = 'fixed', ...props }, ref) => {
     const toolbarRef = React.useRef<HTMLDivElement>(null)
     const isVisible = useToolbarVisibility(toolbarRef)
 
@@ -236,7 +236,7 @@ export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
 
     const baseClasses = `
       flex items-center gap-1
-      ${variant === "fixed" ? `
+      ${variant === 'fixed' ? `
         sticky top-0 z-10 w-full
         min-h-11
         bg-white dark:bg-black
@@ -270,7 +270,7 @@ export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
         md:border-0
         md:shadow-none
       `}
-      ${className || ""}
+      ${className || ''}
     `.trim()
 
     return (
@@ -301,7 +301,7 @@ export const ToolbarGroup = React.forwardRef<HTMLDivElement, BaseProps>(
       <div
         ref={mergeRefs([groupRef, ref])}
         role="group"
-        className={`flex items-center gap-0.5 empty:hidden ${className || ""}`}
+        className={`flex items-center gap-0.5 empty:hidden ${className || ''}`}
         {...props}
       >
         {children}
@@ -310,7 +310,7 @@ export const ToolbarGroup = React.forwardRef<HTMLDivElement, BaseProps>(
   }
 )
 
-ToolbarGroup.displayName = "ToolbarGroup"
+ToolbarGroup.displayName = 'ToolbarGroup'
 
 export const ToolbarSeparator = React.forwardRef<HTMLDivElement, BaseProps>(
   ({ ...props }, ref) => {
@@ -330,4 +330,4 @@ export const ToolbarSeparator = React.forwardRef<HTMLDivElement, BaseProps>(
   }
 )
 
-ToolbarSeparator.displayName = "ToolbarSeparator"
+ToolbarSeparator.displayName = 'ToolbarSeparator'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { SiteConfig, defaultConfig } from '~/config/site'
+import { type SiteConfig, defaultConfig, isDefaultSiteConfig } from '~/config/site'
 
 /**
  * Custom hook to handle site configuration with proper hydration
@@ -48,4 +48,18 @@ export function useIsHydrated(): boolean {
   }, [])
 
   return isHydrated
+}
+
+/**
+ * Hook to check if the site configuration is using default values
+ */
+export function useIsDefaultConfig(): boolean {
+  const config = useSiteConfig()
+  const [isDefault, setIsDefault] = useState(true)
+
+  useEffect(() => {
+    setIsDefault(isDefaultSiteConfig(config))
+  }, [config])
+
+  return isDefault
 }

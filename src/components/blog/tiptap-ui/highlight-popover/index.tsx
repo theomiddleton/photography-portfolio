@@ -1,1 +1,1 @@
-export * from "./highlight-popover"
+export * from './highlight-popover'

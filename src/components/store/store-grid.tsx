@@ -67,7 +67,7 @@ export function StoreGrid({ prints, className }: StoreGridProps) {
   }
 
   return (
-    <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8", className)}>
+    <div className={cn('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8', className)}>
       {prints.map((print, index) => (
         <div key={print.id} className="group relative">
           <Link href={`/store/${print.slug}`} className="block">
@@ -102,8 +102,8 @@ export function StoreGrid({ prints, className }: StoreGridProps) {
                   >
                     <Heart 
                       className={cn(
-                        "h-4 w-4 transition-colors",
-                        wishlistItems.has(print.id) ? "fill-red-500 text-red-500" : "text-gray-600"
+                        'h-4 w-4 transition-colors',
+                        wishlistItems.has(print.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'
                       )}
                     />
                   </Button>

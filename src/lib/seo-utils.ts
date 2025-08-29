@@ -27,12 +27,12 @@ interface SEOConfig {
   openGraph?: {
     title?: string
     description?: string
-    images?: Array<{
+    images?: {
       url: string
       width?: number
       height?: number
       alt?: string
-    }>
+    }[]
     type?: string
   }
   robots?: {
@@ -262,10 +262,10 @@ export function getPageSEOConfig(pageType: keyof typeof pageConfigs) {
  * Generate breadcrumb structured data
  */
 export function generateBreadcrumbData(
-  breadcrumbs: Array<{
+  breadcrumbs: {
     name: string
     url: string
-  }>,
+  }[],
 ) {
   return {
     '@context': 'https://schema.org',

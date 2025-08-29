@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import { type Metadata } from 'next'
 import { ResetPasswordForm } from '~/components/auth/ResetPasswordForm'
 import { verifyPasswordResetToken } from '~/lib/auth/passwordManagement'
 import { redirect } from 'next/navigation'

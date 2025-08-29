@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { type z } from 'zod'
 import { toast } from 'sonner'
 import { EyeIcon, EyeOffIcon, LinkIcon, ClockIcon } from 'lucide-react'
 
@@ -56,7 +56,7 @@ interface Gallery {
   viewCount: number
   createdAt: Date
   updatedAt: Date
-  images: Array<{
+  images: {
     id: string
     galleryId: string
     uuid: string
@@ -70,7 +70,7 @@ interface Gallery {
     metadata: Record<string, any> | null
     order: number
     uploadedAt: Date
-  }>
+  }[]
 }
 
 interface GallerySettingsFormProps {

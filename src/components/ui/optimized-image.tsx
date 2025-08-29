@@ -66,7 +66,7 @@ export function OptimizedImage({
     return (
       <div 
         className={cn(
-          "bg-gray-100 rounded-lg flex items-center justify-center text-gray-500 text-sm",
+          'bg-gray-100 rounded-lg flex items-center justify-center text-gray-500 text-sm',
           className
         )}
         style={{ width, height }}
@@ -80,12 +80,12 @@ export function OptimizedImage({
   }
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn('relative', className)}>
       {isLoading && (
         <Skeleton 
           className={cn(
-            "absolute inset-0 z-10",
-            fill ? "w-full h-full" : ""
+            'absolute inset-0 z-10',
+            fill ? 'w-full h-full' : ''
           )}
           style={!fill ? { width, height } : undefined}
         />
@@ -104,8 +104,8 @@ export function OptimizedImage({
         onLoad={handleLoad}
         onError={handleError}
         className={cn(
-          "transition-opacity duration-300",
-          isLoading ? "opacity-0" : "opacity-100",
+          'transition-opacity duration-300',
+          isLoading ? 'opacity-0' : 'opacity-100',
           className
         )}
         {...props}

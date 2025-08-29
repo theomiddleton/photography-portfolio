@@ -28,7 +28,7 @@ export function ImagePreviewModal({ image, isOpen, onClose }: ImagePreviewModalP
           </Button>
           <div className="p-1">
             <Image
-              src={image.fileUrl || "/placeholder.svg"}
+              src={image.fileUrl || '/placeholder.svg'}
               alt={image.description}
               width={1200}
               height={800}

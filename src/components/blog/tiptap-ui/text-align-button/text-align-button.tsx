@@ -13,7 +13,7 @@ import { AlignRightIcon } from '~/components/blog/tiptap-icons/align-right-icon'
 // --- UI Primitives ---
 import {
   Button,
-  ButtonProps,
+  type ButtonProps,
 } from '~/components/blog/tiptap-ui-primitive/button'
 
 export type TextAlign = 'left' | 'center' | 'right' | 'justify'

@@ -91,8 +91,8 @@ export function StoreFiltersSidebar({
       
       {/* Sidebar */}
       <div className={cn(
-        "fixed top-0 right-0 h-full w-80 bg-white border-l shadow-lg z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:transform-none lg:shadow-none lg:border lg:rounded-lg lg:w-64",
-        isOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0",
+        'fixed top-0 right-0 h-full w-80 bg-white border-l shadow-lg z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:transform-none lg:shadow-none lg:border lg:rounded-lg lg:w-64',
+        isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
         className
       )}>
         <Card className="h-full border-0 lg:border">
@@ -222,7 +222,7 @@ export function StoreFiltersSidebar({
                     {availableTags.map((tag) => (
                       <Badge
                         key={tag}
-                        variant={localFilters.tags.includes(tag) ? "default" : "outline"}
+                        variant={localFilters.tags.includes(tag) ? 'default' : 'outline'}
                         className="cursor-pointer text-xs"
                         onClick={() => {
                           const newTags = localFilters.tags.includes(tag)

@@ -353,8 +353,8 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
                   <div
                     key={badge.id}
                     className={cn(
-                      "flex items-center justify-between p-3 border rounded-lg",
-                      badge.active ? "bg-white" : "bg-gray-50 opacity-60"
+                      'flex items-center justify-between p-3 border rounded-lg',
+                      badge.active ? 'bg-white' : 'bg-gray-50 opacity-60'
                     )}
                     draggable
                     onDragStart={() => setDraggedItem(badge)}

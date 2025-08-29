@@ -96,17 +96,17 @@ export function ProductReviews({
           key={star}
           onClick={() => interactive && onRatingChange?.(star)}
           className={cn(
-            "transition-colors",
-            interactive ? "cursor-pointer hover:scale-110" : "cursor-default"
+            'transition-colors',
+            interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'
           )}
           disabled={!interactive}
         >
           <Star
             className={cn(
-              "h-4 w-4",
+              'h-4 w-4',
               star <= rating
-                ? "fill-yellow-400 text-yellow-400"
-                : "text-gray-300"
+                ? 'fill-yellow-400 text-yellow-400'
+                : 'text-gray-300'
             )}
           />
         </button>
@@ -115,7 +115,7 @@ export function ProductReviews({
   )
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn('space-y-6', className)}>
       {/* Reviews Overview */}
       <Card>
         <CardHeader>

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { siteConfig } from '~/config/site'
+import { useIsDefaultConfig, useIsHydrated } from '~/hooks/use-site-config'
 
 interface GetStartedMessageProps {
   isAdminSetupRequired: boolean
@@ -12,9 +13,57 @@ export function GetStartedMessage({
   isUserSignedIn = false,
   userRole 
 }: GetStartedMessageProps) {
+  const isDefaultConfig = useIsDefaultConfig()
+  const isHydrated = useIsHydrated()
+  
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 text-center">
       <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        {/* Configuration Callout - Show when config hasn't been customized and component is hydrated */}
+        {isHydrated && isDefaultConfig && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/20">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-amber-600 dark:text-amber-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              </div>
+              <div className="text-left">
+                <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  Site Configuration Needed
+                </h3>
+                <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                  Your site is using default configuration values. To unlock full functionality, please customize your site settings in{' '}
+                  <code className="rounded bg-amber-100 px-1 py-0.5 text-xs font-mono text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">
+                    src/config/site.ts
+                  </code>{' '}
+                  or through environment variables.
+                </p>
+                <div className="mt-2">
+                  <Link
+                    href="https://github.com/theomiddleton/photography-portfolio#-configuration"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-amber-800 underline hover:text-amber-900 dark:text-amber-200 dark:hover:text-amber-100"
+                  >
+                    View Configuration Guide →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mb-6">
           <div className="mx-auto h-16 w-16 rounded-full bg-gray-100 p-4 dark:bg-gray-700">
             {isUserSignedIn ? (
@@ -69,8 +118,8 @@ export function GetStartedMessage({
               </h3>
               <p className="text-sm text-green-800 dark:text-green-400">
                 {userRole === 'admin' 
-                  ? "You have administrator access. Start by uploading your first images and customizing your portfolio."
-                  : "Your account is set up. An administrator can help you get started with content."
+                  ? 'You have administrator access. Start by uploading your first images and customizing your portfolio.'
+                  : 'Your account is set up. An administrator can help you get started with content.'
                 }
               </p>
             </div>
@@ -145,7 +194,7 @@ export function GetStartedMessage({
 
         <div className="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">
           <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {isUserSignedIn ? "Next Steps" : "Getting Started Guide"}
+            {isUserSignedIn ? 'Next Steps' : 'Getting Started Guide'}
           </h3>
           
           <div className="grid gap-4 text-left sm:grid-cols-2">
