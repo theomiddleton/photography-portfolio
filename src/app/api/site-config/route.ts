@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSiteConfig } from '~/lib/server-site-config'
+import { getServerSiteConfig } from '~/config/site'
 
 export async function GET(request: NextRequest) {
   try {

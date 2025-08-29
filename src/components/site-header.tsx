@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { getSession } from '~/lib/auth/auth'
 import { logout } from '~/lib/auth/userActions'
-import { getServerSiteConfig } from '~/lib/server-site-config'
+import { getServerSiteConfig } from '~/config/site'
 import { cn } from '~/lib/utils'
 import { Icons } from '~/components/ui/icons'
 import { MainNav } from '~/components/main-nav'
