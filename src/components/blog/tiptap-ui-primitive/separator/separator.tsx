@@ -1,6 +1,6 @@
-import * as React from "react"
+import * as React from 'react'
 
-type Orientation = "horizontal" | "vertical"
+type Orientation = 'horizontal' | 'vertical'
 
 export interface SeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
   orientation?: Orientation
@@ -9,19 +9,19 @@ export interface SeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export const Separator = React.forwardRef<HTMLDivElement, SeparatorProps>(
   (
-    { decorative, orientation = "vertical", className = "", ...divProps },
+    { decorative, orientation = 'vertical', className = '', ...divProps },
     ref
   ) => {
-    const ariaOrientation = orientation === "vertical" ? orientation : undefined
+    const ariaOrientation = orientation === 'vertical' ? orientation : undefined
     const semanticProps = decorative
-      ? { role: "none" }
-      : { "aria-orientation": ariaOrientation, role: "separator" }
+      ? { role: 'none' }
+      : { 'aria-orientation': ariaOrientation, role: 'separator' }
 
     return (
       <div
         className={`
           shrink-0 bg-gray-200
-          ${orientation === "horizontal" ? "h-px w-full" : "h-6 w-px"}
+          ${orientation === 'horizontal' ? 'h-px w-full' : 'h-6 w-px'}
           ${className}
         `.trim()}
         data-orientation={orientation}
@@ -33,4 +33,4 @@ export const Separator = React.forwardRef<HTMLDivElement, SeparatorProps>(
   }
 )
 
-Separator.displayName = "Separator"
+Separator.displayName = 'Separator'

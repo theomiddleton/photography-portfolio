@@ -217,6 +217,28 @@ export function getServerSiteConfig() {
 
 export type SiteConfig = ReturnType<typeof getServerSiteConfig>
 
+/**
+ * Detect if the site configuration is using default/placeholder values
+ * This helps determine if the site owner has customized their configuration
+ */
+export function isDefaultSiteConfig(config: SiteConfig = siteConfig): boolean {
+  // Check for default placeholder values that indicate uncustomized config
+  const defaultIndicators = [
+    config.title === defaultConfig.title,
+    config.ownerName === defaultConfig.ownerName,
+    config.url === defaultConfig.url,
+    config.imageBucketUrl === defaultConfig.imageBucketUrl,
+    config.configLocation === 'Default',
+    config.url.includes('your-domain.com'),
+    config.imageBucketUrl.includes('your-domain.com'),
+    config.emails.order.includes('your-domain.com'),
+    config.emails.support.includes('your-domain.com'),
+  ]
+  
+  // If any of these default indicators are true, config likely hasn't been customized
+  return defaultIndicators.some(indicator => indicator)
+}
+
 // Export default config for fallback scenarios
 export { defaultConfig }
 

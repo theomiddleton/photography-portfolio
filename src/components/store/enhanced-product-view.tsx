@@ -396,8 +396,8 @@ export function EnhancedProductView({
       {/* Recommendations */}
       {recommendations.length > 0 && (
         <div className={cn(
-          "border-t pt-16 mb-24",
-          !siteConfig.features.store.reviewsEnabled && "border-t"
+          'border-t pt-16 mb-24',
+          !siteConfig.features.store.reviewsEnabled && 'border-t'
         )}>
           <h2 className="mb-8 text-2xl font-bold">You might also like</h2>
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4">

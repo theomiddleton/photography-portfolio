@@ -59,12 +59,12 @@ interface PrintSizeTemplate {
   id: string
   name: string
   description: string
-  sizes: Array<{
+  sizes: {
     name: string
     width: number
     height: number
     basePrice: number
-  }>
+  }[]
 }
 
 // Predefined print size templates for quick setup - these are configurable templates, not hardcoded data
@@ -128,7 +128,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
   // Template-related state
   const [selectedTemplate, setSelectedTemplate] = useState<PrintSizeTemplate | null>(null)
   const [showTemplateDialog, setShowTemplateDialog] = useState(false)
-  const [templateConflicts, setTemplateConflicts] = useState<Array<{ existingSize: BasePrintSize, templateSize: any }>>([])
+  const [templateConflicts, setTemplateConflicts] = useState<{ existingSize: BasePrintSize, templateSize: any }[]>([])
   const [conflictResolutions, setConflictResolutions] = useState<Record<string, 'overwrite' | 'skip' | 'both'>>({})
   const [showConflictDialog, setShowConflictDialog] = useState(false)
   
@@ -137,7 +137,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set())
   const [showProductDialog, setShowProductDialog] = useState(false)
   const [applyToProducts, setApplyToProducts] = useState(false)
-  const [productConflicts, setProductConflicts] = useState<Array<{ productId: string, productName: string, conflictingSizes: any[] }>>([])
+  const [productConflicts, setProductConflicts] = useState<{ productId: string, productName: string, conflictingSizes: any[] }[]>([])
   const [productConflictResolutions, setProductConflictResolutions] = useState<Record<string, 'overwrite' | 'skip' | 'both'>>({})
 
   // Load products when component mounts
@@ -241,7 +241,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
     setSelectedTemplate(template)
     
     // Check for conflicts with existing sizes
-    const conflicts: Array<{ existingSize: BasePrintSize, templateSize: any }> = []
+    const conflicts: { existingSize: BasePrintSize, templateSize: any }[] = []
     
     template.sizes.forEach(templateSize => {
       const existingSize = sizes.find(size => 

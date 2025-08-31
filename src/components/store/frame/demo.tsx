@@ -169,11 +169,11 @@ export function FrameDemo() {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div 
                     className={cn(
-                      "-translate-y-[5%]",
+                      '-translate-y-[5%]',
                       // Adjust width based on orientation
                       imageDimensions.height > imageDimensions.width 
-                        ? "w-[16.67%]"  // Portrait: scaled for equal area
-                        : "w-[25%]"     // Landscape: original size
+                        ? 'w-[16.67%]'  // Portrait: scaled for equal area
+                        : 'w-[25%]'     // Landscape: original size
                     )}
                     style={{
                       transform: imageDimensions.height > imageDimensions.width

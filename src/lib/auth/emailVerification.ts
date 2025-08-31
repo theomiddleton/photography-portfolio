@@ -302,12 +302,12 @@ export async function isEmailVerified(userId: number): Promise<boolean> {
  * Get users with unverified emails (for admin/cleanup purposes)
  */
 export async function getUnverifiedUsers(limit: number = 50): Promise<
-  Array<{
+  {
     id: number
     email: string
     name: string
     createdAt: Date
-  }>
+  }[]
 > {
   try {
     return await db

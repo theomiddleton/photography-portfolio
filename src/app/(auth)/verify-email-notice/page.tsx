@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import { type Metadata } from 'next'
 import { ResendVerificationForm } from '~/components/auth/ResendVerificationForm'
 
 export const metadata: Metadata = {

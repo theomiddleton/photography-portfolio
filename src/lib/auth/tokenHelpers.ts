@@ -48,7 +48,7 @@ export function safeCompareTokens(val1: string, val2: string, encoding: BufferEn
     return timingSafeEqual(buf1, buf2)
   } catch (error) {
     // Log error if necessary, but return false on any decoding or comparison failure
-    console.error("Error during safe token comparison:", error)
+    console.error('Error during safe token comparison:', error)
     return false
   }
 }

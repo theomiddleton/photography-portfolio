@@ -67,12 +67,12 @@ export async function updatePrintSize(
 }
 
 export async function applyPrintSizeTemplate(
-  templateSizes: Array<{
+  templateSizes: {
     name: string
     width: number
     height: number
     basePrice: number
-  }>,
+  }[],
   conflictResolutions: Record<
     string,
     { action: 'overwrite' | 'skip' | 'both'; existingId?: string }

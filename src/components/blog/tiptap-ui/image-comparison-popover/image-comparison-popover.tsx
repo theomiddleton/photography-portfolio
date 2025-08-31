@@ -10,7 +10,7 @@ import { ArrowLeftRight } from 'lucide-react'
 // --- UI Primitives ---
 import {
   Button as TipTapButton,
-  ButtonProps as TipTapButtonProps,
+  type ButtonProps as TipTapButtonProps,
 } from '~/components/blog/tiptap-ui-primitive/button'
 import { Button } from '~/components/ui/button'
 import {

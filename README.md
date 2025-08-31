@@ -797,6 +797,86 @@ The main site configuration is located in `src/config/site.ts` and includes:
 - **Site metadata**: Title, description, and branding
 - **Feature flags**: Control which features are enabled (including AI and Store)
 
+#### Configuration Methods
+
+There are two main ways to customize your site configuration:
+
+##### Method 1: Direct File Editing (Recommended for Beginners)
+
+**This is often the easiest approach for most users.** Simply edit the values in `src/config/site.ts`:
+
+```typescript
+// src/config/site.ts
+const defaultConfig = {
+  title: 'Your Portfolio Name',              // Change from 'Photography Portfolio'
+  description: 'Your unique description',    // Customize your description
+  ownerName: 'Your Name',                   // Change from 'Photographer Name'
+  url: 'https://yourdomain.com',            // Your actual domain
+  imageBucketUrl: 'https://yourdomain.com/images', // Your bucket URL
+  // ... other settings
+  emails: {
+    order: 'orders@yourdomain.com',         // Your order email
+    support: 'support@yourdomain.com',     // Your support email
+    replyTo: 'reply@yourdomain.com',       // Your reply-to email
+    noReply: 'noreply@yourdomain.com',     // Your no-reply email
+  },
+  links: {
+    instagram: 'https://instagram.com/yourusername',
+    website: 'https://yourdomain.com',
+    // ... other social links
+  },
+}
+```
+
+**Benefits of direct editing:**
+- No environment variables needed
+- Easy to see all settings in one place
+- Perfect for development and simple deployments
+- Changes are immediately visible
+
+##### Method 2: Environment Variables (Advanced)
+
+For production deployments or when you want to keep sensitive information separate, use environment variables. Any setting can be overridden with a `NEXT_PUBLIC_` prefixed variable:
+
+```bash
+# Core site information
+NEXT_PUBLIC_SITE_TITLE="Your Portfolio Name"
+NEXT_PUBLIC_SITE_DESCRIPTION="Your unique description"
+NEXT_PUBLIC_OWNER_NAME="Your Name"
+NEXT_PUBLIC_SITE_URL="https://yourdomain.com"
+
+# Storage configuration
+NEXT_PUBLIC_IMAGE_BUCKET_URL="https://yourdomain.com/images"
+NEXT_PUBLIC_BLOG_BUCKET_URL="https://yourdomain.com/blog-images"
+
+# Email configuration
+NEXT_PUBLIC_ORDER_EMAIL="orders@yourdomain.com"
+NEXT_PUBLIC_SUPPORT_EMAIL="support@yourdomain.com"
+
+# Social links
+NEXT_PUBLIC_INSTAGRAM_URL="https://instagram.com/yourusername"
+NEXT_PUBLIC_WEBSITE_URL="https://yourdomain.com"
+```
+
+**Benefits of environment variables:**
+- Keep sensitive information secure
+- Different configs for different environments
+- Easy deployment configuration
+- Override specific values without editing files
+
+#### Quick Start Checklist
+
+To get your portfolio fully functional, update these essential settings:
+
+- [ ] **Site Title & Description**: Change from default "Photography Portfolio"
+- [ ] **Owner Name**: Replace "Photographer Name" with your actual name
+- [ ] **Domain URLs**: Update all `your-domain.com` references to your actual domain
+- [ ] **Email Addresses**: Configure order, support, and contact emails
+- [ ] **Social Links**: Add your Instagram, Twitter, and other social media profiles
+- [ ] **Storage Bucket URLs**: Configure your R2 or storage provider URLs
+
+> 💡 **Tip**: The site will show a configuration reminder until you customize these core settings. For most users, editing `src/config/site.ts` directly is the simplest approach.
+
 ### Store Configuration
 
 The e-commerce store can be easily disabled if not needed:

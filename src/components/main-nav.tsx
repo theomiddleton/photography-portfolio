@@ -26,7 +26,7 @@ interface MainNavProps {
 export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
   const pathname = usePathname()
   const [open, setOpen] = React.useState(false)
-  const [galleries, setGalleries] = React.useState<Array<{ id: string; title: string; slug: string }>>([])
+  const [galleries, setGalleries] = React.useState<{ id: string; title: string; slug: string }[]>([])
   // siteConfig is now passed as a prop, eliminating hydration issues
 
   React.useEffect(() => {
@@ -57,8 +57,8 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
       <Link
         href="/blog"
         className={cn(
-          "transition-colors hover:text-foreground/80",
-          pathname === "/blog" ? "text-foreground" : "text-foreground/60"
+          'transition-colors hover:text-foreground/80',
+          pathname === '/blog' ? 'text-foreground' : 'text-foreground/60'
         )}
       >
         Blog
@@ -66,7 +66,7 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
       <Link
         href="/about"
         className={cn(
-          "text-foreground/60 transition-colors hover:text-foreground/80"
+          'text-foreground/60 transition-colors hover:text-foreground/80'
         )}
       >
         About
@@ -75,7 +75,7 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
         <Link
           href="/store"
           className={cn(
-            "text-foreground/60 transition-colors hover:text-foreground/80"
+            'text-foreground/60 transition-colors hover:text-foreground/80'
           )}
         >
           Store
@@ -87,8 +87,8 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
             <Button
               variant="ghost"
               className={cn(
-                "h-auto p-0 text-sm font-normal text-foreground/60 hover:text-foreground/80 hover:bg-transparent",
-                pathname?.startsWith("/g/") ? "text-foreground" : "text-foreground/60"
+                'h-auto p-0 text-sm font-normal text-foreground/60 hover:text-foreground/80 hover:bg-transparent',
+                pathname?.startsWith('/g/') ? 'text-foreground' : 'text-foreground/60'
               )}
             >
               Galleries
@@ -110,8 +110,8 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
         <Link
           href="/admin"
           className={cn(
-            "text-foreground/60 transition-colors hover:text-foreground/80",
-            pathname?.startsWith("/admin") ? "text-foreground" : "text-foreground/60"
+            'text-foreground/60 transition-colors hover:text-foreground/80',
+            pathname?.startsWith('/admin') ? 'text-foreground' : 'text-foreground/60'
           )}
         >
           Admin
@@ -125,8 +125,8 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
       <Link
         href="/blog"
         className={cn(
-          "transition-colors hover:text-foreground/80",
-          pathname === "/blog" ? "text-foreground" : "text-foreground/60"
+          'transition-colors hover:text-foreground/80',
+          pathname === '/blog' ? 'text-foreground' : 'text-foreground/60'
         )}
         onClick={() => setOpen(false)}
       >
@@ -135,7 +135,7 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
       <Link
         href="/about"
         className={cn(
-          "text-foreground/60 transition-colors hover:text-foreground/80"
+          'text-foreground/60 transition-colors hover:text-foreground/80'
         )}
         onClick={() => setOpen(false)}
       >
@@ -145,7 +145,7 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
         <Link
           href="/store"
           className={cn(
-            "text-foreground/60 transition-colors hover:text-foreground/80"
+            'text-foreground/60 transition-colors hover:text-foreground/80'
           )}
           onClick={() => setOpen(false)}
         >
@@ -160,8 +160,8 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
               key={gallery.id}
               href={`/g/${gallery.slug}`}
               className={cn(
-                "pl-4 text-foreground/60 transition-colors hover:text-foreground/80",
-                pathname === `/g/${gallery.slug}` ? "text-foreground" : "text-foreground/60"
+                'pl-4 text-foreground/60 transition-colors hover:text-foreground/80',
+                pathname === `/g/${gallery.slug}` ? 'text-foreground' : 'text-foreground/60'
               )}
               onClick={() => setOpen(false)}
             >
@@ -174,8 +174,8 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
         <Link
           href="/admin"
           className={cn(
-            "text-foreground/60 transition-colors hover:text-foreground/80",
-            pathname?.startsWith("/admin") ? "text-foreground" : "text-foreground/60"
+            'text-foreground/60 transition-colors hover:text-foreground/80',
+            pathname?.startsWith('/admin') ? 'text-foreground' : 'text-foreground/60'
           )}
           onClick={() => setOpen(false)}
         >

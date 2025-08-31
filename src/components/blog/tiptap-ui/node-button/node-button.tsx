@@ -1,22 +1,22 @@
-import * as React from "react"
-import { isNodeSelection, type Editor } from "@tiptap/react"
+import * as React from 'react'
+import { isNodeSelection, type Editor } from '@tiptap/react'
 
 // --- Hooks ---
-import { useTiptapEditor } from "~/hooks/use-tiptap-editor"
+import { useTiptapEditor } from '~/hooks/use-tiptap-editor'
 
 // --- Icons ---
-import { BlockQuoteIcon } from "~/components/blog/tiptap-icons/block-quote-icon"
-import { CodeBlockIcon } from "~/components/blog/tiptap-icons/code-block-icon"
+import { BlockQuoteIcon } from '~/components/blog/tiptap-icons/block-quote-icon'
+import { CodeBlockIcon } from '~/components/blog/tiptap-icons/code-block-icon'
 
 // --- Lib ---
-import { isNodeInSchema } from "~/lib/tiptap-utils"
+import { isNodeInSchema } from '~/lib/tiptap-utils'
 
 // --- UI Primitives ---
-import { Button, ButtonProps } from "~/components/blog/tiptap-ui-primitive/button"
+import { Button, type ButtonProps } from '~/components/blog/tiptap-ui-primitive/button'
 
-export type NodeType = "codeBlock" | "blockquote"
+export type NodeType = 'codeBlock' | 'blockquote'
 
-export interface NodeButtonProps extends Omit<ButtonProps, "type"> {
+export interface NodeButtonProps extends Omit<ButtonProps, 'type'> {
   /**
    * The TipTap editor instance.
    */
@@ -42,22 +42,22 @@ export const nodeIcons = {
 }
 
 export const nodeShortcutKeys: Partial<Record<NodeType, string>> = {
-  codeBlock: "Ctrl-Alt-c",
-  blockquote: "Ctrl-Shift-b",
+  codeBlock: 'Ctrl-Alt-c',
+  blockquote: 'Ctrl-Shift-b',
 }
 
 export const nodeLabels: Record<NodeType, string> = {
-  codeBlock: "Code Block",
-  blockquote: "Blockquote",
+  codeBlock: 'Code Block',
+  blockquote: 'Blockquote',
 }
 
 export function canToggleNode(editor: Editor | null, type: NodeType): boolean {
   if (!editor) return false
 
   try {
-    return type === "codeBlock"
-      ? editor.can().toggleNode("codeBlock", "paragraph")
-      : editor.can().toggleWrap("blockquote")
+    return type === 'codeBlock'
+      ? editor.can().toggleNode('codeBlock', 'paragraph')
+      : editor.can().toggleWrap('blockquote')
   } catch {
     return false
   }
@@ -71,10 +71,10 @@ export function isNodeActive(editor: Editor | null, type: NodeType): boolean {
 export function toggleNode(editor: Editor | null, type: NodeType): boolean {
   if (!editor) return false
 
-  if (type === "codeBlock") {
-    return editor.chain().focus().toggleNode("codeBlock", "paragraph").run()
+  if (type === 'codeBlock') {
+    return editor.chain().focus().toggleNode('codeBlock', 'paragraph').run()
   } else {
-    return editor.chain().focus().toggleWrap("blockquote").run()
+    return editor.chain().focus().toggleWrap('blockquote').run()
   }
 }
 
@@ -170,7 +170,7 @@ export const NodeButton = React.forwardRef<HTMLButtonElement, NodeButtonProps>(
       type,
       text,
       hideWhenUnavailable = false,
-      className = "",
+      className = '',
       disabled,
       onClick,
       children,
@@ -211,7 +211,7 @@ export const NodeButton = React.forwardRef<HTMLButtonElement, NodeButtonProps>(
         className={className.trim()}
         disabled={isDisabled}
         data-style="ghost"
-        data-active-state={isActive ? "on" : "off"}
+        data-active-state={isActive ? 'on' : 'off'}
         data-disabled={isDisabled}
         role="button"
         tabIndex={-1}
@@ -234,6 +234,6 @@ export const NodeButton = React.forwardRef<HTMLButtonElement, NodeButtonProps>(
   }
 )
 
-NodeButton.displayName = "NodeButton"
+NodeButton.displayName = 'NodeButton'
 
 export default NodeButton

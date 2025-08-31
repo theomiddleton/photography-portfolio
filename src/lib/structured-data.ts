@@ -89,10 +89,10 @@ export function generateStoreStructuredData({
   }
 }
 
-export function generateBreadcrumbStructuredData(items: Array<{
+export function generateBreadcrumbStructuredData(items: {
   name: string
   url: string
-}>) {
+}[]) {
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',

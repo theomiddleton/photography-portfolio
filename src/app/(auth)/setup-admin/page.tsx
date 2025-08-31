@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import { type Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { checkAdminSetupRequiredSafe } from '~/lib/auth/authDatabase'
 import { getSession } from '~/lib/auth/auth'

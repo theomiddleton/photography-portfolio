@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import { type Metadata } from 'next'
 import { getSession } from '~/lib/auth/auth'
 import { redirect } from 'next/navigation'
 import { ChangePasswordForm } from '~/components/account/ChangePasswordForm'

@@ -45,7 +45,7 @@ export function StoreHeader({
   }
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn('space-y-6', className)}>
       {/* Main header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -101,8 +101,8 @@ export function StoreHeader({
             size="sm"
             onClick={onToggleFilters}
             className={cn(
-              "gap-2",
-              showFilters && "bg-gray-100"
+              'gap-2',
+              showFilters && 'bg-gray-100'
             )}
           >
             <SlidersHorizontal className="h-4 w-4" />
@@ -115,8 +115,8 @@ export function StoreHeader({
               variant="ghost"
               size="sm"
               className={cn(
-                "px-2 py-1 rounded-none border-r",
-                viewMode === 'grid' && "bg-gray-100"
+                'px-2 py-1 rounded-none border-r',
+                viewMode === 'grid' && 'bg-gray-100'
               )}
               onClick={() => onViewModeChange('grid')}
             >
@@ -126,8 +126,8 @@ export function StoreHeader({
               variant="ghost"
               size="sm"
               className={cn(
-                "px-2 py-1 rounded-none",
-                viewMode === 'list' && "bg-gray-100"
+                'px-2 py-1 rounded-none',
+                viewMode === 'list' && 'bg-gray-100'
               )}
               onClick={() => onViewModeChange('list')}
             >
