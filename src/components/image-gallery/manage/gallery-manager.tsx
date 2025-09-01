@@ -19,7 +19,7 @@ import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Badge } from '~/components/ui/badge'
-import { EnhancedBatchUpload } from '~/components/enhanced-batch-upload'
+import { AltUpload } from '~/components/alt-upload-img'
 import { 
   getGalleryById, 
   getGalleryBySlug,
@@ -196,14 +196,6 @@ export function GalleryManager({ galleryId, gallerySlug }: GalleryManagerProps) 
     } catch (error) {
       toast.error('Failed to add images to gallery')
     }
-  }
-
-  const handleImageUploaded = async (image: { name: string; url: string }) => {
-    if (!gallery) return
-    
-    // Reload gallery to show new images - the EnhancedBatchUpload handles adding to gallery
-    await loadGallery()
-    toast.success(`Added "${image.name}" to gallery`)
   }
 
   const handleImageDelete = async (imageId: string) => {
@@ -421,15 +413,13 @@ export function GalleryManager({ galleryId, gallerySlug }: GalleryManagerProps) 
             <CardHeader className="pb-4">
               <CardTitle className="text-lg sm:text-xl">Upload Images</CardTitle>
               <CardDescription className="text-sm">
-                Add new images to this gallery or select from existing ones to avoid duplicates and save storage space.
+                Add new images to this gallery. You can upload multiple images at once.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <EnhancedBatchUpload 
+              <AltUpload 
                 bucket="custom" 
-                galleryId={gallery.id}
-                onImageUpload={handleImageUploaded}
-                title="Add Images to Gallery"
+                onFilesAdded={handleImagesUploaded}
               />
             </CardContent>
           </Card>

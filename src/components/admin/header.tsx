@@ -1,17 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import type { SiteConfig } from '~/config/site'
+
+import { siteConfig } from '~/config/site'
 import { Icons } from '~/components/ui/icons'
 import { MobileSidebar } from '~/components/admin/mobile-sidebar'
 import { AdminSidebar } from '~/components/admin/sidebar'
 import { ThemeToggle } from '~/components/admin/theme/theme-toggle'
 
-interface AdminHeaderProps {
-  siteConfig: SiteConfig
-}
-
-export function AdminHeader({ siteConfig }: AdminHeaderProps) {
+export function AdminHeader() {
   return (
     <div>
       <header className="flex h-14 items-center justify-between border-b bg-muted/40 px-6">
