@@ -1,8 +1,8 @@
 'use server'
 
 import { db } from '~/server/db'
-import { galleries, galleryImages } from '~/server/db/schema'
-import { eq, desc, asc, sql, inArray } from 'drizzle-orm'
+import { galleries, galleryImages, imageData, customImgData } from '~/server/db/schema'
+import { eq, desc, asc, sql, inArray, and } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { logAction } from '~/lib/logging'
@@ -272,6 +272,129 @@ export async function deleteGallery(id: string) {
   } catch (error) {
     console.error('Error deleting gallery:', error)
     return { success: false, error: 'Failed to delete gallery' }
+  }
+}
+
+// Add existing images to gallery (without re-uploading)
+export async function addExistingImagesToGallery(
+  galleryId: string,
+  imageReferences: {
+    imageId: string
+    sourceType: 'main' | 'custom' | 'gallery'
+    newName?: string
+  }[],
+) {
+  try {
+    const results = []
+
+    for (const ref of imageReferences) {
+      // Get source image details based on type
+      let sourceImage: {
+        uuid: string
+        fileName: string
+        fileUrl: string
+        name: string
+        description?: string | null
+      } | null = null
+
+      switch (ref.sourceType) {
+        case 'main':
+          const [mainImg] = await db
+            .select()
+            .from(imageData)
+            .where(eq(imageData.id, parseInt(ref.imageId)))
+            .limit(1)
+          sourceImage = mainImg || null
+          break
+
+        case 'custom':
+          const [customImg] = await db
+            .select()
+            .from(customImgData)
+            .where(eq(customImgData.id, parseInt(ref.imageId)))
+            .limit(1)
+          sourceImage = customImg || null
+          break
+
+        case 'gallery':
+          const [galleryImg] = await db
+            .select()
+            .from(galleryImages)
+            .where(eq(galleryImages.id, ref.imageId))
+            .limit(1)
+          sourceImage = galleryImg || null
+          break
+      }
+
+      if (!sourceImage) {
+        console.warn(`Source image not found: ${ref.imageId} (${ref.sourceType})`)
+        continue
+      }
+
+      // Check if this image already exists in the target gallery
+      const existingInGallery = await db
+        .select()
+        .from(galleryImages)
+        .where(
+          and(
+            eq(galleryImages.galleryId, galleryId),
+            eq(galleryImages.fileUrl, sourceImage.fileUrl)
+          )
+        )
+        .limit(1)
+
+      if (existingInGallery.length > 0) {
+        console.log(`Image already exists in gallery: ${sourceImage.name}`)
+        continue
+      }
+
+      // Get the highest order in target gallery
+      const [maxOrderResult] = await db
+        .select({ maxOrder: sql<number>`MAX(${galleryImages.order})` })
+        .from(galleryImages)
+        .where(eq(galleryImages.galleryId, galleryId))
+
+      const nextOrder = (maxOrderResult?.maxOrder || 0) + 1
+
+      // Add to gallery
+      const [insertedImage] = await db
+        .insert(galleryImages)
+        .values({
+          galleryId,
+          uuid: sourceImage.uuid,
+          fileName: sourceImage.fileName,
+          fileUrl: sourceImage.fileUrl,
+          name: ref.newName || sourceImage.name,
+          description: sourceImage.description || '',
+          order: nextOrder,
+        })
+        .returning()
+
+      results.push(insertedImage)
+    }
+
+    logAction(
+      'Gallery',
+      `Added ${results.length} existing images to gallery ${galleryId}`
+    )
+
+    // Get gallery slug for revalidation
+    const gallery = await db
+      .select({ slug: galleries.slug })
+      .from(galleries)
+      .where(eq(galleries.id, galleryId))
+      .limit(1)
+
+    if (gallery[0]) {
+      revalidatePath(`/admin/galleries/${gallery[0].slug}`)
+      revalidatePath(`/g/${gallery[0].slug}`)
+    }
+    revalidatePath('/admin/galleries')
+
+    return { images: results, error: null }
+  } catch (error) {
+    console.error('Error adding existing images to gallery:', error)
+    return { images: null, error: 'Failed to add existing images to gallery' }
   }
 }
 
