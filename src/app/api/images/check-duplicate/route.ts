@@ -3,7 +3,7 @@ import { getSession } from '~/lib/auth/auth'
 import { db } from '~/server/db'
 import { duplicateFiles } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
-import { siteConfig, SiteConfig } from '~/config/site'
+import { siteConfig } from '~/config/site'
 import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
