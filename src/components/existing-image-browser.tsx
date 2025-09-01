@@ -147,7 +147,7 @@ export function ExistingImageBrowser({
     switch (source) {
       case 'main': return 'default'
       case 'custom': return 'default' 
-      case 'gallery': return 'outline'
+      case 'gallery': return 'secondary'
       default: return 'default'
     }
   }
