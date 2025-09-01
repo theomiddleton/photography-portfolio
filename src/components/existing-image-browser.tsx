@@ -188,7 +188,7 @@ export function ExistingImageBrowser({
                 <SelectValue placeholder="All buckets" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All buckets</SelectItem>
+                <SelectItem value="all">All buckets</SelectItem>
                 <SelectItem value="image">Main Gallery</SelectItem>
                 <SelectItem value="custom">Custom Images</SelectItem>
               </SelectContent>
@@ -257,7 +257,7 @@ export function ExistingImageBrowser({
                   className={cn(
                     'cursor-pointer rounded-lg border transition-all hover:shadow-md',
                     selectedImages.has(image.id)
-                      ? 'ring-2 ring-blue-500 bg-blue-50'
+                      ? 'ring-2 ring-gray-500 bg-gray-50'
                       : 'hover:border-gray-300',
                     viewMode === 'grid' ? 'aspect-square' : 'flex items-center p-3'
                   )}
@@ -274,7 +274,7 @@ export function ExistingImageBrowser({
                       />
                       {multiSelect && selectedImages.has(image.id) && (
                         <div className="absolute top-2 right-2">
-                          <CheckCircle2 className="h-5 w-5 text-blue-500 bg-white rounded-full" />
+                          <CheckCircle2 className="h-5 w-5 text-gray-500 bg-white rounded-full" />
                         </div>
                       )}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 rounded-b-lg">
