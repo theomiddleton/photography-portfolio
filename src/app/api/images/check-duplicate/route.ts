@@ -3,6 +3,7 @@ import { getSession } from '~/lib/auth/auth'
 import { db } from '~/server/db'
 import { duplicateFiles } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
+import { siteConfig } from '~/config/site'
 import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
@@ -24,6 +25,17 @@ export async function POST(request: NextRequest) {
         { error: 'File is required' },
         { status: 400 }
       )
+    }
+
+     // Basic validation
+    const uploadLimits = siteConfig.uploadLimits.image
+    const MAX_IMAGE_MB = uploadLimits || 20
+    const MAX_IMAGE_BYTES = MAX_IMAGE_MB * 1024 * 1024
+    if (!file.type || !file.type.startsWith('image/')) {
+      return NextResponse.json({ error: 'Only image files are supported' }, { status: 415 })
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      return NextResponse.json({ error: `File too large (> ${MAX_IMAGE_MB}MB)` }, { status: 413 })
     }
 
     // Calculate file hash
@@ -71,3 +83,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const runtime = 'nodejs'

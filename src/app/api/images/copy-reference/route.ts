@@ -18,7 +18,7 @@ export interface CopyImageRequest {
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
-    
+
     if (!session?.role || session.role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
@@ -32,8 +32,23 @@ export async function POST(request: NextRequest) {
     if (!imageId || !sourceType || !targetBucket) {
       return NextResponse.json(
         { error: 'Missing required fields: imageId, sourceType, targetBucket' },
-        { status: 400 }
+        { status: 400 },
       )
+    }
+
+    // Pre-validate numeric IDs for source types that require them
+    let idNum: number | undefined
+    if (sourceType === 'main' || sourceType === 'custom') {
+      idNum = parseInt(imageId, 10)
+      if (Number.isNaN(idNum)) {
+        return NextResponse.json(
+          {
+            error:
+              'Invalid imageId: must be a valid number for main/custom source types',
+          },
+          { status: 400 },
+        )
+      }
     }
 
     // Get the source image details
@@ -46,45 +61,56 @@ export async function POST(request: NextRequest) {
       tags?: string | null
     } | null = null
 
-    switch (sourceType) {
-      case 'main':
-        const [mainImg] = await db
-          .select()
-          .from(imageData)
-          .where(eq(imageData.id, parseInt(imageId)))
-          .limit(1)
-        sourceImage = mainImg || null
-        break
+    try {
+      switch (sourceType) {
+        case 'main': {
+          const [mainImg] = await db
+            .select()
+            .from(imageData)
+            .where(eq(imageData.id, idNum!))
+            .limit(1)
+          sourceImage = mainImg || null
+          break
+        }
 
-      case 'custom':
-        const [customImg] = await db
-          .select()
-          .from(customImgData)
-          .where(eq(customImgData.id, parseInt(imageId)))
-          .limit(1)
-        sourceImage = customImg || null
-        break
+        case 'custom': {
+          const [customImg] = await db
+            .select()
+            .from(customImgData)
+            .where(eq(customImgData.id, idNum!))
+            .limit(1)
+          sourceImage = customImg || null
+          break
+        }
 
-      case 'gallery':
-        const [galleryImg] = await db
-          .select()
-          .from(galleryImages)
-          .where(eq(galleryImages.id, imageId))
-          .limit(1)
-        sourceImage = galleryImg || null
-        break
+        case 'gallery': {
+          const [galleryImg] = await db
+            .select()
+            .from(galleryImages)
+            .where(eq(galleryImages.id, imageId))
+            .limit(1)
+          sourceImage = galleryImg || null
+          break
+        }
 
-      default:
-        return NextResponse.json(
-          { error: 'Invalid source type' },
-          { status: 400 }
-        )
+        default:
+          return NextResponse.json(
+            { error: 'Invalid source type' },
+            { status: 400 },
+          )
+      }
+    } catch (dbError) {
+      console.error('Database error while fetching source image:', dbError)
+      return NextResponse.json(
+        { error: 'Failed to fetch source image' },
+        { status: 500 },
+      )
     }
 
     if (!sourceImage) {
       return NextResponse.json(
         { error: 'Source image not found' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -95,64 +121,70 @@ export async function POST(request: NextRequest) {
     let insertedImage: any
 
     // Handle different target buckets
-    switch (targetBucket) {
-      case 'image':
-        // Copy to main image gallery
-        [insertedImage] = await db
-          .insert(imageData)
-          .values({
-            uuid: newUuid,
-            fileName: sourceImage.fileName,
-            fileUrl: sourceImage.fileUrl,
-            name: finalName,
-            description: sourceImage.description || '',
-            tags: sourceImage.tags || '',
-            visible: true,
-            order: 0,
-          })
-          .returning()
-        break
+    try {
+      switch (targetBucket) {
+        case 'image': {
+          // Copy to main image gallery
+          ;[insertedImage] = await db
+            .insert(imageData)
+            .values({
+              uuid: newUuid,
+              fileName: sourceImage.fileName,
+              fileUrl: sourceImage.fileUrl,
+              name: finalName,
+              description: sourceImage.description || '',
+              tags: sourceImage.tags || '',
+              visible: true,
+              order: 0,
+            })
+            .returning()
+          break
+        }
 
-      case 'custom':
-        // Copy to custom images
-        [insertedImage] = await db
-          .insert(customImgData)
-          .values({
-            uuid: newUuid,
-            fileName: sourceImage.fileName,
-            fileUrl: sourceImage.fileUrl,
-            name: finalName,
-          })
-          .returning()
-        break
+        case 'custom':
+        case 'blog':
+        case 'about': {
+          // Copy to custom images (blog/about buckets use custom images table)
+          ;[insertedImage] = await db
+            .insert(customImgData)
+            .values({
+              uuid: newUuid,
+              fileName: sourceImage.fileName,
+              fileUrl: sourceImage.fileUrl,
+              name: finalName,
+            })
+            .returning()
+          break
+        }
 
-      default:
-        // For blog/about buckets, we'll copy to custom images as they don't have separate tables
-        [insertedImage] = await db
-          .insert(customImgData)
-          .values({
-            uuid: newUuid,
-            fileName: sourceImage.fileName,
-            fileUrl: sourceImage.fileUrl,
-            name: finalName,
-          })
-          .returning()
-        break
+        default:
+          return NextResponse.json(
+            {
+              error: `Invalid targetBucket: '${targetBucket}'. Supported values are: image, custom, blog, about`,
+            },
+            { status: 400 },
+          )
+      }
+    } catch (dbError) {
+      console.error('Database error while inserting image:', dbError)
+      return NextResponse.json(
+        { error: 'Failed to insert image reference' },
+        { status: 500 },
+      )
     }
 
     // If copying to a specific gallery, also add to gallery images
     if (galleryId) {
-      // Get the highest order in target gallery
-      const maxOrderResult = await db
-        .select({ maxOrder: sql<number>`MAX(${galleryImages.order})` })
-        .from(galleryImages)
-        .where(eq(galleryImages.galleryId, galleryId))
+      try {
+        // Get the highest order in target gallery
+        const maxOrderResult = await db
+          .select({ maxOrder: sql<number>`MAX(${galleryImages.order})` })
+          .from(galleryImages)
+          .where(eq(galleryImages.galleryId, galleryId))
 
-      const nextOrder = (maxOrderResult[0]?.maxOrder || 0) + 1
+        const nextOrder = (maxOrderResult[0]?.maxOrder || 0) + 1
 
-      await db
-        .insert(galleryImages)
-        .values({
+        await db.insert(galleryImages).values({
           galleryId,
           uuid: newUuid,
           fileName: sourceImage.fileName,
@@ -161,11 +193,18 @@ export async function POST(request: NextRequest) {
           description: sourceImage.description || '',
           order: nextOrder,
         })
+      } catch (dbError) {
+        console.error('Database error while adding to gallery:', dbError)
+        return NextResponse.json(
+          { error: 'Failed to add image to gallery' },
+          { status: 500 },
+        )
+      }
     }
 
     await logAction(
       'Image',
-      `Copied image reference from ${sourceType} (${imageId}) to ${targetBucket}${galleryId ? ` gallery ${galleryId}` : ''}`
+      `Copied image reference from ${sourceType} (${imageId}) to ${targetBucket}${galleryId ? ` gallery ${galleryId}` : ''}`,
     )
 
     // Revalidate relevant paths
@@ -193,7 +232,7 @@ export async function POST(request: NextRequest) {
     console.error('Error copying image reference:', error)
     return NextResponse.json(
       { error: 'Failed to copy image reference' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

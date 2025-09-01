@@ -1,7 +1,12 @@
 'use server'
 
 import { db } from '~/server/db'
-import { galleries, galleryImages, imageData, customImgData } from '~/server/db/schema'
+import {
+  galleries,
+  galleryImages,
+  imageData,
+  customImgData,
+} from '~/server/db/schema'
 import { eq, desc, asc, sql, inArray, and } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
@@ -298,36 +303,39 @@ export async function addExistingImagesToGallery(
       } | null = null
 
       switch (ref.sourceType) {
-        case 'main':
+        case 'main': {
           const [mainImg] = await db
-            .select()
-            .from(imageData)
-            .where(eq(imageData.id, parseInt(ref.imageId)))
-            .limit(1)
-          sourceImage = mainImg || null
-          break
+              .select()
+              .from(imageData)
+              .where(eq(imageData.id, parseInt(ref.imageId)))
+              .limit(1)
+            sourceImage = mainImg || null
 
-        case 'custom':
+          break
+        }
+        case 'custom': {
           const [customImg] = await db
-            .select()
-            .from(customImgData)
-            .where(eq(customImgData.id, parseInt(ref.imageId)))
-            .limit(1)
-          sourceImage = customImg || null
-          break
-
-        case 'gallery':
-          const [galleryImg] = await db
-            .select()
-            .from(galleryImages)
-            .where(eq(galleryImages.id, ref.imageId))
-            .limit(1)
-          sourceImage = galleryImg || null
-          break
+              .select()
+              .from(customImgData)
+              .where(eq(customImgData.id, parseInt(ref.imageId)))
+              .limit(1)
+            sourceImage = customImg || null
+            break
+          }
+          case 'gallery': {
+            const [galleryImg] = await db
+              .select()
+              .from(galleryImages)
+              .where(eq(galleryImages.id, ref.imageId))
+              .limit(1)
+            sourceImage = galleryImg || null
+            break
+        }
       }
-
       if (!sourceImage) {
-        console.warn(`Source image not found: ${ref.imageId} (${ref.sourceType})`)
+        console.warn(
+          `Source image not found: ${ref.imageId} (${ref.sourceType})`,
+        )
         continue
       }
 
@@ -338,8 +346,8 @@ export async function addExistingImagesToGallery(
         .where(
           and(
             eq(galleryImages.galleryId, galleryId),
-            eq(galleryImages.fileUrl, sourceImage.fileUrl)
-          )
+            eq(galleryImages.fileUrl, sourceImage.fileUrl),
+          ),
         )
         .limit(1)
 
@@ -375,7 +383,7 @@ export async function addExistingImagesToGallery(
 
     logAction(
       'Gallery',
-      `Added ${results.length} existing images to gallery ${galleryId}`
+      `Added ${results.length} existing images to gallery ${galleryId}`,
     )
 
     // Get gallery slug for revalidation

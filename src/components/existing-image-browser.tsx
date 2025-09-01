@@ -72,7 +72,9 @@ export function ExistingImageBrowser({
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
-  const [currentBucketFilter, setCurrentBucketFilter] = useState(bucketFilter || '')
+  const [currentBucketFilter, setCurrentBucketFilter] = useState(
+    bucketFilter || '',
+  )
 
   const loadImages = async () => {
     setLoading(true)
@@ -98,21 +100,17 @@ export function ExistingImageBrowser({
     }
   }
 
+  // Load immediately when dialog opens
   useEffect(() => {
-    if (isOpen) {
-      loadImages()
-    }
-  }, [isOpen, searchQuery, currentBucketFilter])
+    if (isOpen) loadImages()
+  }, [isOpen])
 
+  // Debounce query/filter changes while open
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (searchQuery !== '' || currentBucketFilter !== bucketFilter) {
-        loadImages()
-      }
-    }, 300)
-
+    if (!isOpen) return
+    const timeoutId = setTimeout(loadImages, 300)
     return () => clearTimeout(timeoutId)
-  }, [searchQuery, currentBucketFilter])
+  }, [isOpen, searchQuery, currentBucketFilter])
 
   const handleImageClick = (image: ExistingImage) => {
     if (multiSelect) {
@@ -133,22 +131,30 @@ export function ExistingImageBrowser({
     if (selectedImages.size === images.length) {
       setSelectedImages(new Set())
     } else {
-      setSelectedImages(new Set(images.map(img => img.id)))
+      setSelectedImages(new Set(images.map((img) => img.id)))
     }
   }
 
   const handleConfirmSelection = () => {
-    const selected = images.filter(img => selectedImages.has(img.id))
+    const selected = images.filter((img) => selectedImages.has(img.id))
     onSelect(selected)
     onClose()
   }
 
   const getSourceBadgeVariant = (source: string) => {
+    // In All-buckets view, use better contrast variants for gallery badges
+    const isAllBucketsView =
+      currentBucketFilter === 'all' || currentBucketFilter === ''
+
     switch (source) {
-      case 'main': return 'default'
-      case 'custom': return 'default' 
-      case 'gallery': return 'secondary'
-      default: return 'default'
+      case 'main':
+        return 'default'
+      case 'custom':
+        return 'default'
+      case 'gallery':
+        return isAllBucketsView ? 'default' : 'secondary'
+      default:
+        return 'default'
     }
   }
 
@@ -156,13 +162,13 @@ export function ExistingImageBrowser({
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     }).format(new Date(date))
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[80vh] flex flex-col">
+      <DialogContent className="flex max-h-[80vh] max-w-6xl flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Database className="h-5 w-5" />
@@ -173,9 +179,9 @@ export function ExistingImageBrowser({
 
         {/* Search and Filter Controls */}
         <div className="flex flex-col gap-4 border-b pb-4">
-          <div className="flex gap-4 items-center">
+          <div className="flex items-center gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
               <Input
                 placeholder="Search images by name, filename, or description..."
                 value={searchQuery}
@@ -183,7 +189,10 @@ export function ExistingImageBrowser({
                 className="pl-10"
               />
             </div>
-            <Select value={currentBucketFilter} onValueChange={setCurrentBucketFilter}>
+            <Select
+              value={currentBucketFilter}
+              onValueChange={setCurrentBucketFilter}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="All buckets" />
               </SelectTrigger>
@@ -213,14 +222,12 @@ export function ExistingImageBrowser({
 
           {multiSelect && (
             <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSelectAll}
-              >
-                {selectedImages.size === images.length ? 'Deselect All' : 'Select All'}
+              <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                {selectedImages.size === images.length
+                  ? 'Deselect All'
+                  : 'Select All'}
               </Button>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-muted-foreground text-sm">
                 {selectedImages.size} of {images.length} selected
               </span>
             </div>
@@ -230,13 +237,13 @@ export function ExistingImageBrowser({
         {/* Images Display */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="flex items-center justify-center h-32">
+            <div className="flex h-32 items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin" />
               <span className="ml-2">Loading images...</span>
             </div>
           ) : images.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-              <ImageIcon className="h-12 w-12 mb-2" />
+            <div className="text-muted-foreground flex h-32 flex-col items-center justify-center">
+              <ImageIcon className="mb-2 h-12 w-12" />
               <p>No images found</p>
               {searchQuery && (
                 <p className="text-sm">Try adjusting your search terms</p>
@@ -248,7 +255,7 @@ export function ExistingImageBrowser({
                 'gap-4 p-4',
                 viewMode === 'grid'
                   ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
-                  : 'flex flex-col space-y-2'
+                  : 'flex flex-col space-y-2',
               )}
             >
               {images.map((image) => (
@@ -257,9 +264,11 @@ export function ExistingImageBrowser({
                   className={cn(
                     'cursor-pointer rounded-lg border transition-all hover:shadow-md',
                     selectedImages.has(image.id)
-                      ? 'ring-2 ring-gray-500 bg-gray-50'
+                      ? 'bg-gray-50 ring-2 ring-gray-500'
                       : 'hover:border-gray-300',
-                    viewMode === 'grid' ? 'aspect-square' : 'flex items-center p-3'
+                    viewMode === 'grid'
+                      ? 'aspect-square'
+                      : 'flex items-center p-3',
                   )}
                   onClick={() => handleImageClick(image)}
                 >
@@ -269,19 +278,19 @@ export function ExistingImageBrowser({
                         src={image.fileUrl}
                         alt={image.name}
                         fill
-                        className="object-cover rounded-lg"
+                        className="rounded-lg object-cover"
                         sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
                       />
                       {multiSelect && selectedImages.has(image.id) && (
                         <div className="absolute top-2 right-2">
-                          <CheckCircle2 className="h-5 w-5 text-gray-500 bg-white rounded-full" />
+                          <CheckCircle2 className="h-5 w-5 rounded-full bg-white text-gray-500" />
                         </div>
                       )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 rounded-b-lg">
-                        <p className="text-white text-xs font-medium truncate">
+                      <div className="absolute right-0 bottom-0 left-0 rounded-b-lg bg-gradient-to-t from-black/60 to-transparent p-2">
+                        <p className="truncate text-xs font-medium text-white">
                           {image.name}
                         </p>
-                        <div className="flex gap-1 mt-1">
+                        <div className="mt-1 flex gap-1">
                           <Badge
                             variant={getSourceBadgeVariant(image.source)}
                             className="text-xs"
@@ -293,28 +302,30 @@ export function ExistingImageBrowser({
                     </div>
                   ) : (
                     <>
-                      <div className="relative h-16 w-16 mr-4 flex-shrink-0">
+                      <div className="relative mr-4 h-16 w-16 flex-shrink-0">
                         <Image
                           src={image.fileUrl}
                           alt={image.name}
                           fill
-                          className="object-cover rounded"
+                          className="rounded object-cover"
                           sizes="64px"
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm truncate">{image.name}</h4>
-                        <p className="text-xs text-muted-foreground truncate">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="truncate text-sm font-medium">
+                          {image.name}
+                        </h4>
+                        <p className="text-muted-foreground truncate text-xs">
                           {image.fileName}
                         </p>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="mt-1 flex items-center gap-2">
                           <Badge
                             variant={getSourceBadgeVariant(image.source)}
                             className="text-xs"
                           >
                             {image.source}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-muted-foreground text-xs">
                             {formatDate(image.uploadedAt)}
                           </span>
                         </div>
@@ -322,8 +333,17 @@ export function ExistingImageBrowser({
                       {multiSelect && (
                         <Checkbox
                           checked={selectedImages.has(image.id)}
-                          onChange={() => {}}
+                          onCheckedChange={(checked) => {
+                            setSelectedImages(prev => {
+                              const next = new Set(prev)
+                              if (checked) next.add(image.id)
+                              else next.delete(image.id)
+                              return next
+                            })
+                          }}
+                          onClick={(e) => e.stopPropagation()}
                           className="ml-4"
+                          aria-label={`Select ${image.name}`}
                         />
                       )}
                     </>
@@ -339,16 +359,15 @@ export function ExistingImageBrowser({
             Cancel
           </Button>
           {multiSelect ? (
-            <Button 
+            <Button
               onClick={handleConfirmSelection}
               disabled={selectedImages.size === 0}
             >
-              Select {selectedImages.size} Image{selectedImages.size !== 1 ? 's' : ''}
+              Select {selectedImages.size} Image
+              {selectedImages.size !== 1 ? 's' : ''}
             </Button>
           ) : (
-            <Button onClick={onClose}>
-              Click an image to select
-            </Button>
+            <Button onClick={onClose}>Click an image to select</Button>
           )}
         </DialogFooter>
       </DialogContent>

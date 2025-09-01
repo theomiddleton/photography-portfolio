@@ -153,10 +153,11 @@ export function EnhancedBatchUpload({
           onClose={() => setShowExistingBrowser(false)}
           onSelect={handleExistingImagesSelected}
           multiSelect={true}
-          bucketFilter={bucket === 'image' ? '' : bucket}
+          // Default to 'all' to avoid unsupported values like 'blog'/'about'
+          bucketFilter={bucket === 'custom' ? 'custom' : 'all'}
           title="Select Existing Images"
           description={`Choose images to ${galleryId ? 'add to this gallery' : 'use in this workflow'} without re-uploading`}
-        />
+          />
       </CardContent>
     </Card>
   )

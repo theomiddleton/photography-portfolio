@@ -76,72 +76,76 @@ export const about = pgTable('about', {
   modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
 
-export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  email: varchar('email', { length: 255 }).notNull().unique(), // Added unique constraint and reduced length
-  name: varchar('name', { length: 100 }).notNull(), // Reduced to reasonable length
-  password: text('password').notNull(), // Changed to text for longer hashed passwords
-  role: varchar('role', { length: 10 }).notNull(), // Reduced to fit 'admin'/'user'
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  modifiedAt: timestamp('modifiedAt').defaultNow(),
-  // Security enhancement fields
-  failedLoginAttempts: integer('failedLoginAttempts').default(0).notNull(),
-  accountLockedUntil: timestamp('accountLockedUntil'),
-  lastLoginAt: timestamp('lastLoginAt'),
-  passwordChangedAt: timestamp('passwordChangedAt').defaultNow().notNull(),
-  // Email verification fields
-  emailVerified: boolean('emailVerified').default(false).notNull(),
-  emailVerificationToken: varchar('emailVerificationToken', { length: 255 }),
-  emailVerificationExpiry: timestamp('emailVerificationExpiry'),
-  // Password reset fields
-  passwordResetToken: varchar('passwordResetToken', { length: 255 }),
-  passwordResetExpiry: timestamp('passwordResetExpiry'),
-  // Account status fields
-  isActive: boolean('isActive').default(true).notNull(),
-  deactivatedAt: timestamp('deactivatedAt'),
-  deactivationReason: varchar('deactivationReason', { length: 500 }),
-  // Session tracking fields
-  lastLoginIP: varchar('lastLoginIP', { length: 45 }), // IPv6 compatible
-  lastLoginUserAgent: varchar('lastLoginUserAgent', { length: 500 }),
-},
-(table) => ({
-  emailIndex: index('users_email_idx').on(table.email),
-  roleIndex: index('users_role_idx').on(table.role),
-  emailVerificationTokenIndex: index('users_email_verification_token_idx').on(
-    table.emailVerificationToken,
-  ),
-  passwordResetTokenIndex: index('users_password_reset_token_idx').on(
-    table.passwordResetToken,
-  ),
-  isActiveIndex: index('users_is_active_idx').on(table.isActive),
-  // Additional performance indexes
-  emailVerifiedIndex: index('users_email_verified_idx').on(
-    table.emailVerified,
-  ),
-  lastLoginIndex: index('users_last_login_idx').on(table.lastLoginAt),
-  passwordResetExpiryIndex: index('users_password_reset_expiry_idx').on(
-    table.passwordResetExpiry,
-  ),
-  emailVerificationExpiryIndex: index(
-    'users_email_verification_expiry_idx',
-  ).on(table.emailVerificationExpiry),
-  accountLockedIndex: index('users_account_locked_idx').on(
-    table.accountLockedUntil,
-  ),
-  // Composite indexes for common queries
-  activeVerifiedIndex: index('users_active_verified_idx').on(
-    table.isActive,
-    table.emailVerified,
-  ),
-  roleActiveIndex: index('users_role_active_idx').on(
-    table.role,
-    table.isActive,
-  ),
+export const users = pgTable(
+  'users',
+  {
+    id: serial('id').primaryKey(),
+    email: varchar('email', { length: 255 }).notNull().unique(), // Added unique constraint and reduced length
+    name: varchar('name', { length: 100 }).notNull(), // Reduced to reasonable length
+    password: text('password').notNull(), // Changed to text for longer hashed passwords
+    role: varchar('role', { length: 10 }).notNull(), // Reduced to fit 'admin'/'user'
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    modifiedAt: timestamp('modifiedAt').defaultNow(),
+    // Security enhancement fields
+    failedLoginAttempts: integer('failedLoginAttempts').default(0).notNull(),
+    accountLockedUntil: timestamp('accountLockedUntil'),
+    lastLoginAt: timestamp('lastLoginAt'),
+    passwordChangedAt: timestamp('passwordChangedAt').defaultNow().notNull(),
+    // Email verification fields
+    emailVerified: boolean('emailVerified').default(false).notNull(),
+    emailVerificationToken: varchar('emailVerificationToken', { length: 255 }),
+    emailVerificationExpiry: timestamp('emailVerificationExpiry'),
+    // Password reset fields
+    passwordResetToken: varchar('passwordResetToken', { length: 255 }),
+    passwordResetExpiry: timestamp('passwordResetExpiry'),
+    // Account status fields
+    isActive: boolean('isActive').default(true).notNull(),
+    deactivatedAt: timestamp('deactivatedAt'),
+    deactivationReason: varchar('deactivationReason', { length: 500 }),
+    // Session tracking fields
+    lastLoginIP: varchar('lastLoginIP', { length: 45 }), // IPv6 compatible
+    lastLoginUserAgent: varchar('lastLoginUserAgent', { length: 500 }),
+  },
+  (table) => ({
+    emailIndex: index('users_email_idx').on(table.email),
+    roleIndex: index('users_role_idx').on(table.role),
+    emailVerificationTokenIndex: index('users_email_verification_token_idx').on(
+      table.emailVerificationToken,
+    ),
+    passwordResetTokenIndex: index('users_password_reset_token_idx').on(
+      table.passwordResetToken,
+    ),
+    isActiveIndex: index('users_is_active_idx').on(table.isActive),
+    // Additional performance indexes
+    emailVerifiedIndex: index('users_email_verified_idx').on(
+      table.emailVerified,
+    ),
+    lastLoginIndex: index('users_last_login_idx').on(table.lastLoginAt),
+    passwordResetExpiryIndex: index('users_password_reset_expiry_idx').on(
+      table.passwordResetExpiry,
+    ),
+    emailVerificationExpiryIndex: index(
+      'users_email_verification_expiry_idx',
+    ).on(table.emailVerificationExpiry),
+    accountLockedIndex: index('users_account_locked_idx').on(
+      table.accountLockedUntil,
+    ),
+    // Composite indexes for common queries
+    activeVerifiedIndex: index('users_active_verified_idx').on(
+      table.isActive,
+      table.emailVerified,
+    ),
+    roleActiveIndex: index('users_role_active_idx').on(
+      table.role,
+      table.isActive,
+    ),
   }),
 )
 
 // User sessions table for tracking active sessions
-export const userSessions = pgTable('userSessions', {
+export const userSessions = pgTable(
+  'userSessions',
+  {
     id: serial('id').primaryKey(),
     userId: integer('userId')
       .notNull()
@@ -184,7 +188,9 @@ export const userSessions = pgTable('userSessions', {
   }),
 )
 
-export const logs = pgTable('logs', {
+export const logs = pgTable(
+  'logs',
+  {
     id: serial('id').primaryKey(),
     scope: varchar('scope', { length: 50 }).notNull(), // Reduced length for efficiency
     log: text('log').notNull(),
@@ -729,19 +735,29 @@ export const alertDismissals = pgTable('alertDismissals', {
   dismissalDuration: varchar('dismissalDuration', { length: 50 }).notNull(), // '1h', '1d', '1w', 'permanent'
 })
 
-export const duplicateFiles = pgTable('duplicateFiles', {
-  id: serial('id').primaryKey(),
-  fileHash: varchar('fileHash', { length: 64 }).notNull(), // SHA-256 hash
-  fileName: varchar('fileName', { length: 256 }).notNull(),
-  bucketName: varchar('bucketName', { length: 256 }).notNull(),
-  objectKey: varchar('objectKey', { length: 512 }).notNull(),
-  fileSize: bigint('fileSize', { mode: 'number' }).notNull(),
-  lastModified: timestamp('lastModified').notNull(),
-  dbReference: varchar('dbReference', { length: 100 }), // Which DB table has this file's UUID
-  dbRecordId: integer('dbRecordId'), // The ID of the record in the referenced table
-  uuid: varchar('uuid', { length: 36 }), // The UUID stored in the database
-  scanDate: timestamp('scanDate').defaultNow().notNull(),
-})
+export const duplicateFiles = pgTable(
+  'duplicateFiles',
+  {
+    id: serial('id').primaryKey(),
+    fileHash: varchar('fileHash', { length: 64 }).notNull(), // SHA-256 hash
+    fileName: varchar('fileName', { length: 256 }).notNull(),
+    bucketName: varchar('bucketName', { length: 256 }).notNull(),
+    objectKey: varchar('objectKey', { length: 512 }).notNull(),
+    fileSize: bigint('fileSize', { mode: 'number' }).notNull(),
+    lastModified: timestamp('lastModified').notNull(),
+    dbReference: varchar('dbReference', { length: 100 }), // Which DB table has this file's UUID
+    dbRecordId: integer('dbRecordId'), // The ID of the record in the referenced table
+    uuid: varchar('uuid', { length: 36 }), // The UUID stored in the database
+    scanDate: timestamp('scanDate').defaultNow().notNull(),
+  },
+  (table) => ({
+    fileHashIndex: index('duplicate_files_file_hash_idx').on(table.fileHash),
+    fileHashBucketUnique: index('duplicate_files_hash_bucket_unique_idx').on(
+      table.fileHash,
+      table.bucketName,
+    ),
+  }),
+)
 
 export const usageAlertConfig = pgTable('usageAlertConfig', {
   id: serial('id').primaryKey(),
