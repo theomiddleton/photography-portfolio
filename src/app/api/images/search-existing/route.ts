@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams
     const query = searchParams.get('query') || ''
-    const bucket = searchParams.get('bucket') // Optional filter by bucket type
+    const bucketParam = searchParams.get('bucket') // Optional filter by bucket type
+    const bucket = bucketParam === 'all' ? null : bucketParam // Treat 'all' as no filter
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
