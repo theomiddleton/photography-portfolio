@@ -146,7 +146,7 @@ export function ExistingImageBrowser({
   const getSourceBadgeVariant = (source: string) => {
     switch (source) {
       case 'main': return 'default'
-      case 'custom': return 'secondary' 
+      case 'custom': return 'default' 
       case 'gallery': return 'outline'
       default: return 'default'
     }
