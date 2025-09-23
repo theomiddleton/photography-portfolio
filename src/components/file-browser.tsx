@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '~/components/ui/dialog'
+import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Label } from '~/components/ui/label'
 import {
   Grid3X3,
@@ -44,6 +45,9 @@ import {
   FileAudio,
   Archive,
   Copy,
+  AlertTriangle,
+  CheckCircle,
+  X,
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import Image from 'next/image'
@@ -205,6 +209,13 @@ export function FileBrowser() {
   const [dragError, setDragError] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
   const [isUploading, setIsUploading] = useState(false)
+  
+  // Page alert states
+  const [alertMessage, setAlertMessage] = useState<{
+    type: 'success' | 'error' | 'warning' | null
+    title: string
+    message: string
+  }>({ type: null, title: '', message: '' })
 
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(
@@ -238,6 +249,21 @@ export function FileBrowser() {
   useEffect(() => {
     loadFiles()
   }, [currentPath, currentBucket])
+
+  // Helper function to show page alerts
+  const showAlert = (type: 'success' | 'error' | 'warning', title: string, message: string) => {
+    setAlertMessage({ type, title, message })
+    // Auto-hide success and warning alerts after 5 seconds
+    if (type !== 'error') {
+      setTimeout(() => {
+        setAlertMessage({ type: null, title: '', message: '' })
+      }, 5000)
+    }
+  }
+
+  const hideAlert = () => {
+    setAlertMessage({ type: null, title: '', message: '' })
+  }
 
   const loadFiles = async () => {
     setLoading(true)
@@ -518,7 +544,7 @@ export function FileBrowser() {
     setDragError(null)
     
     if (!currentBucket) {
-      alert('Cannot upload to root. Please select a bucket first.')
+      showAlert('error', 'Upload Blocked', 'Cannot upload to root. Please select a bucket first.')
       return
     }
     
@@ -530,11 +556,12 @@ export function FileBrowser() {
 
   const handleUpload = async (files: FileList | null) => {
     if (!files || !currentBucket) {
-      alert('Cannot upload: No bucket selected')
+      showAlert('error', 'Upload Failed', 'Cannot upload: No bucket selected')
       return
     }
 
     setIsUploading(true)
+    hideAlert() // Clear any existing alerts
     const uploadErrors: string[] = []
     const uploadWarnings: string[] = []
     const totalFiles = files.length
@@ -593,7 +620,7 @@ export function FileBrowser() {
                   setUploadProgress(prev => ({ ...prev, [fileId]: 100 }))
                   resolve()
                 } else {
-                  // Handle HTTP error status
+                  // Handle HTTP error status with improved error messages
                   let errorMessage = `HTTP ${xhr.status}`
                   try {
                     const errorResult = JSON.parse(xhr.responseText)
@@ -602,7 +629,15 @@ export function FileBrowser() {
                       errorMessage += `: ${errorResult.details.join(', ')}`
                     }
                   } catch {
-                    errorMessage += `: ${xhr.responseText.substring(0, 100)}`
+                    // Handle specific error cases
+                    if (xhr.status === 413) {
+                      // File too large error - check file size and provide specific guidance
+                      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1)
+                      const bucketLimit = siteConfig.uploadLimits[currentBucket as keyof typeof siteConfig.uploadLimits] || 20
+                      errorMessage = `File too large (${fileSizeMB}MB). Maximum allowed size for this bucket is ${bucketLimit}MB. Please compress the file or split it into smaller parts.`
+                    } else {
+                      errorMessage += `: ${xhr.responseText.substring(0, 100)}`
+                    }
                   }
                   reject(new Error(errorMessage))
                 }
@@ -629,7 +664,7 @@ export function FileBrowser() {
           completedFiles++
           
         } catch (error) {
-          uploadErrors.push(`Failed to upload ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          uploadErrors.push(`${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
           setUploadProgress(prev => ({ ...prev, [fileId]: -1 })) // -1 indicates error
         }
       }
@@ -639,17 +674,20 @@ export function FileBrowser() {
         setUploadProgress({})
       }, 3000)
 
-      // Show results to user
+      // Show results to user with page alerts instead of browser alerts
       if (uploadErrors.length > 0) {
         console.error('Upload errors:', uploadErrors)
-        alert(`Upload completed with errors:\n${uploadErrors.join('\n')}`)
+        const errorTitle = completedFiles > 0 ? 'Upload Completed with Errors' : 'Upload Failed'
+        const errorMessage = uploadErrors.join('\n')
+        showAlert('error', errorTitle, errorMessage)
       } else if (completedFiles > 0) {
         console.log(`Successfully uploaded ${completedFiles} file(s)`)
+        showAlert('success', 'Upload Complete', `Successfully uploaded ${completedFiles} file${completedFiles > 1 ? 's' : ''}`)
       }
       
       if (uploadWarnings.length > 0) {
         console.warn('Upload warnings:', uploadWarnings)
-        alert(`Upload warnings:\n${uploadWarnings.join('\n')}`)
+        showAlert('warning', 'Upload Warnings', uploadWarnings.join('\n'))
       }
 
       // Reload file list to show new files
@@ -657,7 +695,7 @@ export function FileBrowser() {
       
     } catch (error) {
       console.error('Upload failed:', error)
-      alert('Upload failed due to an unexpected error')
+      showAlert('error', 'Upload Failed', 'Upload failed due to an unexpected error')
     } finally {
       setIsUploading(false)
     }
@@ -729,7 +767,7 @@ export function FileBrowser() {
     <div
       className={cn(
         "file-browser-container flex h-screen flex-col bg-background relative",
-        isDragOver && currentBucket && "bg-blue-50 border-2 border-dashed border-blue-300",
+        isDragOver && currentBucket && "bg-primary/5 border-2 border-dashed border-primary/30",
         isDragOver && !currentBucket && "bg-red-50 border-2 border-dashed border-red-300"
       )}
       tabIndex={-1}
@@ -745,7 +783,7 @@ export function FileBrowser() {
             "rounded-lg p-8 text-center shadow-lg",
             dragError 
               ? "bg-red-100 border border-red-300 text-red-700" 
-              : "bg-blue-100 border border-blue-300 text-blue-700"
+              : "bg-primary/10 border border-primary/30 text-primary"
           )}>
             <div className="mb-4">
               {dragError ? (
@@ -753,8 +791,8 @@ export function FileBrowser() {
                   <Upload className="w-8 h-8 text-red-600" />
                 </div>
               ) : (
-                <div className="flex items-center justify-center w-16 h-16 mx-auto bg-blue-200 rounded-full">
-                  <Upload className="w-8 h-8 text-blue-600" />
+                <div className="flex items-center justify-center w-16 h-16 mx-auto bg-primary/20 rounded-full">
+                  <Upload className="w-8 h-8 text-primary" />
                 </div>
               )}
             </div>
@@ -781,7 +819,7 @@ export function FileBrowser() {
                     <span className="truncate max-w-32" title={fileName}>{fileName}</span>
                     <span className={cn(
                       "text-xs",
-                      progress === -1 ? "text-red-600" : progress === 100 ? "text-green-600" : "text-blue-600"
+                      progress === -1 ? "text-red-600" : progress === 100 ? "text-green-600" : "text-primary"
                     )}>
                       {progress === -1 ? 'Error' : progress === 100 ? 'Complete' : `${Math.round(progress)}%`}
                     </span>
@@ -790,7 +828,7 @@ export function FileBrowser() {
                     <div 
                       className={cn(
                         "h-2 rounded-full transition-all duration-300",
-                        progress === -1 ? "bg-red-500" : progress === 100 ? "bg-green-500" : "bg-blue-500"
+                        progress === -1 ? "bg-red-500" : progress === 100 ? "bg-green-500" : "bg-primary"
                       )}
                       style={{ width: `${progress === -1 ? 100 : Math.max(0, Math.min(100, progress))}%` }}
                     />
@@ -840,6 +878,41 @@ export function FileBrowser() {
             </Button>
           </div>
         </div>
+
+        {/* Page Alert */}
+        {alertMessage.type && (
+          <div className="mb-4">
+            <Alert 
+              variant={alertMessage.type === 'error' ? 'destructive' : 'default'}
+              className={cn(
+                alertMessage.type === 'success' && "border-green-500 bg-green-50 text-green-700",
+                alertMessage.type === 'warning' && "border-yellow-500 bg-yellow-50 text-yellow-700"
+              )}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-2">
+                  {alertMessage.type === 'success' && <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />}
+                  {alertMessage.type === 'error' && <AlertTriangle className="h-4 w-4 mt-0.5 text-red-600" />}
+                  {alertMessage.type === 'warning' && <AlertTriangle className="h-4 w-4 mt-0.5 text-yellow-600" />}
+                  <div>
+                    <div className="font-medium">{alertMessage.title}</div>
+                    <AlertDescription className="mt-1 whitespace-pre-line">
+                      {alertMessage.message}
+                    </AlertDescription>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={hideAlert}
+                  className="ml-2 h-6 w-6 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </Alert>
+          </div>
+        )}
 
         {/* Navigation and Search */}
         <div className="mb-4 flex items-center gap-4">
