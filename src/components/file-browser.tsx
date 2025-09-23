@@ -189,7 +189,6 @@ const getFileIcon = (file: S3File) => {
   return File
 }
 
-// File Browser Component
 export function FileBrowser() {
   const [files, setFiles] = useState<S3File[]>([])
   const [loading, setLoading] = useState(true)
@@ -200,6 +199,12 @@ export function FileBrowser() {
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set())
   const [currentPath, setCurrentPath] = useState('')
   const [currentBucket, setCurrentBucket] = useState('')
+
+  // Enhanced upload states
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [dragError, setDragError] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
+  const [isUploading, setIsUploading] = useState(false)
 
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(
@@ -473,66 +478,188 @@ export function FileBrowser() {
     setSelectedFiles(new Set())
   }
 
-  const handleUpload = async (files: FileList | null) => {
-    if (!files || !currentBucket) return
+  // Enhanced drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    // Check if we're in a valid upload location
+    if (!currentBucket) {
+      setDragError('Cannot upload to root. Please select a bucket first.')
+      setIsDragOver(true)
+      return
+    }
+    
+    // Clear any previous errors and show positive feedback
+    setDragError(null)
+    setIsDragOver(true)
+  }
 
-    setLoading(true)
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    // Only hide drag state if leaving the main container
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false)
+      setDragError(null)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+    setDragError(null)
+    
+    if (!currentBucket) {
+      alert('Cannot upload to root. Please select a bucket first.')
+      return
+    }
+    
+    const files = e.dataTransfer.files
+    if (files.length > 0) {
+      handleUpload(files)
+    }
+  }
+
+  const handleUpload = async (files: FileList | null) => {
+    if (!files || !currentBucket) {
+      alert('Cannot upload: No bucket selected')
+      return
+    }
+
+    setIsUploading(true)
     const uploadErrors: string[] = []
     const uploadWarnings: string[] = []
+    const totalFiles = files.length
+    let completedFiles = 0
 
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
+        const fileId = `${file.name}-${Date.now()}-${i}`
         
-        // Create FormData for upload
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('bucket', currentBucket)
-        formData.append('prefix', currentPath)
-        formData.append('allowAnyType', 'true') // Allow any file type for admin file browser
-        formData.append('extractExif', file.type.startsWith('image/') ? 'true' : 'false')
-
         try {
-          const response = await fetch('/api/files/upload', {
-            method: 'POST',
-            body: formData,
+          // Initialize progress
+          setUploadProgress(prev => ({ ...prev, [fileId]: 0 }))
+          
+          // Create FormData for upload
+          const formData = new FormData()
+          formData.append('file', file)
+          formData.append('bucket', currentBucket)
+          formData.append('prefix', currentPath)
+          formData.append('allowAnyType', 'true')
+          formData.append('extractExif', file.type.startsWith('image/') ? 'true' : 'false')
+
+          // Create XMLHttpRequest for progress tracking
+          const xhr = new XMLHttpRequest()
+          
+          // Track upload progress
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              const percentComplete = (event.loaded / event.total) * 100
+              setUploadProgress(prev => ({ ...prev, [fileId]: percentComplete }))
+            }
           })
 
-          const result = await response.json()
+          // Handle completion
+          const uploadPromise = new Promise<void>((resolve, reject) => {
+            xhr.addEventListener('load', async () => {
+              try {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                  // Try to parse JSON response
+                  let result
+                  try {
+                    result = JSON.parse(xhr.responseText)
+                  } catch (jsonError) {
+                    // If JSON parsing fails, check if it's an HTML error page
+                    if (xhr.responseText.includes('<!DOCTYPE html>') || xhr.responseText.includes('<html>')) {
+                      throw new Error('Server returned an error page. File may be too large or request invalid.')
+                    } else {
+                      throw new Error(`Invalid server response: ${xhr.responseText.substring(0, 100)}...`)
+                    }
+                  }
+                  
+                  if (result.warnings && result.warnings.length > 0) {
+                    uploadWarnings.push(`${file.name}: ${result.warnings.join(', ')}`)
+                  }
+                  
+                  setUploadProgress(prev => ({ ...prev, [fileId]: 100 }))
+                  resolve()
+                } else {
+                  // Handle HTTP error status
+                  let errorMessage = `HTTP ${xhr.status}`
+                  try {
+                    const errorResult = JSON.parse(xhr.responseText)
+                    errorMessage = errorResult.error || errorMessage
+                    if (errorResult.details) {
+                      errorMessage += `: ${errorResult.details.join(', ')}`
+                    }
+                  } catch {
+                    errorMessage += `: ${xhr.responseText.substring(0, 100)}`
+                  }
+                  reject(new Error(errorMessage))
+                }
+              } catch (error) {
+                reject(error)
+              }
+            })
 
-          if (!response.ok) {
-            uploadErrors.push(`Failed to upload ${file.name}: ${result.error || 'Unknown error'}`)
-            if (result.details) {
-              uploadErrors.push(...result.details.map((detail: string) => `  - ${detail}`))
-            }
-          } else {
-            if (result.warnings && result.warnings.length > 0) {
-              uploadWarnings.push(`${file.name}: ${result.warnings.join(', ')}`)
-            }
-          }
+            xhr.addEventListener('error', () => {
+              reject(new Error('Network error occurred during upload'))
+            })
+
+            xhr.addEventListener('timeout', () => {
+              reject(new Error('Upload timed out'))
+            })
+          })
+
+          // Start the upload
+          xhr.open('POST', '/api/files/upload')
+          xhr.timeout = 300000 // 5 minutes timeout
+          xhr.send(formData)
+          
+          await uploadPromise
+          completedFiles++
+          
         } catch (error) {
-          uploadErrors.push(`Failed to upload ${file.name}: ${error instanceof Error ? error.message : 'Network error'}`)
+          uploadErrors.push(`Failed to upload ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          setUploadProgress(prev => ({ ...prev, [fileId]: -1 })) // -1 indicates error
         }
       }
+
+      // Clear progress after a delay
+      setTimeout(() => {
+        setUploadProgress({})
+      }, 3000)
 
       // Show results to user
       if (uploadErrors.length > 0) {
         console.error('Upload errors:', uploadErrors)
-        alert(`Upload errors:\n${uploadErrors.join('\n')}`)
+        alert(`Upload completed with errors:\n${uploadErrors.join('\n')}`)
+      } else if (completedFiles > 0) {
+        console.log(`Successfully uploaded ${completedFiles} file(s)`)
       }
       
       if (uploadWarnings.length > 0) {
         console.warn('Upload warnings:', uploadWarnings)
-        // You might want to show warnings in a less intrusive way
+        alert(`Upload warnings:\n${uploadWarnings.join('\n')}`)
       }
 
+      // Reload file list to show new files
       await loadFiles()
-      setUploadFiles(null)
+      
     } catch (error) {
-      console.error('Error uploading files:', error)
+      console.error('Upload failed:', error)
       alert('Upload failed due to an unexpected error')
     } finally {
-      setLoading(false)
+      setIsUploading(false)
     }
   }
 
@@ -600,9 +727,80 @@ export function FileBrowser() {
 
   return (
     <div
-      className="file-browser-container flex h-screen flex-col bg-background"
+      className={cn(
+        "file-browser-container flex h-screen flex-col bg-background relative",
+        isDragOver && currentBucket && "bg-blue-50 border-2 border-dashed border-blue-300",
+        isDragOver && !currentBucket && "bg-red-50 border-2 border-dashed border-red-300"
+      )}
       tabIndex={-1}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
+      {/* Drag overlay for visual feedback */}
+      {isDragOver && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
+          <div className={cn(
+            "rounded-lg p-8 text-center shadow-lg",
+            dragError 
+              ? "bg-red-100 border border-red-300 text-red-700" 
+              : "bg-blue-100 border border-blue-300 text-blue-700"
+          )}>
+            <div className="mb-4">
+              {dragError ? (
+                <div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-200 rounded-full">
+                  <Upload className="w-8 h-8 text-red-600" />
+                </div>
+              ) : (
+                <div className="flex items-center justify-center w-16 h-16 mx-auto bg-blue-200 rounded-full">
+                  <Upload className="w-8 h-8 text-blue-600" />
+                </div>
+              )}
+            </div>
+            <h3 className="text-xl font-semibold mb-2">
+              {dragError ? 'Upload Blocked' : 'Ready to Upload'}
+            </h3>
+            <p className="text-sm">
+              {dragError || `Drop files here to upload to ${currentBucket}${currentPath ? `/${currentPath}` : ''}`}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Upload progress overlay */}
+      {isUploading && Object.keys(uploadProgress).length > 0 && (
+        <div className="absolute top-4 right-4 z-40 bg-white border border-gray-300 rounded-lg shadow-lg p-4 max-w-sm">
+          <h4 className="font-semibold mb-2">Upload Progress</h4>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {Object.entries(uploadProgress).map(([fileId, progress]) => {
+              const fileName = fileId.split('-')[0]
+              return (
+                <div key={fileId} className="text-sm">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="truncate max-w-32" title={fileName}>{fileName}</span>
+                    <span className={cn(
+                      "text-xs",
+                      progress === -1 ? "text-red-600" : progress === 100 ? "text-green-600" : "text-blue-600"
+                    )}>
+                      {progress === -1 ? 'Error' : progress === 100 ? 'Complete' : `${Math.round(progress)}%`}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={cn(
+                        "h-2 rounded-full transition-all duration-300",
+                        progress === -1 ? "bg-red-500" : progress === 100 ? "bg-green-500" : "bg-blue-500"
+                      )}
+                      style={{ width: `${progress === -1 ? 100 : Math.max(0, Math.min(100, progress))}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="border-b p-4">
         <div className="mb-4 flex items-center justify-between">
@@ -614,13 +812,23 @@ export function FileBrowser() {
                 multiple
                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                 onChange={(e) => handleUpload(e.target.files)}
-                disabled={!currentBucket}
+                disabled={!currentBucket || isUploading}
               />
-              <Button variant="outline" size="sm" disabled={!currentBucket}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={!currentBucket || isUploading}
+                className={cn(
+                  !currentBucket && "border-red-300 text-red-500"
+                )}
+              >
                 <Upload className="mr-2 h-4 w-4" />
-                Upload
+                {isUploading ? 'Uploading...' : 'Upload'}
               </Button>
             </div>
+            {!currentBucket && (
+              <span className="text-sm text-red-500">Select a bucket first</span>
+            )}
             <Button
               variant="outline"
               size="sm"
