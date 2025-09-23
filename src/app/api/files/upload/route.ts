@@ -4,6 +4,14 @@ import { r2 } from '~/lib/r2'
 import { getSession } from '~/lib/auth/auth'
 import { extractExifData, validateExifData } from '~/lib/exif'
 import { uploadRateLimit, getClientIP } from '~/lib/rate-limit'
+import { 
+  validateFileUpload, 
+  validateFileContent, 
+  generateSecureStoragePath,
+  createBucketValidationOptions,
+  secureFileTypes 
+} from '~/lib/file-security'
+import { logAction } from '~/lib/logging'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +20,7 @@ export async function POST(request: NextRequest) {
     const rateLimitResult = await uploadRateLimit.check(clientIP)
     
     if (!rateLimitResult.success) {
+      await logAction('files-upload', `Rate limit exceeded for IP: ${clientIP}`)
       return NextResponse.json(
         { error: 'Rate limit exceeded' },
         { status: 429 }
@@ -22,16 +31,19 @@ export async function POST(request: NextRequest) {
 
     // If there's no session or the user is not an admin, return unauthorized
     if (!session?.role || session.role !== 'admin') {
+      await logAction('files-upload', `Unauthorized upload attempt from IP: ${clientIP}`)
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 401 },
       )
     }
+
     const formData = await request.formData()
     const file = formData.get('file') as File
     const bucket = formData.get('bucket') as string
     const prefix = (formData.get('prefix') as string) || ''
     const extractExif = formData.get('extractExif') === 'true'
+    const allowAnyType = formData.get('allowAnyType') === 'true'
 
     if (!file) {
       return NextResponse.json({ error: 'File is required' }, { status: 400 })
@@ -41,22 +53,58 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Bucket is required' }, { status: 400 })
     }
 
+    // Get bucket-specific validation options
+    const bucketOptions = createBucketValidationOptions(bucket)
+    
+    // Perform comprehensive file validation
+    const validationResult = await validateFileUpload(file, {
+      bucket,
+      allowAnyType: allowAnyType || bucketOptions.allowAnyType,
+      maxSize: bucketOptions.maxSize,
+      customValidation: async (file: File) => {
+        // Perform content validation for additional security
+        const contentErrors = await validateFileContent(file)
+        return contentErrors
+      }
+    })
+
+    if (!validationResult.isValid) {
+      await logAction('files-upload', `File validation failed for ${file.name}: ${validationResult.errors.join(', ')}`)
+      return NextResponse.json({ 
+        error: 'File validation failed', 
+        details: validationResult.errors,
+        warnings: validationResult.warnings 
+      }, { status: 400 })
+    }
+
+    // Log warnings if any
+    if (validationResult.warnings.length > 0) {
+      await logAction('files-upload', `File upload warnings for ${file.name}: ${validationResult.warnings.join(', ')}`)
+    }
+
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
-    const key = `${prefix}${file.name}`
+    
+    // Generate secure storage path
+    const key = generateSecureStoragePath(
+      validationResult.sanitizedName, 
+      bucket, 
+      session.id, 
+      prefix
+    )
 
     // Extract EXIF data if requested and file is an image
     let exifData = null
-    if (extractExif && file.type.startsWith('image/')) {
+    if (extractExif && validationResult.detectedType === 'image') {
       try {
         const rawExifData = await extractExifData(arrayBuffer)
         exifData = validateExifData(rawExifData)
         console.log(
-          `Extracted EXIF data for ${file.name}:`,
+          `Extracted EXIF data for ${validationResult.sanitizedName}:`,
           Object.keys(exifData),
         )
       } catch (error) {
-        console.warn(`Failed to extract EXIF data from ${file.name}:`, error)
+        console.warn(`Failed to extract EXIF data from ${validationResult.sanitizedName}:`, error)
         // Don't fail the upload if EXIF extraction fails
       }
     }
@@ -66,24 +114,48 @@ export async function POST(request: NextRequest) {
       Key: key,
       Body: buffer,
       ContentType: file.type,
+      // Add security metadata
+      Metadata: {
+        'uploaded-by': session.id,
+        'upload-timestamp': new Date().toISOString(),
+        'original-filename': file.name,
+        'sanitized-filename': validationResult.sanitizedName,
+        'detected-type': validationResult.detectedType || 'unknown',
+        'file-hash': await generateFileHash(buffer),
+      },
     })
 
     await r2.send(command)
 
+    // Log successful upload
+    await logAction('files-upload', `Successfully uploaded ${validationResult.sanitizedName} to ${bucket}/${key} by ${session.email}`)
+
     const response = {
       success: true,
       key,
-      name: file.name,
+      originalName: file.name,
+      sanitizedName: validationResult.sanitizedName,
       size: file.size,
+      detectedType: validationResult.detectedType,
+      warnings: validationResult.warnings,
       ...(exifData && { exifData }),
     }
 
     return NextResponse.json(response)
   } catch (error) {
     console.error('Error uploading file:', error)
+    await logAction('files-upload', `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     return NextResponse.json(
       { error: 'Failed to upload file' },
       { status: 500 },
     )
   }
+}
+
+/**
+ * Generate a hash for file content to detect duplicates and for integrity checking
+ */
+async function generateFileHash(buffer: Buffer): Promise<string> {
+  const crypto = await import('crypto')
+  return crypto.createHash('sha256').update(buffer).digest('hex').substring(0, 16)
 }

@@ -476,14 +476,63 @@ export function FileBrowser() {
   const handleUpload = async (files: FileList | null) => {
     if (!files || !currentBucket) return
 
+    setLoading(true)
+    const uploadErrors: string[] = []
+    const uploadWarnings: string[] = []
+
     try {
       for (let i = 0; i < files.length; i++) {
-        await s3Api.uploadFile(currentBucket, files[i], currentPath)
+        const file = files[i]
+        
+        // Create FormData for upload
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('bucket', currentBucket)
+        formData.append('prefix', currentPath)
+        formData.append('allowAnyType', 'true') // Allow any file type for admin file browser
+        formData.append('extractExif', file.type.startsWith('image/') ? 'true' : 'false')
+
+        try {
+          const response = await fetch('/api/files/upload', {
+            method: 'POST',
+            body: formData,
+          })
+
+          const result = await response.json()
+
+          if (!response.ok) {
+            uploadErrors.push(`Failed to upload ${file.name}: ${result.error || 'Unknown error'}`)
+            if (result.details) {
+              uploadErrors.push(...result.details.map((detail: string) => `  - ${detail}`))
+            }
+          } else {
+            if (result.warnings && result.warnings.length > 0) {
+              uploadWarnings.push(`${file.name}: ${result.warnings.join(', ')}`)
+            }
+          }
+        } catch (error) {
+          uploadErrors.push(`Failed to upload ${file.name}: ${error instanceof Error ? error.message : 'Network error'}`)
+        }
       }
+
+      // Show results to user
+      if (uploadErrors.length > 0) {
+        console.error('Upload errors:', uploadErrors)
+        alert(`Upload errors:\n${uploadErrors.join('\n')}`)
+      }
+      
+      if (uploadWarnings.length > 0) {
+        console.warn('Upload warnings:', uploadWarnings)
+        // You might want to show warnings in a less intrusive way
+      }
+
       await loadFiles()
       setUploadFiles(null)
     } catch (error) {
       console.error('Error uploading files:', error)
+      alert('Upload failed due to an unexpected error')
+    } finally {
+      setLoading(false)
     }
   }
 

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
+import { Alert, AlertDescription } from '~/components/ui/alert'
 import {
   AlertCircleIcon,
   ImageIcon,
@@ -15,15 +16,17 @@ import {
   Loader2,
   Trash2,
   StopCircle,
+  ShieldCheck,
+  AlertTriangle,
 } from 'lucide-react'
 import { useGenerateMetadata } from '~/hooks/use-generate-metadata'
 import { toast } from 'sonner'
 import { siteConfig } from '~/config/site'
 import {
+  useSecureFileUpload,
   formatBytes,
-  useFileUpload,
-  type FileWithPreview,
-} from '~/hooks/use-file-upload'
+  type SecureFileWithPreview,
+} from '~/hooks/use-secure-file-upload'
 import { isAIEnabledClient } from '~/lib/ai-utils'
 
 interface BatchImageData {
@@ -43,6 +46,7 @@ interface BatchImageData {
   fileName?: string
   stripeProductIds?: string[]
   uploadController?: AbortController
+  validationResult?: import('~/lib/file-security').FileValidationResult
 }
 
 interface PrintSize {
@@ -83,14 +87,40 @@ export function BatchUpload({
   const [pendingCleanup, setPendingCleanup] = useState<Set<string>>(new Set())
   const { generate, loading: aiLoading } = useGenerateMetadata()
 
-  const handleFilesAdded = async (addedFiles: FileWithPreview[]) => {
+  // Use secure file upload hook
+  const [fileUploadState, fileUploadActions] = useSecureFileUpload({
+    bucket,
+    multiple: true,
+    maxFiles,
+    maxSize,
+    accept: bucket === 'image' ? 'image/*' : '*',
+    enableContentValidation: true,
+    onFilesAdded: handleFilesAdded,
+  })
+
+  async function handleFilesAdded(addedFiles: SecureFileWithPreview[]) {
     const newImages: BatchImageData[] = addedFiles
-      .filter((fileItem) => fileItem.file instanceof File)
+      .filter((fileItem) => {
+        if (!(fileItem.file instanceof File)) return false
+        
+        // Check validation result
+        if (fileItem.validationResult && !fileItem.validationResult.isValid) {
+          toast.error(`File ${fileItem.file.name} failed validation: ${fileItem.validationResult.errors.join(', ')}`)
+          return false
+        }
+        
+        // Show warnings if any
+        if (fileItem.validationResult && fileItem.validationResult.warnings.length > 0) {
+          toast.warning(`File ${fileItem.file.name}: ${fileItem.validationResult.warnings.join(', ')}`)
+        }
+        
+        return true
+      })
       .map((fileItem) => ({
         id: fileItem.id,
         file: fileItem.file as File,
-        preview: fileItem.preview,
-        name: (fileItem.file as File).name.split('.')[0],
+        preview: fileItem.preview || '',
+        name: fileItem.validationResult?.sanitizedName || (fileItem.file as File).name.split('.')[0],
         description: '',
         tags: '',
         isSale: bucket === 'image' ? false : false,
@@ -98,6 +128,7 @@ export function BatchUpload({
         uploading: false,
         uploaded: false,
         aiGenerated: false,
+        validationResult: fileItem.validationResult,
       }))
 
     setBatchImages((prev) => [...prev, ...newImages])
@@ -490,23 +521,32 @@ export function BatchUpload({
     setUploadProgress({})
   }
 
-  const [
-    { isDragging, errors },
-    {
-      handleDragEnter,
-      handleDragLeave,
-      handleDragOver,
-      handleDrop,
-      openFileDialog,
-      clearFiles,
-      getInputProps,
-    },
-  ] = useFileUpload({
-    accept: 'image/svg+xml,image/png,image/jpeg,image/jpg,image/gif',
+  const {
+    files, 
+    isDragging, 
+    errors, 
+    warnings, 
+    isValidating
+  } = fileUploadState
+
+  const {
+    handleDragEnter,
+    handleDragLeave,
+    handleDragOver,
+    handleDrop,
+    openFileDialog,
+    clearFiles,
+    getInputProps,
+    clearErrors,
+    clearWarnings,
+  } = fileUploadActions
+  ] = useSecureFileUpload({
+    bucket,
+    accept: bucket === 'image' ? 'image/svg+xml,image/png,image/jpeg,image/jpg,image/gif' : '*',
     maxSize,
     multiple: true,
     maxFiles,
-    initialFiles: [],
+    enableContentValidation: true,
     onFilesAdded: handleFilesAdded,
   })
 
@@ -596,13 +636,39 @@ export function BatchUpload({
         </div>
 
         {errors.length > 0 && (
-          <div
-            className="text-destructive flex items-center gap-1 text-xs"
-            role="alert"
-          >
-            <AlertCircleIcon className="size-3 shrink-0" />
-            <span>{errors[0]}</span>
-          </div>
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-1">
+                {errors.map((error, index) => (
+                  <div key={index}>{error}</div>
+                ))}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {warnings.length > 0 && (
+          <Alert>
+            <ShieldCheck className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-1">
+                <div className="font-medium">Security Warnings:</div>
+                {warnings.map((warning, index) => (
+                  <div key={index} className="text-sm">{warning}</div>
+                ))}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isValidating && (
+          <Alert>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <AlertDescription>
+              Validating files for security...
+            </AlertDescription>
+          </Alert>
         )}
 
         {batchImages.length > 0 && (

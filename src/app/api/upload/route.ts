@@ -23,6 +23,11 @@ import { generateObject } from 'ai'
 import { google } from '@ai-sdk/google'
 import { z } from 'zod'
 import { extractExifData, validateExifData } from '~/lib/exif'
+import { 
+  sanitizeFilename, 
+  generateSecureStoragePath, 
+  createBucketValidationOptions 
+} from '~/lib/file-security'
 
 const MetadataSchema = z.object({
   title: z.string().describe('A creative, descriptive title for the image'),
@@ -145,41 +150,71 @@ export async function POST(request: Request) {
 
   // If there's no session or the user is not an admin, return an error message
   if (!session || session.role !== 'admin') {
+    await logAction('upload', `Unauthorized upload attempt from IP: ${clientIP}`)
     return NextResponse.json(
       { error: 'User is not authenticated, or is not authorized.' },
       { status: 401 },
     )
   }
 
-  const {
-    filename,
-    name,
-    description,
-    tags,
-    isSale,
-    bucket,
-    printSizes,
-    temporary,
-    generateAI,
-  } = await request.json()
-
-  console.log(
-    'upload',
-    `Uploading image: ${filename}, name: ${name}, description: ${description}, tags: ${tags}, isSale: ${isSale}, bucket: ${bucket} printSizes: ${printSizes}`,
-  )
-  // Use waitUntil for non-critical logging
-  waitUntil(
-    logAction(
-      'upload',
-      `Uploading image: ${filename}, name: ${name}, description: ${description}, tags: ${tags}, isSale: ${isSale}, bucket: ${bucket} printSizes: ${printSizes}`,
-    ),
-  )
-
   try {
-    // take the file extention from the filename
-    const fileExtension = filename.split('.').pop()
-    // create a unique key name for the image
+    const body = await request.json()
+    const {
+      filename,
+      contentType,
+      name,
+      description,
+      tags,
+      isSale,
+      bucket,
+      printSizes,
+      temporary,
+      generateAI,
+    } = body
+
+    // Validate required fields
+    if (!filename || !bucket) {
+      return Response.json({ error: 'Filename and bucket are required' }, { status: 400 })
+    }
+
+    // Sanitize filename for security
+    const sanitizedFilename = sanitizeFilename(filename)
+    
+    // Validate bucket type
+    const validBuckets = ['image', 'blog', 'about', 'custom']
+    if (!validBuckets.includes(bucket)) {
+      return Response.json({ error: `Invalid bucket type: ${bucket}` }, { status: 400 })
+    }
+
+    console.log(
+      'upload',
+      `Uploading file: ${sanitizedFilename}, name: ${name}, description: ${description}, tags: ${tags}, isSale: ${isSale}, bucket: ${bucket} printSizes: ${printSizes}`,
+    )
+    
+    // Use waitUntil for non-critical logging
+    waitUntil(
+      logAction(
+        'upload',
+        `Admin ${session.email} uploading: ${sanitizedFilename} to ${bucket} bucket`,
+      ),
+    )
+
+    // Extract file extension securely
+    const fileExtension = sanitizedFilename.includes('.') 
+      ? sanitizedFilename.split('.').pop()?.toLowerCase() 
+      : null
+    
+    if (!fileExtension) {
+      return Response.json({ error: 'File must have a valid extension' }, { status: 400 })
+    }
+
+    // Create a unique key name for the file using UUID
     const keyName = uuidv7()
+    
+    // Generate secure storage path
+    const storagePath = temporary 
+      ? `temp/${keyName}.${fileExtension}`
+      : generateSecureStoragePath(sanitizedFilename, bucket, session.id)
 
     // Determine which bucket to use based on the bucket prop
     const bucketName =
@@ -197,14 +232,38 @@ export async function POST(request: Request) {
       throw new Error(`Invalid bucket type: ${bucket}`)
     }
 
+    // Set secure content type if provided, otherwise infer from extension
+    let secureContentType = contentType
+    if (!secureContentType) {
+      const mimeTypes: Record<string, string> = {
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+        'pdf': 'application/pdf',
+        'txt': 'text/plain',
+        'mp4': 'video/mp4',
+        'mp3': 'audio/mpeg',
+      }
+      secureContentType = mimeTypes[fileExtension] || 'application/octet-stream'
+    }
+
     const command = new PutObjectCommand({
       Bucket: bucketName,
-      Key: keyName + '.' + fileExtension,
+      Key: storagePath,
+      ContentType: secureContentType,
+      // Add security headers
+      Metadata: {
+        'uploaded-by': session.id,
+        'upload-timestamp': new Date().toISOString(),
+        'original-filename': sanitizedFilename,
+      },
     })
 
     const url = await getSignedUrl(r2, command, { expiresIn: 60 })
 
-    const newFileName = keyName + '.' + fileExtension
+    const newFileName = storagePath
     const fileUrl = `${
       bucket === 'image'
         ? siteConfig.imageBucketUrl
@@ -219,6 +278,7 @@ export async function POST(request: Request) {
 
     // If this is a temporary upload (for AI processing), return early
     if (temporary) {
+      await logAction('upload', `Temporary upload created: ${storagePath}`)
       return Response.json({ url, fileUrl, id: keyName, fileName: newFileName })
     }
 
