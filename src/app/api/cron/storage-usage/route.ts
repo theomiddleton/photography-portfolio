@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ListObjectsV2Command } from '@aws-sdk/client-s3'
 import { r2 } from '~/lib/r2'
 import { db } from '~/server/db'
-import { storageUsage, usageAlertConfig, globalStorageConfig } from '~/server/db/schema'
+import {
+  storageUsage,
+  usageAlertConfig,
+  globalStorageConfig,
+} from '~/server/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { sendUsageAlert } from '~/lib/actions/storage-alerts'
+import { Redis } from '@upstash/redis'
+import { env } from '~/env.js'
 
 const BUCKET_NAMES = [
   process.env.R2_IMAGE_BUCKET_NAME,
@@ -22,6 +28,20 @@ const BUCKET_DISPLAY_NAMES: Record<string, string> = {
   [process.env.R2_FILES_BUCKET_NAME || '']: 'Files',
 }
 
+// Keep Upstash Redis active on every cron invocation
+const redis = new Redis({
+  url: env.UPSTASH_REDIS_REST_URL,
+  token: env.UPSTASH_REDIS_REST_TOKEN,
+})
+
+async function keepRedisAlive() {
+  try {
+    await redis.ping()
+  } catch (err) {
+    console.warn('Redis keepalive ping failed', err)
+  }
+}
+
 async function calculateBucketUsage(bucketName: string) {
   let totalSize = 0
   let objectCount = 0
@@ -35,7 +55,7 @@ async function calculateBucketUsage(bucketName: string) {
 
     try {
       const response = await r2.send(command)
-      
+
       if (response.Contents) {
         for (const object of response.Contents) {
           totalSize += object.Size || 0
@@ -62,10 +82,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Touch Redis to prevent inactivity eviction
+    await keepRedisAlive()
+
     // Get or create global storage config
     let [globalConfig] = await db.select().from(globalStorageConfig).limit(1)
     if (!globalConfig) {
-      [globalConfig] = await db
+      ;[globalConfig] = await db
         .insert(globalStorageConfig)
         .values({})
         .returning()
@@ -78,17 +101,22 @@ export async function GET(request: NextRequest) {
     const bucketUsages = []
     for (const bucketName of BUCKET_NAMES) {
       try {
-        const { totalSize, objectCount } = await calculateBucketUsage(bucketName)
+        const { totalSize, objectCount } =
+          await calculateBucketUsage(bucketName)
         bucketUsages.push({ bucketName, totalSize, objectCount })
         totalUsageBytes += totalSize
       } catch (error) {
-        console.error(`Failed to calculate usage for bucket ${bucketName}:`, error)
+        console.error(
+          `Failed to calculate usage for bucket ${bucketName}:`,
+          error,
+        )
         bucketUsages.push({ bucketName, totalSize: 0, objectCount: 0, error })
       }
     }
 
     // Calculate total usage percentage
-    const totalUsagePercent = (totalUsageBytes / globalConfig.totalStorageLimit) * 100
+    const totalUsagePercent =
+      (totalUsageBytes / globalConfig.totalStorageLimit) * 100
 
     // Check for global alerts
     let globalAlertTriggered = false
@@ -97,7 +125,8 @@ export async function GET(request: NextRequest) {
     if (totalUsagePercent >= globalConfig.criticalThresholdPercent) {
       // Critical alert for total usage
       const hoursSinceLastCritical = globalConfig.lastCriticalEmailSent
-        ? (Date.now() - globalConfig.lastCriticalEmailSent.getTime()) / (1000 * 60 * 60)
+        ? (Date.now() - globalConfig.lastCriticalEmailSent.getTime()) /
+          (1000 * 60 * 60)
         : Infinity
 
       if (globalConfig.emailAlertsEnabled && hoursSinceLastCritical >= 24) {
@@ -119,7 +148,8 @@ export async function GET(request: NextRequest) {
     } else if (totalUsagePercent >= globalConfig.warningThresholdPercent) {
       // Warning alert for total usage
       const hoursSinceLastWarning = globalConfig.lastWarningEmailSent
-        ? (Date.now() - globalConfig.lastWarningEmailSent.getTime()) / (1000 * 60 * 60)
+        ? (Date.now() - globalConfig.lastWarningEmailSent.getTime()) /
+          (1000 * 60 * 60)
         : Infinity
 
       if (globalConfig.emailAlertsEnabled && hoursSinceLastWarning >= 72) {
@@ -169,7 +199,7 @@ export async function GET(request: NextRequest) {
           .where(eq(usageAlertConfig.bucketName, bucketName))
 
         if (!alertConfig) {
-          [alertConfig] = await db
+          ;[alertConfig] = await db
             .insert(usageAlertConfig)
             .values({
               bucketName,
@@ -181,7 +211,8 @@ export async function GET(request: NextRequest) {
         }
 
         const displayName = BUCKET_DISPLAY_NAMES[bucketName] || bucketName
-        const bucketUsagePercent = (totalSize / globalConfig.totalStorageLimit) * 100
+        const bucketUsagePercent =
+          (totalSize / globalConfig.totalStorageLimit) * 100
 
         results.push({
           bucketName: displayName,
@@ -199,8 +230,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       results,
       totalUsage: {
         totalBytes: totalUsageBytes,
@@ -214,7 +245,7 @@ export async function GET(request: NextRequest) {
     console.error('Storage usage calculation failed:', error)
     return NextResponse.json(
       { error: 'Failed to calculate storage usage' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -223,11 +254,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const force = searchParams.get('force') === 'true'
-  
+
   if (!force) {
     return NextResponse.json(
       { error: 'Use ?force=true to manually trigger storage calculation' },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
@@ -238,6 +269,9 @@ export async function POST(request: NextRequest) {
 
   const url = new URL(request.url)
   const newRequest = new NextRequest(url, { headers })
+
+  // Touch Redis to prevent inactivity eviction
+  await keepRedisAlive()
 
   return GET(newRequest)
 }

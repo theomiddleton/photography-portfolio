@@ -5,6 +5,8 @@ import { db } from '~/server/db'
 import { duplicateFiles, imageData, customImgData } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { createHash } from 'crypto'
+import { Redis } from '@upstash/redis'
+import { env } from '~/env.js'
 
 const BUCKET_NAMES = [
   process.env.R2_IMAGE_BUCKET_NAME,
@@ -22,6 +24,20 @@ const BUCKET_DISPLAY_NAMES: Record<string, string> = {
   [process.env.R2_FILES_BUCKET_NAME || '']: 'Files',
 }
 
+// Keep Upstash Redis active on every cron invocation
+const redis = new Redis({
+  url: env.UPSTASH_REDIS_REST_URL,
+  token: env.UPSTASH_REDIS_REST_TOKEN,
+})
+
+async function keepRedisAlive() {
+  try {
+    await redis.ping()
+  } catch (err) {
+    console.warn('Redis keepalive ping failed', err)
+  }
+}
+
 interface FileInfo {
   key: string
   size: number
@@ -29,28 +45,31 @@ interface FileInfo {
   bucket: string
 }
 
-async function calculateFileHash(bucket: string, key: string): Promise<string | null> {
+async function calculateFileHash(
+  bucket: string,
+  key: string,
+): Promise<string | null> {
   try {
     const command = new GetObjectCommand({
       Bucket: bucket,
       Key: key,
     })
-    
+
     const response = await r2.send(command)
-    
+
     if (!response.Body) {
       return null
     }
 
     const hash = createHash('sha256')
     const body = response.Body as any
-    
+
     // Handle different body types
     if (body.getReader) {
       // ReadableStream
       const reader = body.getReader()
       let done = false
-      
+
       while (!done) {
         const { value, done: readerDone } = await reader.read()
         done = readerDone
@@ -66,7 +85,7 @@ async function calculateFileHash(bucket: string, key: string): Promise<string | 
       // Buffer or other format
       hash.update(body)
     }
-    
+
     return hash.digest('hex')
   } catch (error) {
     console.error(`Failed to calculate hash for ${bucket}/${key}:`, error)
@@ -116,6 +135,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Touch Redis to prevent inactivity eviction
+    await keepRedisAlive()
+
     console.log('Starting duplicate file scan...')
 
     // Clear existing duplicate records
@@ -135,7 +157,7 @@ export async function GET(request: NextRequest) {
           })
 
           const response = await r2.send(command)
-          
+
           if (response.Contents) {
             for (const object of response.Contents) {
               if (object.Key && object.Size && object.LastModified) {
@@ -160,7 +182,7 @@ export async function GET(request: NextRequest) {
 
     // Group files by size (potential duplicates)
     const sizeGroups = new Map<number, FileInfo[]>()
-    
+
     for (const file of allFiles) {
       if (!sizeGroups.has(file.size)) {
         sizeGroups.set(file.size, [])
@@ -169,10 +191,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Only process groups with more than one file
-    const potentialDuplicateGroups = Array.from(sizeGroups.entries())
-      .filter(([size, files]) => files.length > 1)
+    const potentialDuplicateGroups = Array.from(sizeGroups.entries()).filter(
+      ([size, files]) => files.length > 1,
+    )
 
-    console.log(`Found ${potentialDuplicateGroups.length} size groups with potential duplicates`)
+    console.log(
+      `Found ${potentialDuplicateGroups.length} size groups with potential duplicates`,
+    )
 
     let duplicatesFound = 0
 
@@ -182,7 +207,7 @@ export async function GET(request: NextRequest) {
 
       for (const file of files) {
         const hash = await calculateFileHash(file.bucket, file.key)
-        
+
         if (hash) {
           if (!hashGroups.has(hash)) {
             hashGroups.set(hash, [])
@@ -217,7 +242,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log(`Duplicate scan completed. Found ${duplicatesFound} duplicate files.`)
+    console.log(
+      `Duplicate scan completed. Found ${duplicatesFound} duplicate files.`,
+    )
 
     return NextResponse.json({
       success: true,
@@ -230,7 +257,7 @@ export async function GET(request: NextRequest) {
     console.error('Duplicate scan failed:', error)
     return NextResponse.json(
       { error: 'Failed to scan for duplicates' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -239,11 +266,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const force = searchParams.get('force') === 'true'
-  
+
   if (!force) {
     return NextResponse.json(
       { error: 'Use ?force=true to manually trigger duplicate scan' },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
@@ -254,6 +281,9 @@ export async function POST(request: NextRequest) {
 
   const url = new URL(request.url)
   const newRequest = new NextRequest(url, { headers })
+
+  // Touch Redis to prevent inactivity eviction
+  await keepRedisAlive()
 
   return GET(newRequest)
 }
