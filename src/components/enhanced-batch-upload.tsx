@@ -36,25 +36,80 @@ export function EnhancedBatchUpload({
     setIsProcessingExisting(true)
     
     try {
-      // Process each selected image
+      const results: { success: number; errors: string[] } = { success: 0, errors: [] }
+      
+      // Process each selected image with proper error handling
       for (const image of images) {
-        if (galleryId) {
-          // If we're adding to a gallery, copy the reference to the gallery
-          const response = await fetch('/api/images/copy-reference', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              imageId: image.id,
-              sourceType: image.source,
-              targetBucket: bucket,
-              galleryId,
-            }),
-          })
+        try {
+          if (galleryId) {
+            // If we're adding to a gallery, copy the reference to the gallery
+            const response = await fetch('/api/images/copy-reference', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageId: image.id,
+                sourceType: image.source,
+                targetBucket: bucket,
+                galleryId,
+              }),
+            })
 
-          if (!response.ok) {
-            throw new Error(`Failed to add ${image.name} to gallery`)
+            if (!response.ok) {
+              const errorData = await response.json()
+              throw new Error(errorData.error || `Failed to add ${image.name} to gallery`)
+            }
+            
+            results.success++
+          } else {
+            // Regular image copy without gallery association
+            const response = await fetch('/api/images/copy-reference', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageId: image.id,
+                sourceType: image.source,
+                targetBucket: bucket,
+              }),
+            })
+
+            if (!response.ok) {
+              const errorData = await response.json()
+              throw new Error(errorData.error || `Failed to copy ${image.name}`)
+            }
+            
+            results.success++
           }
+
+          // Call the image upload callback if provided
+          if (onImageUpload) {
+            onImageUpload({
+              name: image.name,
+              url: image.fileUrl,
+            })
+          }
+        } catch (error) {
+          console.error(`Failed to process image ${image.name}:`, error)
+          results.errors.push(`${image.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
         }
+      }
+
+      // Show results to user
+      if (results.success > 0) {
+        toast.success(`Successfully processed ${results.success} image${results.success > 1 ? 's' : ''}`)
+      }
+      
+      if (results.errors.length > 0) {
+        toast.error(`Failed to process ${results.errors.length} image${results.errors.length > 1 ? 's' : ''}:\n${results.errors.join('\n')}`)
+      }
+      
+    } catch (error) {
+      console.error('Error processing existing images:', error)
+      toast.error('Failed to process selected images')
+    } finally {
+      setIsProcessingExisting(false)
+      setShowExistingBrowser(false)
+    }
+  }
 
         // Notify parent component if callback provided
         if (onImageUpload) {
