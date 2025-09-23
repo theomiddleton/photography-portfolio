@@ -21,7 +21,7 @@ export const secureFileTypes: Record<string, FileTypeConfig> = {
   document: {
     extensions: ['.pdf', '.txt', '.md'],
     mimeTypes: ['application/pdf', 'text/plain', 'text/markdown'],
-    maxSize: 10 * 1024 * 1024, // 10MB
+    maxSize: 200 * 1024 * 1024, // 200MB - increased for large documents
     description: 'Document files',
     allowedBuckets: ['files', 'custom'],
   },

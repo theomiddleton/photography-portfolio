@@ -811,7 +811,7 @@ export function FileBrowser() {
           'bg-primary/5 border-primary/30 border-2 border-dashed',
         isDragOver &&
           !currentBucket &&
-          'border-2 border-dashed border-red-300 bg-red-50',
+          'border-2 border-dashed border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-950',
       )}
       tabIndex={-1}
       onDragEnter={handleDragEnter}
@@ -826,14 +826,14 @@ export function FileBrowser() {
             className={cn(
               'rounded-lg p-8 text-center shadow-lg',
               dragError
-                ? 'border border-red-300 bg-red-100 text-red-700'
+                ? 'border border-red-300 dark:border-red-600 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300'
                 : 'bg-primary/10 border-primary/30 text-primary border',
             )}
           >
             <div className="mb-4">
               {dragError ? (
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-200">
-                  <Upload className="h-8 w-8 text-red-600" />
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-200 dark:bg-red-800">
+                  <Upload className="h-8 w-8 text-red-600 dark:text-red-300" />
                 </div>
               ) : (
                 <div className="bg-primary/20 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
@@ -854,24 +854,24 @@ export function FileBrowser() {
 
       {/* Upload progress overlay */}
       {isUploading && Object.keys(uploadProgress).length > 0 && (
-        <div className="absolute top-4 right-4 z-40 max-w-sm rounded-lg border border-gray-300 bg-white p-4 shadow-lg">
-          <h4 className="mb-2 font-semibold">Upload Progress</h4>
+        <div className="absolute top-4 right-4 z-40 max-w-sm rounded-lg border border-border bg-background p-4 shadow-lg">
+          <h4 className="mb-2 font-semibold text-foreground">Upload Progress</h4>
           <div className="max-h-40 space-y-2 overflow-y-auto">
             {Object.entries(uploadProgress).map(([fileId, progress]) => {
               const fileName = fileId.split('-')[0]
               return (
                 <div key={fileId} className="text-sm">
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="max-w-32 truncate" title={fileName}>
+                    <span className="max-w-32 truncate text-foreground" title={fileName}>
                       {fileName}
                     </span>
                     <span
                       className={cn(
                         'text-xs',
                         progress === -1
-                          ? 'text-red-600'
+                          ? 'text-destructive'
                           : progress === 100
-                            ? 'text-green-600'
+                            ? 'text-green-600 dark:text-green-400'
                             : 'text-primary',
                       )}
                     >
@@ -882,14 +882,14 @@ export function FileBrowser() {
                           : `${Math.round(progress)}%`}
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-gray-200">
+                  <div className="h-2 w-full rounded-full bg-muted">
                     <div
                       className={cn(
                         'h-2 rounded-full transition-all duration-300',
                         progress === -1
-                          ? 'bg-red-500'
+                          ? 'bg-destructive'
                           : progress === 100
-                            ? 'bg-green-500'
+                            ? 'bg-green-500 dark:bg-green-400'
                             : 'bg-primary',
                       )}
                       style={{
@@ -952,21 +952,21 @@ export function FileBrowser() {
               }
               className={cn(
                 alertMessage.type === 'success' &&
-                  'border-green-500 bg-green-50 text-green-700',
+                  'border-green-500 dark:border-green-600 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300',
                 alertMessage.type === 'warning' &&
-                  'border-yellow-500 bg-yellow-50 text-yellow-700',
+                  'border-yellow-500 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-300',
               )}
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-2">
                   {alertMessage.type === 'success' && (
-                    <CheckCircle className="mt-0.5 h-4 w-4 text-green-600" />
+                    <CheckCircle className="mt-0.5 h-4 w-4 text-green-600 dark:text-green-400" />
                   )}
                   {alertMessage.type === 'error' && (
-                    <AlertTriangle className="mt-0.5 h-4 w-4 text-red-600" />
+                    <AlertTriangle className="mt-0.5 h-4 w-4 text-red-600 dark:text-red-400" />
                   )}
                   {alertMessage.type === 'warning' && (
-                    <AlertTriangle className="mt-0.5 h-4 w-4 text-yellow-600" />
+                    <AlertTriangle className="mt-0.5 h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                   )}
                   <div>
                     <div className="font-medium">{alertMessage.title}</div>
