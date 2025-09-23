@@ -60,6 +60,7 @@ interface BatchUploadProps {
   bucket: 'image' | 'blog' | 'about' | 'custom'
   draftId?: string
   onImageUpload?: (image: { name: string; url: string }) => void
+  galleryId?: string // Add galleryId prop
 }
 
 const defaultPrintSize: PrintSize = {
@@ -73,6 +74,7 @@ export function BatchUpload({
   bucket,
   draftId,
   onImageUpload,
+  galleryId, // Add galleryId parameter
 }: BatchUploadProps) {
   const maxSizeMB = siteConfig.uploadLimits[bucket]
   const maxSize = maxSizeMB * 1024 * 1024
@@ -401,6 +403,7 @@ export function BatchUpload({
             printSizes: bucket === 'image' ? image.printSizes : [],
             bucket,
             draftId,
+            galleryId, // Include galleryId in the upload request
           }),
           signal: controller.signal,
         })

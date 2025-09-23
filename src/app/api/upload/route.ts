@@ -6,7 +6,7 @@ import { siteConfig } from '~/config/site'
 
 import { eq, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
-import { imageData, customImgData } from '~/server/db/schema'
+import { imageData, customImgData, galleryImages } from '~/server/db/schema'
 import { NextResponse } from 'next/server'
 
 import { products, productSizes } from '~/server/db/schema'
@@ -170,6 +170,7 @@ export async function POST(request: Request) {
       printSizes,
       temporary,
       generateAI,
+      galleryId, // Add galleryId parameter
     } = body
 
     // Validate required fields
@@ -371,12 +372,42 @@ export async function POST(request: Request) {
       // Use waitUntil for non-critical logging
       waitUntil(logAction('upload', 'Inserting custom image data'))
 
+      // Insert into customImgData table
       await db.insert(customImgData).values({
         uuid: keyName,
         fileName: newFileName,
         fileUrl: fileUrl,
         name: name,
       })
+
+      // If this is for a gallery, also insert into galleryImages table
+      if (galleryId) {
+        try {
+          // Get the highest order in target gallery for proper ordering
+          const maxOrderResult = await db
+            .select({ maxOrder: sql<number>`COALESCE(MAX(${galleryImages.order}), 0)` })
+            .from(galleryImages)
+            .where(eq(galleryImages.galleryId, galleryId))
+
+          const nextOrder = (maxOrderResult[0]?.maxOrder || 0) + 1
+
+          await db.insert(galleryImages).values({
+            galleryId,
+            uuid: keyName,
+            fileName: newFileName,
+            fileUrl: fileUrl,
+            name: name,
+            description: description || '',
+            order: nextOrder,
+          })
+
+          await logAction('upload', `Image added to gallery ${galleryId} with order ${nextOrder}`)
+        } catch (error) {
+          console.error('Failed to add image to gallery:', error)
+          await logAction('upload', `Failed to add image to gallery ${galleryId}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          // Don't fail the entire upload if gallery insertion fails
+        }
+      }
     }
 
     // Use waitUntil for cache revalidation since it can happen after response

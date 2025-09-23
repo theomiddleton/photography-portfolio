@@ -140,6 +140,7 @@ export function EnhancedBatchUpload({
               bucket={bucket}
               draftId={draftId}
               onImageUpload={onImageUpload}
+              galleryId={galleryId} // Pass galleryId to BatchUpload
             />
           </TabsContent>
 
