@@ -51,7 +51,7 @@ import {
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import Image from 'next/image'
-import { siteConfig } from '~/config/site'
+import { useSiteConfig } from '~/hooks/use-site-config'
 
 // Types
 interface S3File {
@@ -194,6 +194,8 @@ const getFileIcon = (file: S3File) => {
 }
 
 export function FileBrowser() {
+  const siteConfig = useSiteConfig()
+  
   const [files, setFiles] = useState<S3File[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>('list')
