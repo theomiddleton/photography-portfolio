@@ -102,25 +102,34 @@ export function BatchUpload({
     const newImages: BatchImageData[] = addedFiles
       .filter((fileItem) => {
         if (!(fileItem.file instanceof File)) return false
-        
+
         // Check validation result
         if (fileItem.validationResult && !fileItem.validationResult.isValid) {
-          toast.error(`File ${fileItem.file.name} failed validation: ${fileItem.validationResult.errors.join(', ')}`)
+          toast.error(
+            `File ${fileItem.file.name} failed validation: ${fileItem.validationResult.errors.join(', ')}`,
+          )
           return false
         }
-        
+
         // Show warnings if any
-        if (fileItem.validationResult && fileItem.validationResult.warnings.length > 0) {
-          toast.warning(`File ${fileItem.file.name}: ${fileItem.validationResult.warnings.join(', ')}`)
+        if (
+          fileItem.validationResult &&
+          fileItem.validationResult.warnings.length > 0
+        ) {
+          toast.warning(
+            `File ${fileItem.file.name}: ${fileItem.validationResult.warnings.join(', ')}`,
+          )
         }
-        
+
         return true
       })
       .map((fileItem) => ({
         id: fileItem.id,
         file: fileItem.file as File,
         preview: fileItem.preview || '',
-        name: fileItem.validationResult?.sanitizedName || (fileItem.file as File).name.split('.')[0],
+        name:
+          fileItem.validationResult?.sanitizedName ||
+          (fileItem.file as File).name.split('.')[0],
         description: '',
         tags: '',
         isSale: bucket === 'image' ? false : false,
@@ -521,13 +530,7 @@ export function BatchUpload({
     setUploadProgress({})
   }
 
-  const {
-    files, 
-    isDragging, 
-    errors, 
-    warnings, 
-    isValidating
-  } = fileUploadState
+  const { files, isDragging, errors, warnings, isValidating } = fileUploadState
 
   const {
     handleDragEnter,
@@ -540,15 +543,6 @@ export function BatchUpload({
     clearErrors,
     clearWarnings,
   } = fileUploadActions
-  ] = useSecureFileUpload({
-    bucket,
-    accept: bucket === 'image' ? 'image/svg+xml,image/png,image/jpeg,image/jpg,image/gif' : '*',
-    maxSize,
-    multiple: true,
-    maxFiles,
-    enableContentValidation: true,
-    onFilesAdded: handleFilesAdded,
-  })
 
   return (
     <Card className="mt-2 w-full">
@@ -655,7 +649,9 @@ export function BatchUpload({
               <div className="space-y-1">
                 <div className="font-medium">Security Warnings:</div>
                 {warnings.map((warning, index) => (
-                  <div key={index} className="text-sm">{warning}</div>
+                  <div key={index} className="text-sm">
+                    {warning}
+                  </div>
                 ))}
               </div>
             </AlertDescription>

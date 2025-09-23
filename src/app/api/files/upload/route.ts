@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     const key = generateSecureStoragePath(
       validationResult.sanitizedName, 
       bucket, 
-      session.id, 
+      String(session.id), 
       prefix
     )
 
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
       ContentType: file.type,
       // Add security metadata
       Metadata: {
-        'uploaded-by': session.id,
+        'uploaded-by': String(session.id),
         'upload-timestamp': new Date().toISOString(),
         'original-filename': file.name,
         'sanitized-filename': validationResult.sanitizedName,

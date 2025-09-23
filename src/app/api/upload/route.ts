@@ -214,7 +214,7 @@ export async function POST(request: Request) {
     // Generate secure storage path
     const storagePath = temporary 
       ? `temp/${keyName}.${fileExtension}`
-      : generateSecureStoragePath(sanitizedFilename, bucket, session.id)
+      : generateSecureStoragePath(sanitizedFilename, bucket, String(session.id))
 
     // Determine which bucket to use based on the bucket prop
     const bucketName =
@@ -255,7 +255,7 @@ export async function POST(request: Request) {
       ContentType: secureContentType,
       // Add security headers
       Metadata: {
-        'uploaded-by': session.id,
+        'uploaded-by': String(session.id),
         'upload-timestamp': new Date().toISOString(),
         'original-filename': sanitizedFilename,
       },
