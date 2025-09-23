@@ -111,26 +111,6 @@ export function EnhancedBatchUpload({
     }
   }
 
-        // Notify parent component if callback provided
-        if (onImageUpload) {
-          onImageUpload({
-            name: image.name,
-            url: image.fileUrl,
-          })
-        }
-      }
-
-      toast.success(
-        `Successfully added ${images.length} existing image${images.length !== 1 ? 's' : ''}`
-      )
-    } catch (error) {
-      console.error('Error processing existing images:', error)
-      toast.error('Failed to add some existing images')
-    } finally {
-      setIsProcessingExisting(false)
-    }
-  }
-
   return (
     <Card className="w-full">
       <CardHeader>
