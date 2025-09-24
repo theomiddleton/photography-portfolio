@@ -852,54 +852,115 @@ export function FileBrowser() {
         </div>
       )}
 
-      {/* Upload progress overlay */}
+      {/* Modern Upload Progress Modal */}
       {isUploading && Object.keys(uploadProgress).length > 0 && (
-        <div className="absolute top-4 right-4 z-40 max-w-sm rounded-lg border border-border bg-background p-4 shadow-lg">
-          <h4 className="mb-2 font-semibold text-foreground">Upload Progress</h4>
-          <div className="max-h-40 space-y-2 overflow-y-auto">
-            {Object.entries(uploadProgress).map(([fileId, progress]) => {
-              const fileName = fileId.split('-')[0]
-              return (
-                <div key={fileId} className="text-sm">
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="max-w-32 truncate text-foreground" title={fileName}>
-                      {fileName}
-                    </span>
-                    <span
-                      className={cn(
-                        'text-xs',
-                        progress === -1
-                          ? 'text-destructive'
-                          : progress === 100
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-primary',
-                      )}
-                    >
-                      {progress === -1
-                        ? 'Error'
-                        : progress === 100
-                          ? 'Complete'
-                          : `${Math.round(progress)}%`}
-                    </span>
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-muted">
-                    <div
-                      className={cn(
-                        'h-2 rounded-full transition-all duration-300',
-                        progress === -1
-                          ? 'bg-destructive'
-                          : progress === 100
-                            ? 'bg-green-500 dark:bg-green-400'
-                            : 'bg-primary',
-                      )}
-                      style={{
-                        width: `${progress === -1 ? 100 : Math.max(0, Math.min(100, progress))}%`,
-                      }}
-                    />
-                  </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl border border-border bg-background p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <Upload className="h-5 w-5 text-primary" />
                 </div>
-              )
-            })}
+                <div>
+                  <h3 className="font-semibold text-foreground">Uploading Files</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {Object.keys(uploadProgress).length} file{Object.keys(uploadProgress).length !== 1 ? 's' : ''} to {currentBucket}
+                    {currentPath && `/${currentPath}`}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  // Cancel all uploads
+                  setIsUploading(false)
+                  setUploadProgress({})
+                }}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="max-h-60 space-y-3 overflow-y-auto">
+              {Object.entries(uploadProgress).map(([fileId, progress]) => {
+                const fileName = fileId.split('-')[0]
+                const isComplete = progress === 100
+                const isError = progress === -1
+                
+                return (
+                  <div key={fileId} className="rounded-lg border border-border/50 bg-muted/30 p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                          "flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium",
+                          isComplete && "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300",
+                          isError && "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300",
+                          !isComplete && !isError && "bg-primary/10 text-primary"
+                        )}>
+                          {isComplete ? (
+                            <CheckCircle className="h-4 w-4" />
+                          ) : isError ? (
+                            <AlertTriangle className="h-4 w-4" />
+                          ) : (
+                            <div className="h-2 w-2 animate-pulse rounded-full bg-current" />
+                          )}
+                        </div>
+                        <span className="max-w-48 truncate text-sm font-medium text-foreground" title={fileName}>
+                          {fileName}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "text-xs font-medium",
+                          isComplete && "text-green-600 dark:text-green-400",
+                          isError && "text-red-600 dark:text-red-400",
+                          !isComplete && !isError && "text-primary"
+                        )}>
+                          {isError ? 'Failed' : isComplete ? 'Complete' : `${Math.round(progress)}%`}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="w-full rounded-full bg-muted/50 overflow-hidden">
+                      <div
+                        className={cn(
+                          "h-2 rounded-full transition-all duration-500 ease-out",
+                          isComplete && "bg-green-500 dark:bg-green-400",
+                          isError && "bg-red-500 dark:bg-red-400",
+                          !isComplete && !isError && "bg-primary"
+                        )}
+                        style={{
+                          width: `${isError ? 100 : Math.max(0, Math.min(100, progress))}%`,
+                        }}
+                      />
+                    </div>
+                    
+                    {isError && (
+                      <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                        Upload failed. Please try again.
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Overall progress summary */}
+            <div className="mt-4 pt-4 border-t border-border/50">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  {Object.values(uploadProgress).filter(p => p === 100).length} of {Object.keys(uploadProgress).length} complete
+                </span>
+                <span className="font-medium text-foreground">
+                  {Math.round(
+                    Object.values(uploadProgress).reduce((acc, curr) => acc + Math.max(0, curr), 0) / 
+                    Object.keys(uploadProgress).length
+                  )}% total
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       )}

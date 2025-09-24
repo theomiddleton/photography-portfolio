@@ -155,7 +155,8 @@ export function detectFileType(filename: string, mimeType: string): string | nul
  */
 export async function validateFileUpload(
   file: File,
-  options: FileValidationOptions
+  options: FileValidationOptions,
+  siteConfig?: any
 ): Promise<FileValidationResult> {
   const errors: string[] = []
   const warnings: string[] = []
@@ -163,14 +164,16 @@ export async function validateFileUpload(
   const sanitizedName = sanitizeFilename(file.name)
   const detectedType = detectFileType(file.name, file.type)
 
-  // Check for dangerous extensions
-  if (isDangerousExtension(file.name)) {
-    errors.push(`File type "${file.name.substring(file.name.lastIndexOf('.'))}" is not allowed for security reasons`)
+  // Check for dangerous extensions (unless bypassed by environment variable)
+  const allowDangerousFiles = siteConfig?.features?.security?.allowDangerousFiles || false
+  
+  if (!allowDangerousFiles && isDangerousExtension(file.name)) {
+    errors.push(`File type "${file.name.substring(file.name.lastIndexOf('.'))}" is not allowed for security reasons. Contact administrator if this file type is required.`)
   }
 
-  // Check for dangerous MIME types
-  if (isDangerousMimeType(file.type)) {
-    errors.push(`MIME type "${file.type}" is not allowed for security reasons`)
+  // Check for dangerous MIME types (unless bypassed)
+  if (!allowDangerousFiles && isDangerousMimeType(file.type)) {
+    errors.push(`MIME type "${file.type}" is not allowed for security reasons. Contact administrator if this file type is required.`)
   }
 
   // Validate file type if not allowing any type
@@ -301,15 +304,25 @@ export function generateSecureStoragePath(
   filename: string,
   bucket: string,
   userId?: string,
-  additionalPath?: string
+  additionalPath?: string,
+  useUserStructure = true
 ): string {
   const sanitizedFilename = sanitizeFilename(filename)
+  
+  // If additionalPath is provided and we don't want user structure, use it directly
+  if (additionalPath && !useUserStructure) {
+    return additionalPath.endsWith('/') 
+      ? `${additionalPath}${sanitizedFilename}`
+      : `${additionalPath}/${sanitizedFilename}`
+  }
+  
+  // Default behavior with timestamp and random ID for security
   const timestamp = new Date().toISOString().split('T')[0] // YYYY-MM-DD
   const randomId = Math.random().toString(36).substring(2, 15)
   
   let path = `${timestamp}/${randomId}`
   
-  if (userId) {
+  if (userId && useUserStructure) {
     path = `users/${userId}/${path}`
   }
   

@@ -12,6 +12,7 @@ import {
   secureFileTypes 
 } from '~/lib/file-security'
 import { logAction } from '~/lib/logging'
+import { getServerSiteConfig } from '~/config/site'
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,6 +57,9 @@ export async function POST(request: NextRequest) {
     // Get bucket-specific validation options
     const bucketOptions = createBucketValidationOptions(bucket)
     
+    // Get site config for dangerous file bypass feature
+    const siteConfig = getServerSiteConfig()
+    
     // Perform comprehensive file validation
     const validationResult = await validateFileUpload(file, {
       bucket,
@@ -66,7 +70,7 @@ export async function POST(request: NextRequest) {
         const contentErrors = await validateFileContent(file)
         return contentErrors
       }
-    })
+    }, siteConfig)
 
     if (!validationResult.isValid) {
       await logAction('files-upload', `File validation failed for ${file.name}: ${validationResult.errors.join(', ')}`)
@@ -85,12 +89,13 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     
-    // Generate secure storage path
+    // Generate storage path - for file browser uploads, use direct path
     const key = generateSecureStoragePath(
       validationResult.sanitizedName, 
       bucket, 
       String(session.id), 
-      prefix
+      prefix,
+      false // Don't use user structure for file browser uploads
     )
 
     // Extract EXIF data if requested and file is an image
