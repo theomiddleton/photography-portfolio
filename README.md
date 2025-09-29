@@ -458,7 +458,7 @@ This is the production-ready stack I recommend and use:
 
 ### Option 1: Vercel (Recommended from a technology standpoint)
 
-> ⚠️ **Ethical consideration**: See note about Vercel CEO's meeting with Netanyahu in the [Recommended Setup](#-recommended-setup) section above.
+> ⚠️ **Ethical consideration**: See note about Vercel CEO's meeting with Netanyahu in the [Recommended Setup](#-recommended-setup) section above. This recommendation comes solely from a technology standpoint, not an ethical one. Israel is committing genocide and occupying Palestinian land.
 
 ```bash
 # Install Vercel CLI
