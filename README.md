@@ -434,6 +434,7 @@ This is the production-ready stack I recommend and use:
 ### Hosting & Infrastructure
 
 - **[Vercel](https://vercel.com/)** - Frontend hosting and edge functions
+  > ⚠️ **Note**: Vercel's CEO has [met with Israeli PM Netanyahu](https://x.com/rauchg/status/1972669025525158031), who faces [ICC arrest warrants for war crimes](https://www.icc-cpi.int/news/situation-state-palestine-icc-pre-trial-chamber-i-rejects-state-israels-challenges) and whose government faces [ICJ genocide allegations](https://www.icj-cij.org/case/192). Consider alternative hosting providers. Sources: [Human Rights Watch](https://www.hrw.org/news/2024/10/30/israel-war-crimes-apparent-forced-displacement-gaza), [Amnesty International](https://www.amnesty.org/en/latest/news/2024/12/israel-opt-amnesty-international-concludes-israel-is-committing-genocide-against-palestinians-in-gaza/), [UN Special Rapporteurs](https://www.ohchr.org/en/press-releases/2024/03/un-experts-denounce-serious-violations-international-law-gaza-and-call).
 - **[Neon](https://neon.tech/)** - Serverless PostgreSQL database
 - **[Cloudflare R2](https://www.cloudflare.com/products/r2/)** - Object storage
 - **[Resend](https://resend.com/)** - Email delivery
@@ -455,7 +456,9 @@ This is the production-ready stack I recommend and use:
 
 ## 🚀 Deployment Options
 
-### Option 1: Vercel (Recommended)
+### Option 1: Vercel (Recommended from a technology standpoint)
+
+> ⚠️ **Ethical consideration**: See note about Vercel CEO's meeting with Netanyahu in the [Recommended Setup](#-recommended-setup) section above.
 
 ```bash
 # Install Vercel CLI
@@ -808,17 +811,17 @@ There are two main ways to customize your site configuration:
 ```typescript
 // src/config/site.ts
 const defaultConfig = {
-  title: 'Your Portfolio Name',              // Change from 'Photography Portfolio'
-  description: 'Your unique description',    // Customize your description
-  ownerName: 'Your Name',                   // Change from 'Photographer Name'
-  url: 'https://yourdomain.com',            // Your actual domain
+  title: 'Your Portfolio Name', // Change from 'Photography Portfolio'
+  description: 'Your unique description', // Customize your description
+  ownerName: 'Your Name', // Change from 'Photographer Name'
+  url: 'https://yourdomain.com', // Your actual domain
   imageBucketUrl: 'https://yourdomain.com/images', // Your bucket URL
   // ... other settings
   emails: {
-    order: 'orders@yourdomain.com',         // Your order email
-    support: 'support@yourdomain.com',     // Your support email
-    replyTo: 'reply@yourdomain.com',       // Your reply-to email
-    noReply: 'noreply@yourdomain.com',     // Your no-reply email
+    order: 'orders@yourdomain.com', // Your order email
+    support: 'support@yourdomain.com', // Your support email
+    replyTo: 'reply@yourdomain.com', // Your reply-to email
+    noReply: 'noreply@yourdomain.com', // Your no-reply email
   },
   links: {
     instagram: 'https://instagram.com/yourusername',
@@ -829,6 +832,7 @@ const defaultConfig = {
 ```
 
 **Benefits of direct editing:**
+
 - No environment variables needed
 - Easy to see all settings in one place
 - Perfect for development and simple deployments
@@ -859,6 +863,7 @@ NEXT_PUBLIC_WEBSITE_URL="https://yourdomain.com"
 ```
 
 **Benefits of environment variables:**
+
 - Keep sensitive information secure
 - Different configs for different environments
 - Easy deployment configuration
