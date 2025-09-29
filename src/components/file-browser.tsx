@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '~/components/ui/dialog'
+import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Label } from '~/components/ui/label'
 import {
   Grid3X3,
@@ -44,10 +45,13 @@ import {
   FileAudio,
   Archive,
   Copy,
+  AlertTriangle,
+  CheckCircle,
+  X,
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import Image from 'next/image'
-import { siteConfig } from '~/config/site'
+import { useSiteConfig } from '~/hooks/use-site-config'
 
 // Types
 interface S3File {
@@ -189,8 +193,9 @@ const getFileIcon = (file: S3File) => {
   return File
 }
 
-// File Browser Component
 export function FileBrowser() {
+  const siteConfig = useSiteConfig()
+  
   const [files, setFiles] = useState<S3File[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>('list')
@@ -200,6 +205,21 @@ export function FileBrowser() {
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set())
   const [currentPath, setCurrentPath] = useState('')
   const [currentBucket, setCurrentBucket] = useState('')
+
+  // Enhanced upload states
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [dragError, setDragError] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
+    {},
+  )
+  const [isUploading, setIsUploading] = useState(false)
+
+  // Page alert states
+  const [alertMessage, setAlertMessage] = useState<{
+    type: 'success' | 'error' | 'warning' | null
+    title: string
+    message: string
+  }>({ type: null, title: '', message: '' })
 
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(
@@ -233,6 +253,25 @@ export function FileBrowser() {
   useEffect(() => {
     loadFiles()
   }, [currentPath, currentBucket])
+
+  // Helper function to show page alerts
+  const showAlert = (
+    type: 'success' | 'error' | 'warning',
+    title: string,
+    message: string,
+  ) => {
+    setAlertMessage({ type, title, message })
+    // Auto-hide success and warning alerts after 5 seconds
+    if (type !== 'error') {
+      setTimeout(() => {
+        setAlertMessage({ type: null, title: '', message: '' })
+      }, 5000)
+    }
+  }
+
+  const hideAlert = () => {
+    setAlertMessage({ type: null, title: '', message: '' })
+  }
 
   const loadFiles = async () => {
     setLoading(true)
@@ -473,17 +512,231 @@ export function FileBrowser() {
     setSelectedFiles(new Set())
   }
 
+  // Enhanced drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Check if we're in a valid upload location
+    if (!currentBucket) {
+      setDragError('Cannot upload to root. Please select a bucket first.')
+      setIsDragOver(true)
+      return
+    }
+
+    // Clear any previous errors and show positive feedback
+    setDragError(null)
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Only hide drag state if leaving the main container
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false)
+      setDragError(null)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+    setDragError(null)
+
+    if (!currentBucket) {
+      showAlert(
+        'error',
+        'Upload Blocked',
+        'Cannot upload to root. Please select a bucket first.',
+      )
+      return
+    }
+
+    const files = e.dataTransfer.files
+    if (files.length > 0) {
+      handleUpload(files)
+    }
+  }
+
   const handleUpload = async (files: FileList | null) => {
-    if (!files || !currentBucket) return
+    if (!files || !currentBucket) {
+      showAlert('error', 'Upload Failed', 'Cannot upload: No bucket selected')
+      return
+    }
+
+    setIsUploading(true)
+    hideAlert() // Clear any existing alerts
+    const uploadErrors: string[] = []
+    const uploadWarnings: string[] = []
+    const totalFiles = files.length
+    let completedFiles = 0
 
     try {
       for (let i = 0; i < files.length; i++) {
-        await s3Api.uploadFile(currentBucket, files[i], currentPath)
+        const file = files[i]
+        const fileId = `${file.name}-${Date.now()}-${i}`
+
+        try {
+          // Initialize progress
+          setUploadProgress((prev) => ({ ...prev, [fileId]: 0 }))
+
+          // Create FormData for upload
+          const formData = new FormData()
+          formData.append('file', file)
+          formData.append('bucket', currentBucket)
+          formData.append('prefix', currentPath)
+          formData.append('allowAnyType', 'true')
+          formData.append(
+            'extractExif',
+            file.type.startsWith('image/') ? 'true' : 'false',
+          )
+
+          // Create XMLHttpRequest for progress tracking
+          const xhr = new XMLHttpRequest()
+
+          // Track upload progress
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              const percentComplete = (event.loaded / event.total) * 100
+              setUploadProgress((prev) => ({
+                ...prev,
+                [fileId]: percentComplete,
+              }))
+            }
+          })
+
+          // Handle completion
+          const uploadPromise = new Promise<void>((resolve, reject) => {
+            xhr.addEventListener('load', async () => {
+              try {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                  // Try to parse JSON response
+                  let result
+                  try {
+                    result = JSON.parse(xhr.responseText)
+                  } catch (jsonError) {
+                    // If JSON parsing fails, check if it's an HTML error page
+                    if (
+                      xhr.responseText.includes('<!DOCTYPE html>') ||
+                      xhr.responseText.includes('<html>')
+                    ) {
+                      throw new Error(
+                        'Server returned an error page. File may be too large or request invalid.',
+                      )
+                    } else {
+                      throw new Error(
+                        `Invalid server response: ${xhr.responseText.substring(0, 100)}...`,
+                      )
+                    }
+                  }
+
+                  if (result.warnings && result.warnings.length > 0) {
+                    uploadWarnings.push(
+                      `${file.name}: ${result.warnings.join(', ')}`,
+                    )
+                  }
+
+                  setUploadProgress((prev) => ({ ...prev, [fileId]: 100 }))
+                  resolve()
+                } else {
+                  // Handle HTTP error status with improved error messages
+                  let errorMessage = `HTTP ${xhr.status}`
+                  try {
+                    const errorResult = JSON.parse(xhr.responseText)
+                    errorMessage = errorResult.error || errorMessage
+                    if (errorResult.details) {
+                      errorMessage += `: ${errorResult.details.join(', ')}`
+                    }
+                  } catch {
+                    // Handle specific error cases
+                    if (xhr.status === 413) {
+                      // File too large error - check file size and provide specific guidance
+                      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1)
+                      const bucketLimit =
+                        siteConfig.uploadLimits[
+                          currentBucket as keyof typeof siteConfig.uploadLimits
+                        ] || 20
+                      errorMessage = `File too large (${fileSizeMB}MB). Maximum allowed size for this bucket (${currentBucket}) is ${bucketLimit}MB. Please compress the file or split it into smaller parts.`
+                    } else {
+                      errorMessage += `: ${xhr.responseText.substring(0, 100)}`
+                    }
+                  }
+                  reject(new Error(errorMessage))
+                }
+              } catch (error) {
+                reject(error)
+              }
+            })
+
+            xhr.addEventListener('error', () => {
+              reject(new Error('Network error occurred during upload'))
+            })
+
+            xhr.addEventListener('timeout', () => {
+              reject(new Error('Upload timed out'))
+            })
+          })
+
+          // Start the upload
+          xhr.open('POST', '/api/files/upload')
+          xhr.timeout = 300000 // 5 minutes timeout
+          xhr.send(formData)
+
+          await uploadPromise
+          completedFiles++
+        } catch (error) {
+          uploadErrors.push(
+            `${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          )
+          setUploadProgress((prev) => ({ ...prev, [fileId]: -1 })) // -1 indicates error
+        }
       }
+
+      // Clear progress after a delay
+      setTimeout(() => {
+        setUploadProgress({})
+      }, 3000)
+
+      // Show results to user with page alerts instead of browser alerts
+      if (uploadErrors.length > 0) {
+        console.error('Upload errors:', uploadErrors)
+        const errorTitle =
+          completedFiles > 0 ? 'Upload Completed with Errors' : 'Upload Failed'
+        const errorMessage = uploadErrors.join('\n')
+        showAlert('error', errorTitle, errorMessage)
+      } else if (completedFiles > 0) {
+        console.log(`Successfully uploaded ${completedFiles} file(s)`)
+        showAlert(
+          'success',
+          'Upload Complete',
+          `Successfully uploaded ${completedFiles} file${completedFiles > 1 ? 's' : ''}`,
+        )
+      }
+
+      if (uploadWarnings.length > 0) {
+        console.warn('Upload warnings:', uploadWarnings)
+        showAlert('warning', 'Upload Warnings', uploadWarnings.join('\n'))
+      }
+
+      // Reload file list to show new files
       await loadFiles()
-      setUploadFiles(null)
     } catch (error) {
-      console.error('Error uploading files:', error)
+      console.error('Upload failed:', error)
+      showAlert(
+        'error',
+        'Upload Failed',
+        'Upload failed due to an unexpected error',
+      )
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -514,32 +767,32 @@ export function FileBrowser() {
         // Exact bucket name to URL mapping
         const bucketUrlMap: Record<string, string> = {
           // Exact bucket name matches
-          'about': siteConfig.aboutBucketUrl,
-          'blog': siteConfig.blogBucketUrl,
+          about: siteConfig.aboutBucketUrl,
+          blog: siteConfig.blogBucketUrl,
           'img-custom': siteConfig.customBucketUrl,
           'img-public': siteConfig.imageBucketUrl,
-          'files': siteConfig.filesBucketUrl,
-          'stream': siteConfig.streamBucketUrl,
+          files: siteConfig.filesBucketUrl,
+          stream: siteConfig.streamBucketUrl,
         }
 
         // Get the exact bucket URL, case-insensitive match
         const bucketKey = Object.keys(bucketUrlMap).find(
-          key => key.toLowerCase() === currentBucket.toLowerCase()
+          (key) => key.toLowerCase() === currentBucket.toLowerCase(),
         )
-        const baseUrl = bucketKey 
-          ? bucketUrlMap[bucketKey] 
+        const baseUrl = bucketKey
+          ? bucketUrlMap[bucketKey]
           : siteConfig.customBucketUrl || ''
-        
+
         console.log(`Current bucket: "${currentBucket}"`)
         console.log(`Matched bucket key: "${bucketKey}"`)
         console.log(`Mapped to URL: "${baseUrl}"`)
         console.log(`File key: "${file.key}"`)
         console.log(`Full URL: "${baseUrl}/${file.key}"`)
-        
+
         return `${baseUrl}/${file.key}`
       })
 
-      const urlText = urls.map(url => encodeURI(url)).join('\n')
+      const urlText = urls.map((url) => encodeURI(url)).join('\n')
       await navigator.clipboard.writeText(urlText)
 
       // You might want to show a toast notification here
@@ -551,9 +804,166 @@ export function FileBrowser() {
 
   return (
     <div
-      className="file-browser-container flex h-screen flex-col bg-background"
+      className={cn(
+        'file-browser-container bg-background relative flex h-screen flex-col',
+        isDragOver &&
+          currentBucket &&
+          'bg-primary/5 border-primary/30 border-2 border-dashed',
+        isDragOver &&
+          !currentBucket &&
+          'border-2 border-dashed border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-950',
+      )}
       tabIndex={-1}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
+      {/* Drag overlay for visual feedback */}
+      {isDragOver && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
+          <div
+            className={cn(
+              'rounded-lg p-8 text-center shadow-lg',
+              dragError
+                ? 'border border-red-300 dark:border-red-600 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300'
+                : 'bg-primary/10 border-primary/30 text-primary border',
+            )}
+          >
+            <div className="mb-4">
+              {dragError ? (
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-200 dark:bg-red-800">
+                  <Upload className="h-8 w-8 text-red-600 dark:text-red-300" />
+                </div>
+              ) : (
+                <div className="bg-primary/20 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
+                  <Upload className="text-primary h-8 w-8" />
+                </div>
+              )}
+            </div>
+            <h3 className="mb-2 text-xl font-semibold">
+              {dragError ? 'Upload Blocked' : 'Ready to Upload'}
+            </h3>
+            <p className="text-sm">
+              {dragError ||
+                `Drop files here to upload to ${currentBucket}${currentPath ? `/${currentPath}` : ''}`}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Modern Upload Progress Modal */}
+      {isUploading && Object.keys(uploadProgress).length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl border border-border bg-background p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <Upload className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Uploading Files</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {Object.keys(uploadProgress).length} file{Object.keys(uploadProgress).length !== 1 ? 's' : ''} to {currentBucket}
+                    {currentPath && `/${currentPath}`}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  // Cancel all uploads
+                  setIsUploading(false)
+                  setUploadProgress({})
+                }}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="max-h-60 space-y-3 overflow-y-auto">
+              {Object.entries(uploadProgress).map(([fileId, progress]) => {
+                const fileName = fileId.split('-')[0]
+                const isComplete = progress === 100
+                const isError = progress === -1
+                
+                return (
+                  <div key={fileId} className="rounded-lg border border-border/50 bg-muted/30 p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                          "flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium",
+                          isComplete && "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300",
+                          isError && "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300",
+                          !isComplete && !isError && "bg-primary/10 text-primary"
+                        )}>
+                          {isComplete ? (
+                            <CheckCircle className="h-4 w-4" />
+                          ) : isError ? (
+                            <AlertTriangle className="h-4 w-4" />
+                          ) : (
+                            <div className="h-2 w-2 animate-pulse rounded-full bg-current" />
+                          )}
+                        </div>
+                        <span className="max-w-48 truncate text-sm font-medium text-foreground" title={fileName}>
+                          {fileName}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "text-xs font-medium",
+                          isComplete && "text-green-600 dark:text-green-400",
+                          isError && "text-red-600 dark:text-red-400",
+                          !isComplete && !isError && "text-primary"
+                        )}>
+                          {isError ? 'Failed' : isComplete ? 'Complete' : `${Math.round(progress)}%`}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="w-full rounded-full bg-muted/50 overflow-hidden">
+                      <div
+                        className={cn(
+                          "h-2 rounded-full transition-all duration-500 ease-out",
+                          isComplete && "bg-green-500 dark:bg-green-400",
+                          isError && "bg-red-500 dark:bg-red-400",
+                          !isComplete && !isError && "bg-primary"
+                        )}
+                        style={{
+                          width: `${isError ? 100 : Math.max(0, Math.min(100, progress))}%`,
+                        }}
+                      />
+                    </div>
+                    
+                    {isError && (
+                      <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                        Upload failed. Please try again.
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Overall progress summary */}
+            <div className="mt-4 pt-4 border-t border-border/50">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  {Object.values(uploadProgress).filter(p => p === 100).length} of {Object.keys(uploadProgress).length} complete
+                </span>
+                <span className="font-medium text-foreground">
+                  {Math.round(
+                    Object.values(uploadProgress).reduce((acc, curr) => acc + Math.max(0, curr), 0) / 
+                    Object.keys(uploadProgress).length
+                  )}% total
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="border-b p-4">
         <div className="mb-4 flex items-center justify-between">
@@ -565,13 +975,23 @@ export function FileBrowser() {
                 multiple
                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                 onChange={(e) => handleUpload(e.target.files)}
-                disabled={!currentBucket}
+                disabled={!currentBucket || isUploading}
               />
-              <Button variant="outline" size="sm" disabled={!currentBucket}>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!currentBucket || isUploading}
+                className={cn(!currentBucket && 'border-red-300 text-red-500')}
+              >
                 <Upload className="mr-2 h-4 w-4" />
-                Upload
+                {isUploading ? 'Uploading...' : 'Upload'}
               </Button>
             </div>
+            {!currentBucket && (
+              <span className="text-sm text-red-500">
+                Select a bucket first
+              </span>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -584,6 +1004,51 @@ export function FileBrowser() {
           </div>
         </div>
 
+        {/* Page Alert */}
+        {alertMessage.type && (
+          <div className="mb-4">
+            <Alert
+              variant={
+                alertMessage.type === 'error' ? 'destructive' : 'default'
+              }
+              className={cn(
+                alertMessage.type === 'success' &&
+                  'border-green-500 dark:border-green-600 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300',
+                alertMessage.type === 'warning' &&
+                  'border-yellow-500 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-300',
+              )}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-2">
+                  {alertMessage.type === 'success' && (
+                    <CheckCircle className="mt-0.5 h-4 w-4 text-green-600 dark:text-green-400" />
+                  )}
+                  {alertMessage.type === 'error' && (
+                    <AlertTriangle className="mt-0.5 h-4 w-4 text-red-600 dark:text-red-400" />
+                  )}
+                  {alertMessage.type === 'warning' && (
+                    <AlertTriangle className="mt-0.5 h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                  )}
+                  <div>
+                    <div className="font-medium">{alertMessage.title}</div>
+                    <AlertDescription className="mt-1 whitespace-pre-line">
+                      {alertMessage.message}
+                    </AlertDescription>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={hideAlert}
+                  className="ml-2 h-6 w-6 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </Alert>
+          </div>
+        )}
+
         {/* Navigation and Search */}
         <div className="mb-4 flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -592,13 +1057,13 @@ export function FileBrowser() {
                 ← Back
               </Button>
             )}
-            <span className="text-sm text-muted-foreground">
+            <span className="text-muted-foreground text-sm">
               /{currentBucket ? `${currentBucket}/${currentPath}` : ''}
             </span>
           </div>
           <div className="max-w-md flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
               <Input
                 placeholder="Search files..."
                 value={searchQuery}
@@ -872,7 +1337,7 @@ export function FileBrowser() {
               />
             )}
           </div>
-          <div className="flex items-center justify-between p-4 pt-0 text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex items-center justify-between p-4 pt-0 text-sm">
             <span>{formatFileSize(imagePreview.file?.size || 0)}</span>
             <span>{imagePreview.file?.lastModified.toLocaleDateString()}</span>
           </div>
@@ -942,7 +1407,7 @@ function FileView({
   if (viewMode === 'list') {
     return (
       <div className="space-y-1">
-        <div className="flex items-center gap-4 border-b p-2 text-sm font-medium text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-4 border-b p-2 text-sm font-medium">
           <Checkbox
             checked={selectedFiles.size === files.length && files.length > 0}
             onCheckedChange={onSelectAll}
@@ -1046,9 +1511,9 @@ function FileListItem({
   return (
     <div
       className={cn(
-        'flex cursor-pointer items-center gap-4 rounded-lg p-2 transition-colors hover:bg-muted/50',
+        'hover:bg-muted/50 flex cursor-pointer items-center gap-4 rounded-lg p-2 transition-colors',
         selected && 'bg-muted',
-        focused && 'ring-2 ring-primary ring-offset-1',
+        focused && 'ring-primary ring-2 ring-offset-1',
       )}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
@@ -1064,14 +1529,14 @@ function FileListItem({
         }
         onClick={(e) => e.stopPropagation()}
       />
-      <Icon className="h-5 w-5 text-muted-foreground" />
+      <Icon className="text-muted-foreground h-5 w-5" />
       <div className="flex-1 truncate">
         <div className="truncate font-medium">{file.name}</div>
       </div>
-      <div className="w-24 text-sm text-muted-foreground">
+      <div className="text-muted-foreground w-24 text-sm">
         {file.type === 'file' ? formatFileSize(file.size) : '—'}
       </div>
-      <div className="w-32 text-sm text-muted-foreground">
+      <div className="text-muted-foreground w-32 text-sm">
         {file.lastModified.toLocaleDateString()}
       </div>
       <DropdownMenu>
@@ -1130,14 +1595,14 @@ function FileGridItem({
   return (
     <div
       className={cn(
-        'relative cursor-pointer rounded-lg border p-3 transition-colors hover:bg-muted/50',
+        'hover:bg-muted/50 relative cursor-pointer rounded-lg border p-3 transition-colors',
         selected && 'border-primary bg-muted',
-        focused && 'ring-2 ring-primary ring-offset-1',
+        focused && 'ring-primary ring-2 ring-offset-1',
       )}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <div className="absolute left-2 top-2">
+      <div className="absolute top-2 left-2">
         <Checkbox
           checked={selected}
           onCheckedChange={(e) =>
@@ -1150,7 +1615,7 @@ function FileGridItem({
           onClick={(e) => e.stopPropagation()}
         />
       </div>
-      <div className="absolute right-2 top-2">
+      <div className="absolute top-2 right-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -1188,11 +1653,11 @@ function FileGridItem({
         </DropdownMenu>
       </div>
       <div className="mt-6 flex flex-col items-center gap-2">
-        <Icon className="h-8 w-8 text-muted-foreground" />
+        <Icon className="text-muted-foreground h-8 w-8" />
         <div className="w-full truncate text-center text-sm font-medium">
           {file.name}
         </div>
-        <div className="text-xs text-muted-foreground">
+        <div className="text-muted-foreground text-xs">
           {file.type === 'file' ? formatFileSize(file.size) : 'Folder'}
         </div>
       </div>
@@ -1218,14 +1683,14 @@ function FileThumbnailItem({
   return (
     <div
       className={cn(
-        'relative cursor-pointer rounded-lg border p-3 transition-colors hover:bg-muted/50',
+        'hover:bg-muted/50 relative cursor-pointer rounded-lg border p-3 transition-colors',
         selected && 'border-primary bg-muted',
-        focused && 'ring-2 ring-primary ring-offset-1',
+        focused && 'ring-primary ring-2 ring-offset-1',
       )}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <div className="absolute left-2 top-2 z-10">
+      <div className="absolute top-2 left-2 z-10">
         <Checkbox
           checked={selected}
           onCheckedChange={(e) =>
@@ -1238,7 +1703,7 @@ function FileThumbnailItem({
           onClick={(e) => e.stopPropagation()}
         />
       </div>
-      <div className="absolute right-2 top-2 z-10">
+      <div className="absolute top-2 right-2 z-10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -1276,7 +1741,7 @@ function FileThumbnailItem({
         </DropdownMenu>
       </div>
       <div className="flex flex-col items-center gap-2">
-        <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-md bg-muted">
+        <div className="bg-muted flex aspect-square w-full items-center justify-center overflow-hidden rounded-md">
           {file.thumbnail ? (
             <Image
               src={file.thumbnail || '/placeholder.svg'}
@@ -1288,13 +1753,13 @@ function FileThumbnailItem({
               style={{ aspectRatio: '1 / 1' }}
             />
           ) : (
-            <Icon className="h-12 w-12 text-muted-foreground" />
+            <Icon className="text-muted-foreground h-12 w-12" />
           )}
         </div>
         <div className="w-full truncate text-center text-sm font-medium">
           {file.name}
         </div>
-        <div className="text-xs text-muted-foreground">
+        <div className="text-muted-foreground text-xs">
           {file.type === 'file' ? formatFileSize(file.size) : 'Folder'}
         </div>
       </div>
@@ -1313,11 +1778,11 @@ function FileBrowserContentSkeleton({
       <div className="space-y-1">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="flex items-center gap-4 p-3">
-            <div className="h-6 w-6 animate-pulse rounded bg-muted" />
-            <div className="h-5 flex-1 animate-pulse rounded bg-muted" />
-            <div className="h-4 w-20 animate-pulse rounded bg-muted" />
-            <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-            <div className="h-8 w-8 animate-pulse rounded bg-muted" />
+            <div className="bg-muted h-6 w-6 animate-pulse rounded" />
+            <div className="bg-muted h-5 flex-1 animate-pulse rounded" />
+            <div className="bg-muted h-4 w-20 animate-pulse rounded" />
+            <div className="bg-muted h-4 w-24 animate-pulse rounded" />
+            <div className="bg-muted h-8 w-8 animate-pulse rounded" />
           </div>
         ))}
       </div>
@@ -1329,9 +1794,9 @@ function FileBrowserContentSkeleton({
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
         {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className="space-y-2">
-            <div className="aspect-square animate-pulse rounded-lg bg-muted" />
-            <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
-            <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
+            <div className="bg-muted aspect-square animate-pulse rounded-lg" />
+            <div className="bg-muted h-4 w-3/4 animate-pulse rounded" />
+            <div className="bg-muted h-3 w-1/2 animate-pulse rounded" />
           </div>
         ))}
       </div>
@@ -1344,7 +1809,7 @@ function FileBrowserContentSkeleton({
       {Array.from({ length: 16 }).map((_, i) => (
         <div
           key={i}
-          className="aspect-square animate-pulse rounded-lg bg-muted"
+          className="bg-muted aspect-square animate-pulse rounded-lg"
         />
       ))}
     </div>

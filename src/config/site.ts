@@ -75,6 +75,9 @@ const defaultConfig = {
       reviewsEnabled: false,
       showTax: false, // When true, shows tax separately. When false, includes tax in price
     },
+    security: {
+      allowDangerousFiles: false, // When true, bypasses dangerous file type restrictions
+    },
   },
   rateLimiting: {
     // Base rate limits (requests per minute)
@@ -186,6 +189,9 @@ export function getServerSiteConfig() {
       store: {
         reviewsEnabled: getEnv('NEXT_PUBLIC_REVIEWS_ENABLED', defaultConfig.features.store.reviewsEnabled),
         showTax: getEnv('NEXT_PUBLIC_SHOW_TAX', defaultConfig.features.store.showTax),
+      },
+      security: {
+        allowDangerousFiles: getEnv('NEXT_PUBLIC_ALLOW_DANGEROUS_FILES', defaultConfig.features.security.allowDangerousFiles),
       },
     },
     rateLimiting: {
