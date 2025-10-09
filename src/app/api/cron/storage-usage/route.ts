@@ -11,6 +11,7 @@ import { eq, desc } from 'drizzle-orm'
 import { sendUsageAlert } from '~/lib/actions/storage-alerts'
 import { Redis } from '@upstash/redis'
 import { env } from '~/env.js'
+import { logAction } from '~/lib/logging'
 
 const BUCKET_NAMES = [
   process.env.R2_IMAGE_BUCKET_NAME,
@@ -37,7 +38,9 @@ const redis = new Redis({
 async function keepRedisAlive() {
   try {
     await redis.ping()
+    await redis.set('lastCronPing', new Date().toISOString())
   } catch (err) {
+    logAction(`Redis keepalive ping failed: ${err}`, 'error')
     console.warn('Redis keepalive ping failed', err)
   }
 }
