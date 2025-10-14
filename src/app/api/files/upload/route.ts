@@ -1,18 +1,18 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { r2 } from '~/lib/r2'
 import { getSession } from '~/lib/auth/auth'
-import { extractExifData, validateExifData } from '~/lib/exif'
 import { uploadRateLimit, getClientIP } from '~/lib/rate-limit'
-import { 
-  validateFileUpload, 
-  validateFileContent, 
-  generateSecureStoragePath,
-  createBucketValidationOptions,
-  secureFileTypes 
-} from '~/lib/file-security'
 import { logAction } from '~/lib/logging'
 import { getServerSiteConfig } from '~/config/site'
+
+interface UploadRequestBody {
+  filename: string
+  contentType: string
+  bucket: string
+  prefix?: string
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,128 +39,112 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const formData = await request.formData()
-    const file = formData.get('file') as File
-    const bucket = formData.get('bucket') as string
-    const prefix = (formData.get('prefix') as string) || ''
-    const extractExif = formData.get('extractExif') === 'true'
-    const allowAnyType = formData.get('allowAnyType') === 'true'
+    const body = await request.json() as UploadRequestBody
+    const { filename, contentType, bucket, prefix = '' } = body
 
-    if (!file) {
-      return NextResponse.json({ error: 'File is required' }, { status: 400 })
+    if (!filename) {
+      return NextResponse.json({ error: 'Filename is required' }, { status: 400 })
     }
 
-    if (!bucket) {
-      return NextResponse.json({ error: 'Bucket is required' }, { status: 400 })
+    if (!bucket) {  
+      return NextResponse.json({ error: 'Bucket is required' }, { status: 400 })  
+    }  
+    const allowedBuckets = new Set(['about', 'blog', 'img-custom', 'img-public', 'files', 'stream'])  
+    if (!allowedBuckets.has(bucket.toLowerCase())) {  
+      await logAction(  
+        'files-upload',  
+        `Rejected upload to disallowed bucket: ${bucket} by ${session.email}`  
+      )  
+      return NextResponse.json({ error: 'Invalid bucket' }, { status: 400 })  
+    }  
+
+    if (!contentType) {
+      return NextResponse.json({ error: 'Content type is required' }, { status: 400 })
     }
 
-    // Get bucket-specific validation options
-    const bucketOptions = createBucketValidationOptions(bucket)
+    // Validate content type against allowlist
+    const allowedContentTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
+      'video/mp4', 'video/webm', 'video/quicktime',
+      'audio/mpeg', 'audio/wav', 'audio/mp4',
+      'application/pdf', 'text/plain', 'text/markdown', 'text/x-markdown',
+      'application/zip', 'application/x-zip-compressed',
+      'application/octet-stream', // Fallback for files with unknown type
+    ]
     
-    // Get site config for dangerous file bypass feature
-    const siteConfig = getServerSiteConfig()
-    
-    // Perform comprehensive file validation
-    const validationResult = await validateFileUpload(file, {
-      bucket,
-      allowAnyType: allowAnyType || bucketOptions.allowAnyType,
-      maxSize: bucketOptions.maxSize,
-      customValidation: async (file: File) => {
-        // Perform content validation for additional security
-        const contentErrors = await validateFileContent(file)
-        return contentErrors
-      }
-    }, siteConfig)
-
-    if (!validationResult.isValid) {
-      await logAction('files-upload', `File validation failed for ${file.name}: ${validationResult.errors.join(', ')}`)
+    if (!allowedContentTypes.includes(contentType)) {
+      await logAction('files-upload', `Rejected upload with invalid content type: ${contentType} by ${session.email}`)
       return NextResponse.json({ 
-        error: 'File validation failed', 
-        details: validationResult.errors,
-        warnings: validationResult.warnings 
+        error: 'Invalid content type', 
+        details: `Content type ${contentType} is not allowed` 
       }, { status: 400 })
     }
 
-    // Log warnings if any
-    if (validationResult.warnings.length > 0) {
-      await logAction('files-upload', `File upload warnings for ${file.name}: ${validationResult.warnings.join(', ')}`)
-    }
+    // Sanitize filename for security - prevent path traversal and remove dangerous characters
+    const sanitizedFilename = filename
+      .split('/').pop() // Remove any path components
+      ?.replace(/\.\./g, '') // Remove any remaining path traversal attempts
+      .replace(/[^a-zA-Z0-9._-]/g, '_') // Replace unsafe characters
+      .replace(/^\.+/, '') // Remove leading dots
+      .replace(/_{2,}/g, '_') // Collapse multiple underscores
+      .substring(0, 255) // Limit length
+      || 'unnamed_file'
 
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    
-    // Generate storage path - for file browser uploads, use direct path
-    const key = generateSecureStoragePath(
-      validationResult.sanitizedName, 
-      bucket, 
-      String(session.id), 
-      prefix,
-      false // Don't use user structure for file browser uploads
-    )
+    // Sanitize prefix to prevent path traversal
+    const sanitizedPrefix = (prefix || '')
+      .replace(/\.\./g, '') // Remove path traversal
+      .replace(/^\/+|\/+$/g, '') // Remove leading/trailing slashes
+      .split('/').filter(Boolean).join('/') // Normalize path
 
-    // Extract EXIF data if requested and file is an image
-    let exifData = null
-    if (extractExif && validationResult.detectedType === 'image') {
-      try {
-        const rawExifData = await extractExifData(arrayBuffer)
-        exifData = validateExifData(rawExifData)
-        console.log(
-          `Extracted EXIF data for ${validationResult.sanitizedName}:`,
-          Object.keys(exifData),
-        )
-      } catch (error) {
-        console.warn(`Failed to extract EXIF data from ${validationResult.sanitizedName}:`, error)
-        // Don't fail the upload if EXIF extraction fails
-      }
-    }
+    // Generate the storage key (path in bucket)
+    const key = sanitizedPrefix ? `${sanitizedPrefix}/${sanitizedFilename}` : sanitizedFilename
 
+    await logAction('files-upload', `Generating pre-signed URL for ${sanitizedFilename} to ${bucket}/${key} by ${session.email}`)
+
+    // Create PutObjectCommand with metadata
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      Body: buffer,
-      ContentType: file.type,
-      // Add security metadata
+      ContentType: contentType,
       Metadata: {
         'uploaded-by': String(session.id),
         'upload-timestamp': new Date().toISOString(),
-        'original-filename': file.name,
-        'sanitized-filename': validationResult.sanitizedName,
-        'detected-type': validationResult.detectedType || 'unknown',
-        'file-hash': await generateFileHash(buffer),
+        'original-filename': filename,
       },
     })
 
-    await r2.send(command)
+    // Generate pre-signed URL valid for 5 minutes to accommodate large files and slow connections
+    const url = await getSignedUrl(r2, command, { expiresIn: 300 })
 
-    // Log successful upload
-    await logAction('files-upload', `Successfully uploaded ${validationResult.sanitizedName} to ${bucket}/${key} by ${session.email}`)
-
+    // Get site config to build file URL
+    const siteConfig = getServerSiteConfig()
+    const bucketKey = bucket.toLowerCase()
+    const bucketUrlMap: Record<string, string | undefined> = {
+      about: siteConfig.aboutBucketUrl,
+      blog: siteConfig.blogBucketUrl,
+      'img-custom': siteConfig.customBucketUrl,
+      'img-public': siteConfig.imageBucketUrl,
+      files: siteConfig.filesBucketUrl,
+      stream: siteConfig.streamBucketUrl,
+    }
+    const baseUrl = bucketUrlMap[bucketKey] ?? siteConfig.filesBucketUrl ?? ''
+    const fileUrl = baseUrl ? `${baseUrl}/${key}` : ''
+    
     const response = {
       success: true,
+      url,
+      fileUrl,
       key,
-      originalName: file.name,
-      sanitizedName: validationResult.sanitizedName,
-      size: file.size,
-      detectedType: validationResult.detectedType,
-      warnings: validationResult.warnings,
-      ...(exifData && { exifData }),
+      sanitizedFilename,
     }
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error('Error uploading file:', error)
-    await logAction('files-upload', `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    console.error('Error generating pre-signed URL:', error)
+    await logAction('files-upload', `Pre-signed URL generation error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     return NextResponse.json(
-      { error: 'Failed to upload file' },
+      { error: 'Failed to generate upload URL' },
       { status: 500 },
     )
   }
-}
-
-/**
- * Generate a hash for file content to detect duplicates and for integrity checking
- */
-async function generateFileHash(buffer: Buffer): Promise<string> {
-  const crypto = await import('crypto')
-  return crypto.createHash('sha256').update(buffer).digest('hex').substring(0, 16)
 }
