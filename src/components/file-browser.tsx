@@ -69,6 +69,25 @@ type ViewMode = 'list' | 'grid' | 'thumbnail'
 type SortBy = 'name' | 'date' | 'size' | 'type'
 type SortOrder = 'asc' | 'desc'
 
+type UploadSessionResponse = {
+  uploadUrl: string
+  key: string
+  sanitizedName: string
+  signature: string
+  headers: Record<string, string>
+  limits: {
+    maxBytes: number
+    maxMB: number
+  }
+}
+
+type UploadFinalizeResponse = {
+  success?: boolean
+  warnings?: string[]
+  error?: string
+  details?: string[]
+}
+
 // Real S3 API functions
 const s3Api = {
   async listObjects(bucket = '', prefix = ''): Promise<S3File[]> {
@@ -195,7 +214,7 @@ const getFileIcon = (file: S3File) => {
 
 export function FileBrowser() {
   const siteConfig = useSiteConfig()
-  
+
   const [files, setFiles] = useState<S3File[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>('list')
@@ -588,16 +607,46 @@ export function FileBrowser() {
           // Initialize progress
           setUploadProgress((prev) => ({ ...prev, [fileId]: 0 }))
 
-          // Create FormData for upload
-          const formData = new FormData()
-          formData.append('file', file)
-          formData.append('bucket', currentBucket)
-          formData.append('prefix', currentPath)
-          formData.append('allowAnyType', 'true')
-          formData.append(
-            'extractExif',
-            file.type.startsWith('image/') ? 'true' : 'false',
-          )
+          // Request a signed upload session
+          const sessionResponse = await fetch('/api/files/upload-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              bucket: currentBucket,
+              prefix: currentPath,
+              originalName: file.name,
+              fileSize: file.size,
+              contentType: file.type,
+              allowAnyType: true,
+            }),
+          })
+
+          if (!sessionResponse.ok) {
+            let sessionError = `Failed to prepare upload (HTTP ${sessionResponse.status})`
+            try {
+              const errorResult =
+                (await sessionResponse.json()) as UploadFinalizeResponse
+              sessionError =
+                errorResult?.details?.join(', ') ||
+                errorResult?.error ||
+                sessionError
+            } catch {
+              // ignore JSON parse errors
+            }
+            throw new Error(sessionError)
+          }
+
+          const sessionData =
+            (await sessionResponse.json()) as UploadSessionResponse
+          const {
+            uploadUrl,
+            key,
+            sanitizedName,
+            signature,
+            headers: requiredHeaders,
+          } = sessionData
 
           // Create XMLHttpRequest for progress tracking
           const xhr = new XMLHttpRequest()
@@ -618,56 +667,68 @@ export function FileBrowser() {
             xhr.addEventListener('load', async () => {
               try {
                 if (xhr.status >= 200 && xhr.status < 300) {
-                  // Try to parse JSON response
-                  let result
                   try {
-                    result = JSON.parse(xhr.responseText)
-                  } catch (jsonError) {
-                    // If JSON parsing fails, check if it's an HTML error page
+                    const finalizeResponse = await fetch(
+                      '/api/files/upload-finalize',
+                      {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          bucket: currentBucket,
+                          key,
+                          sanitizedName,
+                          originalName: file.name,
+                          fileSize: file.size,
+                          contentType: file.type,
+                          allowAnyType: true,
+                          prefix: currentPath,
+                          extractExif: file.type.startsWith('image/'),
+                          signature,
+                        }),
+                      },
+                    )
+
+                    let finalizeData: UploadFinalizeResponse | null = null
+                    try {
+                      finalizeData =
+                        (await finalizeResponse.json()) as UploadFinalizeResponse
+                    } catch {
+                      finalizeData = null
+                    }
+
+                    if (!finalizeResponse.ok || finalizeData?.error) {
+                      const finalizeError =
+                        finalizeData?.details?.join(', ') ||
+                        finalizeData?.error ||
+                        `Finalize failed (HTTP ${finalizeResponse.status})`
+                      throw new Error(finalizeError)
+                    }
+
                     if (
-                      xhr.responseText.includes('<!DOCTYPE html>') ||
-                      xhr.responseText.includes('<html>')
+                      finalizeData?.warnings &&
+                      finalizeData.warnings.length > 0
                     ) {
-                      throw new Error(
-                        'Server returned an error page. File may be too large or request invalid.',
-                      )
-                    } else {
-                      throw new Error(
-                        `Invalid server response: ${xhr.responseText.substring(0, 100)}...`,
+                      uploadWarnings.push(
+                        `${file.name}: ${finalizeData.warnings.join(', ')}`,
                       )
                     }
-                  }
 
-                  if (result.warnings && result.warnings.length > 0) {
-                    uploadWarnings.push(
-                      `${file.name}: ${result.warnings.join(', ')}`,
+                    setUploadProgress((prev) => ({ ...prev, [fileId]: 100 }))
+                    resolve()
+                  } catch (error) {
+                    reject(
+                      error instanceof Error
+                        ? error
+                        : new Error('Failed to finalize upload'),
                     )
                   }
-
-                  setUploadProgress((prev) => ({ ...prev, [fileId]: 100 }))
-                  resolve()
                 } else {
                   // Handle HTTP error status with improved error messages
-                  let errorMessage = `HTTP ${xhr.status}`
-                  try {
-                    const errorResult = JSON.parse(xhr.responseText)
-                    errorMessage = errorResult.error || errorMessage
-                    if (errorResult.details) {
-                      errorMessage += `: ${errorResult.details.join(', ')}`
-                    }
-                  } catch {
-                    // Handle specific error cases
-                    if (xhr.status === 413) {
-                      // File too large error - check file size and provide specific guidance
-                      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1)
-                      const bucketLimit =
-                        siteConfig.uploadLimits[
-                          currentBucket as keyof typeof siteConfig.uploadLimits
-                        ] || 20
-                      errorMessage = `File too large (${fileSizeMB}MB). Maximum allowed size for this bucket (${currentBucket}) is ${bucketLimit}MB. Please compress the file or split it into smaller parts.`
-                    } else {
-                      errorMessage += `: ${xhr.responseText.substring(0, 100)}`
-                    }
+                  let errorMessage = `Upload failed with status ${xhr.status}`
+                  if (xhr.responseText) {
+                    errorMessage += `: ${xhr.responseText.substring(0, 100)}`
                   }
                   reject(new Error(errorMessage))
                 }
@@ -685,10 +746,18 @@ export function FileBrowser() {
             })
           })
 
-          // Start the upload
-          xhr.open('POST', '/api/files/upload')
+          // Start the upload to R2
+          xhr.open('PUT', uploadUrl)
+          xhr.responseType = 'text'
           xhr.timeout = 300000 // 5 minutes timeout
-          xhr.send(formData)
+          if (requiredHeaders) {
+            Object.entries(requiredHeaders).forEach(([header, value]) => {
+              if (value) {
+                xhr.setRequestHeader(header, value)
+              }
+            })
+          }
+          xhr.send(file)
 
           await uploadPromise
           completedFiles++
@@ -811,7 +880,7 @@ export function FileBrowser() {
           'bg-primary/5 border-primary/30 border-2 border-dashed',
         isDragOver &&
           !currentBucket &&
-          'border-2 border-dashed border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-950',
+          'border-2 border-dashed border-red-300 bg-red-50 dark:border-red-600 dark:bg-red-950',
       )}
       tabIndex={-1}
       onDragEnter={handleDragEnter}
@@ -826,7 +895,7 @@ export function FileBrowser() {
             className={cn(
               'rounded-lg p-8 text-center shadow-lg',
               dragError
-                ? 'border border-red-300 dark:border-red-600 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300'
+                ? 'border border-red-300 bg-red-100 text-red-700 dark:border-red-600 dark:bg-red-950 dark:text-red-300'
                 : 'bg-primary/10 border-primary/30 text-primary border',
             )}
           >
@@ -855,16 +924,20 @@ export function FileBrowser() {
       {/* Modern Upload Progress Modal */}
       {isUploading && Object.keys(uploadProgress).length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl border border-border bg-background p-6 shadow-2xl">
+          <div className="border-border bg-background w-full max-w-md rounded-xl border p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                  <Upload className="h-5 w-5 text-primary" />
+                <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+                  <Upload className="text-primary h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Uploading Files</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {Object.keys(uploadProgress).length} file{Object.keys(uploadProgress).length !== 1 ? 's' : ''} to {currentBucket}
+                  <h3 className="text-foreground font-semibold">
+                    Uploading Files
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    {Object.keys(uploadProgress).length} file
+                    {Object.keys(uploadProgress).length !== 1 ? 's' : ''} to{' '}
+                    {currentBucket}
                     {currentPath && `/${currentPath}`}
                   </p>
                 </div>
@@ -888,17 +961,26 @@ export function FileBrowser() {
                 const fileName = fileId.split('-')[0]
                 const isComplete = progress === 100
                 const isError = progress === -1
-                
+
                 return (
-                  <div key={fileId} className="rounded-lg border border-border/50 bg-muted/30 p-3">
+                  <div
+                    key={fileId}
+                    className="border-border/50 bg-muted/30 rounded-lg border p-3"
+                  >
                     <div className="mb-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className={cn(
-                          "flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium",
-                          isComplete && "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300",
-                          isError && "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300",
-                          !isComplete && !isError && "bg-primary/10 text-primary"
-                        )}>
+                        <div
+                          className={cn(
+                            'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium',
+                            isComplete &&
+                              'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+                            isError &&
+                              'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+                            !isComplete &&
+                              !isError &&
+                              'bg-primary/10 text-primary',
+                          )}
+                        >
                           {isComplete ? (
                             <CheckCircle className="h-4 w-4" />
                           ) : isError ? (
@@ -907,36 +989,45 @@ export function FileBrowser() {
                             <div className="h-2 w-2 animate-pulse rounded-full bg-current" />
                           )}
                         </div>
-                        <span className="max-w-48 truncate text-sm font-medium text-foreground" title={fileName}>
+                        <span
+                          className="text-foreground max-w-48 truncate text-sm font-medium"
+                          title={fileName}
+                        >
                           {fileName}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={cn(
-                          "text-xs font-medium",
-                          isComplete && "text-green-600 dark:text-green-400",
-                          isError && "text-red-600 dark:text-red-400",
-                          !isComplete && !isError && "text-primary"
-                        )}>
-                          {isError ? 'Failed' : isComplete ? 'Complete' : `${Math.round(progress)}%`}
+                        <span
+                          className={cn(
+                            'text-xs font-medium',
+                            isComplete && 'text-green-600 dark:text-green-400',
+                            isError && 'text-red-600 dark:text-red-400',
+                            !isComplete && !isError && 'text-primary',
+                          )}
+                        >
+                          {isError
+                            ? 'Failed'
+                            : isComplete
+                              ? 'Complete'
+                              : `${Math.round(progress)}%`}
                         </span>
                       </div>
                     </div>
-                    
-                    <div className="w-full rounded-full bg-muted/50 overflow-hidden">
+
+                    <div className="bg-muted/50 w-full overflow-hidden rounded-full">
                       <div
                         className={cn(
-                          "h-2 rounded-full transition-all duration-500 ease-out",
-                          isComplete && "bg-green-500 dark:bg-green-400",
-                          isError && "bg-red-500 dark:bg-red-400",
-                          !isComplete && !isError && "bg-primary"
+                          'h-2 rounded-full transition-all duration-500 ease-out',
+                          isComplete && 'bg-green-500 dark:bg-green-400',
+                          isError && 'bg-red-500 dark:bg-red-400',
+                          !isComplete && !isError && 'bg-primary',
                         )}
                         style={{
                           width: `${isError ? 100 : Math.max(0, Math.min(100, progress))}%`,
                         }}
                       />
                     </div>
-                    
+
                     {isError && (
                       <p className="mt-2 text-xs text-red-600 dark:text-red-400">
                         Upload failed. Please try again.
@@ -948,16 +1039,23 @@ export function FileBrowser() {
             </div>
 
             {/* Overall progress summary */}
-            <div className="mt-4 pt-4 border-t border-border/50">
+            <div className="border-border/50 mt-4 border-t pt-4">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {Object.values(uploadProgress).filter(p => p === 100).length} of {Object.keys(uploadProgress).length} complete
+                  {
+                    Object.values(uploadProgress).filter((p) => p === 100)
+                      .length
+                  }{' '}
+                  of {Object.keys(uploadProgress).length} complete
                 </span>
-                <span className="font-medium text-foreground">
+                <span className="text-foreground font-medium">
                   {Math.round(
-                    Object.values(uploadProgress).reduce((acc, curr) => acc + Math.max(0, curr), 0) / 
-                    Object.keys(uploadProgress).length
-                  )}% total
+                    Object.values(uploadProgress).reduce(
+                      (acc, curr) => acc + Math.max(0, curr),
+                      0,
+                    ) / Object.keys(uploadProgress).length,
+                  )}
+                  % total
                 </span>
               </div>
             </div>
@@ -1013,9 +1111,9 @@ export function FileBrowser() {
               }
               className={cn(
                 alertMessage.type === 'success' &&
-                  'border-green-500 dark:border-green-600 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300',
+                  'border-green-500 bg-green-50 text-green-700 dark:border-green-600 dark:bg-green-950 dark:text-green-300',
                 alertMessage.type === 'warning' &&
-                  'border-yellow-500 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-300',
+                  'border-yellow-500 bg-yellow-50 text-yellow-700 dark:border-yellow-600 dark:bg-yellow-950 dark:text-yellow-300',
               )}
             >
               <div className="flex items-start justify-between">
