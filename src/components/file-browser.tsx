@@ -580,18 +580,25 @@ export function FileBrowser() {
             },
             body: JSON.stringify({
               filename: file.name,
-              contentType: file.type,
+              contentType: file.type || 'application/octet-stream',
               bucket: currentBucket,
               prefix: currentPath,
             }),
           })
 
           if (!metadataResponse.ok) {
-            const errorData = await metadataResponse.json()
+            const errorData = await metadataResponse.json().catch(() => ({ error: 'Unknown error' }))
             throw new Error(errorData.error || `Failed to get upload URL: ${metadataResponse.status}`)
           }
 
-          const { url: uploadUrl, fileUrl, key } = await metadataResponse.json()
+          const responseData = await metadataResponse.json()
+          const uploadUrl = responseData?.url
+          const fileUrl = responseData?.fileUrl
+          const key = responseData?.key
+
+          if (!uploadUrl) {
+            throw new Error('Invalid response: missing upload URL')
+          }
 
           // Step 2: Upload file directly to R2 using pre-signed URL
           const xhr = new XMLHttpRequest()

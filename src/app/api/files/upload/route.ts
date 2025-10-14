@@ -54,14 +54,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Content type is required' }, { status: 400 })
     }
 
-    // Sanitize filename for security - remove dangerous characters
+    // Validate content type against allowlist
+    const allowedContentTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
+      'video/mp4', 'video/webm', 'video/quicktime',
+      'audio/mpeg', 'audio/wav', 'audio/mp4',
+      'application/pdf', 'text/plain', 'text/markdown',
+      'application/zip', 'application/x-zip-compressed',
+    ]
+    
+    if (!allowedContentTypes.includes(contentType)) {
+      await logAction('files-upload', `Rejected upload with invalid content type: ${contentType} by ${session.email}`)
+      return NextResponse.json({ 
+        error: 'Invalid content type', 
+        details: `Content type ${contentType} is not allowed` 
+      }, { status: 400 })
+    }
+
+    // Sanitize filename for security - prevent path traversal and remove dangerous characters
     const sanitizedFilename = filename
-      .replace(/[^a-zA-Z0-9._-]/g, '_')
-      .replace(/_{2,}/g, '_')
-      .substring(0, 255)
+      .split('/').pop() // Remove any path components
+      ?.replace(/\.\./g, '') // Remove any remaining path traversal attempts
+      .replace(/[^a-zA-Z0-9._-]/g, '_') // Replace unsafe characters
+      .replace(/^\.+/, '') // Remove leading dots
+      .replace(/_{2,}/g, '_') // Collapse multiple underscores
+      .substring(0, 255) // Limit length
+      || 'unnamed_file'
+
+    // Sanitize prefix to prevent path traversal
+    const sanitizedPrefix = prefix
+      .replace(/\.\./g, '') // Remove path traversal
+      .replace(/^\/+|\/+$/g, '') // Remove leading/trailing slashes
+      .split('/').filter(Boolean).join('/') // Normalize path
 
     // Generate the storage key (path in bucket)
-    const key = prefix ? `${prefix}/${sanitizedFilename}` : sanitizedFilename
+    const key = sanitizedPrefix ? `${sanitizedPrefix}/${sanitizedFilename}` : sanitizedFilename
 
     await logAction('files-upload', `Generating pre-signed URL for ${sanitizedFilename} to ${bucket}/${key} by ${session.email}`)
 
@@ -77,8 +104,8 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Generate pre-signed URL valid for 60 seconds
-    const url = await getSignedUrl(r2, command, { expiresIn: 60 })
+    // Generate pre-signed URL valid for 5 minutes to accommodate large files and slow connections
+    const url = await getSignedUrl(r2, command, { expiresIn: 300 })
 
     // Get site config to build file URL
     const siteConfig = getServerSiteConfig()
