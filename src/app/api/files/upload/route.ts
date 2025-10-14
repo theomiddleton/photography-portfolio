@@ -59,8 +59,9 @@ export async function POST(request: NextRequest) {
       'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
       'video/mp4', 'video/webm', 'video/quicktime',
       'audio/mpeg', 'audio/wav', 'audio/mp4',
-      'application/pdf', 'text/plain', 'text/markdown',
+      'application/pdf', 'text/plain', 'text/markdown', 'text/x-markdown',
       'application/zip', 'application/x-zip-compressed',
+      'application/octet-stream', // Fallback for files with unknown type
     ]
     
     if (!allowedContentTypes.includes(contentType)) {
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
       || 'unnamed_file'
 
     // Sanitize prefix to prevent path traversal
-    const sanitizedPrefix = prefix
+    const sanitizedPrefix = (prefix || '')
       .replace(/\.\./g, '') // Remove path traversal
       .replace(/^\/+|\/+$/g, '') // Remove leading/trailing slashes
       .split('/').filter(Boolean).join('/') // Normalize path
