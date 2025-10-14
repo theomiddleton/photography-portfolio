@@ -665,6 +665,12 @@ export function FileBrowser() {
                           currentBucket as keyof typeof siteConfig.uploadLimits
                         ] || 20
                       errorMessage = `File too large (${fileSizeMB}MB). Maximum allowed size for this bucket (${currentBucket}) is ${bucketLimit}MB. Please compress the file or split it into smaller parts.`
+                      console.log(errorMessage)
+                      console.log('File size (MB):', fileSizeMB)
+                      console.log('File size raw (bytes):', file.size)
+                      console.log('Bucket limit (MB):', bucketLimit)
+                      console.log('Site config upload limits:', siteConfig.uploadLimits)
+                      console.log('Current bucket:', currentBucket)
                     } else {
                       errorMessage += `: ${xhr.responseText.substring(0, 100)}`
                     }
