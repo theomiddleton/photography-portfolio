@@ -94,11 +94,11 @@ export interface FileValidationOptions {
 export function sanitizeFilename(filename: string): string {
   // Remove or replace dangerous characters
   let sanitized = filename
-    .replace(/[<>:"/\\|?*]/g, '_') // Replace filesystem dangerous chars
-    .replace(/\.\./g, '_') // Prevent parent directory traversal
-    .replace(/^\./, '_') // Don't allow hidden files
-    .replace(/\s+/g, '_') // Replace spaces with underscores
-    .replace(/_{2,}/g, '_') // Collapse multiple underscores
+    .replace(/[<>:"/\\|?*]/g, '-') // Replace filesystem dangerous chars
+    .replace(/\.\./g, '-') // Prevent parent directory traversal
+    .replace(/^\./, '-') // Don't allow hidden files
+    .replace(/\s+/g, '-') // Replace spaces with underscores
+    .replace(/_{2,}/g, '-') // Collapse multiple underscores
     .toLowerCase()
 
   // Ensure filename has reasonable length
