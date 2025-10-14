@@ -5,6 +5,7 @@ import { r2 } from '~/lib/r2'
 import { getSession } from '~/lib/auth/auth'
 import { uploadRateLimit, getClientIP } from '~/lib/rate-limit'
 import { logAction } from '~/lib/logging'
+import { isDangerousExtension, isDangerousMimeType } from '~/lib/file-security'
 import { getServerSiteConfig } from '~/config/site'
 
 interface UploadRequestBody {
@@ -12,96 +13,227 @@ interface UploadRequestBody {
   contentType: string
   bucket: string
   prefix?: string
+  size?: number
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
     const clientIP = getClientIP(request)
     const rateLimitResult = await uploadRateLimit.check(clientIP)
-    
+
     if (!rateLimitResult.success) {
       await logAction('files-upload', `Rate limit exceeded for IP: ${clientIP}`)
       return NextResponse.json(
         { error: 'Rate limit exceeded' },
-        { status: 429 }
+        { status: 429 },
       )
     }
 
     const session = await getSession()
 
-    // If there's no session or the user is not an admin, return unauthorized
     if (!session?.role || session.role !== 'admin') {
-      await logAction('files-upload', `Unauthorized upload attempt from IP: ${clientIP}`)
+      await logAction(
+        'files-upload',
+        `Unauthorized upload attempt from IP: ${clientIP}`,
+      )
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 401 },
       )
     }
 
-    const body = await request.json() as UploadRequestBody
-    const { filename, contentType, bucket, prefix = '' } = body
+    const body = (await request.json()) as UploadRequestBody
+    const { filename, contentType, bucket, prefix = '', size } = body
+    const siteConfig = getServerSiteConfig()
+    const allowDangerousFiles = Boolean(
+      siteConfig.features?.security?.allowDangerousFiles,
+    )
 
     if (!filename) {
-      return NextResponse.json({ error: 'Filename is required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Filename is required' },
+        { status: 400 },
+      )
     }
 
-    if (!bucket) {  
-      return NextResponse.json({ error: 'Bucket is required' }, { status: 400 })  
-    }  
-    const allowedBuckets = new Set(['about', 'blog', 'img-custom', 'img-public', 'files', 'stream'])  
-    if (!allowedBuckets.has(bucket.toLowerCase())) {  
-      await logAction(  
-        'files-upload',  
-        `Rejected upload to disallowed bucket: ${bucket} by ${session.email}`  
-      )  
-      return NextResponse.json({ error: 'Invalid bucket' }, { status: 400 })  
-    }  
+    if (!bucket) {
+      return NextResponse.json({ error: 'Bucket is required' }, { status: 400 })
+    }
+
+    const normalizedBucket = bucket.toLowerCase()
+    const allowedBuckets = new Set([
+      'about',
+      'blog',
+      'img-custom',
+      'img-public',
+      'files',
+      'stream',
+    ])
+    if (!allowedBuckets.has(normalizedBucket)) {
+      await logAction(
+        'files-upload',
+        `Rejected upload to disallowed bucket: ${bucket} by ${session.email}`,
+      )
+      return NextResponse.json({ error: 'Invalid bucket' }, { status: 400 })
+    }
 
     if (!contentType) {
-      return NextResponse.json({ error: 'Content type is required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Content type is required' },
+        { status: 400 },
+      )
     }
 
-    // Validate content type against allowlist
-    const allowedContentTypes = [
-      'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
-      'video/mp4', 'video/webm', 'video/quicktime',
-      'audio/mpeg', 'audio/wav', 'audio/mp4',
-      'application/pdf', 'text/plain', 'text/markdown', 'text/x-markdown',
-      'application/zip', 'application/x-zip-compressed',
-      'application/octet-stream', // Fallback for files with unknown type
-    ]
-    
-    if (!allowedContentTypes.includes(contentType)) {
-      await logAction('files-upload', `Rejected upload with invalid content type: ${contentType} by ${session.email}`)
-      return NextResponse.json({ 
-        error: 'Invalid content type', 
-        details: `Content type ${contentType} is not allowed` 
-      }, { status: 400 })
+    const uploadLimits = siteConfig.uploadLimits as Record<string, number>
+    const bucketLimitKeyMap: Record<string, string> = {
+      'img-public': 'image',
+      'img-custom': 'custom',
+      stream: 'files',
+    }
+    const limitKey = bucketLimitKeyMap[normalizedBucket] ?? normalizedBucket
+    const bucketLimitMB = uploadLimits[limitKey]
+    if (typeof bucketLimitMB === 'number' && typeof size === 'number') {
+      const bucketLimitBytes = bucketLimitMB * 1024 * 1024
+      if (size > bucketLimitBytes) {
+        const actualSizeMB = Math.round((size / (1024 * 1024)) * 100) / 100
+        await logAction(
+          'files-upload',
+          `Rejected upload exceeding limit: ${filename} (${actualSizeMB}MB) > ${bucketLimitMB}MB for ${bucket} by ${session.email}`,
+        )
+        return NextResponse.json(
+          {
+            error: 'File too large',
+            details: `File size ${actualSizeMB}MB exceeds limit of ${bucketLimitMB}MB for ${bucket}`,
+          },
+          { status: 413 },
+        )
+      }
     }
 
-    // Sanitize filename for security - prevent path traversal and remove dangerous characters
-    const sanitizedFilename = filename
-      .split('/').pop() // Remove any path components
-      ?.replace(/\.\./g, '') // Remove any remaining path traversal attempts
-      .replace(/[^a-zA-Z0-9._-]/g, '_') // Replace unsafe characters
-      .replace(/^\.+/, '') // Remove leading dots
-      .replace(/_{2,}/g, '_') // Collapse multiple underscores
-      .substring(0, 255) // Limit length
-      || 'unnamed_file'
+    const allowedContentTypes = new Set([
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+      'video/mp4',
+      'video/webm',
+      'video/quicktime',
+      'audio/mpeg',
+      'audio/wav',
+      'audio/mp4',
+      'application/pdf',
+      'text/plain',
+      'text/markdown',
+      'text/x-markdown',
+      'application/zip',
+      'application/x-zip-compressed',
+    ])
+    const normalizedContentType = contentType.toLowerCase()
 
-    // Sanitize prefix to prevent path traversal
+    const sanitizedFilename =
+      filename
+        .split('/')
+        .pop()
+        ?.replace(/\.{2}/g, '')
+        .replace(/[^a-zA-Z0-9._-]/g, '_')
+        .replace(/^\.+/, '')
+        .replace(/_{2,}/g, '_')
+        .substring(0, 255) || 'unnamed_file'
+
     const sanitizedPrefix = (prefix || '')
-      .replace(/\.\./g, '') // Remove path traversal
-      .replace(/^\/+|\/+$/g, '') // Remove leading/trailing slashes
-      .split('/').filter(Boolean).join('/') // Normalize path
+      .replace(/\.{2}/g, '')
+      .replace(/^\/+|\/+$/g, '')
+      .split('/')
+      .filter(Boolean)
+      .join('/')
 
-    // Generate the storage key (path in bucket)
-    const key = sanitizedPrefix ? `${sanitizedPrefix}/${sanitizedFilename}` : sanitizedFilename
+    if (normalizedBucket === 'files' && sanitizedPrefix === '') {
+      await logAction(
+        'files-upload',
+        `Rejected root-level upload to files bucket: ${sanitizedFilename} by ${session.email}`,
+      )
+      return NextResponse.json(
+        {
+          error: 'Invalid upload location',
+          details: 'Uploads to the files bucket must target a subdirectory',
+        },
+        { status: 400 },
+      )
+    }
 
-    await logAction('files-upload', `Generating pre-signed URL for ${sanitizedFilename} to ${bucket}/${key} by ${session.email}`)
+    const hasExtension = sanitizedFilename.includes('.')
+    const dangerousExtension = isDangerousExtension(sanitizedFilename)
+    const dangerousMime = isDangerousMimeType(contentType)
 
-    // Create PutObjectCommand with metadata
+    if (!allowDangerousFiles && dangerousExtension) {
+      await logAction(
+        'files-upload',
+        `Rejected upload with dangerous extension: ${sanitizedFilename} by ${session.email}`,
+      )
+      return NextResponse.json(
+        {
+          error: 'Invalid file type',
+          details: 'File extension is not allowed for security reasons',
+        },
+        { status: 400 },
+      )
+    }
+
+    if (!allowDangerousFiles && dangerousMime) {
+      await logAction(
+        'files-upload',
+        `Rejected upload with dangerous MIME type: ${contentType} by ${session.email}`,
+      )
+      return NextResponse.json(
+        {
+          error: 'Invalid content type',
+          details: `Content type ${contentType} is not allowed for security reasons`,
+        },
+        { status: 400 },
+      )
+    }
+
+    const isOctetStream = normalizedContentType === 'application/octet-stream'
+
+    if (isOctetStream) {
+      if (!hasExtension) {
+        await logAction(
+          'files-upload',
+          `Rejected octet-stream upload without extension: ${sanitizedFilename} by ${session.email}`,
+        )
+        return NextResponse.json(
+          {
+            error: 'Invalid file type',
+            details:
+              'application/octet-stream uploads require a valid file extension',
+          },
+          { status: 400 },
+        )
+      }
+    } else if (!allowedContentTypes.has(normalizedContentType)) {
+      await logAction(
+        'files-upload',
+        `Rejected upload with invalid content type: ${contentType} by ${session.email}`,
+      )
+      return NextResponse.json(
+        {
+          error: 'Invalid content type',
+          details: `Content type ${contentType} is not allowed`,
+        },
+        { status: 400 },
+      )
+    }
+
+    const key = sanitizedPrefix
+      ? `${sanitizedPrefix}/${sanitizedFilename}`
+      : sanitizedFilename
+
+    await logAction(
+      'files-upload',
+      `Generating pre-signed URL for ${sanitizedFilename} to ${bucket}/${key} by ${session.email}`,
+    )
+
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
@@ -113,12 +245,9 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Generate pre-signed URL valid for 5 minutes to accommodate large files and slow connections
     const url = await getSignedUrl(r2, command, { expiresIn: 300 })
 
-    // Get site config to build file URL
-    const siteConfig = getServerSiteConfig()
-    const bucketKey = bucket.toLowerCase()
+    const bucketKey = normalizedBucket
     const bucketUrlMap: Record<string, string | undefined> = {
       about: siteConfig.aboutBucketUrl,
       blog: siteConfig.blogBucketUrl,
@@ -128,8 +257,11 @@ export async function POST(request: NextRequest) {
       stream: siteConfig.streamBucketUrl,
     }
     const baseUrl = bucketUrlMap[bucketKey] ?? siteConfig.filesBucketUrl ?? ''
-    const fileUrl = baseUrl ? `${baseUrl}/${key}` : ''
-    
+    if (!baseUrl) {
+      console.warn(`No URL configured for bucket: ${bucket}`)
+    }
+    const fileUrl = baseUrl ? `${baseUrl.replace(/\/+$/, '')}/${key}` : ''
+
     const response = {
       success: true,
       url,
@@ -141,7 +273,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response)
   } catch (error) {
     console.error('Error generating pre-signed URL:', error)
-    await logAction('files-upload', `Pre-signed URL generation error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    await logAction(
+      'files-upload',
+      `Pre-signed URL generation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    )
     return NextResponse.json(
       { error: 'Failed to generate upload URL' },
       { status: 500 },

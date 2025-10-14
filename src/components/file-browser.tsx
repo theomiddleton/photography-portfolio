@@ -2,7 +2,7 @@
 
 import type React from 'react'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Badge } from '~/components/ui/badge'
@@ -179,7 +179,7 @@ const getFileIcon = (file: S3File) => {
 
 export function FileBrowser() {
   const siteConfig = useSiteConfig()
-  
+
   const [files, setFiles] = useState<S3File[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>('list')
@@ -197,6 +197,7 @@ export function FileBrowser() {
     {},
   )
   const [isUploading, setIsUploading] = useState(false)
+  const uploadRequestsRef = useRef<Map<string, XMLHttpRequest>>(new Map())
 
   // Page alert states
   const [alertMessage, setAlertMessage] = useState<{
@@ -237,6 +238,19 @@ export function FileBrowser() {
   useEffect(() => {
     loadFiles()
   }, [currentPath, currentBucket])
+
+  useEffect(() => {
+    return () => {
+      uploadRequestsRef.current.forEach((request) => {
+        try {
+          request.abort()
+        } catch (error) {
+          console.error('Error aborting upload request on unmount:', error)
+        }
+      })
+      uploadRequestsRef.current.clear()
+    }
+  }, [])
 
   // Helper function to show page alerts
   const showAlert = (
@@ -590,8 +604,13 @@ export function FileBrowser() {
           })
 
           if (!metadataResponse.ok) {
-            const errorData = await metadataResponse.json().catch(() => ({ error: 'Unknown error' }))
-            throw new Error(errorData.error || `Failed to get upload URL: ${metadataResponse.status}`)
+            const errorData = await metadataResponse
+              .json()
+              .catch(() => ({ error: 'Unknown error' }))
+            throw new Error(
+              errorData.error ||
+                `Failed to get upload URL: ${metadataResponse.status}`,
+            )
           }
 
           const responseData = await metadataResponse.json()
@@ -605,6 +624,7 @@ export function FileBrowser() {
 
           // Step 2: Upload file directly to R2 using pre-signed URL
           const xhr = new XMLHttpRequest()
+          uploadRequestsRef.current.set(fileId, xhr)
 
           // Track upload progress
           xhr.upload.addEventListener('progress', (event) => {
@@ -622,26 +642,36 @@ export function FileBrowser() {
             xhr.addEventListener('load', () => {
               if (xhr.status >= 200 && xhr.status < 300) {
                 setUploadProgress((prev) => ({ ...prev, [fileId]: 100 }))
+                uploadRequestsRef.current.delete(fileId)
                 resolve()
               } else {
                 // Handle HTTP error status
                 let errorMessage = `Upload failed with status ${xhr.status}`
                 if (xhr.status === 403) {
-                  errorMessage = 'Upload forbidden. The pre-signed URL may have expired.'
+                  errorMessage =
+                    'Upload forbidden. The pre-signed URL may have expired.'
                 } else if (xhr.status === 413) {
                   const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1)
                   errorMessage = `File too large (${fileSizeMB}MB). Please compress the file or split it into smaller parts.`
                 }
+                uploadRequestsRef.current.delete(fileId)
                 reject(new Error(errorMessage))
               }
             })
 
             xhr.addEventListener('error', () => {
+              uploadRequestsRef.current.delete(fileId)
               reject(new Error('Network error occurred during upload'))
             })
 
             xhr.addEventListener('timeout', () => {
+              uploadRequestsRef.current.delete(fileId)
               reject(new Error('Upload timed out'))
+            })
+
+            xhr.addEventListener('abort', () => {
+              uploadRequestsRef.current.delete(fileId)
+              reject(new Error('Upload aborted'))
             })
           })
 
@@ -658,6 +688,7 @@ export function FileBrowser() {
             `${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
           )
           setUploadProgress((prev) => ({ ...prev, [fileId]: -1 })) // -1 indicates error
+          uploadRequestsRef.current.delete(fileId)
         }
       }
 
@@ -665,6 +696,8 @@ export function FileBrowser() {
       setTimeout(() => {
         setUploadProgress({})
       }, 3000)
+
+      uploadRequestsRef.current.clear()
 
       // Show results to user with page alerts instead of browser alerts
       if (uploadErrors.length > 0) {
@@ -698,6 +731,7 @@ export function FileBrowser() {
       )
     } finally {
       setIsUploading(false)
+      uploadRequestsRef.current.clear()
     }
   }
 
@@ -772,7 +806,7 @@ export function FileBrowser() {
           'bg-primary/5 border-primary/30 border-2 border-dashed',
         isDragOver &&
           !currentBucket &&
-          'border-2 border-dashed border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-950',
+          'border-2 border-dashed border-red-300 bg-red-50 dark:border-red-600 dark:bg-red-950',
       )}
       tabIndex={-1}
       onDragEnter={handleDragEnter}
@@ -787,7 +821,7 @@ export function FileBrowser() {
             className={cn(
               'rounded-lg p-8 text-center shadow-lg',
               dragError
-                ? 'border border-red-300 dark:border-red-600 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300'
+                ? 'border border-red-300 bg-red-100 text-red-700 dark:border-red-600 dark:bg-red-950 dark:text-red-300'
                 : 'bg-primary/10 border-primary/30 text-primary border',
             )}
           >
@@ -816,16 +850,20 @@ export function FileBrowser() {
       {/* Modern Upload Progress Modal */}
       {isUploading && Object.keys(uploadProgress).length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl border border-border bg-background p-6 shadow-2xl">
+          <div className="border-border bg-background w-full max-w-md rounded-xl border p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                  <Upload className="h-5 w-5 text-primary" />
+                <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+                  <Upload className="text-primary h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Uploading Files</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {Object.keys(uploadProgress).length} file{Object.keys(uploadProgress).length !== 1 ? 's' : ''} to {currentBucket}
+                  <h3 className="text-foreground font-semibold">
+                    Uploading Files
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    {Object.keys(uploadProgress).length} file
+                    {Object.keys(uploadProgress).length !== 1 ? 's' : ''} to{' '}
+                    {currentBucket}
                     {currentPath && `/${currentPath}`}
                   </p>
                 </div>
@@ -835,6 +873,17 @@ export function FileBrowser() {
                 size="sm"
                 onClick={() => {
                   // Cancel all uploads
+                  uploadRequestsRef.current.forEach((request) => {
+                    try {
+                      request.abort()
+                    } catch (error) {
+                      console.error(
+                        'Error aborting upload request on cancel:',
+                        error,
+                      )
+                    }
+                  })
+                  uploadRequestsRef.current.clear()
                   setIsUploading(false)
                   setUploadProgress({})
                 }}
@@ -849,17 +898,26 @@ export function FileBrowser() {
                 const fileName = fileId.split('-')[0]
                 const isComplete = progress === 100
                 const isError = progress === -1
-                
+
                 return (
-                  <div key={fileId} className="rounded-lg border border-border/50 bg-muted/30 p-3">
+                  <div
+                    key={fileId}
+                    className="border-border/50 bg-muted/30 rounded-lg border p-3"
+                  >
                     <div className="mb-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className={cn(
-                          "flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium",
-                          isComplete && "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300",
-                          isError && "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300",
-                          !isComplete && !isError && "bg-primary/10 text-primary"
-                        )}>
+                        <div
+                          className={cn(
+                            'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium',
+                            isComplete &&
+                              'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+                            isError &&
+                              'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+                            !isComplete &&
+                              !isError &&
+                              'bg-primary/10 text-primary',
+                          )}
+                        >
                           {isComplete ? (
                             <CheckCircle className="h-4 w-4" />
                           ) : isError ? (
@@ -868,36 +926,45 @@ export function FileBrowser() {
                             <div className="h-2 w-2 animate-pulse rounded-full bg-current" />
                           )}
                         </div>
-                        <span className="max-w-48 truncate text-sm font-medium text-foreground" title={fileName}>
+                        <span
+                          className="text-foreground max-w-48 truncate text-sm font-medium"
+                          title={fileName}
+                        >
                           {fileName}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={cn(
-                          "text-xs font-medium",
-                          isComplete && "text-green-600 dark:text-green-400",
-                          isError && "text-red-600 dark:text-red-400",
-                          !isComplete && !isError && "text-primary"
-                        )}>
-                          {isError ? 'Failed' : isComplete ? 'Complete' : `${Math.round(progress)}%`}
+                        <span
+                          className={cn(
+                            'text-xs font-medium',
+                            isComplete && 'text-green-600 dark:text-green-400',
+                            isError && 'text-red-600 dark:text-red-400',
+                            !isComplete && !isError && 'text-primary',
+                          )}
+                        >
+                          {isError
+                            ? 'Failed'
+                            : isComplete
+                              ? 'Complete'
+                              : `${Math.round(progress)}%`}
                         </span>
                       </div>
                     </div>
-                    
-                    <div className="w-full rounded-full bg-muted/50 overflow-hidden">
+
+                    <div className="bg-muted/50 w-full overflow-hidden rounded-full">
                       <div
                         className={cn(
-                          "h-2 rounded-full transition-all duration-500 ease-out",
-                          isComplete && "bg-green-500 dark:bg-green-400",
-                          isError && "bg-red-500 dark:bg-red-400",
-                          !isComplete && !isError && "bg-primary"
+                          'h-2 rounded-full transition-all duration-500 ease-out',
+                          isComplete && 'bg-green-500 dark:bg-green-400',
+                          isError && 'bg-red-500 dark:bg-red-400',
+                          !isComplete && !isError && 'bg-primary',
                         )}
                         style={{
                           width: `${isError ? 100 : Math.max(0, Math.min(100, progress))}%`,
                         }}
                       />
                     </div>
-                    
+
                     {isError && (
                       <p className="mt-2 text-xs text-red-600 dark:text-red-400">
                         Upload failed. Please try again.
@@ -909,16 +976,23 @@ export function FileBrowser() {
             </div>
 
             {/* Overall progress summary */}
-            <div className="mt-4 pt-4 border-t border-border/50">
+            <div className="border-border/50 mt-4 border-t pt-4">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {Object.values(uploadProgress).filter(p => p === 100).length} of {Object.keys(uploadProgress).length} complete
+                  {
+                    Object.values(uploadProgress).filter((p) => p === 100)
+                      .length
+                  }{' '}
+                  of {Object.keys(uploadProgress).length} complete
                 </span>
-                <span className="font-medium text-foreground">
+                <span className="text-foreground font-medium">
                   {Math.round(
-                    Object.values(uploadProgress).reduce((acc, curr) => acc + Math.max(0, curr), 0) / 
-                    Object.keys(uploadProgress).length
-                  )}% total
+                    Object.values(uploadProgress).reduce(
+                      (acc, curr) => acc + Math.max(0, curr),
+                      0,
+                    ) / Object.keys(uploadProgress).length,
+                  )}
+                  % total
                 </span>
               </div>
             </div>
@@ -974,9 +1048,9 @@ export function FileBrowser() {
               }
               className={cn(
                 alertMessage.type === 'success' &&
-                  'border-green-500 dark:border-green-600 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300',
+                  'border-green-500 bg-green-50 text-green-700 dark:border-green-600 dark:bg-green-950 dark:text-green-300',
                 alertMessage.type === 'warning' &&
-                  'border-yellow-500 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-300',
+                  'border-yellow-500 bg-yellow-50 text-yellow-700 dark:border-yellow-600 dark:bg-yellow-950 dark:text-yellow-300',
               )}
             >
               <div className="flex items-start justify-between">

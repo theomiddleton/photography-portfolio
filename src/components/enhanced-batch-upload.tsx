@@ -4,14 +4,12 @@ import React, { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
-import {
-  Database,
-  Upload,
-  ImageIcon,
-  Plus,
-} from 'lucide-react'
+import { Database, Upload, ImageIcon, Plus } from 'lucide-react'
 import { BatchUpload } from '~/components/batch-upload'
-import { ExistingImageBrowser, type ExistingImage } from '~/components/existing-image-browser'
+import {
+  ExistingImageBrowser,
+  type ExistingImage,
+} from '~/components/existing-image-browser'
 import { toast } from 'sonner'
 
 interface EnhancedBatchUploadProps {
@@ -34,51 +32,63 @@ export function EnhancedBatchUpload({
 
   const handleExistingImagesSelected = async (images: ExistingImage[]) => {
     setIsProcessingExisting(true)
-    
+
     try {
-      const results: { success: number; errors: string[] } = { success: 0, errors: [] }
-      
+      const results: { success: number; errors: string[] } = {
+        success: 0,
+        errors: [],
+      }
+
       // Process each selected image with proper error handling
       for (const image of images) {
         try {
-          if (galleryId) {
-            // If we're adding to a gallery, copy the reference to the gallery
-            const response = await fetch('/api/images/copy-reference', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                imageId: image.id,
-                sourceType: image.source,
-                targetBucket: bucket,
-                galleryId,
-              }),
-            })
-
-            if (!response.ok) {
-              const errorData = await response.json()
-              throw new Error(errorData.error || `Failed to add ${image.name} to gallery`)
-            }
-            
-            results.success++
-          } else {
-            // Regular image copy without gallery association
-            const response = await fetch('/api/images/copy-reference', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                imageId: image.id,
-                sourceType: image.source,
-                targetBucket: bucket,
-              }),
-            })
-
-            if (!response.ok) {
-              const errorData = await response.json()
-              throw new Error(errorData.error || `Failed to copy ${image.name}`)
-            }
-            
-            results.success++
+          const requestBody: {
+            imageId: ExistingImage['id']
+            sourceType: ExistingImage['source']
+            targetBucket: EnhancedBatchUploadProps['bucket']
+            galleryId?: string
+          } = {
+            imageId: image.id,
+            sourceType: image.source,
+            targetBucket: bucket,
           }
+
+          if (galleryId) {
+            requestBody.galleryId = galleryId
+          }
+
+          const response = await fetch('/api/images/copy-reference', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          })
+
+          if (!response.ok) {
+            let errorMessage = galleryId
+              ? `Failed to add ${image.name} to gallery`
+              : `Failed to copy ${image.name}`
+
+            try {
+              const errorData: unknown = await response.json()
+              if (
+                typeof errorData === 'object' &&
+                errorData !== null &&
+                'error' in errorData &&
+                typeof (errorData as { error?: unknown }).error === 'string'
+              ) {
+                errorMessage = (errorData as { error: string }).error
+              }
+            } catch (parseError) {
+              console.error(
+                'Failed to parse error response for image copy:',
+                parseError,
+              )
+            }
+
+            throw new Error(errorMessage)
+          }
+
+          results.success++
 
           // Call the image upload callback if provided
           if (onImageUpload) {
@@ -89,22 +99,24 @@ export function EnhancedBatchUpload({
           }
         } catch (error) {
           console.error(`Failed to process image ${image.name}:`, error)
-          results.errors.push(`${image.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          results.errors.push(
+            `${image.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          )
         }
       }
 
       // Show results to user
       if (results.success > 0) {
-        toast.success(`Successfully processed ${results.success} image${results.success > 1 ? 's' : ''}`)
+        toast.success(
+          `Successfully processed ${results.success} image${results.success > 1 ? 's' : ''}`,
+        )
       }
-      
+
       if (results.errors.length > 0) {
-        toast.error(`Failed to process ${results.errors.length} image${results.errors.length > 1 ? 's' : ''}:\n${results.errors.join('\n')}`)
+        toast.error(
+          `Failed to process ${results.errors.length} image${results.errors.length > 1 ? 's' : ''}:\n${results.errors.join('\n')}`,
+        )
       }
-      
-    } catch (error) {
-      console.error('Error processing existing images:', error)
-      toast.error('Failed to process selected images')
     } finally {
       setIsProcessingExisting(false)
       setShowExistingBrowser(false)
@@ -133,8 +145,9 @@ export function EnhancedBatchUpload({
           </TabsList>
 
           <TabsContent value="upload" className="space-y-4">
-            <div className="text-sm text-muted-foreground mb-4">
-              Upload new images to the {bucket} bucket. Images will be stored and processed.
+            <div className="text-muted-foreground mb-4 text-sm">
+              Upload new images to the {bucket} bucket. Images will be stored
+              and processed.
             </div>
             <BatchUpload
               bucket={bucket}
@@ -145,15 +158,19 @@ export function EnhancedBatchUpload({
           </TabsContent>
 
           <TabsContent value="existing" className="space-y-4">
-            <div className="text-sm text-muted-foreground mb-4">
-              Select from images already uploaded to any bucket. This saves storage space by reusing existing files.
+            <div className="text-muted-foreground mb-4 text-sm">
+              Select from images already uploaded to any bucket. This saves
+              storage space by reusing existing files.
             </div>
-            
-            <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <Database className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Browse Existing Images</h3>
+
+            <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center">
+              <Database className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+              <h3 className="mb-2 text-lg font-medium">
+                Browse Existing Images
+              </h3>
               <p className="text-muted-foreground mb-4">
-                Select from images already uploaded to avoid duplicates and save storage space
+                Select from images already uploaded to avoid duplicates and save
+                storage space
               </p>
               <Button
                 onClick={() => setShowExistingBrowser(true)}
@@ -166,16 +183,17 @@ export function EnhancedBatchUpload({
             </div>
 
             {galleryId && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
                 <div className="flex items-start gap-3">
-                  <Database className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <Database className="mt-0.5 h-5 w-5 text-blue-600" />
                   <div>
                     <h4 className="text-sm font-medium text-blue-900">
                       Smart Gallery Management
                     </h4>
-                    <p className="text-sm text-blue-700 mt-1">
-                      Selected images will be referenced in this gallery without creating duplicates. 
-                      The original files remain in their source bucket.
+                    <p className="mt-1 text-sm text-blue-700">
+                      Selected images will be referenced in this gallery without
+                      creating duplicates. The original files remain in their
+                      source bucket.
                     </p>
                   </div>
                 </div>
@@ -193,7 +211,7 @@ export function EnhancedBatchUpload({
           bucketFilter={bucket === 'custom' ? 'custom' : 'all'}
           title="Select Existing Images"
           description={`Choose images to ${galleryId ? 'add to this gallery' : 'use in this workflow'} without re-uploading`}
-          />
+        />
       </CardContent>
     </Card>
   )
