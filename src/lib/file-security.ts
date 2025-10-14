@@ -300,21 +300,37 @@ export async function validateFileContent(file: File): Promise<string[]> {
 /**
  * Generate a secure storage path for uploaded files
  */
-export function generateSecureStoragePath(
-  filename: string,
-  bucket: string,
-  userId?: string,
-  additionalPath?: string,
-  useUserStructure = true
-): string {
-  const sanitizedFilename = sanitizeFilename(filename)
-  
-  // If additionalPath is provided and we don't want user structure, use it directly
-  if (additionalPath && !useUserStructure) {
-    return additionalPath.endsWith('/') 
-      ? `${additionalPath}${sanitizedFilename}`
-      : `${additionalPath}/${sanitizedFilename}`
-  }
+export function generateSecureStoragePath(  
+  filename: string,  
+  bucket: string,  
+  userId?: string,  
+  additionalPath?: string,  
+  useUserStructure = true  
+): string {  
+  const sanitizedFilename = sanitizeFilename(filename)  
+
+  // Sanitize additionalPath to prevent path traversal  
+  const sanitizePath = (path: string): string => {  
+    return path  
+      .replace(/\.\./g, '')    // Remove parent-directory references  
+      .replace(/^\/+/, '')     // Strip leading slashes  
+      .replace(/\/+/g, '/')    // Collapse multiple slashes  
+      .replace(/\/+$/, '')     // Strip trailing slashes  
+      .trim()  
+  }  
+
+  // If additionalPath is provided and we don't want user structure, use it  
+  if (additionalPath !== undefined && !useUserStructure) {  
+    const sanitizedPath = sanitizePath(additionalPath)  
+
+    // Empty → root of bucket  
+    if (sanitizedPath === '') {  
+      return sanitizedFilename  
+    }  
+
+    // Otherwise prefix filename  
+    return `${sanitizedPath}/${sanitizedFilename}`  
+  }  
   
   // Default behavior with timestamp and random ID for security
   const timestamp = new Date().toISOString().split('T')[0] // YYYY-MM-DD
