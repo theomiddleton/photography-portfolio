@@ -310,10 +310,12 @@ export function generateSecureStoragePath(
   const sanitizedFilename = sanitizeFilename(filename)
   
   // If additionalPath is provided and we don't want user structure, use it directly
-  if (additionalPath && !useUserStructure) {
+  if (additionalPath !== undefined && !useUserStructure) {
     return additionalPath.endsWith('/') 
       ? `${additionalPath}${sanitizedFilename}`
-      : `${additionalPath}/${sanitizedFilename}`
+      : additionalPath === '' 
+        ? sanitizedFilename 
+        : `${additionalPath}/${sanitizedFilename}`
   }
   
   // Default behavior with timestamp and random ID for security
