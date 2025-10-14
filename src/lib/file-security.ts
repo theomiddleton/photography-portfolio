@@ -311,11 +311,16 @@ export function generateSecureStoragePath(
   
   // If additionalPath is provided and we don't want user structure, use it directly
   if (additionalPath !== undefined && !useUserStructure) {
-    return additionalPath.endsWith('/') 
-      ? `${additionalPath}${sanitizedFilename}`
-      : additionalPath === '' 
-        ? sanitizedFilename 
-        : `${additionalPath}/${sanitizedFilename}`
+    // Handle empty string - file goes to root of bucket
+    if (additionalPath === '') {
+      return sanitizedFilename
+    }
+    // Handle path ending with slash
+    if (additionalPath.endsWith('/')) {
+      return `${additionalPath}${sanitizedFilename}`
+    }
+    // Handle normal path
+    return `${additionalPath}/${sanitizedFilename}`
   }
   
   // Default behavior with timestamp and random ID for security
