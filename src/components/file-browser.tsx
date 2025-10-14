@@ -572,6 +572,9 @@ export function FileBrowser() {
           // Initialize progress
           setUploadProgress((prev) => ({ ...prev, [fileId]: 0 }))
 
+          // Use the exact content type for both presign and upload
+          const contentType = file.type || 'application/octet-stream'
+
           // Step 1: Get pre-signed URL from API by sending only metadata
           const metadataResponse = await fetch('/api/files/upload', {
             method: 'POST',
@@ -580,7 +583,7 @@ export function FileBrowser() {
             },
             body: JSON.stringify({
               filename: file.name,
-              contentType: file.type || 'application/octet-stream',
+              contentType,
               bucket: currentBucket,
               prefix: currentPath,
             }),
@@ -644,7 +647,7 @@ export function FileBrowser() {
 
           // Start the direct upload to R2
           xhr.open('PUT', uploadUrl, true)
-          xhr.setRequestHeader('Content-Type', file.type)
+          xhr.setRequestHeader('Content-Type', contentType)
           xhr.timeout = 300000 // 5 minutes timeout
           xhr.send(file)
 

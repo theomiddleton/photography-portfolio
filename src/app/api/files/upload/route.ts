@@ -46,9 +46,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Filename is required' }, { status: 400 })
     }
 
-    if (!bucket) {
-      return NextResponse.json({ error: 'Bucket is required' }, { status: 400 })
-    }
+    if (!bucket) {  
+      return NextResponse.json({ error: 'Bucket is required' }, { status: 400 })  
+    }  
+    const allowedBuckets = new Set(['about', 'blog', 'img-custom', 'img-public', 'files', 'stream'])  
+    if (!allowedBuckets.has(bucket.toLowerCase())) {  
+      await logAction(  
+        'files-upload',  
+        `Rejected upload to disallowed bucket: ${bucket} by ${session.email}`  
+      )  
+      return NextResponse.json({ error: 'Invalid bucket' }, { status: 400 })  
+    }  
 
     if (!contentType) {
       return NextResponse.json({ error: 'Content type is required' }, { status: 400 })
@@ -110,8 +118,18 @@ export async function POST(request: NextRequest) {
 
     // Get site config to build file URL
     const siteConfig = getServerSiteConfig()
-    const fileUrl = `${siteConfig.filesBucketUrl}/${key}`
-
+    const bucketKey = bucket.toLowerCase()
+    const bucketUrlMap: Record<string, string | undefined> = {
+      about: siteConfig.aboutBucketUrl,
+      blog: siteConfig.blogBucketUrl,
+      'img-custom': siteConfig.customBucketUrl,
+      'img-public': siteConfig.imageBucketUrl,
+      files: siteConfig.filesBucketUrl,
+      stream: siteConfig.streamBucketUrl,
+    }
+    const baseUrl = bucketUrlMap[bucketKey] ?? siteConfig.filesBucketUrl ?? ''
+    const fileUrl = baseUrl ? `${baseUrl}/${key}` : ''
+    
     const response = {
       success: true,
       url,
