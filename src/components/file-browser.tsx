@@ -137,22 +137,6 @@ const s3Api = {
     }
   },
 
-  async uploadFile(bucket: string, file: File, prefix = ''): Promise<void> {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('bucket', bucket)
-    formData.append('prefix', prefix)
-
-    const response = await fetch('/api/files/upload', {
-      method: 'POST',
-      body: formData,
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to upload file')
-    }
-  },
-
   async createFolder(bucket: string, folderPath: string): Promise<void> {
     const response = await fetch('/api/files/folder', {
       method: 'POST',
@@ -588,18 +572,28 @@ export function FileBrowser() {
           // Initialize progress
           setUploadProgress((prev) => ({ ...prev, [fileId]: 0 }))
 
-          // Create FormData for upload
-          const formData = new FormData()
-          formData.append('file', file)
-          formData.append('bucket', currentBucket)
-          formData.append('prefix', currentPath)
-          formData.append('allowAnyType', 'true')
-          formData.append(
-            'extractExif',
-            file.type.startsWith('image/') ? 'true' : 'false',
-          )
+          // Step 1: Get pre-signed URL from API by sending only metadata
+          const metadataResponse = await fetch('/api/files/upload', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              filename: file.name,
+              contentType: file.type,
+              bucket: currentBucket,
+              prefix: currentPath,
+            }),
+          })
 
-          // Create XMLHttpRequest for progress tracking
+          if (!metadataResponse.ok) {
+            const errorData = await metadataResponse.json()
+            throw new Error(errorData.error || `Failed to get upload URL: ${metadataResponse.status}`)
+          }
+
+          const { url: uploadUrl, fileUrl, key } = await metadataResponse.json()
+
+          // Step 2: Upload file directly to R2 using pre-signed URL
           const xhr = new XMLHttpRequest()
 
           // Track upload progress
@@ -615,70 +609,20 @@ export function FileBrowser() {
 
           // Handle completion
           const uploadPromise = new Promise<void>((resolve, reject) => {
-            xhr.addEventListener('load', async () => {
-              try {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                  // Try to parse JSON response
-                  let result
-                  try {
-                    result = JSON.parse(xhr.responseText)
-                  } catch (jsonError) {
-                    // If JSON parsing fails, check if it's an HTML error page
-                    if (
-                      xhr.responseText.includes('<!DOCTYPE html>') ||
-                      xhr.responseText.includes('<html>')
-                    ) {
-                      throw new Error(
-                        'Server returned an error page. File may be too large or request invalid.',
-                      )
-                    } else {
-                      throw new Error(
-                        `Invalid server response: ${xhr.responseText.substring(0, 100)}...`,
-                      )
-                    }
-                  }
-
-                  if (result.warnings && result.warnings.length > 0) {
-                    uploadWarnings.push(
-                      `${file.name}: ${result.warnings.join(', ')}`,
-                    )
-                  }
-
-                  setUploadProgress((prev) => ({ ...prev, [fileId]: 100 }))
-                  resolve()
-                } else {
-                  // Handle HTTP error status with improved error messages
-                  let errorMessage = `HTTP ${xhr.status}`
-                  try {
-                    const errorResult = JSON.parse(xhr.responseText)
-                    errorMessage = errorResult.error || errorMessage
-                    if (errorResult.details) {
-                      errorMessage += `: ${errorResult.details.join(', ')}`
-                    }
-                  } catch {
-                    // Handle specific error cases
-                    if (xhr.status === 413) {
-                      // File too large error - check file size and provide specific guidance
-                      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1)
-                      const bucketLimit =
-                        siteConfig.uploadLimits[
-                          currentBucket as keyof typeof siteConfig.uploadLimits
-                        ] || 20
-                      errorMessage = `File too large (${fileSizeMB}MB). Maximum allowed size for this bucket (${currentBucket}) is ${bucketLimit}MB. Please compress the file or split it into smaller parts.`
-                      console.log(errorMessage)
-                      console.log('File size (MB):', fileSizeMB)
-                      console.log('File size raw (bytes):', file.size)
-                      console.log('Bucket limit (MB):', bucketLimit)
-                      console.log('Site config upload limits:', siteConfig.uploadLimits)
-                      console.log('Current bucket:', currentBucket)
-                    } else {
-                      errorMessage += `: ${xhr.responseText.substring(0, 100)}`
-                    }
-                  }
-                  reject(new Error(errorMessage))
+            xhr.addEventListener('load', () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                setUploadProgress((prev) => ({ ...prev, [fileId]: 100 }))
+                resolve()
+              } else {
+                // Handle HTTP error status
+                let errorMessage = `Upload failed with status ${xhr.status}`
+                if (xhr.status === 403) {
+                  errorMessage = 'Upload forbidden. The pre-signed URL may have expired.'
+                } else if (xhr.status === 413) {
+                  const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1)
+                  errorMessage = `File too large (${fileSizeMB}MB). Please compress the file or split it into smaller parts.`
                 }
-              } catch (error) {
-                reject(error)
+                reject(new Error(errorMessage))
               }
             })
 
@@ -691,10 +635,11 @@ export function FileBrowser() {
             })
           })
 
-          // Start the upload
-          xhr.open('POST', '/api/files/upload')
+          // Start the direct upload to R2
+          xhr.open('PUT', uploadUrl, true)
+          xhr.setRequestHeader('Content-Type', file.type)
           xhr.timeout = 300000 // 5 minutes timeout
-          xhr.send(formData)
+          xhr.send(file)
 
           await uploadPromise
           completedFiles++
