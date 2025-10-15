@@ -14,6 +14,7 @@ export const adminSections = [
   { title: 'Users', description: 'Manage user accounts and permissions', icon: UserIcon, href: '/admin/users'},
   { title: 'Files', description: 'Browse and manage files in R2 storage', icon: FolderOpenIcon, href: '/admin/files' },
   { title: 'Storage Alerts', description: 'Monitor R2 storage usage and configure alerts', icon: Database, href: '/admin/storage-alerts' },
+  { title: 'Config Inspector', description: 'Compare server and client site configuration states', icon: SettingsIcon, href: '/admin/site-config' },
   { title: 'Videos', description: 'Manage HLS videos', icon: FilmIcon, href: '/admin/videos'  },
   { title: 'Video Upload', description: 'Upload a new Video', icon: FileVideoIcon, href: '/admin/videos/new'  }, 
   { title: 'Custom Pages', description: 'View and manage custom pages', icon: BookOpenTextIcon, href: '/admin/pages' },

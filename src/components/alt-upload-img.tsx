@@ -7,7 +7,7 @@ import {
   type FileWithPreview,
 } from '~/hooks/use-file-upload'
 import { Button } from '~/components/ui/button'
-import { siteConfig } from '~/config/site'
+import { useSiteConfig } from '~/hooks/use-site-config'
 
 const initialFiles = []
 
@@ -19,7 +19,8 @@ interface AltUploadProps {
 }
 
 export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
-  const maxSizeMB = siteConfig.uploadLimits[bucket]
+  const siteConfig = useSiteConfig()
+  const maxSizeMB = siteConfig?.uploadLimits?.[bucket] ?? 20
   const maxSize = maxSizeMB * 1024 * 1024
   const maxFiles = 10
 
