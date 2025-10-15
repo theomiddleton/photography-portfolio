@@ -30,10 +30,13 @@ export async function POST(request: NextRequest) {
     // Create an empty object with a trailing slash to represent a folder
     const key = folderPath.endsWith('/') ? folderPath : `${folderPath}/`
 
+    const emptyBody = new Uint8Array(0)
+
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      Body: '',
+      Body: emptyBody,
+      ContentLength: emptyBody.byteLength,
     })
 
     await r2.send(command)

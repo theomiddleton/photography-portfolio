@@ -148,20 +148,6 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join('/')
 
-    if (sanitizedPrefix === '') {
-      await logAction(
-        'files-upload',
-        `Rejected root-level upload to ${normalizedBucket} bucket: ${sanitizedFilename} by ${session.email}`,
-      )
-      return NextResponse.json(
-        {
-          error: 'Invalid upload location',
-          details: `Uploads to the ${normalizedBucket} bucket must target a subdirectory`,
-        },
-        { status: 400 },
-      )
-    }
-
     const userIdentifier = session.email ?? session.id ?? 'unknown user'
     const rejectInvalidFile = async (reason: string) => {
       await logAction(
