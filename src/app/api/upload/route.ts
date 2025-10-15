@@ -75,67 +75,6 @@ async function processExifDataInBackground(
   }
 }
 
-// async function generateAIMetadataInBackground(
-//   imageUrl: string,
-//   uuid: string,
-//   tasks: string[]
-// ): Promise<void> {
-//   try {
-//     await logAction('ai-background', `Starting background AI generation for ${uuid}`)
-
-//     // Create the prompt
-//     let prompt = `Analyze this image and provide the following information:\n`
-//     if (tasks.includes('title')) {
-//       prompt += `- A creative, descriptive title\n`
-//     }
-//     if (tasks.includes('description')) {
-//       prompt += `- A detailed description of what is shown in the image\n`
-//     }
-//     if (tasks.includes('tags')) {
-//       prompt += `- Relevant tags (comma-separated) that describe the content, style, and mood\n`
-//     }
-//     prompt += `\nFocus on being descriptive, engaging, and accurate. Consider the artistic elements, composition, lighting, mood, and subject matter.`
-
-//     // Generate AI metadata
-//     const result = await generateObject({
-//       model: google('gemini-2.0-flash'),
-//       schema: MetadataSchema,
-//       messages: [
-//         {
-//           role: 'user',
-//           content: [
-//             { type: 'text', text: prompt },
-//             { type: 'image', image: imageUrl },
-//           ],
-//         },
-//       ],
-//       temperature: 0.7,
-//     })
-
-//     // Update the database with generated metadata
-//     const updates: any = {}
-//     if (tasks.includes('title') && result.object.title) {
-//       updates.name = result.object.title
-//     }
-//     if (tasks.includes('description') && result.object.description) {
-//       updates.description = result.object.description
-//     }
-//     if (tasks.includes('tags') && result.object.tags) {
-//       updates.tags = result.object.tags
-//     }
-
-//     if (Object.keys(updates).length > 0) {
-//       await db.update(imageData)
-//         .set(updates)
-//         .where(eq(imageData.uuid, uuid))
-//     }
-
-//     await logAction('ai-background', `Successfully generated AI metadata for ${uuid}`)
-//   } catch (error) {
-//     await logAction('ai-background', `Failed to generate AI metadata for ${uuid}: ${error.message}`)
-//   }
-// }
-
 export async function POST(request: Request) {
   // Rate limiting
   const clientIP = getClientIP(request)
@@ -262,7 +201,7 @@ export async function POST(request: Request) {
       },
     })
 
-    const url = await getSignedUrl(r2, command, { expiresIn: 60 })
+    const url = await getSignedUrl(r2, command, { expiresIn: 300 })
 
     const newFileName = storagePath
     const fileUrl = `${
@@ -426,13 +365,6 @@ export async function POST(request: Request) {
         processExifDataInBackground(keyName, fileUrl)
       )
     }
-
-    // Use waitUntil for background AI metadata generation if requested
-    // if (generateAI && bucket === 'image' && !temporary) {
-    //   waitUntil(
-    //     generateAIMetadataInBackground(fileUrl, keyName, ['title', 'description', 'tags'])
-    //   )
-    // }
 
     console.log(`Successfully uploaded ${newFileName} to ${bucket} bucket`)
     return Response.json({ url, fileUrl, id: keyName, fileName: newFileName })

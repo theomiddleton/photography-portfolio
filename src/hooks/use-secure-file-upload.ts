@@ -6,11 +6,12 @@ import {
   type DragEvent,
   type InputHTMLAttributes,
 } from 'react'
-import { 
-  validateFileUpload, 
+import { useSiteConfig } from '~/hooks/use-site-config'
+import {
+  validateFileUpload,
   validateFileContent,
   createBucketValidationOptions,
-  type FileValidationResult
+  type FileValidationResult,
 } from '~/lib/file-security'
 
 export interface SecureFileMetadata {
@@ -66,14 +67,14 @@ interface SecureFileUploadActions {
   handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void
   openFileDialog: () => void
   getInputProps: (
-    props?: InputHTMLAttributes<HTMLInputElement>
+    props?: InputHTMLAttributes<HTMLInputElement>,
   ) => InputHTMLAttributes<HTMLInputElement> & {
     ref: React.Ref<HTMLInputElement>
   }
 }
 
 export const useSecureFileUpload = (
-  options: SecureFileUploadOptions
+  options: SecureFileUploadOptions,
 ): [SecureFileUploadState, SecureFileUploadActions] => {
   const {
     maxFiles = Infinity,
@@ -87,6 +88,8 @@ export const useSecureFileUpload = (
     enableContentValidation = true,
     customValidation,
   } = options
+
+  const siteConfig = useSiteConfig()
 
   const [state, setState] = useState<SecureFileUploadState>({
     files: initialFiles.map((file) => ({
@@ -106,33 +109,33 @@ export const useSecureFileUpload = (
   const validateFile = useCallback(
     async (file: File): Promise<FileValidationResult> => {
       const bucketOptions = createBucketValidationOptions(bucket)
-      
+
       const validationOptions = {
         bucket,
         allowAnyType: bucketOptions.allowAnyType,
         maxSize: maxSize || bucketOptions.maxSize,
         customValidation: async (file: File) => {
           const errors: string[] = []
-          
+
           // Content validation if enabled
           if (enableContentValidation) {
             const contentErrors = await validateFileContent(file)
             errors.push(...contentErrors)
           }
-          
+
           // Custom validation if provided
           if (customValidation) {
             const customErrors = await customValidation(file)
             errors.push(...customErrors)
           }
-          
+
           return errors
-        }
+        },
       }
 
-      return await validateFileUpload(file, validationOptions)
+      return await validateFileUpload(file, validationOptions, siteConfig)
     },
-    [bucket, maxSize, enableContentValidation, customValidation]
+    [bucket, maxSize, enableContentValidation, customValidation, siteConfig],
   )
 
   const createPreview = useCallback(
@@ -146,21 +149,29 @@ export const useSecureFileUpload = (
       }
       return undefined
     },
-    []
+    [],
   )
 
-  const generateUniqueId = useCallback((file: File | SecureFileMetadata): string => {
-    if (file instanceof File) {
-      return `${file.name}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-    }
-    return file.id
-  }, [])
+  const generateUniqueId = useCallback(
+    (file: File | SecureFileMetadata): string => {
+      if (file instanceof File) {
+        return `${file.name}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+      }
+      return file.id
+    },
+    [],
+  )
 
   const addFiles = useCallback(
     async (fileList: FileList | null) => {
       if (!fileList) return
 
-      setState((prev) => ({ ...prev, isValidating: true, errors: [], warnings: [] }))
+      setState((prev) => ({
+        ...prev,
+        isValidating: true,
+        errors: [],
+        warnings: [],
+      }))
 
       const newFiles: SecureFileWithPreview[] = []
       const allErrors: string[] = []
@@ -172,14 +183,14 @@ export const useSecureFileUpload = (
         // Check if we're exceeding max files limit
         if (multiple && state.files.length + newFiles.length >= maxFiles) {
           allErrors.push(
-            `Maximum ${maxFiles} file${maxFiles > 1 ? 's' : ''} allowed.`
+            `Maximum ${maxFiles} file${maxFiles > 1 ? 's' : ''} allowed.`,
           )
           break
         }
 
         try {
           const validationResult = await validateFile(file)
-          
+
           if (validationResult.isValid) {
             const fileWithPreview: SecureFileWithPreview = {
               file,
@@ -194,7 +205,9 @@ export const useSecureFileUpload = (
             allWarnings.push(...validationResult.warnings)
           }
         } catch (error) {
-          allErrors.push(`Validation failed for ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          allErrors.push(
+            `Validation failed for ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          )
         }
       }
 
@@ -228,14 +241,14 @@ export const useSecureFileUpload = (
       generateUniqueId,
       onFilesChange,
       onFilesAdded,
-    ]
+    ],
   )
 
   const removeFile = useCallback(
     (id: string) => {
       setState((prev) => {
         const fileToRemove = prev.files.find((f) => f.id === id)
-        
+
         // Clean up object URL if it exists
         if (fileToRemove?.preview && fileToRemove.file instanceof File) {
           URL.revokeObjectURL(fileToRemove.preview)
@@ -243,14 +256,14 @@ export const useSecureFileUpload = (
 
         const updatedFiles = prev.files.filter((f) => f.id !== id)
         onFilesChange?.(updatedFiles)
-        
+
         return {
           ...prev,
           files: updatedFiles,
         }
       })
     },
-    [onFilesChange]
+    [onFilesChange],
   )
 
   const clearFiles = useCallback(() => {
@@ -333,11 +346,11 @@ export const useSecureFileUpload = (
       e.preventDefault()
       e.stopPropagation()
       setState((prev) => ({ ...prev, isDragging: false }))
-      
+
       const files = e.dataTransfer.files
       addFiles(files)
     },
-    [addFiles]
+    [addFiles],
   )
 
   const handleFileChange = useCallback(
@@ -346,7 +359,7 @@ export const useSecureFileUpload = (
         addFiles(e.target.files)
       }
     },
-    [addFiles]
+    [addFiles],
   )
 
   const openFileDialog = useCallback(() => {
@@ -366,7 +379,7 @@ export const useSecureFileUpload = (
         ref: inputRef,
       }
     },
-    [accept, multiple, handleFileChange]
+    [accept, multiple, handleFileChange],
   )
 
   return [
@@ -392,12 +405,12 @@ export const useSecureFileUpload = (
 // Helper function to format bytes to human-readable format
 export const formatBytes = (bytes: number, decimals = 2): string => {
   if (bytes === 0) return '0 Bytes'
-  
+
   const k = 1024
   const dm = decimals < 0 ? 0 : decimals
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-  
+
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  
+
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }

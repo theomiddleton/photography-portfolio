@@ -20,7 +20,7 @@ interface AltUploadProps {
 
 export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
   const siteConfig = useSiteConfig()
-  const maxSizeMB = siteConfig.uploadLimits[bucket]
+  const maxSizeMB = siteConfig?.uploadLimits?.[bucket] ?? 20
   const maxSize = maxSizeMB * 1024 * 1024
   const maxFiles = 10
 

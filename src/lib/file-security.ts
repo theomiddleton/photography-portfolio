@@ -343,7 +343,10 @@ export function generateSecureStoragePath(
   }
   
   if (additionalPath) {
-    path = `${additionalPath}/${path}`
+    const sanitizedAdditional = sanitizePath(additionalPath)
+    if (sanitizedAdditional) {
+      path = `${sanitizedAdditional}/${path}`
+    }
   }
   
   return `${path}/${sanitizedFilename}`

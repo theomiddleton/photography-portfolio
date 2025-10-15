@@ -68,21 +68,45 @@ export function EnhancedBatchUpload({
               ? `Failed to add ${image.name} to gallery`
               : `Failed to copy ${image.name}`
 
-            try {
-              const errorData: unknown = await response.json()
-              if (
-                typeof errorData === 'object' &&
-                errorData !== null &&
-                'error' in errorData &&
-                typeof (errorData as { error?: unknown }).error === 'string'
-              ) {
-                errorMessage = (errorData as { error: string }).error
+            const contentType = response.headers
+              .get('content-type')
+              ?.toLowerCase()
+            const isJsonResponse =
+              contentType?.startsWith('application/json') ||
+              contentType?.includes('application/json')
+
+            if (isJsonResponse) {
+              try {
+                const errorData: unknown = await response.json()
+                if (
+                  typeof errorData === 'object' &&
+                  errorData !== null &&
+                  'error' in errorData &&
+                  typeof (errorData as { error?: unknown }).error === 'string'
+                ) {
+                  errorMessage = (errorData as { error: string }).error
+                }
+              } catch (jsonParseError) {
+                console.error(
+                  'Failed to parse JSON error response for image copy:',
+                  jsonParseError,
+                )
               }
-            } catch (parseError) {
-              console.error(
-                'Failed to parse error response for image copy:',
-                parseError,
-              )
+            } else {
+              try {
+                const errorText = await response.text()
+                if (
+                  typeof errorText === 'string' &&
+                  errorText.trim().length > 0
+                ) {
+                  errorMessage = errorText.trim()
+                }
+              } catch (textReadError) {
+                console.error(
+                  'Failed to read text error response for image copy:',
+                  textReadError,
+                )
+              }
             }
 
             throw new Error(errorMessage)
