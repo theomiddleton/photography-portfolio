@@ -148,80 +148,99 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join('/')
 
-    if (normalizedBucket === 'files' && sanitizedPrefix === '') {
+    if (sanitizedPrefix === '') {
       await logAction(
         'files-upload',
-        `Rejected root-level upload to files bucket: ${sanitizedFilename} by ${session.email}`,
+        `Rejected root-level upload to ${normalizedBucket} bucket: ${sanitizedFilename} by ${session.email}`,
       )
       return NextResponse.json(
         {
           error: 'Invalid upload location',
-          details: 'Uploads to the files bucket must target a subdirectory',
+          details: `Uploads to the ${normalizedBucket} bucket must target a subdirectory`,
         },
         { status: 400 },
       )
     }
 
+    const userIdentifier = session.email ?? session.id ?? 'unknown user'
+    const rejectInvalidFile = async (reason: string) => {
+      await logAction(
+        'files-upload',
+        `Rejected upload ${sanitizedFilename}: ${reason} (${userIdentifier})`,
+      )
+      return NextResponse.json({ error: 'Invalid file' }, { status: 400 })
+    }
+
     const hasExtension = sanitizedFilename.includes('.')
+    const normalizedExtension = hasExtension
+      ? sanitizedFilename
+          .substring(sanitizedFilename.lastIndexOf('.'))
+          .toLowerCase()
+      : ''
     const dangerousExtension = isDangerousExtension(sanitizedFilename)
     const dangerousMime = isDangerousMimeType(contentType)
 
     if (!allowDangerousFiles && dangerousExtension) {
-      await logAction(
-        'files-upload',
-        `Rejected upload with dangerous extension: ${sanitizedFilename} by ${session.email}`,
-      )
-      return NextResponse.json(
-        {
-          error: 'Invalid file type',
-          details: 'File extension is not allowed for security reasons',
-        },
-        { status: 400 },
-      )
+      return rejectInvalidFile(`dangerous extension ${normalizedExtension}`)
     }
 
     if (!allowDangerousFiles && dangerousMime) {
-      await logAction(
-        'files-upload',
-        `Rejected upload with dangerous MIME type: ${contentType} by ${session.email}`,
-      )
-      return NextResponse.json(
-        {
-          error: 'Invalid content type',
-          details: `Content type ${contentType} is not allowed for security reasons`,
-        },
-        { status: 400 },
-      )
+      return rejectInvalidFile(`dangerous MIME type ${normalizedContentType}`)
+    }
+
+    const extensionMimeMap: Record<string, string[]> = {
+      '.jpg': ['image/jpeg', 'image/jpg'],
+      '.jpeg': ['image/jpeg', 'image/jpg'],
+      '.png': ['image/png'],
+      '.webp': ['image/webp'],
+      '.gif': ['image/gif'],
+      '.mp4': ['video/mp4'],
+      '.webm': ['video/webm'],
+      '.mov': ['video/quicktime'],
+      '.mp3': ['audio/mpeg'],
+      '.wav': ['audio/wav'],
+      '.m4a': ['audio/mp4'],
+      '.pdf': ['application/pdf'],
+      '.txt': ['text/plain'],
+      '.md': ['text/markdown', 'text/x-markdown'],
+      '.zip': ['application/zip', 'application/x-zip-compressed'],
     }
 
     const isOctetStream = normalizedContentType === 'application/octet-stream'
 
     if (isOctetStream) {
       if (!hasExtension) {
-        await logAction(
-          'files-upload',
-          `Rejected octet-stream upload without extension: ${sanitizedFilename} by ${session.email}`,
-        )
-        return NextResponse.json(
-          {
-            error: 'Invalid file type',
-            details:
-              'application/octet-stream uploads require a valid file extension',
-          },
-          { status: 400 },
+        return rejectInvalidFile('octet-stream without extension')
+      }
+
+      if (!allowDangerousFiles && dangerousExtension) {
+        return rejectInvalidFile(
+          `octet-stream with dangerous extension ${normalizedExtension}`,
         )
       }
-    } else if (!allowedContentTypes.has(normalizedContentType)) {
-      await logAction(
-        'files-upload',
-        `Rejected upload with invalid content type: ${contentType} by ${session.email}`,
+
+      if (!extensionMimeMap[normalizedExtension]) {
+        return rejectInvalidFile(
+          `octet-stream with unsupported extension ${normalizedExtension || 'none'}`,
+        )
+      }
+    }
+
+    const expectedMimeTypes = extensionMimeMap[normalizedExtension]
+
+    if (
+      expectedMimeTypes &&
+      normalizedContentType !== 'application/octet-stream' &&
+      !expectedMimeTypes.includes(normalizedContentType)
+    ) {
+      return rejectInvalidFile(
+        `content type ${normalizedContentType} does not match extension ${normalizedExtension}`,
       )
-      return NextResponse.json(
-        {
-          error: 'Invalid content type',
-          details: `Content type ${contentType} is not allowed`,
-        },
-        { status: 400 },
+    }
+
+    if (!isOctetStream && !allowedContentTypes.has(normalizedContentType)) {
+      return rejectInvalidFile(
+        `content type ${normalizedContentType} is not allowed`,
       )
     }
 

@@ -65,6 +65,9 @@ interface S3File {
   bucket?: boolean
 }
 
+// Upload progress percentage where -1 indicates an error state
+type UploadProgressEntry = number
+
 type ViewMode = 'list' | 'grid' | 'thumbnail'
 type SortBy = 'name' | 'date' | 'size' | 'type'
 type SortOrder = 'asc' | 'desc'
@@ -193,11 +196,10 @@ export function FileBrowser() {
   // Enhanced upload states
   const [isDragOver, setIsDragOver] = useState(false)
   const [dragError, setDragError] = useState<string | null>(null)
-  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
-    {},
-  )
+  const [uploadProgress, setUploadProgress] = useState<Record<string, UploadProgressEntry>>({})
   const [isUploading, setIsUploading] = useState(false)
   const uploadRequestsRef = useRef<Map<string, XMLHttpRequest>>(new Map())
+  const alertTimeoutRef = useRef<number | null>(null)
 
   // Page alert states
   const [alertMessage, setAlertMessage] = useState<{
@@ -252,22 +254,41 @@ export function FileBrowser() {
     }
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (alertTimeoutRef.current) {
+        clearTimeout(alertTimeoutRef.current)
+        alertTimeoutRef.current = null
+      }
+    }
+  }, [])
+
   // Helper function to show page alerts
   const showAlert = (
     type: 'success' | 'error' | 'warning',
     title: string,
     message: string,
   ) => {
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current)
+      alertTimeoutRef.current = null
+    }
     setAlertMessage({ type, title, message })
     // Auto-hide success and warning alerts after 5 seconds
     if (type !== 'error') {
-      setTimeout(() => {
+      const timeoutId = window.setTimeout(() => {
         setAlertMessage({ type: null, title: '', message: '' })
+        alertTimeoutRef.current = null
       }, 5000)
+      alertTimeoutRef.current = timeoutId
     }
   }
 
   const hideAlert = () => {
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current)
+      alertTimeoutRef.current = null
+    }
     setAlertMessage({ type: null, title: '', message: '' })
   }
 
@@ -862,8 +883,9 @@ export function FileBrowser() {
                   </h3>
                   <p className="text-muted-foreground text-sm">
                     {Object.keys(uploadProgress).length} file
-                    {Object.keys(uploadProgress).length !== 1 ? 's' : ''} to{' '}
-                    {currentBucket}
+                    {Object.keys(uploadProgress).length !== 1
+                      ? 's'
+                      : ''} to {currentBucket}
                     {currentPath && `/${currentPath}`}
                   </p>
                 </div>

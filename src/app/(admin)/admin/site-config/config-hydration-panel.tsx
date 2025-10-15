@@ -76,8 +76,13 @@ export function ConfigHydrationPanel({
     const mismatches = new Set<string>()
 
     serverMap.forEach((entry, path) => {
-      const clientValue = clientMap.get(path)?.value
-      if (clientValue !== entry.value) {
+      if (!clientMap.has(path)) {
+        mismatches.add(path)
+        return
+      }
+
+      const clientEntry = clientMap.get(path)
+      if (clientEntry?.value !== entry.value) {
         mismatches.add(path)
       }
     })
