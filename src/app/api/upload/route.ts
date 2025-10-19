@@ -193,12 +193,6 @@ export async function POST(request: Request) {
       Bucket: bucketName,
       Key: storagePath,
       ContentType: secureContentType,
-      // Add security headers
-      Metadata: {
-        'uploaded-by': String(session.id),
-        'upload-timestamp': new Date().toISOString(),
-        'original-filename': sanitizedFilename,
-      },
     })
 
     const url = await getSignedUrl(r2, command, { expiresIn: 300 })

@@ -243,11 +243,6 @@ export async function POST(request: NextRequest) {
       Bucket: bucket,
       Key: key,
       ContentType: contentType,
-      Metadata: {
-        'uploaded-by': String(session.id),
-        'upload-timestamp': new Date().toISOString(),
-        'original-filename': filename,
-      },
     })
 
     const url = await getSignedUrl(r2, command, { expiresIn: 300 })

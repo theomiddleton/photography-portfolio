@@ -1,3 +1,5 @@
+import { siteConfig } from '~/config/site'
+
 // Security configuration for the application
 export const securityConfig = {
   // Password requirements
@@ -44,9 +46,9 @@ export const securityConfig = {
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com;
       style-src 'self' 'unsafe-inline';
-      img-src 'self' data: https:;
+      img-src 'self' data: https: blob:;
       font-src 'self' data:;
-      connect-src 'self' https://api.stripe.com;
+      connect-src 'self' https://api.stripe.com https://*.r2.cloudflarestorage.com ${siteConfig.imageBucketUrl} ${siteConfig.blogBucketUrl} ${siteConfig.aboutBucketUrl} ${siteConfig.customBucketUrl} ${siteConfig.streamBucketUrl} ${siteConfig.filesBucketUrl} ${siteConfig.bucketsUrl};
       frame-src https://js.stripe.com;
     `.replace(/\s+/g, ' ').trim()
   },

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
@@ -88,6 +88,7 @@ export function BatchUpload({
     {},
   )
   const [pendingCleanup, setPendingCleanup] = useState<Set<string>>(new Set())
+  const blobUrlsRef = useRef<Map<string, string>>(new Map())
   const { generate, loading: aiLoading } = useGenerateMetadata()
 
   // Use secure file upload hook
@@ -100,6 +101,29 @@ export function BatchUpload({
     enableContentValidation: true,
     onFilesAdded: handleFilesAdded,
   })
+
+  // Cleanup blob URLs when images are removed or component unmounts
+  useEffect(() => {
+    return () => {
+      blobUrlsRef.current.forEach((url) => {
+        URL.revokeObjectURL(url)
+      })
+      blobUrlsRef.current.clear()
+    }
+  }, [])
+
+  // Track which blob URLs are still in use and revoke unused ones
+  useEffect(() => {
+    const currentImageIds = new Set(batchImages.map((img) => img.id))
+    const trackedUrls = Array.from(blobUrlsRef.current.entries())
+
+    trackedUrls.forEach(([imageId, blobUrl]) => {
+      if (!currentImageIds.has(imageId)) {
+        URL.revokeObjectURL(blobUrl)
+        blobUrlsRef.current.delete(imageId)
+      }
+    })
+  }, [batchImages])
 
   async function handleFilesAdded(addedFiles: SecureFileWithPreview[]) {
     const newImages: BatchImageData[] = addedFiles
@@ -129,9 +153,18 @@ export function BatchUpload({
       .map((fileItem) => ({
         id: fileItem.id,
         file: fileItem.file as File,
-        preview: fileItem.preview || '',
+        preview:
+          fileItem.preview ||
+          (fileItem.file instanceof File &&
+          (fileItem.file as File).type.startsWith('image/')
+            ? (() => {
+                const blobUrl = URL.createObjectURL(fileItem.file as File)
+                blobUrlsRef.current.set(fileItem.id, blobUrl)
+                return blobUrl
+              })()
+            : ''),
         name:
-          fileItem.validationResult?.sanitizedName ||
+          // fileItem.validationResult?.sanitizedName || 
           (fileItem.file as File).name.split('.')[0],
         description: '',
         tags: '',
@@ -143,11 +176,26 @@ export function BatchUpload({
         validationResult: fileItem.validationResult,
       }))
 
-    setBatchImages((prev) => [...prev, ...newImages])
+    let uniqueNewImages: BatchImageData[] = []
+
+    setBatchImages((prev) => {
+      const existingIds = new Set(prev.map((img) => img.id))
+      uniqueNewImages = newImages.filter((img) => {
+        if (existingIds.has(img.id)) {
+          return false
+        }
+        existingIds.add(img.id)
+        return true
+      })
+      if (uniqueNewImages.length === 0) {
+        return prev
+      }
+      return [...prev, ...uniqueNewImages]
+    })
 
     // Auto-upload images for AI processing only if AI is enabled
-    if (aiEnabled) {
-      for (const image of newImages) {
+    if (aiEnabled && uniqueNewImages.length > 0) {
+      for (const image of uniqueNewImages) {
         console.log('Auto-uploading image for AI processing:', image.file.name)
         uploadImageForAI(image)
       }
@@ -351,6 +399,13 @@ export function BatchUpload({
       image.uploadController.abort()
     }
 
+    // Revoke blob URL if it exists
+    const blobUrl = blobUrlsRef.current.get(imageId)
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl)
+      blobUrlsRef.current.delete(imageId)
+    }
+
     setBatchImages((prev) => prev.filter((img) => img.id !== imageId))
 
     if (image?.uuid) {
@@ -529,6 +584,12 @@ export function BatchUpload({
       })
     }
 
+    // Revoke all blob URLs
+    blobUrlsRef.current.forEach((url) => {
+      URL.revokeObjectURL(url)
+    })
+    blobUrlsRef.current.clear()
+
     setBatchImages([])
     clearFiles()
     setUploadProgress({})
@@ -699,7 +760,7 @@ export function BatchUpload({
                       <div className="col-span-2">
                         <div className="relative">
                           <img
-                            src={image.preview}
+                            src={image.preview || image.url || ''}
                             alt={image.file.name}
                             className="aspect-square w-full rounded-md object-cover"
                           />
