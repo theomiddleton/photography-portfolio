@@ -12,6 +12,7 @@ const defaultConfig = {
   customBucketUrl: 'https://your-domain.com/custom-images',
   streamBucketUrl: 'https://your-domain.com/stream-files',
   filesBucketUrl: 'https://your-domain.com/files',
+  bucketsUrl: 'https://your-domain.com/buckets',
   url: 'https://your-domain.com',
   altUrl: 'https://your-alt-domain.com',
   imageDomain: 'your-domain.com', // Domain pattern for Next.js image optimization
@@ -75,6 +76,9 @@ const defaultConfig = {
       reviewsEnabled: false,
       showTax: false, // When true, shows tax separately. When false, includes tax in price
     },
+    security: {
+      allowDangerousFiles: false, // When true, bypasses dangerous file type restrictions
+    },
   },
   rateLimiting: {
     // Base rate limits (requests per minute)
@@ -125,6 +129,7 @@ export function getServerSiteConfig() {
     customBucketUrl: getEnv('NEXT_PUBLIC_CUSTOM_BUCKET_URL', defaultConfig.customBucketUrl),
     streamBucketUrl: getEnv('NEXT_PUBLIC_STREAM_BUCKET_URL', defaultConfig.streamBucketUrl),
     filesBucketUrl: getEnv('NEXT_PUBLIC_FILES_BUCKET_URL', defaultConfig.filesBucketUrl),
+    bucketsUrl: getEnv('NEXT_PUBLIC_BUCKETS_URL', defaultConfig.bucketsUrl),
     url: getEnv('NEXT_PUBLIC_SITE_URL', defaultConfig.url),
     altUrl: getEnv('NEXT_PUBLIC_ALT_URL', defaultConfig.altUrl),
     imageDomain: getEnv('NEXT_PUBLIC_IMAGE_DOMAIN', defaultConfig.imageDomain),
@@ -187,6 +192,9 @@ export function getServerSiteConfig() {
         reviewsEnabled: getEnv('NEXT_PUBLIC_REVIEWS_ENABLED', defaultConfig.features.store.reviewsEnabled),
         showTax: getEnv('NEXT_PUBLIC_SHOW_TAX', defaultConfig.features.store.showTax),
       },
+      security: {
+        allowDangerousFiles: getEnv('NEXT_PUBLIC_ALLOW_DANGEROUS_FILES', defaultConfig.features.security.allowDangerousFiles),
+      },
     },
     rateLimiting: {
       // Base rate limits (requests per minute)
@@ -228,6 +236,7 @@ export function isDefaultSiteConfig(config: SiteConfig = siteConfig): boolean {
     config.ownerName === defaultConfig.ownerName,
     config.url === defaultConfig.url,
     config.imageBucketUrl === defaultConfig.imageBucketUrl,
+    config.bucketsUrl === defaultConfig.bucketsUrl,
     config.configLocation === 'Default',
     config.url.includes('your-domain.com'),
     config.imageBucketUrl.includes('your-domain.com'),

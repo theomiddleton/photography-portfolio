@@ -19,7 +19,7 @@ import { Sparkles, Loader2 } from 'lucide-react'
 import { useGenerateMetadata } from '~/hooks/use-generate-metadata'
 import { toast } from 'sonner'
 import { isAIEnabledClient } from '~/lib/ai-utils'
-import { siteConfig } from '~/config/site'
+import { useSiteConfig } from '~/hooks/use-site-config'
 
 interface UploadImgProps {
   bucket: 'image' | 'blog' | 'about' | 'custom'
@@ -41,6 +41,8 @@ interface PrintSize {
 }
 
 export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
+  const siteConfig = useSiteConfig()
+  
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [name, setName] = useState('')

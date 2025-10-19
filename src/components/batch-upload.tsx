@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
+import { Alert, AlertDescription } from '~/components/ui/alert'
 import {
   AlertCircleIcon,
   ImageIcon,
@@ -15,15 +16,17 @@ import {
   Loader2,
   Trash2,
   StopCircle,
+  ShieldCheck,
+  AlertTriangle,
 } from 'lucide-react'
 import { useGenerateMetadata } from '~/hooks/use-generate-metadata'
 import { toast } from 'sonner'
-import { siteConfig } from '~/config/site'
+import { useSiteConfig } from '~/hooks/use-site-config'
 import {
+  useSecureFileUpload,
   formatBytes,
-  useFileUpload,
-  type FileWithPreview,
-} from '~/hooks/use-file-upload'
+  type SecureFileWithPreview,
+} from '~/hooks/use-secure-file-upload'
 import { isAIEnabledClient } from '~/lib/ai-utils'
 
 interface BatchImageData {
@@ -43,6 +46,7 @@ interface BatchImageData {
   fileName?: string
   stripeProductIds?: string[]
   uploadController?: AbortController
+  validationResult?: import('~/lib/file-security').FileValidationResult
 }
 
 interface PrintSize {
@@ -56,6 +60,7 @@ interface BatchUploadProps {
   bucket: 'image' | 'blog' | 'about' | 'custom'
   draftId?: string
   onImageUpload?: (image: { name: string; url: string }) => void
+  galleryId?: string // Add galleryId prop
 }
 
 const defaultPrintSize: PrintSize = {
@@ -69,7 +74,9 @@ export function BatchUpload({
   bucket,
   draftId,
   onImageUpload,
+  galleryId, // Add galleryId parameter
 }: BatchUploadProps) {
+  const siteConfig = useSiteConfig()
   const maxSizeMB = siteConfig.uploadLimits[bucket]
   const maxSize = maxSizeMB * 1024 * 1024
   const maxFiles = 20
@@ -81,16 +88,84 @@ export function BatchUpload({
     {},
   )
   const [pendingCleanup, setPendingCleanup] = useState<Set<string>>(new Set())
+  const blobUrlsRef = useRef<Map<string, string>>(new Map())
   const { generate, loading: aiLoading } = useGenerateMetadata()
 
-  const handleFilesAdded = async (addedFiles: FileWithPreview[]) => {
+  // Use secure file upload hook
+  const [fileUploadState, fileUploadActions] = useSecureFileUpload({
+    bucket,
+    multiple: true,
+    maxFiles,
+    maxSize,
+    accept: bucket === 'image' ? 'image/*' : '*',
+    enableContentValidation: true,
+    onFilesAdded: handleFilesAdded,
+  })
+
+  // Cleanup blob URLs when images are removed or component unmounts
+  useEffect(() => {
+    return () => {
+      blobUrlsRef.current.forEach((url) => {
+        URL.revokeObjectURL(url)
+      })
+      blobUrlsRef.current.clear()
+    }
+  }, [])
+
+  // Track which blob URLs are still in use and revoke unused ones
+  useEffect(() => {
+    const currentImageIds = new Set(batchImages.map((img) => img.id))
+    const trackedUrls = Array.from(blobUrlsRef.current.entries())
+
+    trackedUrls.forEach(([imageId, blobUrl]) => {
+      if (!currentImageIds.has(imageId)) {
+        URL.revokeObjectURL(blobUrl)
+        blobUrlsRef.current.delete(imageId)
+      }
+    })
+  }, [batchImages])
+
+  async function handleFilesAdded(addedFiles: SecureFileWithPreview[]) {
     const newImages: BatchImageData[] = addedFiles
-      .filter((fileItem) => fileItem.file instanceof File)
+      .filter((fileItem) => {
+        if (!(fileItem.file instanceof File)) return false
+
+        // Check validation result
+        if (fileItem.validationResult && !fileItem.validationResult.isValid) {
+          toast.error(
+            `File ${fileItem.file.name} failed validation: ${fileItem.validationResult.errors.join(', ')}`,
+          )
+          return false
+        }
+
+        // Show warnings if any
+        if (
+          fileItem.validationResult &&
+          fileItem.validationResult.warnings.length > 0
+        ) {
+          toast.warning(
+            `File ${fileItem.file.name}: ${fileItem.validationResult.warnings.join(', ')}`,
+          )
+        }
+
+        return true
+      })
       .map((fileItem) => ({
         id: fileItem.id,
         file: fileItem.file as File,
-        preview: fileItem.preview,
-        name: (fileItem.file as File).name.split('.')[0],
+        preview:
+          fileItem.preview ||
+          (fileItem.file instanceof File &&
+          (fileItem.file as File).type.startsWith('image/')
+            ? (() => {
+                const blobUrl = URL.createObjectURL(fileItem.file as File)
+                blobUrlsRef.current.set(fileItem.id, blobUrl)
+                return blobUrl
+              })()
+            : ''),
+        name:
+          // fileItem.validationResult?.sanitizedName || 
+          (fileItem.file as File).name.split('.')[0],
         description: '',
         tags: '',
         isSale: bucket === 'image' ? false : false,
@@ -98,13 +173,29 @@ export function BatchUpload({
         uploading: false,
         uploaded: false,
         aiGenerated: false,
+        validationResult: fileItem.validationResult,
       }))
 
-    setBatchImages((prev) => [...prev, ...newImages])
+    let uniqueNewImages: BatchImageData[] = []
+
+    setBatchImages((prev) => {
+      const existingIds = new Set(prev.map((img) => img.id))
+      uniqueNewImages = newImages.filter((img) => {
+        if (existingIds.has(img.id)) {
+          return false
+        }
+        existingIds.add(img.id)
+        return true
+      })
+      if (uniqueNewImages.length === 0) {
+        return prev
+      }
+      return [...prev, ...uniqueNewImages]
+    })
 
     // Auto-upload images for AI processing only if AI is enabled
-    if (aiEnabled) {
-      for (const image of newImages) {
+    if (aiEnabled && uniqueNewImages.length > 0) {
+      for (const image of uniqueNewImages) {
         console.log('Auto-uploading image for AI processing:', image.file.name)
         uploadImageForAI(image)
       }
@@ -308,6 +399,13 @@ export function BatchUpload({
       image.uploadController.abort()
     }
 
+    // Revoke blob URL if it exists
+    const blobUrl = blobUrlsRef.current.get(imageId)
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl)
+      blobUrlsRef.current.delete(imageId)
+    }
+
     setBatchImages((prev) => prev.filter((img) => img.id !== imageId))
 
     if (image?.uuid) {
@@ -361,6 +459,7 @@ export function BatchUpload({
             printSizes: bucket === 'image' ? image.printSizes : [],
             bucket,
             draftId,
+            galleryId, // Include galleryId in the upload request
           }),
           signal: controller.signal,
         })
@@ -485,30 +584,30 @@ export function BatchUpload({
       })
     }
 
+    // Revoke all blob URLs
+    blobUrlsRef.current.forEach((url) => {
+      URL.revokeObjectURL(url)
+    })
+    blobUrlsRef.current.clear()
+
     setBatchImages([])
     clearFiles()
     setUploadProgress({})
   }
 
-  const [
-    { isDragging, errors },
-    {
-      handleDragEnter,
-      handleDragLeave,
-      handleDragOver,
-      handleDrop,
-      openFileDialog,
-      clearFiles,
-      getInputProps,
-    },
-  ] = useFileUpload({
-    accept: 'image/svg+xml,image/png,image/jpeg,image/jpg,image/gif',
-    maxSize,
-    multiple: true,
-    maxFiles,
-    initialFiles: [],
-    onFilesAdded: handleFilesAdded,
-  })
+  const { files, isDragging, errors, warnings, isValidating } = fileUploadState
+
+  const {
+    handleDragEnter,
+    handleDragLeave,
+    handleDragOver,
+    handleDrop,
+    openFileDialog,
+    clearFiles,
+    getInputProps,
+    clearErrors,
+    clearWarnings,
+  } = fileUploadActions
 
   return (
     <Card className="mt-2 w-full">
@@ -596,13 +695,41 @@ export function BatchUpload({
         </div>
 
         {errors.length > 0 && (
-          <div
-            className="text-destructive flex items-center gap-1 text-xs"
-            role="alert"
-          >
-            <AlertCircleIcon className="size-3 shrink-0" />
-            <span>{errors[0]}</span>
-          </div>
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-1">
+                {errors.map((error, index) => (
+                  <div key={index}>{error}</div>
+                ))}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {warnings.length > 0 && (
+          <Alert>
+            <ShieldCheck className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-1">
+                <div className="font-medium">Security Warnings:</div>
+                {warnings.map((warning, index) => (
+                  <div key={index} className="text-sm">
+                    {warning}
+                  </div>
+                ))}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isValidating && (
+          <Alert>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <AlertDescription>
+              Validating files for security...
+            </AlertDescription>
+          </Alert>
         )}
 
         {batchImages.length > 0 && (
@@ -633,7 +760,7 @@ export function BatchUpload({
                       <div className="col-span-2">
                         <div className="relative">
                           <img
-                            src={image.preview}
+                            src={image.preview || image.url || ''}
                             alt={image.file.name}
                             className="aspect-square w-full rounded-md object-cover"
                           />
