@@ -47,7 +47,6 @@ interface BatchImageData {
   stripeProductIds?: string[]
   uploadController?: AbortController
   validationResult?: import('~/lib/file-security').FileValidationResult
-  uploadHeaders?: Record<string, string>
 }
 
 interface PrintSize {
@@ -130,7 +129,12 @@ export function BatchUpload({
       .map((fileItem) => ({
         id: fileItem.id,
         file: fileItem.file as File,
-        preview: fileItem.preview || '',
+        preview:
+          fileItem.preview ||
+          (fileItem.file instanceof File &&
+          (fileItem.file as File).type.startsWith('image/')
+            ? URL.createObjectURL(fileItem.file as File)
+            : ''),
         name:
           fileItem.validationResult?.sanitizedName ||
           (fileItem.file as File).name.split('.')[0],
@@ -142,14 +146,28 @@ export function BatchUpload({
         uploaded: false,
         aiGenerated: false,
         validationResult: fileItem.validationResult,
-        uploadHeaders: undefined,
       }))
 
-    setBatchImages((prev) => [...prev, ...newImages])
+    let uniqueNewImages: BatchImageData[] = []
+
+    setBatchImages((prev) => {
+      const existingIds = new Set(prev.map((img) => img.id))
+      uniqueNewImages = newImages.filter((img) => {
+        if (existingIds.has(img.id)) {
+          return false
+        }
+        existingIds.add(img.id)
+        return true
+      })
+      if (uniqueNewImages.length === 0) {
+        return prev
+      }
+      return [...prev, ...uniqueNewImages]
+    })
 
     // Auto-upload images for AI processing only if AI is enabled
-    if (aiEnabled) {
-      for (const image of newImages) {
+    if (aiEnabled && uniqueNewImages.length > 0) {
+      for (const image of uniqueNewImages) {
         console.log('Auto-uploading image for AI processing:', image.file.name)
         uploadImageForAI(image)
       }
@@ -173,13 +191,7 @@ export function BatchUpload({
       })
 
       if (response.ok) {
-        const {
-          url,
-          fileUrl,
-          id: uuid,
-          fileName,
-          headers: uploadHeaders,
-        } = await response.json()
+        const { url, fileUrl, id: uuid, fileName } = await response.json()
 
         const controller = new AbortController()
 
@@ -192,7 +204,6 @@ export function BatchUpload({
                   fileName,
                   uploadController: controller,
                   url: fileUrl,
-                  uploadHeaders,
                 }
               : img,
           ),
@@ -201,13 +212,6 @@ export function BatchUpload({
         const xhr = new XMLHttpRequest()
         xhr.open('PUT', url)
         xhr.setRequestHeader('Content-Type', imageData.file.type)
-        if (uploadHeaders && typeof uploadHeaders === 'object') {
-          Object.entries(uploadHeaders).forEach(([key, value]) => {
-            if (typeof value === 'string') {
-              xhr.setRequestHeader(key, value)
-            }
-          })
-        }
 
         controller.signal.addEventListener('abort', () => {
           xhr.abort()
@@ -426,18 +430,12 @@ export function BatchUpload({
         })
 
         if (response.ok) {
-          const {
-            url,
-            fileUrl,
-            id: uuid,
-            fileName,
-            headers: uploadHeaders,
-          } = await response.json()
+          const { url, fileUrl, id: uuid, fileName } = await response.json()
 
           setBatchImages((prev) =>
             prev.map((img) =>
               img.id === image.id
-                ? { ...img, uuid, fileName, uploadHeaders }
+                ? { ...img, uuid, fileName }
                 : img,
             ),
           )
@@ -446,13 +444,6 @@ export function BatchUpload({
             const xhr = new XMLHttpRequest()
             xhr.open('PUT', url)
             xhr.setRequestHeader('Content-Type', image.file.type)
-            if (uploadHeaders && typeof uploadHeaders === 'object') {
-              Object.entries(uploadHeaders).forEach(([key, value]) => {
-                if (typeof value === 'string') {
-                  xhr.setRequestHeader(key, value)
-                }
-              })
-            }
 
             controller.signal.addEventListener('abort', () => {
               xhr.abort()
@@ -730,7 +721,7 @@ export function BatchUpload({
                       <div className="col-span-2">
                         <div className="relative">
                           <img
-                            src={image.preview}
+                            src={image.preview || image.url || ''}
                             alt={image.file.name}
                             className="aspect-square w-full rounded-md object-cover"
                           />

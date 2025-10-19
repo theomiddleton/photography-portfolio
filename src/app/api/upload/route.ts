@@ -189,18 +189,10 @@ export async function POST(request: Request) {
       secureContentType = mimeTypes[fileExtension] || 'application/octet-stream'
     }
 
-    const metadata = {
-      'uploaded-by': String(session.id),
-      'upload-timestamp': new Date().toISOString(),
-      'original-filename': sanitizedFilename,
-    }
-
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: storagePath,
       ContentType: secureContentType,
-      // Add security headers
-      Metadata: metadata,
     })
 
     const url = await getSignedUrl(r2, command, { expiresIn: 300 })
@@ -221,18 +213,7 @@ export async function POST(request: Request) {
     // If this is a temporary upload (for AI processing), return early
     if (temporary) {
       await logAction('upload', `Temporary upload created: ${storagePath}`)
-      return Response.json({
-        url,
-        fileUrl,
-        id: keyName,
-        fileName: newFileName,
-        headers: Object.fromEntries(
-          Object.entries(metadata).map(([key, value]) => [
-            `x-amz-meta-${key}`,
-            value,
-          ]),
-        ),
-      })
+      return Response.json({ url, fileUrl, id: keyName, fileName: newFileName })
     }
 
     const slug = slugify(name)
@@ -380,18 +361,7 @@ export async function POST(request: Request) {
     }
 
     console.log(`Successfully uploaded ${newFileName} to ${bucket} bucket`)
-    return Response.json({
-      url,
-      fileUrl,
-      id: keyName,
-      fileName: newFileName,
-      headers: Object.fromEntries(
-        Object.entries(metadata).map(([key, value]) => [
-          `x-amz-meta-${key}`,
-          value,
-        ]),
-      ),
-    })
+    return Response.json({ url, fileUrl, id: keyName, fileName: newFileName })
   } catch (error) {
     console.error('Upload Error:', error)
     return Response.json({ error: error.message }, { status: 500 })

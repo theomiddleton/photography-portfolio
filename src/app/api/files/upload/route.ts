@@ -239,17 +239,10 @@ export async function POST(request: NextRequest) {
       `Generating pre-signed URL for ${sanitizedFilename} to ${bucket}/${key} by ${session.email}`,
     )
 
-    const metadata = {
-      'uploaded-by': String(session.id),
-      'upload-timestamp': new Date().toISOString(),
-      'original-filename': filename,
-    }
-
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
       ContentType: contentType,
-      Metadata: metadata,
     })
 
     const url = await getSignedUrl(r2, command, { expiresIn: 300 })
@@ -275,12 +268,6 @@ export async function POST(request: NextRequest) {
       fileUrl,
       key,
       sanitizedFilename,
-      headers: Object.fromEntries(
-        Object.entries(metadata).map(([key, value]) => [
-          `x-amz-meta-${key}`,
-          value,
-        ]),
-      ),
     }
 
     return NextResponse.json(response)

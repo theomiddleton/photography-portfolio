@@ -155,7 +155,12 @@ export const useSecureFileUpload = (
   const generateUniqueId = useCallback(
     (file: File | SecureFileMetadata): string => {
       if (file instanceof File) {
-        return `${file.name}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+        const uniqueSuffix =
+          typeof crypto !== 'undefined' &&
+          typeof crypto.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+        return `${file.name}-${uniqueSuffix}`
       }
       return file.id
     },
