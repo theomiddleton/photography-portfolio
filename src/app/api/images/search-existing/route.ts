@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       return new Date()
     }
 
-    const results: Array<{
+    const results: {
       id: string
       uuid: string
       fileName: string
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       uploadedAt: Date
       source: 'main' | 'custom' | 'gallery'
       bucketType?: string
-    }> = []
+    }[] = []
 
     // Search main image gallery
     if (!bucket || bucket === 'image') {

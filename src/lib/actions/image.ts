@@ -30,7 +30,10 @@ export async function getImages({
   sortDirection?: 'asc' | 'desc'
   limit?: number
   offset?: number
-} = {}) {
+} = {}): Promise<{
+  images: (typeof imageData.$inferSelect)[]
+  error: string | null
+}> {
   try {
     // Build the base query with type safety
     const query = db.select().from(imageData).$dynamic() // Enable dynamic query building
