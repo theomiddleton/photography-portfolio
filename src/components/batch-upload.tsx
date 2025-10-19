@@ -164,7 +164,7 @@ export function BatchUpload({
               })()
             : ''),
         name:
-          fileItem.validationResult?.sanitizedName ||
+          // fileItem.validationResult?.sanitizedName || 
           (fileItem.file as File).name.split('.')[0],
         description: '',
         tags: '',
