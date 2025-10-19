@@ -200,12 +200,19 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
       })
 
       if (response.ok) {
-        const { url, fileUrl } = await response.json()
+        const { url, fileUrl, headers: uploadHeaders } = await response.json()
 
         // Upload the file
         const xhr = new XMLHttpRequest()
         xhr.open('PUT', url)
         xhr.setRequestHeader('Content-Type', imageFile.type)
+        if (uploadHeaders && typeof uploadHeaders === 'object') {
+          Object.entries(uploadHeaders).forEach(([key, value]) => {
+            if (typeof value === 'string') {
+              xhr.setRequestHeader(key, value)
+            }
+          })
+        }
 
         xhr.onload = () => {
           if (xhr.status === 200) {
@@ -265,7 +272,13 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
       })
 
       if (response.ok) {
-        const { url, fileUrl, id: uuid, fileName } = await response.json()
+        const {
+          url,
+          fileUrl,
+          id: uuid,
+          fileName,
+          headers: uploadHeaders,
+        } = await response.json()
 
         // Store metadata for potential cleanup
         setUploadMetadata({ uuid, fileName })
@@ -277,6 +290,13 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
         const xhr = new XMLHttpRequest()
         xhr.open('PUT', url)
         xhr.setRequestHeader('Content-Type', file.type)
+        if (uploadHeaders && typeof uploadHeaders === 'object') {
+          Object.entries(uploadHeaders).forEach(([key, value]) => {
+            if (typeof value === 'string') {
+              xhr.setRequestHeader(key, value)
+            }
+          })
+        }
 
         // Handle abort signal
         controller.signal.addEventListener('abort', () => {

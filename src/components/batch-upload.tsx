@@ -47,6 +47,7 @@ interface BatchImageData {
   stripeProductIds?: string[]
   uploadController?: AbortController
   validationResult?: import('~/lib/file-security').FileValidationResult
+  uploadHeaders?: Record<string, string>
 }
 
 interface PrintSize {
@@ -141,6 +142,7 @@ export function BatchUpload({
         uploaded: false,
         aiGenerated: false,
         validationResult: fileItem.validationResult,
+        uploadHeaders: undefined,
       }))
 
     setBatchImages((prev) => [...prev, ...newImages])
@@ -171,7 +173,13 @@ export function BatchUpload({
       })
 
       if (response.ok) {
-        const { url, fileUrl, id: uuid, fileName } = await response.json()
+        const {
+          url,
+          fileUrl,
+          id: uuid,
+          fileName,
+          headers: uploadHeaders,
+        } = await response.json()
 
         const controller = new AbortController()
 
@@ -184,6 +192,7 @@ export function BatchUpload({
                   fileName,
                   uploadController: controller,
                   url: fileUrl,
+                  uploadHeaders,
                 }
               : img,
           ),
@@ -192,6 +201,13 @@ export function BatchUpload({
         const xhr = new XMLHttpRequest()
         xhr.open('PUT', url)
         xhr.setRequestHeader('Content-Type', imageData.file.type)
+        if (uploadHeaders && typeof uploadHeaders === 'object') {
+          Object.entries(uploadHeaders).forEach(([key, value]) => {
+            if (typeof value === 'string') {
+              xhr.setRequestHeader(key, value)
+            }
+          })
+        }
 
         controller.signal.addEventListener('abort', () => {
           xhr.abort()
@@ -410,11 +426,19 @@ export function BatchUpload({
         })
 
         if (response.ok) {
-          const { url, fileUrl, id: uuid, fileName } = await response.json()
+          const {
+            url,
+            fileUrl,
+            id: uuid,
+            fileName,
+            headers: uploadHeaders,
+          } = await response.json()
 
           setBatchImages((prev) =>
             prev.map((img) =>
-              img.id === image.id ? { ...img, uuid, fileName } : img,
+              img.id === image.id
+                ? { ...img, uuid, fileName, uploadHeaders }
+                : img,
             ),
           )
 
@@ -422,6 +446,13 @@ export function BatchUpload({
             const xhr = new XMLHttpRequest()
             xhr.open('PUT', url)
             xhr.setRequestHeader('Content-Type', image.file.type)
+            if (uploadHeaders && typeof uploadHeaders === 'object') {
+              Object.entries(uploadHeaders).forEach(([key, value]) => {
+                if (typeof value === 'string') {
+                  xhr.setRequestHeader(key, value)
+                }
+              })
+            }
 
             controller.signal.addEventListener('abort', () => {
               xhr.abort()

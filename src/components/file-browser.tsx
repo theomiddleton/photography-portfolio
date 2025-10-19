@@ -638,6 +638,8 @@ export function FileBrowser() {
           const uploadUrl = responseData?.url
           const fileUrl = responseData?.fileUrl
           const key = responseData?.key
+          const uploadHeaders: Record<string, string> | undefined =
+            responseData?.headers
 
           if (!uploadUrl) {
             throw new Error('Invalid response: missing upload URL')
@@ -699,6 +701,13 @@ export function FileBrowser() {
           // Start the direct upload to R2
           xhr.open('PUT', uploadUrl, true)
           xhr.setRequestHeader('Content-Type', contentType)
+          if (uploadHeaders && typeof uploadHeaders === 'object') {
+            Object.entries(uploadHeaders).forEach(([headerKey, headerValue]) => {
+              if (typeof headerValue === 'string') {
+                xhr.setRequestHeader(headerKey, headerValue)
+              }
+            })
+          }
           xhr.timeout = 300000 // 5 minutes timeout
           xhr.send(file)
 

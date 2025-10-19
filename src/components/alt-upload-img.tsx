@@ -73,7 +73,11 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
           throw new Error('Failed to get upload URL')
         }
 
-        const { url: uploadUrl, fileUrl } = await uploadResponse.json()
+        const {
+          url: uploadUrl,
+          fileUrl,
+          headers: uploadHeaders,
+        } = await uploadResponse.json()
 
         // Upload file to the pre-signed URL with progress tracking
         const xhr = new XMLHttpRequest()
@@ -114,6 +118,13 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
 
           xhr.open('PUT', uploadUrl, true)
           xhr.setRequestHeader('Content-Type', fileItem.file.type)
+          if (uploadHeaders && typeof uploadHeaders === 'object') {
+            Object.entries(uploadHeaders).forEach(([key, value]) => {
+              if (typeof value === 'string') {
+                xhr.setRequestHeader(key, value)
+              }
+            })
+          }
           if (fileItem.file instanceof File) {
             xhr.send(fileItem.file)
           } else {
