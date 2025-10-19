@@ -48,7 +48,7 @@ export const securityConfig = {
       style-src 'self' 'unsafe-inline';
       img-src 'self' data: https: blob:;
       font-src 'self' data:;
-      connect-src 'self' https://api.stripe.com https://*.r2.cloudflarestorage.com ${siteConfig.bucketsUrl};
+      connect-src 'self' https://api.stripe.com https://*.r2.cloudflarestorage.com ${siteConfig.imageBucketUrl} ${siteConfig.blogBucketUrl} ${siteConfig.aboutBucketUrl} ${siteConfig.customBucketUrl} ${siteConfig.streamBucketUrl} ${siteConfig.filesBucketUrl} ${siteConfig.bucketsUrl};
       frame-src https://js.stripe.com;
     `.replace(/\s+/g, ' ').trim()
   },

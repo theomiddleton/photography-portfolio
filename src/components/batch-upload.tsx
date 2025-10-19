@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
@@ -88,6 +88,7 @@ export function BatchUpload({
     {},
   )
   const [pendingCleanup, setPendingCleanup] = useState<Set<string>>(new Set())
+  const blobUrlsRef = useRef<Map<string, string>>(new Map())
   const { generate, loading: aiLoading } = useGenerateMetadata()
 
   // Use secure file upload hook
@@ -100,6 +101,29 @@ export function BatchUpload({
     enableContentValidation: true,
     onFilesAdded: handleFilesAdded,
   })
+
+  // Cleanup blob URLs when images are removed or component unmounts
+  useEffect(() => {
+    return () => {
+      blobUrlsRef.current.forEach((url) => {
+        URL.revokeObjectURL(url)
+      })
+      blobUrlsRef.current.clear()
+    }
+  }, [])
+
+  // Track which blob URLs are still in use and revoke unused ones
+  useEffect(() => {
+    const currentImageIds = new Set(batchImages.map((img) => img.id))
+    const trackedUrls = Array.from(blobUrlsRef.current.entries())
+
+    trackedUrls.forEach(([imageId, blobUrl]) => {
+      if (!currentImageIds.has(imageId)) {
+        URL.revokeObjectURL(blobUrl)
+        blobUrlsRef.current.delete(imageId)
+      }
+    })
+  }, [batchImages])
 
   async function handleFilesAdded(addedFiles: SecureFileWithPreview[]) {
     const newImages: BatchImageData[] = addedFiles
@@ -133,7 +157,11 @@ export function BatchUpload({
           fileItem.preview ||
           (fileItem.file instanceof File &&
           (fileItem.file as File).type.startsWith('image/')
-            ? URL.createObjectURL(fileItem.file as File)
+            ? (() => {
+                const blobUrl = URL.createObjectURL(fileItem.file as File)
+                blobUrlsRef.current.set(fileItem.id, blobUrl)
+                return blobUrl
+              })()
             : ''),
         name:
           fileItem.validationResult?.sanitizedName ||
@@ -371,6 +399,13 @@ export function BatchUpload({
       image.uploadController.abort()
     }
 
+    // Revoke blob URL if it exists
+    const blobUrl = blobUrlsRef.current.get(imageId)
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl)
+      blobUrlsRef.current.delete(imageId)
+    }
+
     setBatchImages((prev) => prev.filter((img) => img.id !== imageId))
 
     if (image?.uuid) {
@@ -434,9 +469,7 @@ export function BatchUpload({
 
           setBatchImages((prev) =>
             prev.map((img) =>
-              img.id === image.id
-                ? { ...img, uuid, fileName }
-                : img,
+              img.id === image.id ? { ...img, uuid, fileName } : img,
             ),
           )
 
@@ -550,6 +583,12 @@ export function BatchUpload({
         setTimeout(() => cleanupUpload(image.id), 0)
       })
     }
+
+    // Revoke all blob URLs
+    blobUrlsRef.current.forEach((url) => {
+      URL.revokeObjectURL(url)
+    })
+    blobUrlsRef.current.clear()
 
     setBatchImages([])
     clearFiles()
