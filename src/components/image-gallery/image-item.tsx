@@ -166,7 +166,7 @@ export function ImageItem({
                 id={`visibility-${image.id}`}
                 checked={image.visible}
                 disabled={isProcessing}
-                onCheckedChange={(e) => {
+                onCheckedChange={(_e) => {
                   // e.stopPropagation()
                   onToggleVisibility(String(image.id))
                 }}

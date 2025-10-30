@@ -245,7 +245,7 @@ export function SignupForm({ register }: SignupFormProps) {
                 {/* Email Verification Notice */}
                 <div className="border-border bg-muted/50 rounded-md border p-3">
                   <p className="text-muted-foreground text-sm">
-                    📧 After registration, you'll need to verify your email
+                    📧 After registration, you&apos;ll need to verify your email
                     address before logging in. Please check your inbox for a
                     verification link.
                   </p>

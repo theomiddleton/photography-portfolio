@@ -34,14 +34,6 @@ import {
   Trash2,
   GripVertical,
   Save,
-  Package,
-  Palette,
-  Frame,
-  Ruler,
-  FileText,
-  Layers,
-  Clock,
-  Award,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '~/lib/utils'
@@ -192,7 +184,7 @@ export function ProductDetailManagement({
         } else {
           toast.error(result.error || 'Failed to load product details')
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('Failed to load product details')
       } finally {
         setLoading(false)
@@ -235,7 +227,7 @@ export function ProductDetailManagement({
       } else {
         toast.error(result.error || 'Failed to add product detail')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to add product detail')
     }
   }
@@ -256,7 +248,7 @@ export function ProductDetailManagement({
       } else {
         toast.error(result.error || 'Failed to update product detail')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to update product detail')
     }
   }
@@ -270,7 +262,7 @@ export function ProductDetailManagement({
       } else {
         toast.error(result.error || 'Failed to delete product detail')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to delete product detail')
     }
   }
@@ -339,7 +331,7 @@ export function ProductDetailManagement({
       } else {
         toast.error(result.error || 'Failed to apply details to product')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to apply details to product')
     }
   }
@@ -639,8 +631,8 @@ export function ProductDetailManagement({
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Detail</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete "{detail.label}
-                                "? This action cannot be undone.
+                                Are you sure you want to delete &quot;{detail.label}
+                                &quot;? This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

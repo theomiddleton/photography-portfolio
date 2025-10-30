@@ -27,13 +27,13 @@ export function OrderSummary({
   const baseSubtotal = size.basePrice // This is always the base price from DB
   const shippingCost = selectedMethod?.price ?? 0
   
-  let subtotal, tax, stripeTax, total
+  let subtotal, total
   
   // Match backend logic exactly: calculate tax on baseAmount (subtotal + shipping)
   const baseAmount = baseSubtotal + shippingCost
-  tax = Math.round(baseAmount * (taxRate / 10000))
-  stripeTax = Math.round(baseAmount * (stripeTaxRate / 10000))
-  
+  const tax = Math.round(baseAmount * (taxRate / 10000))
+  const stripeTax = Math.round(baseAmount * (stripeTaxRate / 10000))
+
   if (siteConfig.features.store.showTax) {
     // Show tax separately - subtotal is base price only
     subtotal = baseSubtotal

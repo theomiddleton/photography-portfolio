@@ -21,6 +21,7 @@ export function StoreWarningBanner() {
       const hasExpired = Date.now() - timestamp > twentyFourHoursInMs
 
       if (!hasExpired) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsVisible(false)
       }
     }

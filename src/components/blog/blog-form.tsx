@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
+import type { useEditor } from '@tiptap/react'
 import { Card, CardContent } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
@@ -13,7 +14,7 @@ import { slugify } from '~/lib/utils'
 import { toast } from 'sonner'
 
 interface BlogFormProps {
-  initialContent?: any
+  initialContent?: Record<string, unknown>
   post?: {
     slug: string
     id: string
@@ -30,7 +31,7 @@ interface BlogFormProps {
 
 export function BlogForm({ initialContent, post }: BlogFormProps) {
   const router = useRouter()
-  const editorRef = React.useRef<any>(null)
+  const editorRef = React.useRef<{ editor: ReturnType<typeof useEditor> }>(null)
   const [title, setTitle] = React.useState(post?.title ?? '')
   const [description, setDescription] = React.useState(post?.description ?? '')
   const [slug, setSlug] = React.useState(post?.slug ?? '')
@@ -83,7 +84,7 @@ export function BlogForm({ initialContent, post }: BlogFormProps) {
       }
 
       const data = await response.json()
-      
+
       // Show appropriate toast based on action
       if (post) {
         toast.success(
@@ -150,7 +151,11 @@ export function BlogForm({ initialContent, post }: BlogFormProps) {
 
       <Card>
         <CardContent>
-          <SimpleEditor ref={editorRef} initialContent={initialContent} scope="blog" />
+          <SimpleEditor
+            ref={editorRef}
+            initialContent={initialContent}
+            scope="blog"
+          />
         </CardContent>
       </Card>
 

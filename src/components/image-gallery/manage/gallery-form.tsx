@@ -75,7 +75,7 @@ export function GalleryForm() {
   const handleTemplateSelect = (templateId: string) => {
     const template = getTemplateById(templateId)
     if (template) {
-      form.setValue('template', templateId as any)
+      form.setValue('template', templateId as z.infer<typeof formSchema>['template'])
       form.setValue('layout', template.layout)
       form.setValue('columns', template.columns)
       form.setValue('category', template.category)
@@ -94,7 +94,7 @@ export function GalleryForm() {
         toast.success('Gallery created successfully')
         router.push(`/admin/galleries/${result.gallery?.slug}`)
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to create gallery')
     } finally {
       setIsLoading(false)

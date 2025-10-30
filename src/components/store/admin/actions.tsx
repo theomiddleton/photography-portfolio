@@ -62,7 +62,7 @@ export function AdminActions() {
           description: result.error ?? 'Unknown error occurred',
         })
       }
-    } catch (error) {
+    } catch (_error) {
       setAlert({
         type: 'error',
         title: 'Error',
@@ -91,7 +91,7 @@ export function AdminActions() {
           description: result.error ?? 'Failed to delete store products',
         })
       }
-    } catch (error) {
+    } catch (_error) {
       setAlert({
         type: 'error',
         title: 'Error',

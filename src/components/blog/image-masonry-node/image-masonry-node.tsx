@@ -98,6 +98,7 @@ export const ImageMasonryComponent: React.FC<NodeViewProps> = (props) => {
               )}
             >
               <div className="group relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={image.src}
                   alt={image.alt || `Masonry image ${index + 1}`}

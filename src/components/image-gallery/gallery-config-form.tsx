@@ -136,7 +136,7 @@ export function GalleryConfigForm({ initialConfig }: GalleryConfigFormProps) {
                     <Label htmlFor="gallery-style">Gallery Style</Label>
                     <Select
                       value={config.galleryStyle}
-                      onValueChange={(value) => setConfig(prev => ({ ...prev, galleryStyle: value as any }))}
+                      onValueChange={(value) => setConfig(prev => ({ ...prev, galleryStyle: value as 'masonry' | 'grid' | 'justified' }))}
                     >
                       <SelectTrigger id="gallery-style">
                         <SelectValue placeholder="Select style" />
@@ -153,7 +153,7 @@ export function GalleryConfigForm({ initialConfig }: GalleryConfigFormProps) {
                     <Label htmlFor="gap-size">Gap Size</Label>
                     <Select
                       value={config.gapSize}
-                      onValueChange={(value) => setConfig(prev => ({ ...prev, gapSize: value as any }))}
+                      onValueChange={(value) => setConfig(prev => ({ ...prev, gapSize: value as 'small' | 'medium' | 'large' }))}
                     >
                       <SelectTrigger id="gap-size">
                         <SelectValue placeholder="Select gap size" />

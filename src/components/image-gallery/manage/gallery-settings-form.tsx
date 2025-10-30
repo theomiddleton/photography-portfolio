@@ -27,7 +27,13 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { Switch } from '~/components/ui/switch'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
 import { updateGallery } from '~/lib/actions/gallery/gallery'
 import { gallerySchema } from '~/lib/types/galleryType'
@@ -67,7 +73,7 @@ interface Gallery {
     alt: string | null
     caption: string | null
     tags: string | null
-    metadata: Record<string, any> | null
+    metadata: Record<string, unknown> | null
     order: number
     uploadedAt: Date
   }[]
@@ -78,7 +84,10 @@ interface GallerySettingsFormProps {
   onUpdate: (updatedGallery: Partial<Gallery>) => void
 }
 
-export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormProps) {
+export function GallerySettingsForm({
+  gallery,
+  onUpdate,
+}: GallerySettingsFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
@@ -97,7 +106,8 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
       showInNav: gallery.showInNav,
       category: gallery.category || 'general',
       tags: gallery.tags || '',
-      template: gallery.template as any || 'custom',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      template: (gallery.template as any) || 'custom',
       allowEmbedding: gallery.allowEmbedding ?? true,
       embedPassword: gallery.embedPassword || '',
       isPasswordProtected: gallery.isPasswordProtected ?? false,
@@ -110,14 +120,18 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
     setIsLoading(true)
     try {
       const result = await updateGallery(gallery.id, values)
-      
+
       if (result.error) {
-        toast.error(typeof result.error === 'string' ? result.error : 'Failed to update gallery')
+        toast.error(
+          typeof result.error === 'string'
+            ? result.error
+            : 'Failed to update gallery',
+        )
       } else {
         toast.success('Gallery updated successfully')
         onUpdate(values as Partial<Gallery>)
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to update gallery')
     } finally {
       setIsLoading(false)
@@ -148,7 +162,11 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
       setTempLinkExpiry(data.expiresAt)
       toast.success('Temporary link generated successfully')
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to generate temporary link')
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to generate temporary link',
+      )
     }
   }
 
@@ -190,7 +208,8 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                     <Input placeholder="my-amazing-gallery" {...field} />
                   </FormControl>
                   <FormDescription>
-                    The URL path for your gallery: /g/{field.value || 'gallery-slug'}
+                    The URL path for your gallery: /g/
+                    {field.value || 'gallery-slug'}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -224,7 +243,10 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Layout Style</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a layout" />
@@ -245,14 +267,17 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <FormField
                 control={form.control}
                 name="columns.mobile"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Mobile Columns</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                    <Select
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      defaultValue={field.value?.toString()}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -274,7 +299,10 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tablet Columns</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                    <Select
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      defaultValue={field.value?.toString()}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -298,7 +326,10 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Desktop Columns</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                    <Select
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      defaultValue={field.value?.toString()}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -319,14 +350,17 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="category"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select category" />
@@ -337,7 +371,9 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                         <SelectItem value="portfolio">Portfolio</SelectItem>
                         <SelectItem value="wedding">Wedding</SelectItem>
                         <SelectItem value="landscape">Landscape</SelectItem>
-                        <SelectItem value="street">Street Photography</SelectItem>
+                        <SelectItem value="street">
+                          Street Photography
+                        </SelectItem>
                         <SelectItem value="product">Product</SelectItem>
                         <SelectItem value="event">Event</SelectItem>
                         <SelectItem value="art">Art</SelectItem>
@@ -356,14 +392,17 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Template</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select template" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {galleryTemplates.map(template => (
+                        {galleryTemplates.map((template) => (
                           <SelectItem key={template.id} value={template.id}>
                             {template.name}
                           </SelectItem>
@@ -386,13 +425,17 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                 <FormItem>
                   <FormLabel>Tags</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter tags separated by commas" {...field} />
+                    <Input
+                      placeholder="Enter tags separated by commas"
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription>
-                    Separate multiple tags with commas (e.g., landscape, sunset, nature)
+                    Separate multiple tags with commas (e.g., landscape, sunset,
+                    nature)
                   </FormDescription>
                   {field.value && field.value.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
+                    <div className="mt-2 flex flex-wrap gap-1">
                       {field.value.split(',').map((tag, i) => (
                         <Badge key={i} variant="secondary" className="text-xs">
                           {tag.trim()}
@@ -434,14 +477,15 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                   <FormItem>
                     <FormLabel>Embed Password (Optional)</FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         type="password"
                         placeholder="Enter password for embedded gallery"
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                      If set, users will need this password to view the embedded gallery
+                      If set, users will need this password to view the embedded
+                      gallery
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -483,7 +527,8 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Public Gallery</FormLabel>
                     <FormDescription>
-                      Make this gallery publicly viewable at /g/{form.watch('slug') || 'gallery-slug'}
+                      Make this gallery publicly viewable at /g/
+                      {form.watch('slug') || 'gallery-slug'}
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -509,14 +554,19 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Show in Navigation</FormLabel>
+                    <FormLabel className="text-base">
+                      Show in Navigation
+                    </FormLabel>
                     <FormDescription>
-                      Include this gallery in the main navigation menu (disabled for password-protected galleries)
+                      Include this gallery in the main navigation menu (disabled
+                      for password-protected galleries)
                     </FormDescription>
                   </div>
                   <FormControl>
                     <Switch
-                      checked={field.value && !form.watch('isPasswordProtected')}
+                      checked={
+                        field.value && !form.watch('isPasswordProtected')
+                      }
                       onCheckedChange={field.onChange}
                       disabled={form.watch('isPasswordProtected')}
                     />
@@ -531,9 +581,12 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Password Protection</FormLabel>
+                    <FormLabel className="text-base">
+                      Password Protection
+                    </FormLabel>
                     <FormDescription>
-                      Require a password to view this gallery (automatically makes gallery private)
+                      Require a password to view this gallery (automatically
+                      makes gallery private)
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -555,38 +608,55 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
 
             {form.watch('isPasswordProtected') && (
               <>
-                <div className="rounded-lg border p-4 bg-amber-50 dark:bg-amber-950/20">
+                <div className="rounded-lg border bg-amber-50 p-4 dark:bg-amber-950/20">
                   <div className="flex items-start gap-3">
-                    <div className="text-amber-600 dark:text-amber-400 mt-0.5">
-                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    <div className="mt-0.5 text-amber-600 dark:text-amber-400">
+                      <svg
+                        className="h-5 w-5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-amber-800 dark:text-amber-200">Password Types</h4>
-                      <div className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                        <strong>Admin Password:</strong> Your login credentials to access this admin panel
+                      <h4 className="font-medium text-amber-800 dark:text-amber-200">
+                        Password Types
+                      </h4>
+                      <div className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                        <strong>Admin Password:</strong> Your login credentials
+                        to access this admin panel
                         <br />
-                        <strong>Gallery Password:</strong> What visitors enter to view the protected gallery
+                        <strong>Gallery Password:</strong> What visitors enter
+                        to view the protected gallery
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {gallery.galleryPassword && (
-                  <div className="rounded-lg border p-4 bg-muted/50">
-                    <div className="flex items-center justify-between mb-3">
+                  <div className="bg-muted/50 rounded-lg border p-4">
+                    <div className="mb-3 flex items-center justify-between">
                       <div>
-                        <FormLabel className="text-base">Verify Admin Identity</FormLabel>
+                        <FormLabel className="text-base">
+                          Verify Admin Identity
+                        </FormLabel>
                         <FormDescription>
-                          Enter your admin login password (not the gallery password) to modify settings
+                          Enter your admin login password (not the gallery
+                          password) to modify settings
                         </FormDescription>
                       </div>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        onClick={() =>
+                          setShowCurrentPassword(!showCurrentPassword)
+                        }
                       >
                         {showCurrentPassword ? (
                           <EyeOffIcon className="h-4 w-4" />
@@ -625,20 +695,25 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        {gallery.galleryPassword ? 'New Gallery Password' : 'Gallery Password'}
+                        {gallery.galleryPassword
+                          ? 'New Gallery Password'
+                          : 'Gallery Password'}
                       </FormLabel>
                       <FormControl>
-                        <Input 
+                        <Input
                           type="password"
-                          placeholder={gallery.galleryPassword ? 'Enter new password for gallery access' : 'Enter password that visitors will use'}
+                          placeholder={
+                            gallery.galleryPassword
+                              ? 'Enter new password for gallery access'
+                              : 'Enter password that visitors will use'
+                          }
                           {...field}
                         />
                       </FormControl>
                       <FormDescription>
-                        {gallery.galleryPassword 
+                        {gallery.galleryPassword
                           ? 'Leave empty to keep the current gallery access password unchanged'
-                          : 'Visitors will need to enter this password to view the gallery'
-                        }
+                          : 'Visitors will need to enter this password to view the gallery'}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -651,7 +726,12 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Password Cookie Duration (Days)</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(parseInt(value))
+                        }
+                        defaultValue={field.value?.toString()}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -666,7 +746,8 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        How long users stay logged in after entering the correct password
+                        How long users stay logged in after entering the correct
+                        password
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -676,12 +757,15 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
             )}
 
             {form.watch('isPasswordProtected') && (
-              <div className="rounded-lg border p-4 bg-blue-50 dark:bg-blue-950/20">
-                <div className="flex items-center justify-between mb-3">
+              <div className="rounded-lg border bg-blue-50 p-4 dark:bg-blue-950/20">
+                <div className="mb-3 flex items-center justify-between">
                   <div>
-                    <FormLabel className="text-base">Temporary Access Links</FormLabel>
+                    <FormLabel className="text-base">
+                      Temporary Access Links
+                    </FormLabel>
                     <FormDescription>
-                      Generate secure links that allow temporary access without requiring the password
+                      Generate secure links that allow temporary access without
+                      requiring the password
                     </FormDescription>
                   </div>
                   <div className="flex gap-2">
@@ -691,7 +775,7 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                       size="sm"
                       onClick={() => generateTempLink(24, 1)}
                     >
-                      <LinkIcon className="h-4 w-4 mr-2" />
+                      <LinkIcon className="mr-2 h-4 w-4" />
                       Quick Share (24h)
                     </Button>
                     <Button
@@ -700,14 +784,14 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                       size="sm"
                       onClick={() => generateTempLink(168, 10)}
                     >
-                      <ClockIcon className="h-4 w-4 mr-2" />
+                      <ClockIcon className="mr-2 h-4 w-4" />
                       Extended (1 week, 10 uses)
                     </Button>
                   </div>
                 </div>
 
                 {tempLink && (
-                  <div className="space-y-3 pt-3 border-t">
+                  <div className="space-y-3 border-t pt-3">
                     <div className="text-sm font-medium text-green-700 dark:text-green-400">
                       ✓ Temporary link generated successfully
                     </div>
@@ -715,7 +799,7 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                       <Input
                         value={tempLink}
                         readOnly
-                        className="flex-1 font-mono text-xs bg-white dark:bg-gray-800"
+                        className="flex-1 bg-white font-mono text-xs dark:bg-gray-800"
                       />
                       <Button
                         type="button"
@@ -730,10 +814,12 @@ export function GallerySettingsForm({ gallery, onUpdate }: GallerySettingsFormPr
                       </Button>
                     </div>
                     {tempLinkExpiry && (
-                      <div className="text-xs text-muted-foreground bg-white dark:bg-gray-800 p-2 rounded">
-                        <strong>Expires:</strong> {new Date(tempLinkExpiry).toLocaleString()}
+                      <div className="text-muted-foreground rounded bg-white p-2 text-xs dark:bg-gray-800">
+                        <strong>Expires:</strong>{' '}
+                        {new Date(tempLinkExpiry).toLocaleString()}
                         <br />
-                        <strong>Share this link:</strong> Recipients can access the gallery directly without entering a password
+                        <strong>Share this link:</strong> Recipients can access
+                        the gallery directly without entering a password
                       </div>
                     )}
                   </div>

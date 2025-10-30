@@ -5,11 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Switch } from '~/components/ui/switch'
 import { Input } from '~/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
 import type { Product } from '~/server/db/schema'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '~/components/ui/table'
 import { Pagination } from '~/components/ui/pagination'
 import { memo } from 'react'
 import { Search } from 'lucide-react'
@@ -22,14 +35,14 @@ interface AdminProductsProps {
 const ProductRow = memo(({ product }: { product: Product }) => (
   <TableRow key={product.id}>
     <TableCell>
-      <div className="relative w-20 aspect-3/2">
+      <div className="relative aspect-3/2 w-20">
         <Image
           src={product.imageUrl}
           alt={product.name}
           fill
           sizes="80px"
           loading="lazy"
-          className="object-cover rounded-md"
+          className="rounded-md object-cover"
         />
       </div>
     </TableCell>
@@ -55,12 +68,14 @@ export function AdminProducts({ products }: AdminProductsProps) {
 
   // Filter products
   const filteredProducts = useMemo(() => {
-    return products.filter(product => {
+    return products.filter((product) => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
         const matchesName = product.name.toLowerCase().includes(query)
-        const matchesDescription = product.description?.toLowerCase().includes(query)
+        const matchesDescription = product.description
+          ?.toLowerCase()
+          .includes(query)
         if (!matchesName && !matchesDescription) return false
       }
 
@@ -83,6 +98,7 @@ export function AdminProducts({ products }: AdminProductsProps) {
 
   // Reset to first page when filters change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1)
   }, [searchQuery, statusFilter])
 
@@ -106,8 +122,8 @@ export function AdminProducts({ products }: AdminProductsProps) {
       <CardContent className="space-y-4">
         {/* Filters */}
         <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
             <Input
               placeholder="Search products..."
               value={searchQuery}
@@ -129,7 +145,8 @@ export function AdminProducts({ products }: AdminProductsProps) {
             </Select>
           </div>
           <div className="text-sm text-gray-600">
-            {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+            {filteredProducts.length} product
+            {filteredProducts.length !== 1 ? 's' : ''}
           </div>
         </div>
 
@@ -146,11 +163,13 @@ export function AdminProducts({ products }: AdminProductsProps) {
           <TableBody>
             {paginatedProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                  {searchQuery || statusFilter !== 'all' 
-                    ? 'No products match your filters' 
-                    : 'No products found'
-                  }
+                <TableCell
+                  colSpan={5}
+                  className="py-8 text-center text-gray-500"
+                >
+                  {searchQuery || statusFilter !== 'all'
+                    ? 'No products match your filters'
+                    : 'No products found'}
                 </TableCell>
               </TableRow>
             ) : (
@@ -170,11 +189,10 @@ export function AdminProducts({ products }: AdminProductsProps) {
             itemsPerPage={itemsPerPage}
             onPageChange={handlePageChange}
             onItemsPerPageChange={handleItemsPerPageChange}
-            className="pt-4 border-t"
+            className="border-t pt-4"
           />
         )}
       </CardContent>
     </Card>
   )
 }
-

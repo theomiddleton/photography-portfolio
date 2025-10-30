@@ -3,7 +3,7 @@ import { ReactNodeViewRenderer } from '@tiptap/react'
 import { ImageGalleryNodeView } from '~/components/blog/image-gallery-node/image-gallery-node-view'
 
 export interface ImageGalleryOptions {
-  HTMLAttributes: Record<string, any>
+  HTMLAttributes: Record<string, unknown>
 }
 
 declare module '@tiptap/core' {

@@ -7,11 +7,7 @@ import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
 import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
 
-export const ImageGalleryNodeView: React.FC<NodeViewProps> = ({
-  node,
-  getPos,
-  editor,
-}) => {
+export const ImageGalleryNodeView: React.FC<NodeViewProps> = ({ node }) => {
   const { sources } = node.attrs
   const [currentIndex, setCurrentIndex] = React.useState(0)
   const [isLoading, setIsLoading] = React.useState(true)
@@ -36,20 +32,20 @@ export const ImageGalleryNodeView: React.FC<NodeViewProps> = ({
     return indices
   }
 
-  const handlePrevious = () => {
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))
-    setIsLoading(true)
-  }
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))
-    setIsLoading(true)
-  }
-
-  const handleThumbnailClick = (index: number) => {
+  const handleThumbnailClick = React.useCallback((index: number) => {
     setCurrentIndex(index)
     setIsLoading(true)
-  }
+  }, [])
+
+  const handlePrevious = React.useCallback(() => {
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))
+    setIsLoading(true)
+  }, [images.length])
+
+  const handleNext = React.useCallback(() => {
+    setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))
+    setIsLoading(true)
+  }, [images.length])
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -62,7 +58,7 @@ export const ImageGalleryNodeView: React.FC<NodeViewProps> = ({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [handleNext, handlePrevious])
 
   const visibleIndices = createCircularIndices(currentIndex, images.length)
 

@@ -45,7 +45,6 @@ export async function POST(request: Request) {
         customerName: order.orders.customerName,
         customerEmail: order.orders.email,
         productName: order.products.name,
-        productSize: order.productSizes.name,
         imageUrl: order.products.imageUrl,
         trackingNumber: order.orders.trackingNumber || 'Not available',
         carrier: 'Royal Mail', // You might want to make this dynamic
@@ -57,7 +56,6 @@ export async function POST(request: Request) {
         customerName: order.orders.customerName,
         customerEmail: order.orders.email,
         productName: order.products.name,
-        productSize: order.productSizes.name,
         imageUrl: order.products.imageUrl,
         trackingNumber: order.orders.trackingNumber || 'Not available',
         carrier: 'Royal Mail', // You might want to make this dynamic

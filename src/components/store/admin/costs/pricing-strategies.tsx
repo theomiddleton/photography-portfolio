@@ -6,10 +6,9 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Badge } from '~/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
+import { Tabs, TabsContent } from '~/components/ui/tabs'
 import { Slider } from '~/components/ui/slider'
 import { Switch } from '~/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import type { BasePrintSize } from '~/server/db/schema'
 import { formatPrice } from '~/lib/utils'
 import { 
@@ -34,7 +33,7 @@ interface PricingStrategy {
   name: string
   description: string
   icon: React.ElementType
-  calculator: (basePrice: number, settings: any) => number
+  calculator: (basePrice: number, settings: unknown) => number
 }
 
 const PRICING_STRATEGIES: PricingStrategy[] = [
@@ -51,7 +50,7 @@ const PRICING_STRATEGIES: PricingStrategy[] = [
     description: 'Different margins based on print size',
     icon: BarChart3,
     calculator: (basePrice, { tiers, area }) => {
-      const tier = tiers.find((t: any) => area <= t.maxArea) || tiers[tiers.length - 1]
+      const tier = tiers.find((t: { maxArea: number; margin: number }) => area <= t.maxArea) || tiers[tiers.length - 1]
       return basePrice * (1 + tier.margin / 100)
     }
   },
@@ -77,7 +76,6 @@ const PRICING_STRATEGIES: PricingStrategy[] = [
 export function PricingStrategies({ sizes, profitMargin, onUpdate }: PricingStrategiesProps) {
   const [selectedStrategy, setSelectedStrategy] = useState('fixed-margin')
   const [autoUpdate, setAutoUpdate] = useState(false)
-  const [previewMode, setPreviewMode] = useState(true)
   
   // Strategy-specific settings
   const [fixedMarginSettings, setFixedMarginSettings] = useState({
@@ -138,9 +136,9 @@ export function PricingStrategies({ sizes, profitMargin, onUpdate }: PricingStra
     try {
       // Here you would call your API to update prices
       // await updateBulkPrices(updates)
-      toast.success(`Applied ${PRICING_STRATEGIES.find(s => s.id === strategyId)?.name} strategy`)
+      toast.success(`NOT Applied ${PRICING_STRATEGIES.find(s => s.id === strategyId)?.name} strategy - UNIMPLEMENTED`)
       onUpdate()
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to apply pricing strategy')
     }
   }
@@ -383,7 +381,7 @@ export function PricingStrategies({ sizes, profitMargin, onUpdate }: PricingStra
               <div key={size.id} className="flex items-center justify-between p-3 rounded border">
                 <div>
                   <p className="font-medium">{size.name}</p>
-                  <p className="text-sm text-muted-foreground">{size.width}"×{size.height}"</p>
+                  <p className="text-sm text-muted-foreground">{size.width}&quot;×{size.height}&quot;</p>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-sm">

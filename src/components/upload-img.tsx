@@ -42,7 +42,7 @@ interface PrintSize {
 
 export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
   const siteConfig = useSiteConfig()
-  
+
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [name, setName] = useState('')
@@ -108,6 +108,49 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
     }
     setPrintSizes(newSizes)
   }
+
+  // Upload image immediately for AI processing
+  const uploadImageForAI = useCallback(
+    async (imageFile: File) => {
+      if (!aiEnabled) return
+
+      try {
+        const tempId = `temp_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: imageFile.name,
+            contentType: imageFile.type,
+            name: tempId, // Use temp ID
+            bucket: 'custom', // Use custom bucket for temp uploads
+            temporary: true,
+          }),
+        })
+
+        if (response.ok) {
+          const { url, fileUrl } = await response.json()
+
+          // Upload the file
+          const xhr = new XMLHttpRequest()
+          xhr.open('PUT', url)
+          xhr.setRequestHeader('Content-Type', imageFile.type)
+
+          xhr.onload = () => {
+            if (xhr.status === 200) {
+              setImageUrl(fileUrl)
+            }
+          }
+
+          xhr.send(imageFile)
+        }
+      } catch (error) {
+        console.error('Failed to upload image for AI processing:', error)
+      }
+    },
+    [aiEnabled],
+  )
 
   // AI metadata generation function
   const handleAIGenerate = async (field?: 'title' | 'description' | 'tags') => {
@@ -177,48 +220,8 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
         e.dataTransfer.clearData()
       }
     },
-    [aiEnabled],
+    [aiEnabled, uploadImageForAI],
   )
-
-  // Upload image immediately for AI processing
-  const uploadImageForAI = async (imageFile: File) => {
-    if (!aiEnabled) return
-
-    try {
-      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename: imageFile.name,
-          contentType: imageFile.type,
-          name: tempId, // Use temp ID
-          bucket: 'custom', // Use custom bucket for temp uploads
-          temporary: true,
-        }),
-      })
-
-      if (response.ok) {
-        const { url, fileUrl } = await response.json()
-
-        // Upload the file
-        const xhr = new XMLHttpRequest()
-        xhr.open('PUT', url)
-        xhr.setRequestHeader('Content-Type', imageFile.type)
-
-        xhr.onload = () => {
-          if (xhr.status === 200) {
-            setImageUrl(fileUrl)
-          }
-        }
-
-        xhr.send(imageFile)
-      }
-    } catch (error) {
-      console.error('Failed to upload image for AI processing:', error)
-    }
-  }
 
   const handleUpload = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -282,11 +285,20 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
         controller.signal.addEventListener('abort', () => {
           xhr.abort()
           // Schedule cleanup using waitUntil pattern
+          const windowWithScheduler = window as Window & {
+            scheduler?: {
+              postTask: (
+                callback: () => void,
+                options: { priority: string },
+              ) => void
+            }
+          }
           if (
             'scheduler' in window &&
-            'postTask' in (window as any).scheduler
+            windowWithScheduler.scheduler &&
+            'postTask' in windowWithScheduler.scheduler
           ) {
-            ;(window as any).scheduler.postTask(
+            windowWithScheduler.scheduler.postTask(
               () => {
                 fetch('/api/upload/cleanup', {
                   method: 'DELETE',
@@ -481,7 +493,9 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
               <p className="mt-2">or drag and drop</p>
             </div>
             <p className="text-xs leading-5 text-gray-600">
-              {file?.name ? file.name : `JPEG or PNG up to ${siteConfig.uploadLimits[bucket]}MB`}
+              {file?.name
+                ? file.name
+                : `JPEG or PNG up to ${siteConfig.uploadLimits[bucket]}MB`}
             </p>
           </div>
         </div>

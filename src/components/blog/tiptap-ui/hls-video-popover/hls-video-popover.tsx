@@ -5,17 +5,11 @@ import { type Editor } from '@tiptap/react'
 import { useTiptapEditor } from '~/hooks/use-tiptap-editor'
 import {
   useFileUpload,
-  FileWithPreview,
-  formatBytes,
 } from '~/hooks/use-file-upload'
 
 // --- Icons ---
 import {
   VideoIcon,
-  ImageIcon,
-  UploadIcon,
-  XIcon,
-  AlertCircleIcon,
 } from 'lucide-react'
 
 // --- UI Primitives ---
@@ -23,7 +17,7 @@ import {
   Button as TipTapButton,
   type ButtonProps as TipTapButtonProps,
 } from '~/components/blog/tiptap-ui-primitive/button'
-import { Button, ButtonProps } from '~/components/ui/button'
+import { Button } from '~/components/ui/button'
 import {
   Popover,
   PopoverContent,
@@ -83,16 +77,9 @@ export const HLSVideoContent: React.FC<{
   const [posterUrl, setPosterUrl] = React.useState('')
 
   const [
-    { files, isDragging, errors: uploadErrors },
+    { files, errors: uploadErrors },
     {
-      handleDragEnter,
-      handleDragLeave,
-      handleDragOver,
-      handleDrop,
-      openFileDialog,
-      removeFile,
       clearFiles,
-      getInputProps,
     },
   ] = useFileUpload({
     accept: 'image/png,image/jpeg,image/jpg,image/gif,image/webp',
@@ -193,8 +180,10 @@ export interface HLSVideoPopoverProps extends Omit<TipTapButtonProps, 'type'> {
 
 export function HLSVideoPopover({
   editor: providedEditor,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hideWhenUnavailable = false,
   onOpenChange,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   bucket,
   ...props
 }: HLSVideoPopoverProps) {

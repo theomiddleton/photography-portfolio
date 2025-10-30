@@ -60,7 +60,7 @@ export async function sendEmailVerification(
       .where(eq(users.id, userId))
 
     // Send email
-    const emailProps = { name, email, token, expiryMinutes }
+    const emailProps = { name, token, expiryMinutes }
     const { error } = await resend.emails.send({
       from: `Portfolio <${siteConfig.emails.noReply}>`,
       to: [email],
@@ -175,7 +175,6 @@ export async function sendPasswordReset(email: string): Promise<boolean> {
     // Send email outside of transaction
     const emailProps = { 
       name: result.user.name, 
-      email, 
       token: result.token, 
       expiryMinutes: result.expiryMinutes 
     }

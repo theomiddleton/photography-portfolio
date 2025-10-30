@@ -153,7 +153,7 @@ interface ImageUploadDragAreaProps {
   children?: React.ReactNode
 }
 
-const ImageUploadDragArea: React.FC<ImageUploadDragAreaProps> = ({
+export const ImageUploadDragArea: React.FC<ImageUploadDragAreaProps> = ({
   onFile,
   children,
 }) => {

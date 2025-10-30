@@ -8,7 +8,6 @@ import type { BasePrintSize, ShippingMethod } from '~/server/db/schema'
 import { formatPrice } from '~/lib/utils'
 import {
   TrendingUp,
-  TrendingDown,
   AlertCircle,
   DollarSign,
   Package,
@@ -18,14 +17,9 @@ import {
 interface CostAnalyticsProps {
   sizes: BasePrintSize[]
   shippingMethods: ShippingMethod[]
-  taxSettings: {
-    taxRate: number
-    stripeRate: number
-    profitPercentage?: number
-  }
 }
 
-export function CostAnalytics({ sizes, shippingMethods, taxSettings }: CostAnalyticsProps) {
+export function CostAnalytics({ sizes, shippingMethods }: CostAnalyticsProps) {
   const analytics = useMemo(() => {
     // Calculate size profitability
     const sizeAnalytics = sizes.map(size => {

@@ -77,7 +77,7 @@ export const SecurityNotification = ({
               <Text className="mb-6 text-base text-gray-700">{details}</Text>
 
               <Text className="mb-4 text-base text-gray-700">
-                If this wasn't you, please:
+                If this wasn&apos;t you, please:
               </Text>
 
               <Section className="ml-4">

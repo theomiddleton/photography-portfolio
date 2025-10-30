@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useMemo, useEffect, useRef } from 'react'
@@ -20,7 +21,7 @@ import { ImageComparisonExtension } from '~/components/blog/tiptap-extension/ima
 import { ResizableImageExtension } from '~/components/blog/tiptap-extension/resizable-image-extension'
 
 interface TipTapRendererProps {
-  content: any
+  content: unknown
 }
 
 export function TipTapRenderer({ content }: TipTapRendererProps) {
@@ -78,7 +79,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
       if (sources.length === 0) return
 
       let currentIndex = 0
-      let isLoading = true
+      // let isLoading = true
       const mainImage = gallery.querySelector(
         '.gallery-main-image',
       ) as HTMLImageElement
@@ -105,7 +106,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
 
       const updateGallery = (index: number) => {
         currentIndex = index
-        isLoading = true
+        // isLoading = true
 
         if (mainImage) {
           // Add fade effect for smoother transitions
@@ -114,7 +115,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
             mainImage.src = sources[index]
             mainImage.alt = `Gallery image ${index + 1}`
             mainImage.style.opacity = '1'
-            isLoading = false
+            // isLoading = false
           }, 150)
         }
 
@@ -421,7 +422,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
             console.log('HLS video ready to play')
           })
 
-          hls.on(Hls.Events.ERROR, (event: any, data: any) => {
+          hls.on(Hls.Events.ERROR, (_event: any, data: any) => {
             console.error('HLS error:', data)
             if (data.fatal) {
               if (hls) {
@@ -487,7 +488,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
       }
 
       // Store cleanup function for later use
-      ;(videoContainer as any).hlsCleanup = cleanup
+      (videoContainer as any).hlsCleanup = cleanup
     })
 
     // Lightbox functionality
@@ -648,6 +649,7 @@ export function TipTapRenderer({ content }: TipTapRendererProps) {
     return () => {
       if (containerRef.current) {
         const hlsVideos =
+          // eslint-disable-next-line react-hooks/exhaustive-deps
           containerRef.current.querySelectorAll('[data-hls-video]')
         hlsVideos.forEach((videoContainer) => {
           const cleanup = (videoContainer as any).hlsCleanup

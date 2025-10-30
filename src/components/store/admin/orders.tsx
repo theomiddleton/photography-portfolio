@@ -22,7 +22,6 @@ import { Button } from '~/components/ui/button'
 import { MoreHorizontal } from 'lucide-react'
 import type { Order } from '~/server/db/schema'
 import { updateOrder } from '~/lib/actions/store/orders'
-import { useRouter } from 'next/navigation'
 import { OrderDetails } from '~/components/store/admin/order-details'
 import { Pagination } from '~/components/ui/pagination'
 
@@ -34,10 +33,14 @@ interface AdminOrdersProps {
 }
 
 export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
-  const pendingUpdates = useRef(new Map<string, { status: string, timestamp: number }>())
-  const [orders, setOrders] = useState<(Order & {
-    product: { name: string } | null
-  })[]>(
+  const pendingUpdates = useRef(
+    new Map<string, { status: string; timestamp: number }>(),
+  )
+  const [orders, setOrders] = useState<
+    (Order & {
+      product: { name: string } | null
+    })[]
+  >(
     [...initialOrders].sort(
       (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
     ),
@@ -52,7 +55,7 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
     if (statusFilter === 'all') {
       return orders
     }
-    return orders.filter(order => order.status === statusFilter)
+    return orders.filter((order) => order.status === statusFilter)
   }, [orders, statusFilter])
 
   // Paginate orders
@@ -66,6 +69,7 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
 
   // Reset to first page when filter changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1)
   }, [statusFilter])
 
@@ -84,8 +88,7 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
     eventSource.onmessage = (event) => {
       const newOrders = JSON.parse(event.data)
 
-       
-      const updatedOrders = newOrders.map(order => {
+      const updatedOrders = newOrders.map((order) => {
         const pendingUpdate = pendingUpdates.current.get(order.id)
         if (pendingUpdate) {
           // Check if the server order is newer than our pending update
@@ -113,8 +116,6 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
     }
   }, [])
 
-  const router = useRouter()
-
   const orderStatuses = [
     'pending',
     'processing',
@@ -135,35 +136,36 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
     orderId: string,
     newStatus: (typeof orderStatuses)[number],
   ) => {
-    console.log('handleStatusUpdate initiated - orderId, newStatus: ', orderId, newStatus)
+    console.log(
+      'handleStatusUpdate initiated - orderId, newStatus: ',
+      orderId,
+      newStatus,
+    )
     // Add pending update with current timestamp
+    const timestamp = new Date().getTime()
     pendingUpdates.current.set(orderId, {
       status: newStatus,
-      timestamp: Date.now()
+      timestamp,
     })
 
     // Update local state immediately
-    setOrders(currentOrders =>
-      currentOrders.map(order =>
-        order.id === orderId
-          ? { ...order, status: newStatus }
-          : order
-      )
+    setOrders((currentOrders) =>
+      currentOrders.map((order) =>
+        order.id === orderId ? { ...order, status: newStatus } : order,
+      ),
     )
 
     try {
       console.log('Local - Updating order status to: ', newStatus)
       const result = await updateOrder(orderId, newStatus, userId)
-      
+
       if (!result.success) {
         // Revert on failure
         pendingUpdates.current.delete(orderId)
-        setOrders(currentOrders =>
-          currentOrders.map(order =>
-            order.id === orderId
-              ? { ...order, status: order.status }
-              : order
-          )
+        setOrders((currentOrders) =>
+          currentOrders.map((order) =>
+            order.id === orderId ? { ...order, status: order.status } : order,
+          ),
         )
         return
       }
@@ -189,12 +191,10 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
       // Revert on error
       console.log('Error')
       pendingUpdates.current.delete(orderId)
-      setOrders(currentOrders =>
-        currentOrders.map(order =>
-          order.id === orderId
-            ? { ...order, status: order.status }
-            : order
-        )
+      setOrders((currentOrders) =>
+        currentOrders.map((order) =>
+          order.id === orderId ? { ...order, status: order.status } : order,
+        ),
       )
       console.error('Error updating order status:', error)
     }
@@ -233,7 +233,8 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
               </Select>
             </div>
             <div className="text-sm text-gray-600">
-              {filteredOrders.length} order{filteredOrders.length !== 1 ? 's' : ''}
+              {filteredOrders.length} order
+              {filteredOrders.length !== 1 ? 's' : ''}
             </div>
           </div>
         </CardTitle>
@@ -253,26 +254,32 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
           <TableBody>
             {paginatedOrders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                  {statusFilter === 'all' 
-                    ? 'No orders found' 
-                    : `No orders with status "${statusFilter}"`
-                  }
+                <TableCell
+                  colSpan={6}
+                  className="py-8 text-center text-gray-500"
+                >
+                  {statusFilter === 'all'
+                    ? 'No orders found'
+                    : `No orders with status "${statusFilter}"`}
                 </TableCell>
               </TableRow>
             ) : (
               paginatedOrders.map((order) => (
                 <TableRow
                   key={order.id}
-                  className="cursor-pointer hover:bg-muted/50"
+                  className="hover:bg-muted/50 cursor-pointer"
                   onClick={() => setSelectedOrder(order)}
                 >
-                  <TableCell>{order.product?.name || 'Unknown Print'}</TableCell>
+                  <TableCell>
+                    {order.product?.name || 'Unknown Print'}
+                  </TableCell>
                   <TableCell>{formatDateTime(order.createdAt)}</TableCell>
                   <TableCell>{order.email}</TableCell>
                   <TableCell>£{(order.total / 100).toFixed(2)}</TableCell>
                   <TableCell>
-                    <Badge className={`${statusColors[order.status]} text-white`}>
+                    <Badge
+                      className={`${statusColors[order.status]} text-white`}
+                    >
                       {order.status}
                     </Badge>
                   </TableCell>
@@ -318,7 +325,7 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
             itemsPerPage={itemsPerPage}
             onPageChange={handlePageChange}
             onItemsPerPageChange={handleItemsPerPageChange}
-            className="pt-4 border-t"
+            className="border-t pt-4"
           />
         )}
       </CardContent>

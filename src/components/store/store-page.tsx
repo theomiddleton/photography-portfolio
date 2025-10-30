@@ -25,36 +25,42 @@ export function StorePage({ initialProducts }: StorePageProps) {
   const [itemsPerPage, setItemsPerPage] = useState(12)
   const [filters, setFilters] = useState<StoreFilters>(() => {
     // Initialize filters based on product prices
-    const prices = initialProducts.map(p => p.priceWithTax)
+    const prices = initialProducts.map((p) => p.priceWithTax)
     const minPrice = Math.min(...prices, 0)
     const maxPrice = Math.max(...prices, 10000)
-    
+
     return {
       priceRange: [minPrice, maxPrice],
       categories: [],
       availability: 'all',
-      tags: []
+      tags: [],
     }
   })
 
   // Reset to first page when filters change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1)
   }, [searchQuery, sortBy, filters])
 
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
-    const filtered = products.filter(product => {
+    const filtered = products.filter((product) => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
         const matchesName = product.name.toLowerCase().includes(query)
-        const matchesDescription = product.description?.toLowerCase().includes(query)
+        const matchesDescription = product.description
+          ?.toLowerCase()
+          .includes(query)
         if (!matchesName && !matchesDescription) return false
       }
 
       // Price range filter
-      if (product.priceWithTax < filters.priceRange[0] || product.priceWithTax > filters.priceRange[1]) {
+      if (
+        product.priceWithTax < filters.priceRange[0] ||
+        product.priceWithTax > filters.priceRange[1]
+      ) {
         return false
       }
 
@@ -77,10 +83,14 @@ export function StorePage({ initialProducts }: StorePageProps) {
         case 'price-desc':
           return b.priceWithTax - a.priceWithTax
         case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          )
         case 'newest':
         default:
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
       }
     })
   }, [products, searchQuery, sortBy, filters])
@@ -88,7 +98,10 @@ export function StorePage({ initialProducts }: StorePageProps) {
   // Paginate products
   const paginatedProducts = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredAndSortedProducts.slice(startIndex, startIndex + itemsPerPage)
+    return filteredAndSortedProducts.slice(
+      startIndex,
+      startIndex + itemsPerPage,
+    )
   }, [filteredAndSortedProducts, currentPage, itemsPerPage])
 
   // Calculate pagination info
@@ -96,7 +109,7 @@ export function StorePage({ initialProducts }: StorePageProps) {
 
   // Get filter options from products
   const filterOptions = useMemo(() => {
-    const prices = products.map(p => p.priceWithTax)
+    const prices = products.map((p) => p.priceWithTax)
     const categories: string[] = [] // Add logic to extract categories if you have them
     const tags: string[] = [] // Add logic to extract tags if you have them
 
@@ -104,7 +117,7 @@ export function StorePage({ initialProducts }: StorePageProps) {
       minPrice: Math.min(...prices, 0),
       maxPrice: Math.max(...prices, 10000),
       availableCategories: [...new Set(categories)],
-      availableTags: [...new Set(tags)]
+      availableTags: [...new Set(tags)],
     }
   }, [products])
 
@@ -132,7 +145,7 @@ export function StorePage({ initialProducts }: StorePageProps) {
             <Skeleton className="h-10 w-32" />
             <Skeleton className="h-10 w-20" />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="space-y-4">
                 <Skeleton className="aspect-square rounded-xl" />
@@ -150,7 +163,7 @@ export function StorePage({ initialProducts }: StorePageProps) {
 
   return (
     <main className="container mx-auto px-4 py-12 pt-24">
-      <div className="flex gap-6 relative">
+      <div className="relative flex gap-6">
         {/* Filters sidebar */}
         <StoreFiltersSidebar
           filters={filters}
@@ -161,11 +174,11 @@ export function StorePage({ initialProducts }: StorePageProps) {
           maxPrice={filterOptions.maxPrice}
           availableCategories={filterOptions.availableCategories}
           availableTags={filterOptions.availableTags}
-          className="hidden lg:block lg:relative lg:w-64 flex-shrink-0"
+          className="hidden flex-shrink-0 lg:relative lg:block lg:w-64"
         />
 
         {/* Main content */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <StoreHeader
             totalCount={filteredAndSortedProducts.length}
             searchQuery={searchQuery}
@@ -180,28 +193,44 @@ export function StorePage({ initialProducts }: StorePageProps) {
           />
 
           {filteredAndSortedProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-500 mb-4">
-                <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <div className="py-12 text-center">
+              <div className="mb-4 text-gray-500">
+                <svg
+                  className="mx-auto h-12 w-12"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No prints found</h3>
-              <p className="text-gray-600 mb-4">
-                {searchQuery 
+              <h3 className="mb-2 text-lg font-medium text-gray-900">
+                No prints found
+              </h3>
+              <p className="mb-4 text-gray-600">
+                {searchQuery
                   ? `No prints match your search for "${searchQuery}"`
-                  : 'No prints match your current filters'
-                }
+                  : 'No prints match your current filters'}
               </p>
-              {(searchQuery || filters.priceRange[0] !== filterOptions.minPrice || filters.priceRange[1] !== filterOptions.maxPrice) && (
+              {(searchQuery ||
+                filters.priceRange[0] !== filterOptions.minPrice ||
+                filters.priceRange[1] !== filterOptions.maxPrice) && (
                 <button
                   onClick={() => {
                     setSearchQuery('')
                     setFilters({
-                      priceRange: [filterOptions.minPrice, filterOptions.maxPrice],
+                      priceRange: [
+                        filterOptions.minPrice,
+                        filterOptions.maxPrice,
+                      ],
                       categories: [],
                       availability: 'all',
-                      tags: []
+                      tags: [],
                     })
                   }}
                   className="text-blue-600 hover:text-blue-500"
@@ -212,11 +241,15 @@ export function StorePage({ initialProducts }: StorePageProps) {
             </div>
           ) : (
             <div className="space-y-6">
-              <StoreGrid 
+              <StoreGrid
                 prints={paginatedProducts}
-                className={viewMode === 'list' ? 'grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1' : undefined}
+                className={
+                  viewMode === 'list'
+                    ? 'grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1'
+                    : undefined
+                }
               />
-              
+
               {/* Pagination */}
               <Pagination
                 currentPage={currentPage}
@@ -225,7 +258,7 @@ export function StorePage({ initialProducts }: StorePageProps) {
                 itemsPerPage={itemsPerPage}
                 onPageChange={handlePageChange}
                 onItemsPerPageChange={handleItemsPerPageChange}
-                className="pt-8 pb-12 border-t"
+                className="border-t pt-8 pb-12"
               />
             </div>
           )}

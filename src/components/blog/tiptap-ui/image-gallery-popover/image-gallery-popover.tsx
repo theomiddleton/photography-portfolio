@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import * as React from 'react'
 import { type Editor } from '@tiptap/react'
 
@@ -5,7 +6,7 @@ import { type Editor } from '@tiptap/react'
 import { useTiptapEditor } from '~/hooks/use-tiptap-editor'
 
 // --- Icons ---
-import { ImageIcon, GalleryThumbnailsIcon } from 'lucide-react'
+import { GalleryThumbnailsIcon } from 'lucide-react'
 
 // --- UI Primitives ---
 import {
@@ -191,6 +192,7 @@ export interface ImageGalleryPopoverProps extends Omit<TipTapButtonProps, 'type'
 
 export function ImageGalleryPopover({
   editor: providedEditor,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hideWhenUnavailable = false,
   extensionName = 'imageGallery',
   bucket,

@@ -21,7 +21,6 @@ interface OrderShippedEmailProps {
   customerName: string
   customerEmail: string
   productName: string
-  productSize: string
   imageUrl: string
   trackingNumber: string
   carrier: string
@@ -85,7 +84,6 @@ export const OrderShippedEmail = ({
   customerName,
   customerEmail,
   productName,
-  productSize,
   imageUrl,
   trackingNumber,
   carrier,

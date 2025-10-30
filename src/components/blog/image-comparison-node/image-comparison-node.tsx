@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import React, { useState, useRef, useEffect } from 'react'
 import { type NodeViewProps, NodeViewWrapper } from '@tiptap/react'
 import { cn } from '~/lib/utils'
@@ -8,7 +9,7 @@ interface ImageData {
   caption?: string
 }
 
-interface ImageComparisonProps extends NodeViewProps {
+interface _ImageComparisonProps extends NodeViewProps {
   beforeImage: ImageData
   afterImage: ImageData
   orientation: 'horizontal' | 'vertical'
@@ -27,24 +28,6 @@ export const ImageComparisonComponent: React.FC<NodeViewProps> = (props) => {
   const [sliderPosition, setSliderPosition] = useState(50)
   const [isDragging, setIsDragging] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  // If no images are provided, show placeholder
-  if (!beforeImage || !afterImage) {
-    return (
-      <NodeViewWrapper>
-        <div className="my-4 rounded-lg border-2 border-dashed border-gray-300 p-8 text-center text-gray-500">
-          <p>Image comparison placeholder</p>
-          <p className="text-sm">Configure images to see comparison</p>
-          <button
-            onClick={deleteNode}
-            className="mt-2 rounded bg-red-100 px-3 py-1 text-xs text-red-700 hover:bg-red-200"
-          >
-            Remove
-          </button>
-        </div>
-      </NodeViewWrapper>
-    )
-  }
 
   const handleMouseDown = () => {
     setIsDragging(true)
@@ -98,6 +81,24 @@ export const ImageComparisonComponent: React.FC<NodeViewProps> = (props) => {
     }
   }, [isDragging])
 
+  // If no images are provided, show placeholder
+  if (!beforeImage || !afterImage) {
+    return (
+      <NodeViewWrapper>
+        <div className="my-4 rounded-lg border-2 border-dashed border-gray-300 p-8 text-center text-gray-500">
+          <p>Image comparison placeholder</p>
+          <p className="text-sm">Configure images to see comparison</p>
+          <button
+            onClick={deleteNode}
+            className="mt-2 rounded bg-red-100 px-3 py-1 text-xs text-red-700 hover:bg-red-200"
+          >
+            Remove
+          </button>
+        </div>
+      </NodeViewWrapper>
+    )
+  }
+
   return (
     <NodeViewWrapper>
       <div className="mx-auto my-6 w-full max-w-4xl">
@@ -113,7 +114,7 @@ export const ImageComparisonComponent: React.FC<NodeViewProps> = (props) => {
                 draggable={false}
               />
               {showLabels && (
-                <div className="absolute left-2 top-2 rounded bg-black/70 px-2 py-1 text-sm text-white">
+                <div className="absolute top-2 left-2 rounded bg-black/70 px-2 py-1 text-sm text-white">
                   Before
                 </div>
               )}
@@ -132,7 +133,7 @@ export const ImageComparisonComponent: React.FC<NodeViewProps> = (props) => {
                 draggable={false}
               />
               {showLabels && (
-                <div className="absolute right-2 top-2 rounded bg-black/70 px-2 py-1 text-sm text-white">
+                <div className="absolute top-2 right-2 rounded bg-black/70 px-2 py-1 text-sm text-white">
                   After
                 </div>
               )}
@@ -148,7 +149,7 @@ export const ImageComparisonComponent: React.FC<NodeViewProps> = (props) => {
           <div
             ref={containerRef}
             className={cn(
-              'relative cursor-col-resize select-none overflow-hidden rounded-lg',
+              'relative cursor-col-resize overflow-hidden rounded-lg select-none',
               orientation === 'vertical' && 'cursor-row-resize',
             )}
             style={{ aspectRatio: '16/9' }}
@@ -189,7 +190,7 @@ export const ImageComparisonComponent: React.FC<NodeViewProps> = (props) => {
                 draggable={false}
               />
               {afterImage.caption && (
-                <div className="absolute bottom-8 right-2 rounded bg-black/70 px-2 py-1 text-sm text-white">
+                <div className="absolute right-2 bottom-8 rounded bg-black/70 px-2 py-1 text-sm text-white">
                   After: {afterImage.caption}
                 </div>
               )}
@@ -200,8 +201,8 @@ export const ImageComparisonComponent: React.FC<NodeViewProps> = (props) => {
               className={cn(
                 'absolute bg-white shadow-lg',
                 orientation === 'horizontal'
-                  ? 'bottom-0 top-0 w-0.5 cursor-col-resize'
-                  : 'left-0 right-0 h-0.5 cursor-row-resize',
+                  ? 'top-0 bottom-0 w-0.5 cursor-col-resize'
+                  : 'right-0 left-0 h-0.5 cursor-row-resize',
               )}
               style={{
                 [orientation === 'horizontal' ? 'left' : 'top']:
@@ -241,7 +242,7 @@ export const ImageComparisonComponent: React.FC<NodeViewProps> = (props) => {
                 <div className="absolute bottom-2 left-2 rounded bg-black/70 px-2 py-1 text-xs text-white">
                   Before
                 </div>
-                <div className="absolute bottom-2 right-2 rounded bg-black/70 px-2 py-1 text-xs text-white">
+                <div className="absolute right-2 bottom-2 rounded bg-black/70 px-2 py-1 text-xs text-white">
                   After
                 </div>
               </>

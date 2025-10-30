@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -35,7 +36,6 @@ interface ProductReviewsProps {
 }
 
 export function ProductReviews({
-  productId,
   reviews,
   averageRating,
   totalReviews,
@@ -68,19 +68,19 @@ export function ProductReviews({
       // TODO: Implement real review submission API
       console.warn('ProductReviews: TODO - Replace with real review submission API')
       toast.error('Review submission not yet implemented - TODO: Connect to real API')
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to submit review')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleMarkHelpful = async (reviewId: string) => {
+  const handleMarkHelpful = async (_reviewId: string) => {
     try {
       // TODO: Implement real helpful marking API
       console.warn('ProductReviews: TODO - Replace with real helpful marking API')
       toast.error('Mark as helpful not yet implemented - TODO: Connect to real API')
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to mark as helpful')
     }
   }
@@ -253,14 +253,15 @@ export function ProductReviews({
                 {/* Review Content */}
                 <p className="text-gray-700 leading-relaxed">{review.content}</p>
 
-                {/* Review Images */}
                 {review.images && review.images.length > 0 && (
                   <div className="flex gap-2">
                     {review.images.map((image, index) => (
                       <div key={index} className="w-16 h-16 bg-gray-100 rounded border">
-                        <img
+                        <Image
                           src={image}
                           alt={`Review image ${index + 1}`}
+                          width={64}
+                          height={64}
                           className="w-full h-full object-cover rounded"
                         />
                       </div>

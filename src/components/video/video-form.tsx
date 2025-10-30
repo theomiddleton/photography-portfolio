@@ -74,7 +74,7 @@ export function VideoForm({ video, action }: VideoFormProps) {
 
   return (
     <Form {...form}>
-      <form action={ async (formData: FormData) => {
+      <form action={ async (_formData: FormData) => {
             const data = form.getValues()
             startTransition(async () => {
                 await action(data)

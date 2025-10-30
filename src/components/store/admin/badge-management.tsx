@@ -103,7 +103,7 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
         } else {
           toast.error(result.error || 'Failed to load badges')
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('Failed to load badges')
       } finally {
         setLoading(false)
@@ -135,7 +135,7 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
       } else {
         toast.error(result.error || 'Failed to add badge')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to add badge')
     }
   }
@@ -151,7 +151,7 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
       } else {
         toast.error(result.error || 'Failed to update badge')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to update badge')
     }
   }
@@ -165,7 +165,7 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
       } else {
         toast.error(result.error || 'Failed to delete badge')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to delete badge')
     }
   }
@@ -190,7 +190,7 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
       } else {
         toast.success('Badge order updated')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to update badge order')
     }
   }
@@ -402,7 +402,7 @@ export function BadgeManagement({ className }: BadgeManagementProps) {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Badge</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete "{badge.name}"? This action cannot be undone.
+                                Are you sure you want to delete &quot;{badge.name}&quot;? This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

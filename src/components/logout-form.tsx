@@ -16,7 +16,7 @@ interface LogoutFormProps {
 }  
 
 export function LogoutForm({ logout }: LogoutFormProps) {
-  const [state, action] = useActionState(logout, {
+  const [_state, action] = useActionState(logout, {
     success: false,
     message: '',
     issues: null,

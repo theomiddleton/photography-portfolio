@@ -1,8 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
-import type React from 'react'
-
-import { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Badge } from '~/components/ui/badge'
@@ -84,8 +83,10 @@ const s3Api = {
       throw new Error('Failed to list objects')
     }
 
-    const data = await response.json()
-    return data.files.map((file: any) => ({
+    const data = (await response.json()) as {
+      files: Array<Omit<S3File, 'lastModified'> & { lastModified: string }>
+    }
+    return data.files.map((file) => ({
       ...file,
       lastModified: new Date(file.lastModified),
     }))
@@ -196,7 +197,9 @@ export function FileBrowser() {
   // Enhanced upload states
   const [isDragOver, setIsDragOver] = useState(false)
   const [dragError, setDragError] = useState<string | null>(null)
-  const [uploadProgress, setUploadProgress] = useState<Record<string, UploadProgressEntry>>({})
+  const [uploadProgress, setUploadProgress] = useState<
+    Record<string, UploadProgressEntry>
+  >({})
   const [isUploading, setIsUploading] = useState(false)
   const uploadRequestsRef = useRef<Map<string, XMLHttpRequest>>(new Map())
   const alertTimeoutRef = useRef<number | null>(null)
@@ -232,25 +235,39 @@ export function FileBrowser() {
   }>({ open: false })
   const [newName, setNewName] = useState('')
   const [moveDestination, setMoveDestination] = useState('')
-  const [uploadFiles, setUploadFiles] = useState<FileList | null>(null)
+  const [_uploadFiles, _setUploadFiles] = useState<FileList | null>(null)
   const [newFolderName, setNewFolderName] = useState('')
   const [showNewFolder, setShowNewFolder] = useState(false)
+
+  // Helper functions defined before effects that use them
+  const loadFiles = useCallback(async () => {
+    setLoading(true)
+    try {
+      const fileList = await s3Api.listObjects(currentBucket, currentPath)
+      setFiles(fileList)
+    } catch (error) {
+      console.error('Error loading files:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentBucket, currentPath])
 
   // Load files
   useEffect(() => {
     loadFiles()
-  }, [currentPath, currentBucket])
+  }, [loadFiles])
 
   useEffect(() => {
+    const requests = uploadRequestsRef.current
     return () => {
-      uploadRequestsRef.current.forEach((request) => {
+      requests.forEach((request) => {
         try {
           request.abort()
         } catch (error) {
           console.error('Error aborting upload request on unmount:', error)
         }
       })
-      uploadRequestsRef.current.clear()
+      requests.clear()
     }
   }, [])
 
@@ -292,18 +309,6 @@ export function FileBrowser() {
     setAlertMessage({ type: null, title: '', message: '' })
   }
 
-  const loadFiles = async () => {
-    setLoading(true)
-    try {
-      const fileList = await s3Api.listObjects(currentBucket, currentPath)
-      setFiles(fileList)
-    } catch (error) {
-      console.error('Error loading files:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   // Filtered and sorted files
   const processedFiles = useMemo(() => {
     const filtered = files.filter((file) =>
@@ -337,6 +342,11 @@ export function FileBrowser() {
 
     return filtered
   }, [files, searchQuery, sortBy, sortOrder])
+
+  const selectAllFiles = useCallback(() => {
+    const allKeys = processedFiles.map((file) => file.key)
+    setSelectedFiles(new Set(allKeys))
+  }, [processedFiles])
 
   // Keyboard navigation
   useEffect(() => {
@@ -402,7 +412,7 @@ export function FileBrowser() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [processedFiles, focusedIndex, viewMode])
+  }, [processedFiles, focusedIndex, viewMode, selectAllFiles])
 
   // Keep focused index in bounds
   useEffect(() => {
@@ -595,7 +605,7 @@ export function FileBrowser() {
     hideAlert() // Clear any existing alerts
     const uploadErrors: string[] = []
     const uploadWarnings: string[] = []
-    const totalFiles = files.length
+    const _totalFiles = files.length
     let completedFiles = 0
 
     try {
@@ -636,8 +646,6 @@ export function FileBrowser() {
 
           const responseData = await metadataResponse.json()
           const uploadUrl = responseData?.url
-          const fileUrl = responseData?.fileUrl
-          const key = responseData?.key
 
           if (!uploadUrl) {
             throw new Error('Invalid response: missing upload URL')
@@ -771,11 +779,6 @@ export function FileBrowser() {
   }
 
   const selectedFileObjects = files.filter((f) => selectedFiles.has(f.key))
-
-  const selectAllFiles = () => {
-    const allKeys = processedFiles.map((file) => file.key)
-    setSelectedFiles(new Set(allKeys))
-  }
 
   const copyFileUrls = async (files: S3File[]) => {
     try {
@@ -1553,7 +1556,6 @@ interface FileItemProps {
 
 function FileListItem({
   file,
-  index,
   selected,
   focused,
   onClick,
@@ -1563,7 +1565,7 @@ function FileListItem({
   onDelete,
   onCopyUrls,
 }: FileItemProps) {
-  const Icon = getFileIcon(file)
+  const IconComponent = getFileIcon(file)
 
   return (
     <div
@@ -1586,7 +1588,9 @@ function FileListItem({
         }
         onClick={(e) => e.stopPropagation()}
       />
-      <Icon className="text-muted-foreground h-5 w-5" />
+      {React.createElement(IconComponent, {
+        className: 'text-muted-foreground h-5 w-5',
+      })}
       <div className="flex-1 truncate">
         <div className="truncate font-medium">{file.name}</div>
       </div>
@@ -1637,7 +1641,6 @@ function FileListItem({
 // File Grid Item
 function FileGridItem({
   file,
-  index,
   selected,
   focused,
   onClick,
@@ -1647,7 +1650,7 @@ function FileGridItem({
   onDelete,
   onCopyUrls,
 }: FileItemProps) {
-  const Icon = getFileIcon(file)
+  const IconComponent = getFileIcon(file)
 
   return (
     <div
@@ -1710,7 +1713,9 @@ function FileGridItem({
         </DropdownMenu>
       </div>
       <div className="mt-6 flex flex-col items-center gap-2">
-        <Icon className="text-muted-foreground h-8 w-8" />
+        {React.createElement(IconComponent, {
+          className: 'text-muted-foreground h-8 w-8',
+        })}
         <div className="w-full truncate text-center text-sm font-medium">
           {file.name}
         </div>
@@ -1725,7 +1730,6 @@ function FileGridItem({
 // File Thumbnail Item
 function FileThumbnailItem({
   file,
-  index,
   selected,
   focused,
   onClick,
@@ -1735,7 +1739,7 @@ function FileThumbnailItem({
   onDelete,
   onCopyUrls,
 }: FileItemProps) {
-  const Icon = getFileIcon(file)
+  const IconComponent = getFileIcon(file)
 
   return (
     <div
@@ -1810,7 +1814,9 @@ function FileThumbnailItem({
               style={{ aspectRatio: '1 / 1' }}
             />
           ) : (
-            <Icon className="text-muted-foreground h-12 w-12" />
+            React.createElement(IconComponent, {
+              className: 'text-muted-foreground h-12 w-12',
+            })
           )}
         </div>
         <div className="w-full truncate text-center text-sm font-medium">

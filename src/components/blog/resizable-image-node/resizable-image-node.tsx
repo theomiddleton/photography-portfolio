@@ -166,6 +166,7 @@ export function ResizableImageComponent(props: NodeViewProps) {
       )}
       data-drag-handle
     >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imgRef}
         src={src}
