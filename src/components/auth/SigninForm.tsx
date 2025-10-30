@@ -28,7 +28,7 @@ import { loginSchema } from '~/lib/types/loginSchema'
 
 export interface LoginState {
   message: string
-  redirect: string | null
+  redirect?: string | null
 }
 
 interface SigninFormProps {
