@@ -20,7 +20,7 @@ interface AccountActionState {
 }
 
 export async function deactivateAccountAction(
-  prevState: AccountActionState,
+  _prevState: AccountActionState,
   data: FormData,
 ): Promise<AccountActionState> {
   // Validate CSRF token
@@ -73,7 +73,7 @@ export async function deactivateAccountAction(
 }
 
 export async function deleteAccountAction(
-  prevState: AccountActionState,
+  _prevState: AccountActionState,
   data: FormData,
 ): Promise<AccountActionState> {
   // Validate CSRF token
@@ -260,7 +260,7 @@ export async function getAccountInfoAction(): Promise<AccountInfoState> {
 }
 
 export async function revokeAllSessionsAction(
-  prevState: AccountActionState,
+  _prevState: AccountActionState,
   data: FormData,
 ): Promise<AccountActionState> {
   // Validate CSRF token

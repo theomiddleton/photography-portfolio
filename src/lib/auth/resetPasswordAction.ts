@@ -12,7 +12,7 @@ interface ResetPasswordState {
 }
 
 export async function resetPassword(
-  prevState: ResetPasswordState, 
+  _prevState: ResetPasswordState, 
   data: FormData
 ): Promise<ResetPasswordState> {
   // Validate CSRF token

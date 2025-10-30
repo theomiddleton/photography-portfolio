@@ -10,7 +10,7 @@ interface ResendVerificationState {
 }
 
 export async function resendVerificationAction(
-  prevState: ResendVerificationState, 
+  _prevState: ResendVerificationState, 
   data: FormData
 ): Promise<ResendVerificationState> {
   // Validate CSRF token
