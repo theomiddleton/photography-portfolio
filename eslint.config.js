@@ -39,6 +39,24 @@ const eslintConfig = defineConfig([
       '@stylistic/jsx-quotes': ['warn', 'prefer-double'],
     },
   },
+  // Additional overrides
+  {
+    files: ['**/*.{js,ts,jsx,tsx}'],
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          args: 'all',
+          argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
 ])
 
 export default eslintConfig
