@@ -309,6 +309,7 @@ export const useSecureFileUpload = (
 
     const errors: string[] = []
     const warnings: string[] = []
+    const updatedFiles: SecureFileWithPreview[] = []
 
     for (const fileWrapper of state.files) {
       if (fileWrapper.file instanceof File) {
@@ -318,14 +319,26 @@ export const useSecureFileUpload = (
             errors.push(...validationResult.errors)
           }
           warnings.push(...validationResult.warnings)
-          fileWrapper.validationResult = validationResult
-        } catch (error) {
+          updatedFiles.push({
+            ...fileWrapper,
+            validationResult,
+          })
+        } catch (_error) {
           errors.push(`Validation failed for ${fileWrapper.file.name}`)
+          updatedFiles.push(fileWrapper)
         }
+      } else {
+        updatedFiles.push(fileWrapper)
       }
     }
 
-    setState((prev) => ({ ...prev, errors, warnings, isValidating: false }))
+    setState((prev) => ({
+      ...prev,
+      files: updatedFiles,
+      errors,
+      warnings,
+      isValidating: false,
+    }))
   }, [state.files, validateFile])
 
   // Drag and drop handlers

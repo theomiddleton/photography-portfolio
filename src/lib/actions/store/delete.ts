@@ -2,7 +2,7 @@
 
 import { requireStripe } from '~/lib/stripe'
 import { dbWithTx as db } from '~/server/db'
-import { products, productSizes, orders } from '~/server/db/schema'
+import { products, productSizes } from '~/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 

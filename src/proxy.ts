@@ -7,7 +7,6 @@ import { securityConfig } from '~/config/security-config'
 export async function proxy(request: NextRequest) {
   // Extract the base path (first segment of the URL path)
   const basePath = '/' + request.nextUrl.pathname.split('/')[1]
-  const fullPath = request.nextUrl.pathname
 
   // Create response with security headers
   const response = NextResponse.next()

@@ -46,6 +46,7 @@ export function useUnsavedChanges(): UnsavedChangesManager {
           await onSave()
           markAsSaved()
         } catch (error) {
+          console.error('Failed to save changes:', error)
           // Error handling should be done in the onSave function
         } finally {
           setSaving(false)

@@ -28,7 +28,7 @@ export interface ExifData {
   software?: string
   artist?: string
   copyright?: string
-  rawExifData?: Record<string, any>
+  rawExifData?: Record<string, unknown>
 }
 
 // Convert exposure value to readable string

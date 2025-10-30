@@ -3,7 +3,10 @@
 import { useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
-export function useRealTimeUpdates(dependencies: any[] = [], interval = 10000) {
+export function useRealTimeUpdates(
+  dependencies: unknown[] = [],
+  interval = 10000,
+) {
   const router = useRouter()
 
   const refreshData = useCallback(() => {
@@ -18,7 +21,8 @@ export function useRealTimeUpdates(dependencies: any[] = [], interval = 10000) {
   // Also refresh when dependencies change
   useEffect(() => {
     refreshData()
-  }, dependencies)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...dependencies, refreshData])
 
   return refreshData
 }

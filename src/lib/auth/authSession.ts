@@ -54,7 +54,7 @@ export async function getSession(): Promise<UserSession | null> {
     }
 
     return sessionData
-  } catch (error) {
+  } catch (_error) {
     // Don't log the actual error details to prevent information leakage
     console.warn('Session verification failed')
     return null
@@ -102,7 +102,7 @@ export async function updateSession(
       path: '/', // Explicit path
     })
     return response
-  } catch (error) {
+  } catch (_error) {
     // Session is invalid, clear it
     const response = NextResponse.next()
     response.cookies.delete('session')
@@ -154,7 +154,7 @@ export async function verifyGalleryPasswordCookie(
     })
     const data = payload as { gallerySlug: string; timestamp: number }
     return data.gallerySlug === gallerySlug
-  } catch (error) {
+  } catch (_error) {
     return false
   }
 }

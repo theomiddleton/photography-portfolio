@@ -31,7 +31,6 @@ import {
 import { reactivateAccount } from '~/lib/auth/accountManagement'
 import { sendEmailVerification } from '~/lib/email/email-service'
 import { sanitizeIPAddress } from '~/lib/input-sanitization'
-import { requireAdminAuth } from '~/lib/auth/permissions'  
 
 const JWT_EXPIRATION_HOURS = parseInt(process.env.JWT_EXPIRATION_HOURS || '168') // Reduced default
 const JWT_EXPIRATION_MS = JWT_EXPIRATION_HOURS * 60 * 60 * 1000
@@ -99,7 +98,7 @@ export interface User {
 
 // login function, returns a FormState for sending messages to the client, takes a FormState and a FormData
 export async function login(
-  prevState: FormState,
+  _prevState: FormState,
   data: FormData,
 ): Promise<FormState> {
   // Validate CSRF token first
@@ -375,7 +374,7 @@ export async function login(
 }
 
 export async function register(
-  prevState: FormState,
+  _prevState: FormState,
   data: FormData,
 ): Promise<FormState> {
   // Validate CSRF token first

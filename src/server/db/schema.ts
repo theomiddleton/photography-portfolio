@@ -456,7 +456,7 @@ export const galleryImages = pgTable('galleryImages', {
     settings?: string
     location?: string
     date?: string
-    [key: string]: any
+    [key: string]: unknown
   }>(), // Flexible metadata storage
   order: integer('order').default(0).notNull(),
   uploadedAt: timestamp('uploadedAt').defaultNow().notNull(),

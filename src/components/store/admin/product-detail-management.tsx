@@ -290,8 +290,7 @@ export function ProductDetailManagement({
     ;(async () => {
       try {
         await reorderStoreProductDetails(
-          reorderedDetails.map((d) => d.id),
-          isGlobal,
+          reorderedDetails.map((d) => d.id)
         )
         toast.success('Product detail order updated')
       } catch {
