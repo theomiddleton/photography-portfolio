@@ -2,17 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
-import { Progress } from '~/components/ui/progress'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
-import { AlertTriangle, Database, FileX, RefreshCw, Settings, Trash2 } from 'lucide-react'
+import { AlertTriangle, Database, FileX, RefreshCw, Settings } from 'lucide-react'
 import { format } from 'date-fns'
-import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
+import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Switch } from '~/components/ui/switch'
 import { Label } from '~/components/ui/label'
 import { Input } from '~/components/ui/input'
 import { Slider } from '~/components/ui/slider'
-import { Separator } from '~/components/ui/separator'
 import { toast } from 'sonner'
 
 interface StorageUsageData {

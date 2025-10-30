@@ -31,7 +31,7 @@ interface ShippingAddress {
   country: string
 }
 
-interface ShippingDetails {
+interface _ShippingDetails {
   name: string
   address: ShippingAddress
 }

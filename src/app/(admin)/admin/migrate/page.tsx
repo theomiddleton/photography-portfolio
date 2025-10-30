@@ -52,10 +52,10 @@ export default function MigratePage() {
 
     try {
       // Validate JSON
-      let jsonData
+      let _jsonData
       try {
-        jsonData = JSON.parse(importData)
-      } catch (err) {
+        _jsonData = JSON.parse(importData)
+      } catch (_err) {
         throw new Error('Invalid JSON format')
       }
 

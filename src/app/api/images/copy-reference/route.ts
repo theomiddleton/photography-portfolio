@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { getSession } from '~/lib/auth/auth'
 import { db } from '~/server/db'
 import { imageData, customImgData, galleryImages } from '~/server/db/schema'
-import { eq, and, sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
+import { InferSelectModel } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
 import { logAction } from '~/lib/logging'
 import { revalidatePath } from 'next/cache'
@@ -113,12 +114,11 @@ export async function POST(request: NextRequest) {
         { status: 404 },
       )
     }
-
     // Generate new UUID for the reference
     const newUuid = uuidv7()
     const finalName = newName || sourceImage.name
 
-    let insertedImage: any
+    let insertedImage: InferSelectModel<typeof imageData> | InferSelectModel<typeof customImgData>
 
     // Handle different target buckets
     try {

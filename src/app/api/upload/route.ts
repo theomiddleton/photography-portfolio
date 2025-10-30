@@ -19,27 +19,12 @@ import { getSession } from '~/lib/auth/auth'
 import { uploadRateLimit, getClientIP } from '~/lib/rate-limit'
 import { getStripe } from '~/lib/stripe'
 import { waitUntil } from '@vercel/functions'
-import { generateObject } from 'ai'
-import { google } from '@ai-sdk/google'
-import { z } from 'zod'
 import { extractExifData, validateExifData } from '~/lib/exif'
 import { 
   sanitizeFilename, 
-  generateSecureStoragePath, 
-  createBucketValidationOptions 
+  generateSecureStoragePath,  
 } from '~/lib/file-security'
 
-const MetadataSchema = z.object({
-  title: z.string().describe('A creative, descriptive title for the image'),
-  description: z
-    .string()
-    .describe('A detailed description of what is shown in the image'),
-  tags: z
-    .string()
-    .describe(
-      'Comma-separated tags that describe the image content, style, and mood',
-    ),
-})
 
 // Background EXIF processing function
 async function processExifDataInBackground(
@@ -108,7 +93,6 @@ export async function POST(request: Request) {
       bucket,
       printSizes,
       temporary,
-      generateAI,
       galleryId, // Add galleryId parameter
     } = body
 
@@ -239,7 +223,7 @@ export async function POST(request: Request) {
         order: newOrder,
       })
 
-      const result = await db
+      const _result = await db
         .select({
           id: imageData.id,
           fileUrl: imageData.fileUrl,

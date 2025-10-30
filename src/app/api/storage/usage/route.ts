@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '~/server/db'
 import { storageUsage, globalStorageConfig } from '~/server/db/schema'
-import { desc, eq, and, max, sum } from 'drizzle-orm'
+import { desc, eq, and, max } from 'drizzle-orm'
 import { getSession } from '~/lib/auth/auth'
 
 export async function GET() {

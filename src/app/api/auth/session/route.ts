@@ -10,7 +10,7 @@ export async function GET() {
     }
     return NextResponse.json(null)
   } catch (error) {
-    // console.error('[API /auth/session] Error:', error) // Optional: server-side logging
+    console.error('[API /auth/session] Error:', error) // Optional: server-side logging
     return NextResponse.json(null, { status: 500 })
   }
 }

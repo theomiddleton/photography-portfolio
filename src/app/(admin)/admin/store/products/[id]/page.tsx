@@ -61,26 +61,15 @@ export default async function ProductEditPage({ params }: ProductEditPageProps) 
     <main>
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-// at the top of src/app/(admin)/admin/store/products/[id]/page.tsx
-import Link from 'next/link'
-
-…
-
-<div className="flex items-center gap-4">
-  <Link href="/admin/store" className="flex items-center gap-2">
-    <Button variant="outline" size="icon" className="h-7 w-7">
-      <ChevronLeft className="h-4 w-4" />
-      <span className="sr-only">Back</span>
-    </Button>
-  </Link>
-</div>
-
-…
-
-{/* around line 123 */}
-<Button asChild>
-  <Link href="/admin/store">Back to Store Management</Link>
-</Button>
+          <div className="flex items-center gap-4">
+            <Link href="/admin/store" className="flex items-center gap-2">
+              <Button variant="outline" size="icon" className="h-7 w-7">
+                <ChevronLeft className="h-4 w-4" />
+                <span className="sr-only">Back</span>
+              </Button>
+            </Link>
+          </div>
+            Back to Store Management
           <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
             Edit Product: {product.name}
           </h1>
@@ -118,7 +107,7 @@ import Link from 'next/link'
                     <div key={size.id} className="p-4 border rounded-lg">
                       <div className="font-medium">{size.name}</div>
                       <div className="text-sm text-gray-600">
-                        {size.width}" × {size.height}"
+                        {size.width}&quot; × {size.height}&quot; 
                       </div>
                       <div className="text-sm font-medium mt-2">
                         ${(size.basePrice / 100).toFixed(2)}

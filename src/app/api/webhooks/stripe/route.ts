@@ -60,7 +60,7 @@ export async function POST(request: Request) {
         await logAction('webhook', `Payment succeeded: ${paymentIntent.id}`)
 
         // Update order status to processing in a transaction
-        const result = await db
+        const _result = await db
           .update(orders)
           .set({
             status: 'processing',

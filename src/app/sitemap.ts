@@ -226,7 +226,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (!prev) {  
         byUrl.set(e.url, e)  
       } else {  
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const prevDate = prev.lastModified ? new Date(prev.lastModified as any).getTime() : 0  
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const curDate = e.lastModified ? new Date(e.lastModified as any).getTime() : 0  
         byUrl.set(e.url, curDate >= prevDate ? e : prev)  
       }  
