@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
   experimental: {
     browserDebugInfoInTerminal: true,
   },
-  // reactCompiler: true,
+  reactCompiler: true,
 }
 
 export default withAxiom(nextConfig)
