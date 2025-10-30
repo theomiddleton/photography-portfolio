@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     
     // Revalidate the specified tag if provided
     if (tag) {
-      revalidateTag(tag)
+      revalidateTag(tag, 'max')
     }
     
     return NextResponse.json({ revalidated: true, now: Date.now() })
