@@ -36,7 +36,7 @@ const formatLabel = (path: string) =>
     )
     .join(' › ')
 
-type ConfigHydrationPanelProps = {
+interface ConfigHydrationPanelProps {
   serverConfig: SiteConfig
 }
 

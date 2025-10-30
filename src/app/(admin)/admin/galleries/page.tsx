@@ -1,12 +1,10 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { PlusIcon, GalleryThumbnailsIcon, EyeIcon, EyeOffIcon, ImageIcon } from 'lucide-react'
+import { PlusIcon, GalleryThumbnailsIcon } from 'lucide-react'
 
 import { getGalleriesWithPreviews } from '~/lib/actions/gallery/gallery'
 import { Button } from '~/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
-import { Badge } from '~/components/ui/badge'
-import { formatDistanceToNow } from 'date-fns'
+import { Card, CardContent, CardHeader } from '~/components/ui/card'
 import { GalleriesPageClient } from '~/components/image-gallery/manage/galleries-page-client'
 
 export default async function GalleriesPage() {

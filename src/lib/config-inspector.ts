@@ -1,4 +1,4 @@
-export type FlattenedConfigEntry = {
+export interface FlattenedConfigEntry {
   path: string
   value: string
   valueType: 'string' | 'number' | 'boolean' | 'null' | 'undefined'
