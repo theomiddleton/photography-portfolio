@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { siteConfig } from '~/config/site'
 import { useIsDefaultConfig, useIsHydrated } from '~/hooks/use-site-config'
@@ -8,14 +10,14 @@ interface GetStartedMessageProps {
   userRole?: string
 }
 
-export function GetStartedMessage({ 
-  isAdminSetupRequired, 
+export function GetStartedMessage({
+  isAdminSetupRequired,
   isUserSignedIn = false,
-  userRole 
+  userRole,
 }: GetStartedMessageProps) {
   const isDefaultConfig = useIsDefaultConfig()
   const isHydrated = useIsHydrated()
-  
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 text-center">
       <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -43,8 +45,9 @@ export function GetStartedMessage({
                   Site Configuration Needed
                 </h3>
                 <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
-                  Your site is using default configuration values. To unlock full functionality, please customize your site settings in{' '}
-                  <code className="rounded bg-amber-100 px-1 py-0.5 text-xs font-mono text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">
+                  Your site is using default configuration values. To unlock
+                  full functionality, please customize your site settings in{' '}
+                  <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-xs text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">
                     src/config/site.ts
                   </code>{' '}
                   or through environment variables.
@@ -99,28 +102,28 @@ export function GetStartedMessage({
         </div>
 
         <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {isUserSignedIn ? `🎉 Congratulations!` : `Welcome to ${siteConfig.title}`}
+          {isUserSignedIn
+            ? '🎉 Congratulations!'
+            : `Welcome to ${siteConfig.title}`}
         </h2>
 
         <p className="mb-6 text-gray-600 dark:text-gray-400">
-          {isUserSignedIn 
+          {isUserSignedIn
             ? `You're all set up and ready to start building your portfolio. Let's get your content uploaded and customized.`
-            : `This portfolio is currently empty. To get started, you'll need to create an account and upload some images.`
-          }
+            : `This portfolio is currently empty. To get started, you'll need to create an account and upload some images.`}
         </p>
 
         {isUserSignedIn ? (
           // Signed in user - focus on next steps
           <div className="space-y-4">
-            <div className="rounded-lg bg-green-50 border border-green-200 p-4 dark:bg-green-950/20 dark:border-green-800">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/20">
               <h3 className="mb-2 font-semibold text-green-900 dark:text-green-300">
                 ✨ Ready to build your portfolio!
               </h3>
               <p className="text-sm text-green-800 dark:text-green-400">
-                {userRole === 'admin' 
+                {userRole === 'admin'
                   ? 'You have administrator access. Start by uploading your first images and customizing your portfolio.'
-                  : 'Your account is set up. An administrator can help you get started with content.'
-                }
+                  : 'Your account is set up. An administrator can help you get started with content.'}
               </p>
             </div>
 
@@ -144,12 +147,14 @@ export function GetStartedMessage({
         ) : isAdminSetupRequired ? (
           // First-time setup required
           <div className="space-y-4">
-            <div className="rounded-lg bg-gray-50 border border-gray-200 p-4 dark:bg-gray-800 dark:border-gray-700">
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
               <h3 className="mb-2 font-semibold text-gray-900 dark:text-gray-300">
                 🎉 First-time setup available!
               </h3>
               <p className="text-sm text-gray-700 dark:text-gray-400">
-                Since this is a new installation, the first person to register will automatically become an administrator with full access to manage the portfolio.
+                Since this is a new installation, the first person to register
+                will automatically become an administrator with full access to
+                manage the portfolio.
               </p>
             </div>
 
@@ -196,7 +201,7 @@ export function GetStartedMessage({
           <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
             {isUserSignedIn ? 'Next Steps' : 'Getting Started Guide'}
           </h3>
-          
+
           <div className="grid gap-4 text-left sm:grid-cols-2">
             {isUserSignedIn && userRole === 'admin' ? (
               // Admin-specific next steps
@@ -206,7 +211,8 @@ export function GetStartedMessage({
                     1. Access Admin Panel
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Use the admin dashboard to manage your portfolio content and settings.
+                    Use the admin dashboard to manage your portfolio content and
+                    settings.
                   </p>
                 </div>
 
@@ -215,7 +221,8 @@ export function GetStartedMessage({
                     2. Upload Your First Images
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Start building your portfolio by uploading images with metadata and descriptions.
+                    Start building your portfolio by uploading images with
+                    metadata and descriptions.
                   </p>
                 </div>
 
@@ -224,7 +231,8 @@ export function GetStartedMessage({
                     3. Customize Your Portfolio
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Configure gallery layout, colors, and display settings to match your style.
+                    Configure gallery layout, colors, and display settings to
+                    match your style.
                   </p>
                 </div>
 
@@ -233,7 +241,8 @@ export function GetStartedMessage({
                     4. Manage Users & Settings
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Add team members, configure permissions, and fine-tune your portfolio settings.
+                    Add team members, configure permissions, and fine-tune your
+                    portfolio settings.
                   </p>
                 </div>
               </>
@@ -245,7 +254,8 @@ export function GetStartedMessage({
                     1. Create Account
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Register for an account to access the portfolio features. Your email will need to be verified.
+                    Register for an account to access the portfolio features.
+                    Your email will need to be verified.
                   </p>
                 </div>
 
@@ -254,10 +264,9 @@ export function GetStartedMessage({
                     2. Access Admin Panel
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {isAdminSetupRequired 
+                    {isAdminSetupRequired
                       ? "As the first user, you'll have admin access to upload and manage content."
-                      : "If you're an admin, access the admin panel to upload and manage content."
-                    }
+                      : "If you're an admin, access the admin panel to upload and manage content."}
                   </p>
                 </div>
 
@@ -266,7 +275,8 @@ export function GetStartedMessage({
                     3. Upload Images
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Use the admin panel to upload and organize your portfolio images with metadata and tags.
+                    Use the admin panel to upload and organize your portfolio
+                    images with metadata and tags.
                   </p>
                 </div>
 
@@ -275,7 +285,8 @@ export function GetStartedMessage({
                     4. Customize Settings
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Configure gallery layout, manage users, and customize your portfolio appearance.
+                    Configure gallery layout, manage users, and customize your
+                    portfolio appearance.
                   </p>
                 </div>
               </>
