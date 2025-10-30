@@ -26,7 +26,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { loginSchema } from '~/lib/types/loginSchema'
 
-interface LoginState {
+export interface LoginState {
   message: string
   redirect: string | null
 }

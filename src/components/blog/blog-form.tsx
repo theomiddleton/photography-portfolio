@@ -14,7 +14,7 @@ import { slugify } from '~/lib/utils'
 import { toast } from 'sonner'
 
 interface BlogFormProps {
-  initialContent?: Record<string, unknown>
+  initialContent?: unknown
   post?: {
     slug: string
     id: string

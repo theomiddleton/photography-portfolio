@@ -70,7 +70,7 @@ export default async function EditAboutPage() {
             </div>
           }
         >
-          <AboutForm initialContent={result[0].content} />
+          <AboutForm initialContent={result[0]} />
         </Suspense>
       </div>
     </main>
