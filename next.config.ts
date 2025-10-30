@@ -27,15 +27,10 @@ const nextConfig: NextConfig = {
     '@aws-sdk/s3-request-presigner',
     'prettier',
   ],
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   experimental: {
     browserDebugInfoInTerminal: true,
   },
-  // compiler: {
-  //   removeConsole: process.env.NODE_ENV === 'production',
-  // },
+  // reactCompiler: true,
 }
 
 export default withAxiom(nextConfig)
