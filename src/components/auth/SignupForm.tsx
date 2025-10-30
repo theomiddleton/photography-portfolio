@@ -177,7 +177,7 @@ export function SignupForm({ register }: SignupFormProps) {
                       <FormControl>
                         <Input
                           id="email"
-                          placeholder="example@domain.com"
+                          placeholder="mail@example.com"
                           {...field}
                         />
                       </FormControl>

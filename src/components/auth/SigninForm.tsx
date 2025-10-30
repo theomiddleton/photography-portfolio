@@ -155,7 +155,7 @@ export function SigninForm({ login }: SigninFormProps) {
                             id="email"
                             name="email"
                             type="email"
-                            placeholder="m@example.com"
+                            placeholder="mail@example.com"
                             required
                           />
                         </FormControl>
