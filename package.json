@@ -101,9 +101,8 @@
     "uuid": "^11.1.0",
     "zod": "^3.25.76"
   },
-  "packageManager": "pnpm@10.18.3",
+  "packageManager": "pnpm@10.19.0",
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
     "@stylistic/eslint-plugin": "^5.5.0",
     "@tailwindcss/postcss": "^4.1.14",
     "@tailwindcss/typography": "^0.5.19",
@@ -112,8 +111,7 @@
     "@types/react": "19.0.8",
     "drizzle-kit": "^0.21.4",
     "eslint": "^9.38.0",
-    "eslint-config-next": "15.2.4",
-    "eslint-config-prettier": "^10.1.8",
+    "eslint-config-next": "16.0.1",
     "knip": "^5.66.0",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
@@ -124,10 +122,6 @@
     "typescript": "^5.9.3"
   },
   "pnpm": {
-    "overrides": {
-      "@types/react": "19.0.8",
-      "prettier": "^3.6.2"
-    },
     "onlyBuiltDependencies": [
       "@vercel/speed-insights",
       "bcrypt",
