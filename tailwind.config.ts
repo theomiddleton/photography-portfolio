@@ -1,14 +1,15 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
-  darkMode: "class",
+  darkMode: 'class',
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
   ],
-  prefix: "",
+  prefix: '',
   theme: {
 		container: {
 			center: true,
@@ -105,7 +106,7 @@ const config: Config = {
   plugins: [
     require('@tailwindcss/typography'),
     require('tailwind-scrollbar'),
-    require("tailwindcss-animate")
+    require('tailwindcss-animate')
   ],
 }
 

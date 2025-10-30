@@ -84,7 +84,7 @@ export function AdminOrders({ initialOrders, userId }: AdminOrdersProps) {
     eventSource.onmessage = (event) => {
       const newOrders = JSON.parse(event.data)
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+       
       const updatedOrders = newOrders.map(order => {
         const pendingUpdate = pendingUpdates.current.get(order.id)
         if (pendingUpdate) {

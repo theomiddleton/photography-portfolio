@@ -93,7 +93,7 @@ export function AboutForm({ initialContent }: AboutFormProps) {
 
       <Card>
         <CardContent>
-          <SimpleEditor ref={editorRef} initialContent={initialContent} scope='about' />
+          <SimpleEditor ref={editorRef} initialContent={initialContent} scope="about" />
         </CardContent>
       </Card>
 

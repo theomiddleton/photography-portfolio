@@ -179,7 +179,7 @@ export async function login(
       })
 
       return {
-        message: `Account is temporarily locked. Please try again later.`,
+        message: 'Account is temporarily locked. Please try again later.',
       }
     }
 

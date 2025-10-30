@@ -49,7 +49,7 @@ export default async function EditAboutPage() {
             Edit About Page
           </h1>
           <Link
-            href='/about'
+            href="/about"
             target="_blank"
             rel="noopener noreferrer"
           >
