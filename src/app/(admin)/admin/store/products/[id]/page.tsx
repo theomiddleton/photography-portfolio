@@ -69,7 +69,7 @@ export default async function ProductEditPage({ params }: ProductEditPageProps) 
               </Button>
             </Link>
           </div>
-            Back to Store Management
+            <span className="text-sm text-gray-500">Back to Store Management</span>
           <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
             Edit Product: {product.name}
           </h1>
