@@ -1,6 +1,6 @@
 # Fixes/Cleanup
 
-- [ ] Delete custom pages
+- [x] Delete custom pages
 - [ ] Test <Image> in AltUpload component
 - [ ] Phase Out Icons.tsx
 

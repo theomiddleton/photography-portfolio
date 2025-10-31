@@ -8,9 +8,6 @@ import { MainNav } from '~/components/main-nav'
 import { buttonVariants } from '~/components/ui/button'
 import { Button } from '~/components/ui/button'
 import {
-  Instagram,
-  Twitter,
-  Facebook,
   User,
   Settings,
   Shield,
@@ -24,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { LogoutForm } from '~/components/logout-form'
+import { FaGithub, FaInstagram, FaXTwitter, FaFacebook } from 'react-icons/fa6'
 
 export async function SiteHeader() {
   const session = await getSession()
@@ -50,7 +48,7 @@ export async function SiteHeader() {
                   'w-9 px-0',
                 )}
               >
-                <Instagram className="h-4 w-4" />
+                <FaInstagram className="h-4 w-4" />
                 <span className="sr-only">Instagram</span>
               </div>
             </Link>
@@ -69,7 +67,7 @@ export async function SiteHeader() {
                   'w-9 px-0',
                 )}
               >
-                <Twitter className="h-4 w-4" />
+                <FaXTwitter className="h-4 w-4" />
                 <span className="sr-only">Twitter</span>
               </div>
             </Link>
@@ -88,7 +86,7 @@ export async function SiteHeader() {
                   'w-9 px-0',
                 )}
               >
-                <Facebook className="h-4 w-4" />
+                <FaFacebook className="h-4 w-4" />
                 <span className="sr-only">Facebook</span>
               </div>
             </Link>
@@ -107,7 +105,7 @@ export async function SiteHeader() {
                   'w-9 px-0',
                 )}
               >
-                <Icons.gitHub className="h-4 w-4" />
+                <FaGithub className="h-4 w-4" />
                 <span className="sr-only">GitHub</span>
               </div>
             </Link>

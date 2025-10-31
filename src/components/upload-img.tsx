@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
-import { Icons } from '~/components/ui/icons'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -15,7 +14,7 @@ import { Label } from '~/components/ui/label'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Progress } from '~/components/ui/progress'
 import { Textarea } from '~/components/ui/textarea'
-import { Sparkles, Loader2 } from 'lucide-react'
+import { Sparkles, Loader2, ImageIcon } from 'lucide-react'
 import { useGenerateMetadata } from '~/hooks/use-generate-metadata'
 import { toast } from 'sonner'
 import { isAIEnabledClient } from '~/lib/ai-utils'
@@ -468,36 +467,36 @@ export function UploadImg({ bucket, draftId, onImageUpload }: UploadImgProps) {
           onDragOver={handleDrag}
           onDrop={handleDrop}
         >
-          <div
+            <div
             className={`flex flex-col items-center justify-center text-center ${isDragging ? 'scale-105' : ''} transition-transform duration-200`}
-          >
-            <Icons.imageIcon
+            >
+            <ImageIcon
               className={`mx-auto h-12 w-12 ${isDragging ? 'text-primary' : 'text-gray-500 dark:text-gray-400'} transition-colors duration-200`}
               aria-hidden="true"
             />
             <div className="mt-4 text-sm leading-6 text-gray-600 dark:text-gray-300">
               <label
-                htmlFor="file-upload"
-                className="relative cursor-pointer rounded-md bg-gray-100 font-semibold text-black focus-within:ring-2 focus-within:ring-gray-600 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:outline-hidden hover:text-gray-500 dark:bg-gray-800 dark:text-white dark:focus-within:ring-gray-300 dark:focus-within:ring-offset-gray-900 dark:hover:text-gray-300"
+              htmlFor="file-upload"
+              className="relative cursor-pointer rounded-md bg-gray-100 font-semibold text-black focus-within:ring-2 focus-within:ring-gray-600 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:outline-hidden hover:text-gray-500 dark:bg-gray-800 dark:text-white dark:focus-within:ring-gray-300 dark:focus-within:ring-offset-gray-900 dark:hover:text-gray-300"
               >
-                <span>Upload a file</span>
-                <input
-                  type="file"
-                  accept={'image/jpeg, image/png'}
-                  id="file-upload"
-                  name="file-upload"
-                  className="sr-only"
-                  onChange={handleFileChange}
-                />
+              <span>Upload a file</span>
+              <input
+                type="file"
+                accept={'image/jpeg, image/png'}
+                id="file-upload"
+                name="file-upload"
+                className="sr-only"
+                onChange={handleFileChange}
+              />
               </label>
               <p className="mt-2">or drag and drop</p>
             </div>
             <p className="text-xs leading-5 text-gray-600">
               {file?.name
-                ? file.name
-                : `JPEG or PNG up to ${siteConfig.uploadLimits[bucket]}MB`}
+              ? file.name
+              : `JPEG or PNG up to ${siteConfig.uploadLimits[bucket]}MB`}
             </p>
-          </div>
+            </div>
         </div>
         <form>
           <div className="grid w-full items-center gap-4">

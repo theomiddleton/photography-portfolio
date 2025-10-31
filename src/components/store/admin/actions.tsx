@@ -12,7 +12,7 @@ import { Button } from '~/components/ui/button'
 import { Alert, AlertTitle, AlertDescription } from '~/components/ui/alert'
 import { migrateImagesToProducts } from '~/lib/actions/store/migrate'
 import { deleteAllProducts } from '~/lib/actions/store/delete'
-import { Icons } from '~/components/ui/icons'
+import { Loader2 } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -136,7 +136,7 @@ export function AdminActions() {
               <Button onClick={handleMigrate} disabled={isMigrating}>
                 {isMigrating ? (
                   <>
-                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Migrating...
                   </>
                 ) : (
@@ -148,7 +148,7 @@ export function AdminActions() {
                   <Button variant="destructive" disabled={isDeleting}>
                     {isDeleting ? (
                       <>
-                        <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Deleting...
                       </>
                     ) : (
