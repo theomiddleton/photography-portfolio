@@ -7,7 +7,7 @@ import {
   usageAlertConfig,
   globalStorageConfig,
 } from '~/server/db/schema'
-import { eq, desc } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { sendUsageAlert } from '~/lib/actions/storage-alerts'
 import { Redis } from '@upstash/redis'
 import { env } from '~/env.js'

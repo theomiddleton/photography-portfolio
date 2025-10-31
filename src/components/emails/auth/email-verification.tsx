@@ -17,14 +17,12 @@ import { env } from '~/env.js'
 
 interface EmailVerificationProps {
   name: string
-  email: string
   token: string
   expiryMinutes: number
 }
 
 export const EmailVerificationText = ({
   name,
-  email,
   token,
   expiryMinutes,
 }: EmailVerificationProps) => {
@@ -50,7 +48,6 @@ If you have any questions, please contact our support team at ${siteConfig.email
 
 export const EmailVerification = ({
   name,
-  email,
   token,
   expiryMinutes,
 }: EmailVerificationProps) => {
@@ -110,7 +107,7 @@ export const EmailVerification = ({
               </Section>
 
               <Text className="mb-4 text-sm text-gray-600">
-                If you didn't create an account, please ignore this email.
+                If you didn&apos;t create an account, please ignore this email.
               </Text>
             </Section>
 

@@ -247,7 +247,7 @@ export async function incrementTempLinkUsage(token: string): Promise<{
     }
 
     // Increment usage count
-    const result = await db
+    const _result = await db
       .update(galleryTempLinks)
       .set({ currentUses: tempLink.currentUses + 1 })
       .where(eq(galleryTempLinks.id, tempLink.id))

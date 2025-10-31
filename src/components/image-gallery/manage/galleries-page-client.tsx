@@ -87,7 +87,7 @@ export function GalleriesPageClient({ galleries: initialGalleries }: GalleriesPa
         ))
         toast.success(`Gallery ${gallery.isPublic ? 'hidden' : 'published'}`)
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to update gallery visibility')
     } finally {
       setLoading(null)
@@ -109,7 +109,7 @@ export function GalleriesPageClient({ galleries: initialGalleries }: GalleriesPa
         setGalleries(galleries.filter(g => g.id !== gallery.id))
         toast.success('Gallery deleted successfully')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to delete gallery')
     } finally {
       setLoading(null)

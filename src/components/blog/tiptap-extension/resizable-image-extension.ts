@@ -3,7 +3,7 @@ import { ReactNodeViewRenderer } from '@tiptap/react'
 import { ResizableImageComponent } from '~/components/blog/resizable-image-node/resizable-image-node'
 
 export interface ResizableImageOptions {
-  HTMLAttributes: Record<string, any>
+  HTMLAttributes: Record<string, unknown>
 }
 
 declare module '@tiptap/core' {
@@ -132,7 +132,7 @@ export const ResizableImageExtension = Node.create<ResizableImageOptions>({
   renderHTML({ HTMLAttributes, node }) {
     const { src, alt, title, width, height } = node.attrs
 
-    const attributes: Record<string, any> = {
+    const attributes: Record<string, unknown> = {
       'data-type': 'resizable-image',
       src,
     }

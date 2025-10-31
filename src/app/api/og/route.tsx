@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @next/next/no-img-element */
 import { ImageResponse } from '@vercel/og'
 import type { NextRequest } from 'next/server'
 

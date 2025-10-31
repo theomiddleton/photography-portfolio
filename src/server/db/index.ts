@@ -1,4 +1,4 @@
-import { neon, neonConfig } from '@neondatabase/serverless'
+import { neon } from '@neondatabase/serverless'
 import { drizzle } from 'drizzle-orm/neon-http'
 import { Pool } from '@neondatabase/serverless'
 import { drizzle as drizzleWs } from 'drizzle-orm/neon-serverless'

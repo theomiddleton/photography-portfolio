@@ -3,7 +3,7 @@ import { ReactNodeViewRenderer } from '@tiptap/react'
 import { ImageComparisonComponent } from '~/components/blog/image-comparison-node/image-comparison-node'
 
 export interface ImageComparisonOptions {
-  HTMLAttributes: Record<string, any>
+  HTMLAttributes: Record<string, unknown>
 }
 
 declare module '@tiptap/core' {

@@ -42,6 +42,61 @@ interface SEOConfig {
   canonicalUrl?: string
 }
 
+type PersonData = {
+  name?: string
+  url?: string
+  image?: string
+  sameAs?: string[]
+  jobTitle?: string
+  description?: string
+  address?: {
+    addressLocality: string
+    addressRegion: string
+    addressCountry: string
+  }
+} & Record<string, unknown>
+
+type WebsiteData = {
+  name?: string
+  url?: string
+  description?: string
+  searchUrl?: string
+} & Record<string, unknown>
+
+type PhotographData = {
+  name: string
+  url: string
+  image: string
+  description: string
+  creator?: string
+  dateCreated?: string
+  keywords?: string[]
+} & Record<string, unknown>
+
+type ProductData = {
+  name: string
+  description: string
+  image: string
+  brand?: string
+  offers: {
+    price: string
+    currency: string
+    availability: string
+    url: string
+  }
+} & Record<string, unknown>
+
+type BlogPostData = {
+  headline: string
+  description: string
+  image: string
+  author?: string
+  datePublished: string
+  dateModified?: string
+  url: string
+  keywords?: string[]
+} & Record<string, unknown>
+
 /**
  * Generate comprehensive metadata for a page
  */
@@ -49,31 +104,31 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
   const pageType = config.type || 'home'
   const pageConfig = pageConfigs[pageType]
 
-  // Generate title  
-  const title = config.title  
-    ? (config.customTemplate?.title  
-        ? seoUtils.generateTitle(config.customTemplate.title, {  
-            title: config.title,  
-            ownerName: siteConfig.ownerName,  
-          })  
-        : config.title)  
-    : seoUtils.generateTitle(pageConfig.titleTemplate, {  
-        ownerName: siteConfig.ownerName,  
-        title: siteConfig.title,  
-      })  
+  // Generate title
+  const title = config.title
+    ? config.customTemplate?.title
+      ? seoUtils.generateTitle(config.customTemplate.title, {
+          title: config.title,
+          ownerName: siteConfig.ownerName,
+        })
+      : config.title
+    : seoUtils.generateTitle(pageConfig.titleTemplate, {
+        ownerName: siteConfig.ownerName,
+        title: siteConfig.title,
+      })
 
-  // Generate description  
-  const description =  
-    config.description ||  
-    seoUtils.generateDescription(  
-      pageConfig.descriptionTemplate,  
-      {  
-        description: siteConfig.description,  
-        ownerName: siteConfig.ownerName,  
-        profession: siteConfig.seo.profession,  
-      },  
-      siteConfig.description,  
-    )  
+  // Generate description
+  const description =
+    config.description ||
+    seoUtils.generateDescription(
+      pageConfig.descriptionTemplate,
+      {
+        description: siteConfig.description,
+        ownerName: siteConfig.ownerName,
+        profession: siteConfig.seo.profession,
+      },
+      siteConfig.description,
+    )
 
   // Generate keywords
   const keywords = seoUtils.cleanKeywords([
@@ -100,7 +155,12 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
     card: 'summary_large_image' as const,
     title: config.openGraph?.title || title,
     description: config.openGraph?.description || description,
-    images: openGraphImages.map((img) => ('url' in img ? img.url : (img as any))),
+    images: openGraphImages.map((img) => {
+      if ('url' in img && typeof img.url === 'string') {
+        return img.url
+      }
+      return typeof img === 'string' ? img : ''
+    }),
     ...(siteConfig.seo.twitter.site && { site: siteConfig.seo.twitter.site }),
     ...(siteConfig.seo.twitter.creator && {
       creator: siteConfig.seo.twitter.creator,
@@ -146,9 +206,31 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
  * Generate structured data for different content types
  */
 export function generateStructuredData(
+  type: 'person',
+  data?: PersonData,
+): ReturnType<typeof structuredDataTemplates.person>
+export function generateStructuredData(
+  type: 'website',
+  data?: WebsiteData,
+): ReturnType<typeof structuredDataTemplates.website>
+export function generateStructuredData(
+  type: 'photograph',
+  data: PhotographData,
+): ReturnType<typeof structuredDataTemplates.photographAction>
+export function generateStructuredData(
+  type: 'product',
+  data: ProductData,
+): ReturnType<typeof structuredDataTemplates.product>
+export function generateStructuredData(
+  type: 'blogPost',
+  data: BlogPostData,
+): ReturnType<typeof structuredDataTemplates.blogPosting>
+export function generateStructuredData(
   type: 'person' | 'website' | 'photograph' | 'product' | 'blogPost',
-  data: any,
-) {
+  data?: Record<string, unknown>,
+): ReturnType<
+  (typeof structuredDataTemplates)[keyof typeof structuredDataTemplates]
+> | null {
   switch (type) {
     case 'person':
       return structuredDataTemplates.person({
@@ -180,19 +262,19 @@ export function generateStructuredData(
     case 'photograph':
       return structuredDataTemplates.photographAction({
         creator: siteConfig.ownerName,
-        ...data,
+        ...(data as PhotographData),
       })
 
     case 'product':
       return structuredDataTemplates.product({
         brand: siteConfig.storeName,
-        ...data,
+        ...(data as ProductData),
       })
 
     case 'blogPost':
       return structuredDataTemplates.blogPosting({
         author: siteConfig.ownerName,
-        ...data,
+        ...(data as BlogPostData),
       })
 
     default:

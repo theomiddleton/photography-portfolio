@@ -14,16 +14,47 @@ const eslintConfig = defineConfig([
     'build/**',
     'next-env.d.ts',
   ]),
+  // JavaScript/TypeScript files - single quotes
   {
     plugins: { '@stylistic': stylistic },
-    files: ['**/*.{js,jsx,ts,tsx}'],
+    files: ['**/*.{js,ts}'],
     rules: {
       '@stylistic/quotes': [
         'warn',
         'single',
         { avoidEscape: true, allowTemplateLiterals: 'avoidEscape' },
       ],
-      '@stylistic/jsx-quotes': ['warn', 'prefer-single'],
+    },
+  },
+  // JSX/TSX files - single quotes for JS, double quotes for JSX attributes
+  {
+    plugins: { '@stylistic': stylistic },
+    files: ['**/*.{jsx,tsx}'],
+    rules: {
+      '@stylistic/quotes': [
+        'warn',
+        'single',
+        { avoidEscape: true, allowTemplateLiterals: 'avoidEscape' },
+      ],
+      '@stylistic/jsx-quotes': ['warn', 'prefer-double'],
+    },
+  },
+  // Additional overrides
+  {
+    files: ['**/*.{js,ts,jsx,tsx}'],
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          args: 'all',
+          argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
     },
   },
 ])

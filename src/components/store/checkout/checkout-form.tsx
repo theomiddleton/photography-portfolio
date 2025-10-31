@@ -19,7 +19,7 @@ interface CheckoutProps {
 
 export function Checkout({ product, selectedSize }: CheckoutProps) {
   const [clientSecret, setClientSecret] = useState<string>()
-  const [orderId, setOrderId] = useState<string>()
+  const [orderId, _setOrderId] = useState<string>()
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([])
   const [selectedShipping, setSelectedShipping] = useState<string>('')
   const [taxRates, setTaxRates] = useState({ taxRate: 2000, stripeTaxRate: 150 })

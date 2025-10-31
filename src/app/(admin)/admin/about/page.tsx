@@ -49,7 +49,7 @@ export default async function EditAboutPage() {
             Edit About Page
           </h1>
           <Link
-            href='/about'
+            href="/about"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -70,7 +70,7 @@ export default async function EditAboutPage() {
             </div>
           }
         >
-          <AboutForm initialContent={result[0].content} />
+          <AboutForm initialContent={result[0]} />
         </Suspense>
       </div>
     </main>

@@ -33,7 +33,7 @@ export default async function VerifyEmailNoticePage({
         </div>
 
         <div className="bg-muted/50 rounded-lg border p-4">
-          <h2 className="font-semibold">Didn't receive the email?</h2>
+          <h2 className="font-semibold">Didn&apos;t receive the email?</h2>
           <ul className="text-muted-foreground mt-2 text-sm">
             <li>• Check your spam/junk folder</li>
             <li>• Make sure the email address is correct</li>

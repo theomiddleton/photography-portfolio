@@ -184,7 +184,7 @@ export async function updateGallery(
   data: Partial<z.infer<typeof gallerySchema>>,
 ) {
   try {
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       ...data,
       updatedAt: new Date(),
     }
@@ -305,31 +305,31 @@ export async function addExistingImagesToGallery(
       switch (ref.sourceType) {
         case 'main': {
           const [mainImg] = await db
-              .select()
-              .from(imageData)
-              .where(eq(imageData.id, parseInt(ref.imageId)))
-              .limit(1)
-            sourceImage = mainImg || null
+            .select()
+            .from(imageData)
+            .where(eq(imageData.id, parseInt(ref.imageId)))
+            .limit(1)
+          sourceImage = mainImg || null
 
           break
         }
         case 'custom': {
           const [customImg] = await db
-              .select()
-              .from(customImgData)
-              .where(eq(customImgData.id, parseInt(ref.imageId)))
-              .limit(1)
-            sourceImage = customImg || null
-            break
-          }
-          case 'gallery': {
-            const [galleryImg] = await db
-              .select()
-              .from(galleryImages)
-              .where(eq(galleryImages.id, ref.imageId))
-              .limit(1)
-            sourceImage = galleryImg || null
-            break
+            .select()
+            .from(customImgData)
+            .where(eq(customImgData.id, parseInt(ref.imageId)))
+            .limit(1)
+          sourceImage = customImg || null
+          break
+        }
+        case 'gallery': {
+          const [galleryImg] = await db
+            .select()
+            .from(galleryImages)
+            .where(eq(galleryImages.id, ref.imageId))
+            .limit(1)
+          sourceImage = galleryImg || null
+          break
         }
       }
       if (!sourceImage) {
@@ -749,7 +749,7 @@ export async function updateImageMetadata(
     name?: string
     caption?: string
     tags?: string
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
     alt?: string
     description?: string
   },
@@ -842,7 +842,7 @@ export async function checkGalleryAccess(
 ): Promise<{
   hasAccess: boolean
   needsPassword: boolean
-  gallery: any | null
+  gallery: typeof galleries.$inferSelect | null
 }> {
   try {
     const [gallery] = await db

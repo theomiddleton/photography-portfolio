@@ -1,5 +1,3 @@
-import { siteConfig } from '~/config/site'
-
 // Define comprehensive file type security configurations
 export interface FileTypeConfig {
   extensions: string[]
@@ -156,7 +154,7 @@ export function detectFileType(filename: string, mimeType: string): string | nul
 export async function validateFileUpload(
   file: File,
   options: FileValidationOptions,
-  siteConfig?: any
+  siteConfig?: { features?: { security?: { allowDangerousFiles?: boolean } }, uploadLimits?: Record<string, number> }
 ): Promise<FileValidationResult> {
   const errors: string[] = []
   const warnings: string[] = []
@@ -302,7 +300,7 @@ export async function validateFileContent(file: File): Promise<string[]> {
  */
 export function generateSecureStoragePath(  
   filename: string,  
-  bucket: string,  
+  _bucket: string,  
   userId?: string,  
   additionalPath?: string,  
   useUserStructure = true  

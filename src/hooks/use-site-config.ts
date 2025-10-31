@@ -1,7 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { type SiteConfig, defaultConfig, isDefaultSiteConfig } from '~/config/site'
+import {
+  type SiteConfig,
+  defaultConfig,
+  isDefaultSiteConfig,
+} from '~/config/site'
 
 /**
  * Custom hook to handle site configuration with proper hydration
@@ -9,30 +13,29 @@ import { type SiteConfig, defaultConfig, isDefaultSiteConfig } from '~/config/si
  */
 export function useSiteConfig(): SiteConfig {
   const [config, setConfig] = useState(() => defaultConfig)
-  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
-    const ac = new AbortController()  
-    ;(async () => {  
-      try {  
-        const response = await fetch('/api/site-config', {  
-          cache: 'no-store',  
-          signal: ac.signal,  
-        })  
-        if (!response.ok) {  
-          console.error('Failed to fetch site config, using defaults')  
-          return  
-        }  
-        const serverConfig = await response.json()  
-        if (!ac.signal.aborted) setConfig(serverConfig)  
-      } catch (error) {  
-        if ((error as any)?.name !== 'AbortError') {  
-          console.error('Error fetching site config:', error)  
-        }  
-      }  
-    })()  
-    return () => ac.abort()  
-  }, [])  
+    const ac = new AbortController()
+    ;(async () => {
+      try {
+        const response = await fetch('/api/site-config', {
+          cache: 'no-store',
+          signal: ac.signal,
+        })
+        if (!response.ok) {
+          console.error('Failed to fetch site config, using defaults')
+          return
+        }
+        const serverConfig = await response.json()
+        if (!ac.signal.aborted) setConfig(serverConfig)
+      } catch (error) {
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Error fetching site config:', error)
+        }
+      }
+    })()
+    return () => ac.abort()
+  }, [])
 
   return config
 }
@@ -44,7 +47,7 @@ export function useIsHydrated(): boolean {
   const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
-    setIsHydrated(true)
+    queueMicrotask(() => setIsHydrated(true))
   }, [])
 
   return isHydrated

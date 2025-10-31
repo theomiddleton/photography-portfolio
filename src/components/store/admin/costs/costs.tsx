@@ -217,7 +217,6 @@ export function Costs({ sizes, initialTax, shippingMethods }: CostsProps) {
               <CostAnalytics 
                 sizes={sizes} 
                 shippingMethods={shippingMethods}
-                taxSettings={initialTax}
               />
             </TabsContent>
 

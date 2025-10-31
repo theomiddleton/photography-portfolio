@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import type { Product, ProductSize } from '~/server/db/schema'
 import { formatPrice, cn } from '~/lib/utils'
@@ -14,20 +15,13 @@ import {
 } from '~/components/ui/select'
 import { Dialog, DialogContent, DialogTrigger } from '~/components/ui/dialog'
 import { Badge } from '~/components/ui/badge'
-import { Card, CardContent } from '~/components/ui/card'
 import { Separator } from '~/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
   ZoomInIcon,
   Heart,
   Share2,
-  Ruler,
-  Truck,
-  Shield,
-  Star,
-  StarIcon,
+  Star
 } from 'lucide-react'
 import { EnhancedCheckout } from '~/components/store/checkout/enhanced-checkout'
 import { Frame } from '~/components/store/frame/frame'
@@ -125,9 +119,9 @@ export function EnhancedProductView({
     <div className="mx-auto max-w-7xl">
       {/* Breadcrumb */}
       <nav className="mb-8 text-sm text-gray-600">
-        <a href="/store" className="hover:text-gray-900">
+        <Link href="/store" className="hover:text-gray-900">
           Store
-        </a>
+        </Link>
         <span className="mx-2">/</span>
         <span className="text-gray-900">{product.name}</span>
       </nav>

@@ -190,7 +190,7 @@ export async function POST(request: Request) {
     let imageBuffer: Buffer
     try {
       imageBuffer = Buffer.from(fileContent, 'base64')
-    } catch (error) {
+    } catch (_error) {
       return NextResponse.json(
         { success: false, error: 'Invalid base64 content' },
         { status: 400 },

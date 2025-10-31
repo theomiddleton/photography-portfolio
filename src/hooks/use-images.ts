@@ -71,7 +71,7 @@ export function useImages({
         }
       }
     },
-    [visibleOnly, sortBy, sortDirection, limit, toast],
+    [visibleOnly, sortBy, sortDirection, limit],
   )
 
   // Initial fetch and polling setup
@@ -149,7 +149,7 @@ export function useImages({
         }
       }
     },
-    [images, onOrderChange, toast], // Removed fetchImages, parent should manage data if onOrderChange is used
+    [images, onOrderChange], // Removed fetchImages, parent should manage data if onOrderChange is used
   )
 
   // Function to toggle image visibility with optimistic updates
@@ -193,7 +193,7 @@ export function useImages({
         toast('Failed to update image visibility')
       }
     },
-    [images, fetchImages, toast],
+    [images, fetchImages],
   )
 
   // Function to delete an image
@@ -222,7 +222,7 @@ export function useImages({
         toast(err instanceof Error ? err.message : 'Failed to delete image')
       }
     },
-    [fetchImages, toast],
+    [fetchImages],
   )
 
   // Function to update image metadata
@@ -258,7 +258,7 @@ export function useImages({
         toast(err instanceof Error ? err.message : 'Failed to update image')
       }
     },
-    [fetchImages, toast],
+    [fetchImages],
   )
 
   return {

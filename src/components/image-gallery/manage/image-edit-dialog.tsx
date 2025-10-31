@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -40,7 +41,7 @@ interface GalleryImage {
   alt: string | null
   caption: string | null
   tags: string | null
-  metadata: Record<string, any> | null
+  metadata: Record<string, unknown> | null
   order: number
   uploadedAt: Date
 }
@@ -117,7 +118,7 @@ export function ImageEditDialog({ image, open, onOpenChange, onImageUpdate }: Im
         })
         onOpenChange(false)
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to update image details')
     } finally {
       setLoading(false)
@@ -137,13 +138,13 @@ export function ImageEditDialog({ image, open, onOpenChange, onImageUpdate }: Im
             Update the name, description, caption, alt text, and tags for this image.
           </DialogDescription>
         </DialogHeader>
-
         <div className="mb-4">
           <div className="aspect-video relative overflow-hidden rounded-lg bg-muted">
-            <img
+            <Image
               src={image.fileUrl}
               alt={image.alt || image.name}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
             />
           </div>
           <p className="text-sm text-muted-foreground mt-2">

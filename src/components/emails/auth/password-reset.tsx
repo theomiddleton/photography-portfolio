@@ -17,14 +17,12 @@ import { env } from '~/env.js'
 
 interface PasswordResetProps {
   name: string
-  email: string
   token: string
   expiryMinutes: number
 }
 
 export const PasswordResetText = ({
   name,
-  email,
   token,
   expiryMinutes,
 }: PasswordResetProps) => {
@@ -54,7 +52,6 @@ If you have any questions, please contact our support team at ${siteConfig.email
 
 export const PasswordReset = ({
   name,
-  email,
   token,
   expiryMinutes,
 }: PasswordResetProps) => {
@@ -104,7 +101,7 @@ export const PasswordReset = ({
               <Section className="my-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
                 <Text className="mb-2 text-sm text-yellow-800">
                   <strong>Security Notice:</strong> This reset link will expire
-                  in {expiryMinutes} minutes. If you didn't request this
+                  in {expiryMinutes} minutes. If you didn&apos;t request this
                   password reset, please ignore this email and your password
                   will remain unchanged.
                 </Text>
@@ -118,7 +115,7 @@ export const PasswordReset = ({
                   • Use a strong, unique password
                 </Text>
                 <Text className="mb-1 text-sm text-gray-700">
-                  • Don't share your password with anyone
+                  • Don&apos;t share your password with anyone
                 </Text>
                 <Text className="mb-4 text-sm text-gray-700">
                   • Log out of all devices after changing your password

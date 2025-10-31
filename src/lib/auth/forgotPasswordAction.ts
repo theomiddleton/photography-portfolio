@@ -10,7 +10,7 @@ interface ForgotPasswordState {
 }
 
 export async function forgotPassword(
-  prevState: ForgotPasswordState, 
+  _prevState: ForgotPasswordState, 
   data: FormData
 ): Promise<ForgotPasswordState> {
   // Validate CSRF token

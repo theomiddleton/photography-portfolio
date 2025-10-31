@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/quotes */
 export const AI_PROMPTS = {
   imageAnalysis: {
     system: `You are an expert in image recognition and a skilled copywriter specializing in creating compelling and SEO-friendly content for photographers' online portfolios. Your task is to analyze images and provide a short, evocative title, a concise, descriptive caption, and a relevant set of tags suitable for a photographer showcasing their best work. Focus on highlighting the artistic qualities, key subject matter, and discoverability of each image.

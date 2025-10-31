@@ -11,7 +11,6 @@ import {
   CheckIcon,
   XIcon,
   MoveIcon,
-  CopyIcon
 } from 'lucide-react'
 import { 
   DndContext, 
@@ -63,7 +62,7 @@ interface GalleryImage {
   alt: string | null
   caption: string | null
   tags: string | null
-  metadata: Record<string, any> | null
+  metadata: Record<string, unknown> | null
   order: number
   uploadedAt: Date
 }

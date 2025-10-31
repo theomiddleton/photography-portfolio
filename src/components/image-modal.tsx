@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import { Button } from '~/components/ui/button'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
@@ -26,29 +26,40 @@ export const ImageModal = ({
   images,
   currentImageId,
 }: ImageModalProps) => {
-  const [currentIndex, setCurrentIndex] = useState(0)
+  // Track a stable key for when the modal opens with a new image
+  const [modalKey, setModalKey] = useState(`${currentImageId}`)
+  const [offset, setOffset] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Find the index of the current image when modal opens
-  useEffect(() => {
-    if (isOpen && images.length > 0) {
-      const index = images.findIndex((img) => img.id === currentImageId)
-      if (index !== -1) {
-        setCurrentIndex(index)
-        setIsLoading(true)
-      }
-    }
-  }, [isOpen, currentImageId, images])
+  // Compute the base index from the currentImageId
+  const baseIndex = useMemo(() => {
+    const index = images.findIndex((img) => img.id === currentImageId)
+    return index !== -1 ? index : 0
+  }, [images, currentImageId])
+
+  // The actual current index is base + offset
+  const currentIndex = useMemo(() => {
+    const idx = baseIndex + offset
+    if (idx < 0) return images.length + (idx % images.length)
+    return idx % images.length
+  }, [baseIndex, offset, images.length])
+
+  // Reset offset when modal opens with a new image
+  if (isOpen && modalKey !== `${currentImageId}`) {
+    setModalKey(`${currentImageId}`)
+    setOffset(0)
+    setIsLoading(true)
+  }
 
   const goToPrevious = useCallback(() => {
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))
+    setOffset((prev) => prev - 1)
     setIsLoading(true)
-  }, [images.length])
+  }, [])
 
   const goToNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))
+    setOffset((prev) => prev + 1)
     setIsLoading(true)
-  }, [images.length])
+  }, [])
 
   // Keyboard navigation
   useEffect(() => {
@@ -89,7 +100,7 @@ export const ImageModal = ({
       }}
     >
       {/* Header with close button and counter */}
-      <div className="absolute left-4 right-4 top-4 z-50 flex items-center justify-between">
+      <div className="absolute top-4 right-4 left-4 z-50 flex items-center justify-between">
         <div className="rounded bg-black/60 px-3 py-1 text-sm font-medium text-white backdrop-blur-xs">
           {currentIndex + 1} / {images.length}
         </div>
@@ -98,7 +109,7 @@ export const ImageModal = ({
           onClick={onClose}
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-full bg-black/60 text-white backdrop-blur-xs hover:bg-black/80 focus:ring-2 focus:ring-white"
+          className="h-10 w-10 rounded-full bg-black/60 text-white backdrop-blur-xs hover:bg-black/80 hover:text-white focus:ring-2 focus:ring-white"
           aria-label="Close modal"
         >
           <X className="h-5 w-5" />
@@ -147,7 +158,7 @@ export const ImageModal = ({
             onClick={goToPrevious}
             variant="ghost"
             size="icon"
-            className="absolute left-4 top-1/2 z-40 h-12 w-12 -translate-y-1/2 rounded-full bg-black/60 text-white opacity-60 backdrop-blur-xs transition-opacity hover:bg-black/80 hover:opacity-100 focus:ring-2 focus:ring-white"
+            className="absolute top-1/2 left-4 z-40 h-12 w-12 -translate-y-1/2 rounded-full bg-black/60 text-white opacity-60 backdrop-blur-xs transition-opacity hover:bg-black/80 hover:text-white hover:opacity-100 focus:ring-2 focus:ring-white"
             aria-label="Previous image"
           >
             <ChevronLeft className="h-6 w-6" />
@@ -157,7 +168,7 @@ export const ImageModal = ({
             onClick={goToNext}
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-1/2 z-40 h-12 w-12 -translate-y-1/2 rounded-full bg-black/60 text-white opacity-60 backdrop-blur-xs transition-opacity hover:bg-black/80 hover:opacity-100 focus:ring-2 focus:ring-white"
+            className="absolute top-1/2 right-4 z-40 h-12 w-12 -translate-y-1/2 rounded-full bg-black/60 text-white opacity-60 backdrop-blur-xs transition-opacity hover:bg-black/80 hover:text-white hover:opacity-100 focus:ring-2 focus:ring-white"
             aria-label="Next image"
           >
             <ChevronRight className="h-6 w-6" />
@@ -167,7 +178,7 @@ export const ImageModal = ({
 
       {/* Optional image info at bottom */}
       {(currentImage?.description || currentImage?.name) && (
-        <div className="absolute bottom-4 left-4 right-4 z-50">
+        <div className="absolute right-4 bottom-4 left-4 z-50">
           <div className="mx-auto max-w-2xl rounded-lg bg-black/60 px-4 py-2 text-center text-sm text-white backdrop-blur-xs">
             <p className="font-medium">
               {currentImage.description || currentImage.name}

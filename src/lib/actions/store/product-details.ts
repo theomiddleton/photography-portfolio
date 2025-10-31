@@ -89,7 +89,7 @@ export async function deleteStoreProductDetail(id: string) {
   }
 }
 
-export async function reorderStoreProductDetails(detailIds: string[], isGlobal: boolean, productId?: string) {
+export async function reorderStoreProductDetails(detailIds: string[]) {
   try {
     // Update order for each detail within the same scope
     for (let i = 0; i < detailIds.length; i++) {

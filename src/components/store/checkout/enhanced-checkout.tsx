@@ -29,7 +29,7 @@ import { formatPrice, cn } from '~/lib/utils'
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { CheckoutForm } from '~/components/store/checkout/stripe-form'
-import type { Product, ProductSize, ShippingMethod } from '~/server/db/schema'
+import type { ShippingMethod } from '~/server/db/schema'
 import { createCheckoutSession } from '~/lib/actions/store/store'
 import {
   getShippingMethods,

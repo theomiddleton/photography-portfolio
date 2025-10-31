@@ -65,10 +65,10 @@ async function calculateFileHash(
     }
 
     const hash = createHash('sha256')
-    const body = response.Body as any
+    const body = response.Body as ReadableStream<Uint8Array> | Buffer | Uint8Array | { transformToByteArray: () => Promise<Uint8Array> }
 
     // Handle different body types
-    if (body.getReader) {
+    if (body instanceof ReadableStream) {
       // ReadableStream
       const reader = body.getReader()
       let done = false
@@ -80,13 +80,13 @@ async function calculateFileHash(
           hash.update(value)
         }
       }
-    } else if (body.transformToByteArray) {
+    } else if (typeof body === 'object' && body !== null && 'transformToByteArray' in body) {
       // AWS SDK v3 format
-      const bytes = await body.transformToByteArray()
+      const bytes = await (body as { transformToByteArray: () => Promise<Uint8Array> }).transformToByteArray()
       hash.update(bytes)
     } else {
       // Buffer or other format
-      hash.update(body)
+      hash.update(body as Buffer | Uint8Array)
     }
 
     return hash.digest('hex')
@@ -195,7 +195,7 @@ export async function GET(request: NextRequest) {
 
     // Only process groups with more than one file
     const potentialDuplicateGroups = Array.from(sizeGroups.entries()).filter(
-      ([size, files]) => files.length > 1,
+      ([_size, files]) => files.length > 1,
     )
 
     console.log(
@@ -205,7 +205,7 @@ export async function GET(request: NextRequest) {
     let duplicatesFound = 0
 
     // For each group, calculate hashes to confirm duplicates
-    for (const [size, files] of potentialDuplicateGroups) {
+    for (const [_size, files] of potentialDuplicateGroups) {
       const hashGroups = new Map<string, FileInfo[]>()
 
       for (const file of files) {

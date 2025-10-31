@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import * as React from 'react'
 import { type Editor } from '@tiptap/react'
 
@@ -22,7 +23,6 @@ import { AltUpload } from '~/components/alt-upload-img'
 import { Separator } from '~/components/ui/separator'
 import { Textarea } from '~/components/ui/textarea'
 import { Label } from '~/components/ui/label'
-import { Input } from '~/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import { Switch } from '~/components/ui/switch'
 
@@ -369,6 +369,7 @@ export interface ImageMasonryPopoverProps
 
 export function ImageMasonryPopover({
   editor: providedEditor,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hideWhenUnavailable = false,
   extensionName = 'imageMasonry',
   bucket,

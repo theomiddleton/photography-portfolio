@@ -1,6 +1,7 @@
 'use client'
 
-import { Component, type ReactNode } from 'react'
+import Link from 'next/link'
+import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
@@ -25,7 +26,7 @@ export class StoreErrorBoundary extends Component<Props, State> {
     return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Store error:', error, errorInfo)
   }
 
@@ -46,7 +47,7 @@ export class StoreErrorBoundary extends Component<Props, State> {
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-gray-600">
-                We're sorry, but there was an error loading the store. Please try again.
+                We&apos;re sorry, but there was an error loading the store. Please try again.
               </p>
               
               {process.env.NODE_ENV === 'development' && this.state.error && (
@@ -57,7 +58,6 @@ export class StoreErrorBoundary extends Component<Props, State> {
                   </pre>
                 </details>
               )}
-
               <div className="flex gap-2 justify-center">
                 <Button
                   onClick={() => this.setState({ hasError: false, error: undefined })}
@@ -67,10 +67,10 @@ export class StoreErrorBoundary extends Component<Props, State> {
                   Try Again
                 </Button>
                 <Button variant="outline" asChild>
-                  <a href="/" className="flex items-center gap-2">
+                  <Link href="/" className="flex items-center gap-2">
                     <Home className="h-4 w-4" />
                     Go Home
-                  </a>
+                  </Link>
                 </Button>
               </div>
             </CardContent>
@@ -84,11 +84,10 @@ export class StoreErrorBoundary extends Component<Props, State> {
 }
 
 interface StoreErrorFallbackProps {
-  error: Error
   resetError: () => void
 }
 
-export function StoreErrorFallback({ error, resetError }: StoreErrorFallbackProps) {
+export function StoreErrorFallback({ resetError }: StoreErrorFallbackProps) {
   return (
     <div className="container mx-auto px-4 py-12 pt-24">
       <Card className="max-w-lg mx-auto">
@@ -102,17 +101,16 @@ export function StoreErrorFallback({ error, resetError }: StoreErrorFallbackProp
           <p className="text-gray-600">
             There was a problem loading the store. This might be a temporary issue.
           </p>
-          
           <div className="flex gap-2 justify-center">
             <Button onClick={resetError} className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
               Try Again
             </Button>
             <Button variant="outline" asChild>
-              <a href="/" className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2">
                 <Home className="h-4 w-4" />
                 Go Home
-              </a>
+              </Link>
             </Button>
           </div>
         </CardContent>

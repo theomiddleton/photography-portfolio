@@ -57,7 +57,6 @@ export function Frame({
     return () => window.removeEventListener('resize', updateSize)
   }, [])
   const isWooden = ['walnut', 'oak', 'mahogany', 'pine'].includes(frameStyle)
-  const isFloating = frameStyle === 'floating'
 
   // Calculate base scale using the larger dimension for consistent frame size
   const baseScale = Math.min(

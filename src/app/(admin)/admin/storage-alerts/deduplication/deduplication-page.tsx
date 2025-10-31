@@ -1,18 +1,39 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
-import { AlertTriangle, ArrowLeft, Database, FileX, RefreshCw, Scan, Trash2, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  FileX,
+  Scan,
+  Trash2,
+  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { Checkbox } from '~/components/ui/checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import Image from 'next/image'
-import { siteConfig } from '~/config/site'
+import { useSiteConfig } from '~/hooks/use-site-config'
 
 interface DuplicateFile {
   id: number
@@ -29,6 +50,7 @@ interface DuplicateFile {
 }
 
 export function DeduplicationPage() {
+  const siteConfig = useSiteConfig()
   const [duplicates, setDuplicates] = useState<DuplicateFile[]>([])
   const [loading, setLoading] = useState(true)
   const [scanning, setScanning] = useState(false)
@@ -84,7 +106,7 @@ export function DeduplicationPage() {
     }
 
     const confirmDelete = confirm(
-      `Are you sure you want to delete ${selectedFiles.size} selected files? This action cannot be undone.`
+      `Are you sure you want to delete ${selectedFiles.size} selected files? This action cannot be undone.`,
     )
 
     if (!confirmDelete) return
@@ -134,35 +156,37 @@ export function DeduplicationPage() {
   }
 
   const selectAllInGroup = (hash: string) => {
-    const groupFiles = duplicates.filter(d => d.fileHash === hash)
+    const groupFiles = duplicates.filter((d) => d.fileHash === hash)
     const newSelection = new Set(selectedFiles)
-    
-    groupFiles.forEach(file => {
+
+    groupFiles.forEach((file) => {
       newSelection.add(file.id)
     })
-    
+
     setSelectedFiles(newSelection)
   }
 
   const selectNonDbFilesInGroup = (hash: string) => {
-    const groupFiles = duplicates.filter(d => d.fileHash === hash && !d.dbReference)
+    const groupFiles = duplicates.filter(
+      (d) => d.fileHash === hash && !d.dbReference,
+    )
     const newSelection = new Set(selectedFiles)
-    
-    groupFiles.forEach(file => {
+
+    groupFiles.forEach((file) => {
       newSelection.add(file.id)
     })
-    
+
     setSelectedFiles(newSelection)
   }
 
   const selectAllNonDbFiles = () => {
-    const nonDbFiles = duplicates.filter(d => !d.dbReference)
+    const nonDbFiles = duplicates.filter((d) => !d.dbReference)
     const newSelection = new Set<number>()
-    
-    nonDbFiles.forEach(file => {
+
+    nonDbFiles.forEach((file) => {
       newSelection.add(file.id)
     })
-    
+
     setSelectedFiles(newSelection)
   }
 
@@ -173,25 +197,50 @@ export function DeduplicationPage() {
 
   const getThumbnailUrl = (file: DuplicateFile): string | null => {
     if (!isImage(file.fileName)) return null
-    return `${siteConfig.imageBucketUrl}/${file.objectKey}`
+
+    // Map bucket name to appropriate bucket URL from siteConfig
+    let bucketUrl: string
+    switch (file.bucketName) {
+      case 'Main Images':
+        bucketUrl = siteConfig.imageBucketUrl
+        break
+      case 'Blog Images':
+        bucketUrl = siteConfig.blogBucketUrl
+        break
+      case 'About Images':
+        bucketUrl = siteConfig.aboutBucketUrl
+        break
+      case 'Custom Images':
+        bucketUrl = siteConfig.customBucketUrl
+        break
+      default:
+        return null
+    }
+    return `${bucketUrl}/${file.objectKey}`
   }
 
   // Group duplicates by hash
-  const duplicateGroups = duplicates.reduce((groups, file) => {
-    if (!groups[file.fileHash]) {
-      groups[file.fileHash] = []
-    }
-    groups[file.fileHash].push(file)
-    return groups
-  }, {} as Record<string, DuplicateFile[]>)
+  const duplicateGroups = duplicates.reduce(
+    (groups, file) => {
+      if (!groups[file.fileHash]) {
+        groups[file.fileHash] = []
+      }
+      groups[file.fileHash].push(file)
+      return groups
+    },
+    {} as Record<string, DuplicateFile[]>,
+  )
 
-  const totalSpaceWasted = Object.values(duplicateGroups).reduce((total, group) => {
-    if (group.length > 1) {
-      // Space wasted = (count - 1) * file size
-      return total + (group.length - 1) * group[0].fileSize
-    }
-    return total
-  }, 0)
+  const totalSpaceWasted = Object.values(duplicateGroups).reduce(
+    (total, group) => {
+      if (group.length > 1) {
+        // Space wasted = (count - 1) * file size
+        return total + (group.length - 1) * group[0].fileSize
+      }
+      return total
+    },
+    0,
+  )
 
   // Pagination
   const groupEntries = Object.entries(duplicateGroups)
@@ -202,15 +251,20 @@ export function DeduplicationPage() {
   const paginatedGroups = groupEntries.slice(startIndex, endIndex)
 
   // Pagination Controls Component
-  const PaginationControls = () => (
+  const PaginationControls = () =>
     totalGroups > 0 && (
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600 dark:text-gray-300">Items per page:</span>
-          <Select value={itemsPerPage.toString()} onValueChange={(value) => {
-            setItemsPerPage(parseInt(value))
-            setCurrentPage(1)
-          }}>
+          <span className="text-sm text-gray-600 dark:text-gray-300">
+            Items per page:
+          </span>
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(value) => {
+              setItemsPerPage(parseInt(value))
+              setCurrentPage(1)
+            }}
+          >
             <SelectTrigger className="w-20">
               <SelectValue />
             </SelectTrigger>
@@ -222,16 +276,17 @@ export function DeduplicationPage() {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600 dark:text-gray-300">
-            Showing {startIndex + 1}-{Math.min(endIndex, totalGroups)} of {totalGroups} groups
+            Showing {startIndex + 1}-{Math.min(endIndex, totalGroups)} of{' '}
+            {totalGroups} groups
           </span>
           <div className="flex gap-1">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -239,7 +294,9 @@ export function DeduplicationPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
               disabled={currentPage === totalPages}
             >
               <ChevronRight className="h-4 w-4" />
@@ -251,46 +308,49 @@ export function DeduplicationPage() {
         </div>
       </div>
     )
-  )
 
   if (loading) {
     return (
       <div className="container mx-auto py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-8 w-1/4 rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div className="h-32 rounded bg-gray-200 dark:bg-gray-700"></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className="container mx-auto space-y-6 py-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/admin/storage-alerts">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Storage Alerts
             </Link>
           </Button>
           <div>
             <h1 className="text-3xl font-bold">File Deduplication</h1>
-            <p className="text-gray-600 dark:text-gray-300">Find and remove duplicate files across R2 buckets</p>
+            <p className="text-gray-600 dark:text-gray-300">
+              Find and remove duplicate files across R2 buckets
+            </p>
           </div>
         </div>
         <div className="flex gap-2">
           <Button onClick={startScan} disabled={scanning}>
-            <Scan className={`h-4 w-4 mr-2 ${scanning ? 'animate-spin' : ''}`} />
+            <Scan
+              className={`mr-2 h-4 w-4 ${scanning ? 'animate-spin' : ''}`}
+            />
             {scanning ? 'Scanning...' : 'Start Scan'}
           </Button>
           {selectedFiles.size > 0 && (
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={deleteSelected}
               disabled={deleting}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="mr-2 h-4 w-4" />
               Delete Selected ({selectedFiles.size})
             </Button>
           )}
@@ -301,30 +361,44 @@ export function DeduplicationPage() {
       <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold">{Object.keys(duplicateGroups).length}</div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Duplicate Groups</p>
+            <div className="text-2xl font-bold">
+              {Object.keys(duplicateGroups).length}
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Duplicate Groups
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">{duplicates.length}</div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Total Duplicate Files</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Total Duplicate Files
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold text-red-600">{formatBytes(totalSpaceWasted)}</div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Space Wasted</p>
+            <div className="text-2xl font-bold text-red-600">
+              {formatBytes(totalSpaceWasted)}
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Space Wasted
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold text-blue-600">{selectedFiles.size}</div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Files Selected</p>
+            <div className="text-2xl font-bold text-blue-600">
+              {selectedFiles.size}
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Files Selected
+            </p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6 space-y-2">
+          <CardContent className="space-y-2 p-6">
             <Button
               variant="outline"
               size="sm"
@@ -333,8 +407,8 @@ export function DeduplicationPage() {
             >
               Select All Non-DB Files
             </Button>
-            <div className="text-xs text-gray-600 dark:text-gray-400 text-center">
-              {duplicates.filter(d => !d.dbReference).length} files
+            <div className="text-center text-xs text-gray-600 dark:text-gray-400">
+              {duplicates.filter((d) => !d.dbReference).length} files
             </div>
           </CardContent>
         </Card>
@@ -346,13 +420,18 @@ export function DeduplicationPage() {
       {duplicates.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <FileX className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">No Duplicates Found</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              No duplicate files were found in your R2 buckets. Run a scan to check for duplicates.
+            <FileX className="mx-auto mb-4 h-12 w-12 text-gray-400 dark:text-gray-500" />
+            <h3 className="mb-2 text-lg font-semibold text-gray-600 dark:text-gray-300">
+              No Duplicates Found
+            </h3>
+            <p className="mb-4 text-gray-500 dark:text-gray-400">
+              No duplicate files were found in your R2 buckets. Run a scan to
+              check for duplicates.
             </p>
             <Button onClick={startScan} disabled={scanning}>
-              <Scan className={`h-4 w-4 mr-2 ${scanning ? 'animate-spin' : ''}`} />
+              <Scan
+                className={`mr-2 h-4 w-4 ${scanning ? 'animate-spin' : ''}`}
+              />
               Start Scan
             </Button>
           </CardContent>
@@ -368,9 +447,9 @@ export function DeduplicationPage() {
                       Duplicate Group ({group.length} files)
                     </CardTitle>
                     <CardDescription>
-                      File size: {formatBytes(group[0].fileSize)} • 
-                      Hash: {hash.substring(0, 12)}... • 
-                      Wasted space: {formatBytes((group.length - 1) * group[0].fileSize)}
+                      File size: {formatBytes(group[0].fileSize)} • Hash:{' '}
+                      {hash.substring(0, 12)}... • Wasted space:{' '}
+                      {formatBytes((group.length - 1) * group[0].fileSize)}
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
@@ -379,7 +458,8 @@ export function DeduplicationPage() {
                       size="sm"
                       onClick={() => selectNonDbFilesInGroup(hash)}
                     >
-                      Select Non-DB ({group.filter(f => !f.dbReference).length})
+                      Select Non-DB (
+                      {group.filter((f) => !f.dbReference).length})
                     </Button>
                     <Button
                       variant="outline"
@@ -398,8 +478,10 @@ export function DeduplicationPage() {
                     return (
                       <div
                         key={file.id}
-                        className={`flex items-center justify-between p-4 border rounded-lg ${
-                          selectedFiles.has(file.id) ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                        className={`flex items-center justify-between rounded-lg border p-4 ${
+                          selectedFiles.has(file.id)
+                            ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20'
+                            : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800'
                         }`}
                       >
                         <div className="flex items-center space-x-3">
@@ -407,31 +489,33 @@ export function DeduplicationPage() {
                             checked={selectedFiles.has(file.id)}
                             onCheckedChange={() => toggleFileSelection(file.id)}
                           />
-                          
+
                           {/* Thumbnail */}
-                          <div className="w-12 h-12 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded border overflow-hidden">
+                          <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded border bg-gray-200 dark:bg-gray-700">
                             {thumbnailUrl ? (
                               <Image
                                 src={thumbnailUrl}
                                 alt={file.fileName}
                                 width={48}
                                 height={48}
-                                className="w-full h-full object-cover"
+                                className="h-full w-full object-cover"
                                 onError={(e) => {
                                   // Hide image on error and show icon
                                   e.currentTarget.style.display = 'none'
                                   const parent = e.currentTarget.parentElement
                                   if (parent) {
                                     const icon = document.createElement('div')
-                                    icon.className = 'w-full h-full flex items-center justify-center'
-                                    icon.innerHTML = '<svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path></svg>'
+                                    icon.className =
+                                      'w-full h-full flex items-center justify-center'
+                                    icon.innerHTML =
+                                      '<svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path></svg>'
                                     parent.appendChild(icon)
                                   }
                                 }}
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <ImageIcon className="w-6 h-6 text-gray-400" />
+                              <div className="flex h-full w-full items-center justify-center">
+                                <ImageIcon className="h-6 w-6 text-gray-400" />
                               </div>
                             )}
                           </div>
@@ -439,10 +523,14 @@ export function DeduplicationPage() {
                           <div>
                             <div className="font-medium">{file.fileName}</div>
                             <div className="text-sm text-gray-600">
-                              {file.bucketName} • {format(new Date(file.lastModified), 'MMM d, yyyy HH:mm')}
+                              {file.bucketName} •{' '}
+                              {format(
+                                new Date(file.lastModified),
+                                'MMM d, yyyy HH:mm',
+                              )}
                             </div>
                             {file.dbReference && (
-                              <div className="flex items-center gap-2 mt-1">
+                              <div className="mt-1 flex items-center gap-2">
                                 <Badge variant="secondary" className="text-xs">
                                   {file.dbReference}
                                 </Badge>
@@ -456,8 +544,12 @@ export function DeduplicationPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-medium">{formatBytes(file.fileSize)}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">{file.objectKey}</div>
+                          <div className="text-sm font-medium">
+                            {formatBytes(file.fileSize)}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {file.objectKey}
+                          </div>
                         </div>
                       </div>
                     )
@@ -477,9 +569,12 @@ export function DeduplicationPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Important Notice</AlertTitle>
           <AlertDescription>
-            When deleting duplicate files, ensure you keep at least one copy of each file that is referenced in your database. 
-            Files with database references (showing badges) are currently being used and should be carefully reviewed before deletion.
-            Use "Select Non-DB Files" buttons to safely select files that are not referenced in the database.
+            When deleting duplicate files, ensure you keep at least one copy of
+            each file that is referenced in your database. Files with database
+            references (showing badges) are currently being used and should be
+            carefully reviewed before deletion. Use &quot;Select Non-DB
+            Files&quot; buttons to safely select files that are not referenced
+            in the database.
           </AlertDescription>
         </Alert>
       )}

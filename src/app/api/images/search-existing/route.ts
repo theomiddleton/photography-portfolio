@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { getSession } from '~/lib/auth/auth'
 import { db } from '~/server/db'
 import { imageData, customImgData, galleryImages } from '~/server/db/schema'
-import { like, or, eq, sql } from 'drizzle-orm'
+import { like, or, sql } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const offset = Number.isNaN(offsetRaw) ? 0 : Math.max(offsetRaw, 0)
 
     // Safe date normalization function
-    const normalizeDate = (dateValue: any): Date => {
+    const normalizeDate = (dateValue: unknown): Date => {
       if (!dateValue) return new Date()
       if (dateValue instanceof Date) return dateValue
       if (typeof dateValue === 'string') {

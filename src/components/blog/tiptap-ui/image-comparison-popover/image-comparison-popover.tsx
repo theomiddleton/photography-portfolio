@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import * as React from 'react'
 import { type Editor } from '@tiptap/react'
 
@@ -456,6 +457,7 @@ export interface ImageComparisonPopoverProps
 
 export function ImageComparisonPopover({
   editor: providedEditor,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hideWhenUnavailable = false,
   extensionName = 'imageComparison',
   bucket,

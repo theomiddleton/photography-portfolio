@@ -8,18 +8,22 @@ import { Label } from '~/components/ui/label'
 import { Button } from '~/components/ui/button'
 import { SimpleEditor } from '~/components/blog/editor'
 import { toast } from 'sonner'
+import type { Editor } from '@tiptap/react'
 
 interface AboutFormProps {
-  initialContent?: any
+  initialContent?: {
+    title?: string
+    content?: string
+  }
 }
 
 export function AboutForm({ initialContent }: AboutFormProps) {
   const router = useRouter()
-  const editorRef = React.useRef<any>(null)
+  const editorRef = React.useRef<{ editor: Editor | null } | null>(null)
   const [title, setTitle] = React.useState(initialContent?.title ?? 'About Me')
   const [error, setError] = React.useState('')
 
-  const handleSubmit = async (isDraft: boolean) => {
+  const handleSubmit = async () => {
     setError('')
     try {
       // Get the current editor content
@@ -56,7 +60,7 @@ export function AboutForm({ initialContent }: AboutFormProps) {
         // Handle validation errors
         if (data.errors) {
           const errorMessages = data.errors
-            .map((err: any) => err.message)
+            .map((err: { message: string }) => err.message)
             .join(', ')
           setError(errorMessages)
           toast.error(`Validation failed: ${errorMessages}`)
@@ -93,7 +97,11 @@ export function AboutForm({ initialContent }: AboutFormProps) {
 
       <Card>
         <CardContent>
-          <SimpleEditor ref={editorRef} initialContent={initialContent} scope='about' />
+          <SimpleEditor
+            ref={editorRef}
+            initialContent={initialContent}
+            scope="about"
+          />
         </CardContent>
       </Card>
 
@@ -101,7 +109,7 @@ export function AboutForm({ initialContent }: AboutFormProps) {
         <Button variant="outline" onClick={() => router.push('/admin/about')}>
           Cancel
         </Button>
-        <Button onClick={() => handleSubmit(false)}>Publish About</Button>
+        <Button onClick={() => handleSubmit()}>Publish About</Button>
       </div>
       {error && <div className="mb-2 text-sm text-red-500">{error}</div>}
     </div>

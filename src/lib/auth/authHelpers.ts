@@ -51,7 +51,7 @@ export async function verifyPassword(
   }
   try {
     return bcrypt.compare(password, hash)
-  } catch (error) {
+  } catch (_error) {
     console.warn('Password verification failed')
     return false
   }

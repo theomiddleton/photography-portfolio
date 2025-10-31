@@ -32,7 +32,7 @@ interface SetupAdminState {
  * Create the first admin user - only allowed when no admin users exist
  */
 export async function setupFirstAdmin(
-  prevState: SetupAdminState,
+  _prevState: SetupAdminState,
   data: FormData,
 ): Promise<SetupAdminState> {
   // Validate CSRF token first

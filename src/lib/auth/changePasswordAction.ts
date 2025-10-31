@@ -12,7 +12,7 @@ interface ChangePasswordState {
 }
 
 export async function changePasswordAction(
-  prevState: ChangePasswordState, 
+  _prevState: ChangePasswordState, 
   data: FormData
 ): Promise<ChangePasswordState> {
   // Validate CSRF token

@@ -28,7 +28,7 @@ export async function addPrintSize(data: {
     revalidatePath('/admin/store')
     revalidatePath('/admin/store/products')
     return { success: true, data: size }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to add size' }
   }
 }
@@ -61,7 +61,7 @@ export async function updatePrintSize(
     revalidatePath('/admin/store')
     revalidatePath('/admin/store/products')
     return { success: true, data: size }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to update size' }
   }
 }

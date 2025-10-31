@@ -45,7 +45,6 @@ export function ImageGallery({
     updateImagesOrder,
     toggleImageVisibility,
     deleteImage,
-    updateImage,
   } = useImages({
     initialImages,
     visibleOnly,

@@ -90,7 +90,7 @@ export async function POST(request: Request) {
     })
 
     // Filter response based on requested tasks
-    const filteredResponse: any = {}
+    const filteredResponse: Partial<z.infer<typeof MetadataSchema>> = {}
     if (tasks.includes('title') && result.object.title) {
       filteredResponse.title = result.object.title
     }

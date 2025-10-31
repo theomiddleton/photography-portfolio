@@ -1,5 +1,6 @@
 import { AlertCircleIcon, ImageIcon, UploadIcon, XIcon } from 'lucide-react'
 import { useState } from 'react'
+import Image from 'next/image'
 
 import {
   formatBytes,
@@ -28,7 +29,7 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
     {},
   )
-  const [uploadedFiles, setUploadedFiles] = useState<
+  const [_uploadedFiles, setUploadedFiles] = useState<
     { id: string; name: string; url: string; file: File }[]
   >([])
 
@@ -174,7 +175,7 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
         className="border-input data-[dragging=true]:bg-accent/50 has-[input:focus]:border-ring has-[input:focus]:ring-ring/50 relative flex min-h-52 flex-col items-center overflow-hidden rounded-xl border border-dashed p-4 transition-colors not-data-files:justify-center has-[input:focus]:ring-[3px]"
       >
         <input
-          {...getInputProps()}
+          {...(getInputProps() as React.InputHTMLAttributes<HTMLInputElement>)}
           className="sr-only"
           aria-label="Upload image file"
         />
@@ -226,10 +227,13 @@ export function AltUpload({ bucket, onFilesAdded }: AltUploadProps) {
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-3 overflow-hidden">
                     <div className="bg-accent aspect-square shrink-0 rounded">
-                      <img
+                      <Image
                         src={file.preview}
                         alt={file.file.name}
+                        width={40}
+                        height={40}
                         className="size-10 rounded-[inherit] object-cover"
+                        unoptimized
                       />
                     </div>
                     <div className="flex min-w-0 flex-col gap-0.5">

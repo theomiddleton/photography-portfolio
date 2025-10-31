@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { getServerSiteConfig } from '~/config/site'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const config = getServerSiteConfig()
     return NextResponse.json(config)

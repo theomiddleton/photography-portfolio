@@ -39,6 +39,25 @@ export function GalleryAccessLogs({ galleryId, galleryTitle }: GalleryAccessLogs
   const [logs, setLogs] = useState<AccessLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
+  useEffect(() => {
+    const fetchLogs = async () => {
+      setIsLoading(true)
+      try {
+        const response = await fetch(`/api/gallery/access-logs?galleryId=${galleryId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setLogs(data.logs || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch access logs:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchLogs()
+  }, [galleryId])
+
   const fetchLogs = async () => {
     setIsLoading(true)
     try {
@@ -54,10 +73,6 @@ export function GalleryAccessLogs({ galleryId, galleryTitle }: GalleryAccessLogs
     }
   }
 
-  useEffect(() => {
-    fetchLogs()
-  }, [galleryId])
-
   return (
     <Card>
       <CardHeader>
@@ -65,7 +80,7 @@ export function GalleryAccessLogs({ galleryId, galleryTitle }: GalleryAccessLogs
           <div>
             <CardTitle>Access Logs</CardTitle>
             <CardDescription>
-              Recent access attempts for "{galleryTitle}"
+              Recent access attempts for &quot;{galleryTitle}&quot;
             </CardDescription>
           </div>
           <Button

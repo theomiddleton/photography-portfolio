@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { getSession } from '~/lib/auth/auth'
 import { db } from '~/server/db'
 import { galleries } from '~/server/db/schema'
-import { eq, inArray } from 'drizzle-orm'
+import { inArray } from 'drizzle-orm'
 import { hashPassword } from '~/lib/auth/authHelpers'
 import { revalidatePath } from 'next/cache'
 
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const updateData: any = {}
+    const updateData: Partial<typeof galleries.$inferInsert> = {}
 
     switch (action) {
       case 'enable_password':

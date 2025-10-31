@@ -81,7 +81,7 @@ export function GalleryPasswordPrompt({ gallerySlug, galleryTitle, onSuccess }: 
           </div>
           <CardTitle>Protected Gallery</CardTitle>
           <CardDescription>
-            Enter the password to access "{galleryTitle}"
+            Enter the password to access &quot;{galleryTitle}&quot;
           </CardDescription>
         </CardHeader>
         <CardContent>

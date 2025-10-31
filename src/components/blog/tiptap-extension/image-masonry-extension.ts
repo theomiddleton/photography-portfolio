@@ -3,7 +3,7 @@ import { ReactNodeViewRenderer } from '@tiptap/react'
 import { ImageMasonryComponent } from '../image-masonry-node/image-masonry-node'
 
 export interface ImageMasonryOptions {
-  HTMLAttributes: Record<string, any>
+  HTMLAttributes: Record<string, unknown>
 }
 
 export interface MasonryImage {
@@ -158,7 +158,7 @@ export const ImageMasonryExtension = Node.create<ImageMasonryOptions>({
     const masonryClass = `mx-auto max-w-5xl ${columnClasses[columns as keyof typeof columnClasses] || 'sm:columns-1 md:columns-2 lg:columns-3'} ${gapClasses[gap as keyof typeof gapClasses]}`
 
     // Create image elements
-    const imageElements = images.map((image: any, index: number) => {
+    const imageElements = images.map((image: MasonryImage, index: number) => {
       const itemClass = `masonry-item break-inside-avoid overflow-hidden rounded-md transition-transform duration-100 hover:scale-[0.97] ${itemSpacing[gap as keyof typeof itemSpacing]}`
 
       const imgElement = [

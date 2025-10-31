@@ -8,7 +8,6 @@ import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import {
-  AlertCircleIcon,
   ImageIcon,
   UploadIcon,
   XIcon,
@@ -104,11 +103,12 @@ export function BatchUpload({
 
   // Cleanup blob URLs when images are removed or component unmounts
   useEffect(() => {
+    const blobUrls = blobUrlsRef.current
     return () => {
-      blobUrlsRef.current.forEach((url) => {
+      blobUrls.forEach((url) => {
         URL.revokeObjectURL(url)
       })
-      blobUrlsRef.current.clear()
+      blobUrls.clear()
     }
   }, [])
 
@@ -352,7 +352,7 @@ export function BatchUpload({
   const updateImageData = (
     imageId: string,
     field: keyof BatchImageData,
-    value: any,
+    value: string | number | boolean | PrintSize[],
   ) => {
     setBatchImages((prev) =>
       prev.map((img) =>
@@ -595,7 +595,7 @@ export function BatchUpload({
     setUploadProgress({})
   }
 
-  const { files, isDragging, errors, warnings, isValidating } = fileUploadState
+  const { isDragging, errors, warnings, isValidating } = fileUploadState
 
   const {
     handleDragEnter,
@@ -605,8 +605,6 @@ export function BatchUpload({
     openFileDialog,
     clearFiles,
     getInputProps,
-    clearErrors,
-    clearWarnings,
   } = fileUploadActions
 
   return (
@@ -668,7 +666,7 @@ export function BatchUpload({
           className="border-input data-[dragging=true]:bg-accent/50 has-[input:focus]:border-ring has-[input:focus]:ring-ring/50 relative flex min-h-32 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed p-4 transition-colors has-[input:focus]:ring-[3px]"
         >
           <input
-            {...getInputProps()}
+            {...(getInputProps() as React.InputHTMLAttributes<HTMLInputElement>)}
             className="sr-only"
             aria-label="Upload image files"
           />
@@ -759,6 +757,7 @@ export function BatchUpload({
                     <div className="grid grid-cols-12 items-start gap-4">
                       <div className="col-span-2">
                         <div className="relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={image.preview || image.url || ''}
                             alt={image.file.name}

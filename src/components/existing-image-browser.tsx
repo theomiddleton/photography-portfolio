@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Badge } from '~/components/ui/badge'
@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import { Label } from '~/components/ui/label'
 import {
   Search,
   ImageIcon,
@@ -76,7 +75,7 @@ export function ExistingImageBrowser({
     bucketFilter || '',
   )
 
-  const loadImages = async () => {
+  const loadImages = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
@@ -98,19 +97,19 @@ export function ExistingImageBrowser({
     } finally {
       setLoading(false)
     }
-  }
+  }, [searchQuery, currentBucketFilter])
 
   // Load immediately when dialog opens
   useEffect(() => {
     if (isOpen) loadImages()
-  }, [isOpen])
+  }, [isOpen, loadImages])
 
   // Debounce query/filter changes while open
   useEffect(() => {
     if (!isOpen) return
     const timeoutId = setTimeout(loadImages, 300)
     return () => clearTimeout(timeoutId)
-  }, [isOpen, searchQuery, currentBucketFilter])
+  }, [isOpen, loadImages])
 
   const handleImageClick = (image: ExistingImage) => {
     if (multiSelect) {

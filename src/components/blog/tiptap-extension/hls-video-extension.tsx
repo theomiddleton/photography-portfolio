@@ -1,9 +1,9 @@
-import { Node, mergeAttributes, type Editor } from '@tiptap/core'
+import { Node, mergeAttributes } from '@tiptap/core'
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react'
 import { HLSPlayer } from '~/components/video/hls-player'
 
 export interface HLSVideoOptions {
-  HTMLAttributes: Record<string, any>
+  HTMLAttributes: Record<string, unknown>
 }
 
 declare module '@tiptap/core' {
@@ -186,7 +186,7 @@ export const HLSVideoExtension = Node.create<HLSVideoOptions>({
     return {
       setHLSVideo:
         (options) =>
-        ({ chain, commands }) => {
+        ({ chain }) => {
           return chain()
             .focus()
             .insertContent({

@@ -8,8 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Textarea } from '~/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Checkbox } from '~/components/ui/checkbox'
-import { Progress } from '~/components/ui/progress'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '~/components/ui/dialog'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import type { BasePrintSize } from '~/server/db/schema'
 import { formatPrice } from '~/lib/utils'
@@ -24,8 +23,6 @@ import {
   CheckCircle,
   AlertCircle,
   RefreshCw,
-  Trash2,
-  Edit,
   Save,
   AlertTriangle
 } from 'lucide-react'
@@ -55,16 +52,18 @@ interface BulkOperation {
   selectedItems: string[]
 }
 
+interface TemplateSizeItem {
+  name: string
+  width: number
+  height: number
+  basePrice: number
+}
+
 interface PrintSizeTemplate {
   id: string
   name: string
   description: string
-  sizes: {
-    name: string
-    width: number
-    height: number
-    basePrice: number
-  }[]
+  sizes: TemplateSizeItem[]
 }
 
 // Predefined print size templates for quick setup - these are configurable templates, not hardcoded data
@@ -128,16 +127,16 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
   // Template-related state
   const [selectedTemplate, setSelectedTemplate] = useState<PrintSizeTemplate | null>(null)
   const [showTemplateDialog, setShowTemplateDialog] = useState(false)
-  const [templateConflicts, setTemplateConflicts] = useState<{ existingSize: BasePrintSize, templateSize: any }[]>([])
+  const [templateConflicts, setTemplateConflicts] = useState<{ existingSize: BasePrintSize, templateSize: TemplateSizeItem }[]>([])
   const [conflictResolutions, setConflictResolutions] = useState<Record<string, 'overwrite' | 'skip' | 'both'>>({})
   const [showConflictDialog, setShowConflictDialog] = useState(false)
   
   // Product application state
   const [products, setProducts] = useState<Product[]>([])
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set())
-  const [showProductDialog, setShowProductDialog] = useState(false)
+  const [_showProductDialog, setShowProductDialog] = useState(false)
   const [applyToProducts, setApplyToProducts] = useState(false)
-  const [productConflicts, setProductConflicts] = useState<{ productId: string, productName: string, conflictingSizes: any[] }[]>([])
+  const [_productConflicts, setProductConflicts] = useState<{ productId: string, productName: string, conflictingSizes: BasePrintSize[] }[]>([])
   const [productConflictResolutions, setProductConflictResolutions] = useState<Record<string, 'overwrite' | 'skip' | 'both'>>({})
 
   // Load products when component mounts
@@ -206,7 +205,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
       
       onUpdate()
       setSelectedSizes(new Set())
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to apply bulk operation')
     } finally {
       setProcessing(false)
@@ -235,13 +234,11 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
     
     toast.success('Data exported successfully')
   }
-
-  // Template handling functions
   const handleTemplateSelect = (template: PrintSizeTemplate) => {
     setSelectedTemplate(template)
     
     // Check for conflicts with existing sizes
-    const conflicts: { existingSize: BasePrintSize, templateSize: any }[] = []
+    const conflicts: { existingSize: BasePrintSize, templateSize: TemplateSizeItem }[] = []
     
     template.sizes.forEach(templateSize => {
       const existingSize = sizes.find(size => 
@@ -269,7 +266,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
     }
   }
 
-  const handleProductSelection = () => {
+  const _handleProductSelection = () => {
     if (selectedProducts.size === 0) {
       toast.error('Please select at least one product')
       return
@@ -372,7 +369,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
       
       onUpdate() // Refresh the sizes list
       
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to apply template')
     } finally {
       setProcessing(false)
@@ -427,7 +424,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
       toast.success(`Successfully imported ${importedItems.length} items`)
       setImportData('')
       onUpdate()
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to import data. Please check the format.')
     }
   }
@@ -476,7 +473,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
                   <Label>Operation Type</Label>
                   <Select 
                     value={operation.type} 
-                    onValueChange={(value: any) => setOperation({...operation, type: value})}
+                    onValueChange={(value: 'price-increase' | 'price-decrease' | 'profit-margin' | 'replace-text' | 'deactivate') => setOperation({...operation, type: value})}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -535,7 +532,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
                       <div>
                         <p className="font-medium">{size.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {size.width}"×{size.height}" • {formatPrice(size.basePrice)}
+                          {size.width}&quot;×{size.height}&quot; • {formatPrice(size.basePrice)}
                         </p>
                       </div>
                     </div>
@@ -716,7 +713,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
                       <div>
                         <span className="font-medium">{size.name}</span>
                         <span className="text-sm text-muted-foreground ml-2">
-                          {size.width}"×{size.height}"
+                          {size.width}&quot;×{size.height}&quot;
                         </span>
                       </div>
                       <span className="text-sm">{formatPrice(size.basePrice)}</span>
@@ -820,7 +817,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
             {templateConflicts.map((conflict, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-3">
                 <div className="font-medium text-sm">
-                  Conflict: {conflict.templateSize.name} ({conflict.templateSize.width}"×{conflict.templateSize.height}")
+                  Conflict: {conflict.templateSize.name} ({conflict.templateSize.width}&quot;×{conflict.templateSize.height}&quot;)
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -828,7 +825,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
                     <div className="font-medium text-blue-600">Existing Size</div>
                     <div>{conflict.existingSize.name}</div>
                     <div className="text-muted-foreground">
-                      {conflict.existingSize.width}"×{conflict.existingSize.height}"
+                      {conflict.existingSize.width}&quot;×{conflict.existingSize.height}&quot;
                     </div>
                     <div>{formatPrice(conflict.existingSize.basePrice)}</div>
                   </div>
@@ -837,7 +834,7 @@ export function BulkOperations({ sizes, onUpdate }: BulkOperationsProps) {
                     <div className="font-medium text-green-600">Template Size</div>
                     <div>{conflict.templateSize.name}</div>
                     <div className="text-muted-foreground">
-                      {conflict.templateSize.width}"×{conflict.templateSize.height}"
+                      {conflict.templateSize.width}&quot;×{conflict.templateSize.height}&quot;
                     </div>
                     <div>{formatPrice(conflict.templateSize.basePrice)}</div>
                   </div>

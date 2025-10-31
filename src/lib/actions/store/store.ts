@@ -18,10 +18,7 @@ import { isStoreEnabledServer } from '~/lib/store-utils'
 import {
   createCheckoutSessionSchema,
   updateOrderStatusSchema,
-  updateTaxRatesSchema,
-  type CreateCheckoutSessionInput,
-  type UpdateOrderStatusInput,
-  type UpdateTaxRatesInput,
+  updateTaxRatesSchema
 } from '~/lib/validations/store'
 
 export async function createCheckoutSession(
@@ -255,7 +252,7 @@ export async function updateOrderStatus(
     }
 
     // Update existing order in transaction
-    const result = await dbWithTx.transaction(async (tx) => {
+    const _result = await dbWithTx.transaction(async (tx) => {
       const updateResult = await tx
         .update(orders)
         .set({

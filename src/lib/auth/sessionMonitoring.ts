@@ -208,6 +208,11 @@ export async function monitorSessionHealth(): Promise<{
     alerts.push(`Large number of sessions expiring soon: ${stats.sessionsExpiringIn24h} of ${stats.totalActiveSessions}`)
   }
 
+  // Check for any other anomalies
+  if (suspicious.length > 0) {
+    alerts.push(`Detected ${suspicious.length} users with suspicious session activity`)
+  }
+
   // Log health check
   void logSecurityEvent({
     type: 'ADMIN_ACCESS', // Reusing closest event type
