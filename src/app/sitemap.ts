@@ -2,7 +2,7 @@
  * Comprehensive SEO-optimized sitemap for the portfolio website
  * 
  * Features:
- * - Includes all public dynamic content (blog posts, custom pages, videos, galleries, images, store products)
+ * - Includes all public dynamic content (blog posts, videos, galleries, images, store products)
  * - Excludes admin routes for security and SEO (handled by robots.txt)
  * - Optimized priorities and change frequencies for different content types
  * - Recent blog posts get higher priority and more frequent updates
@@ -18,7 +18,6 @@ import { db } from '~/server/db'
 import { 
   imageData, 
   blogPosts, 
-  customPages, 
   videos, 
   galleries, 
   multiGalleryPages,
@@ -50,16 +49,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from(blogPosts)
       .where(eq(blogPosts.published, true))
       .limit(1000) // Reasonable limit for performance
-
-    // Get published custom pages
-    const publishedCustomPages = await db
-      .select({
-        slug: customPages.slug,
-        lastModified: customPages.updatedAt,
-      })
-      .from(customPages)
-      .where(eq(customPages.isPublished, true))
-      .limit(500) // Reasonable limit
 
     // Get visible videos
     const visibleVideos = await db
@@ -155,16 +144,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           lastModified: post.lastModified || post.publishedAt || new Date(),
           changeFrequency: isRecent ? 'daily' : 'weekly' as const,
           priority: isRecent ? 0.8 : 0.7,
-        })
-      })
-
-      // Custom pages
-      publishedCustomPages.forEach((page) => {
-        sitemapEntries.push({
-          url: `${baseUrl}/p/${page.slug}`,
-          lastModified: page.lastModified || new Date(),
-          changeFrequency: 'monthly' as const,
-          priority: 0.6,
         })
       })
 

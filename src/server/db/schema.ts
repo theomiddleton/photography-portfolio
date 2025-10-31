@@ -220,16 +220,6 @@ export const videos = pgTable('videos', {
   modifiedAt: timestamp('modifiedAt').defaultNow(),
 })
 
-export const customPages = pgTable('customPages', {
-  id: serial('id').primaryKey(),
-  title: text('title').notNull(),
-  content: text('content').notNull(),
-  slug: text('slug').notNull().unique(),
-  isPublished: boolean('isPublished').default(false).notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
-})
-
 export const customImgData = pgTable('customImgData', {
   id: serial('id').primaryKey(),
   uuid: varchar('uuid', { length: 36 }).notNull(),
@@ -816,8 +806,7 @@ export type User = typeof users.$inferSelect
 export type UserSession = typeof userSessions.$inferSelect
 export type MultiGalleryPage = typeof multiGalleryPages.$inferSelect
 export type MultiGallerySection = typeof multiGallerySections.$inferSelect
-export type MultiGallerySectionImage =
-  typeof multiGallerySectionImages.$inferSelect
+export type MultiGallerySectionImage = typeof multiGallerySectionImages.$inferSelect
 export type MultiGallerySeparator = typeof multiGallerySeparators.$inferSelect
 export type StorageUsage = typeof storageUsage.$inferSelect
 export type AlertDismissal = typeof alertDismissals.$inferSelect
