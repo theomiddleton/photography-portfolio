@@ -1,6 +1,6 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '~/components/ui/button'
@@ -22,8 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Video } from '~/server/db/schema'
+import { slugify } from '~/lib/utils'
 
 const videoFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -72,6 +73,20 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
   })
 
   const visibility = form.watch('visibility')
+  
+  // Auto-generate slug from title for new videos
+  const title = useWatch({
+    control: form.control,
+    name: 'title',
+  })
+
+  useEffect(() => {
+    if (title && !video) {
+      form.setValue('slug', slugify(title), {
+        shouldValidate: true,
+      })
+    }
+  }, [title, form, video])
 
   const handleSubmit = async (data: VideoFormData) => {
     await onSubmit(data)

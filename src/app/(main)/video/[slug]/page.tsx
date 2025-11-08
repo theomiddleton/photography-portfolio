@@ -1,5 +1,6 @@
 import { getVideoBySlug, checkVideoAccess, incrementVideoViews, logVideoAccess } from '~/server/services/video-service'
 import { HLSPlayer } from '~/components/video/hls-player'
+import { VideoPasswordForm } from '~/components/video/video-password-form'
 import { notFound } from 'next/navigation'
 import { Card, CardContent } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -48,22 +49,11 @@ export default async function VideoPage(props: VideoPageProps) {
   )
 
   if (!accessResult.canAccess) {
-    // Redirect to password page for private videos
+    // Show password form for private videos
     if (accessResult.requiresPassword) {
       return (
         <div className="container max-w-2xl py-12">
-          <Card>
-            <CardContent className="pt-6">
-              <h1 className="text-2xl font-bold mb-4">Password Required</h1>
-              <p className="text-muted-foreground mb-6">
-                This video is private and requires a password to view.
-              </p>
-              {/* TODO: Add password form component */}
-              <p className="text-sm text-muted-foreground">
-                Password form coming soon...
-              </p>
-            </CardContent>
-          </Card>
+          <VideoPasswordForm slug={params.slug} />
         </div>
       )
     }
