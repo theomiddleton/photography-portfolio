@@ -1,12 +1,14 @@
 import { getVideoBySlug, checkVideoAccess, incrementVideoViews, logVideoAccess } from '~/server/services/video-service'
 import { HLSPlayer } from '~/components/video/hls-player'
 import { VideoPasswordForm } from '~/components/video/video-password-form'
+import { VideoComments } from '~/components/video/video-comments'
 import { notFound } from 'next/navigation'
 import { Card, CardContent } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
 import { Eye, Calendar, Clock } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { headers } from 'next/headers'
+import { getSession } from '~/lib/auth/auth'
 import type { Metadata } from 'next'
 
 export const revalidate = 3600
@@ -71,6 +73,9 @@ export default async function VideoPage(props: VideoPageProps) {
     incrementVideoViews(video.id),
     logVideoAccess(video.id, 'view', ipAddress, userAgent),
   ])
+
+  // Get session for comment permissions
+  const session = await getSession()
 
   const formatDuration = (seconds?: number | null) => {
     if (!seconds) return null
@@ -145,6 +150,17 @@ export default async function VideoPage(props: VideoPageProps) {
           </div>
         )}
       </div>
+
+      {/* Comments Section */}
+      <VideoComments
+        videoId={video.id}
+        commentsEnabled={video.commentsEnabled}
+        allowAnonymousComments={video.allowAnonymousComments}
+        requireApproval={video.requireApproval}
+        commentsLocked={video.commentsLocked}
+        isAdmin={session?.role === 'admin'}
+        currentUserId={session?.id ?? null}
+      />
     </main>
   )
 }
