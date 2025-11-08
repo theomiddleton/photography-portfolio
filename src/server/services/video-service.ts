@@ -148,27 +148,30 @@ export async function getVideos(options?: {
   limit?: number
   offset?: number
 }) {
-  let query = db.select().from(videos)
-
+  const conditions = []
+  
   if (options?.visibility) {
-    query = query.where(eq(videos.visibility, options.visibility)) as typeof query
+    conditions.push(eq(videos.visibility, options.visibility))
   }
 
   if (options?.authorId) {
-    query = query.where(eq(videos.authorId, options.authorId)) as typeof query
+    conditions.push(eq(videos.authorId, options.authorId))
   }
 
-  query = query.orderBy(desc(videos.createdAt))
+  const baseQuery = db.select().from(videos)
+  const filteredQuery = conditions.length > 0 
+    ? baseQuery.where(and(...conditions)) 
+    : baseQuery
 
-  if (options?.limit) {
-    query = query.limit(options.limit)
-  }
+  const orderedQuery = filteredQuery.orderBy(desc(videos.createdAt))
+  const limitedQuery = options?.limit 
+    ? orderedQuery.limit(options.limit) 
+    : orderedQuery
+  const finalQuery = options?.offset 
+    ? limitedQuery.offset(options.offset) 
+    : limitedQuery
 
-  if (options?.offset) {
-    query = query.offset(options.offset)
-  }
-
-  return await query
+  return await finalQuery
 }
 
 /**

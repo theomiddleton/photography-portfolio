@@ -58,7 +58,31 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createVideoSchema.parse(body)
 
-    const video = await createVideo(validatedData)
+    // Ensure required fields are present
+    if (!validatedData.slug || !validatedData.title || !validatedData.hlsUrl) {
+      return NextResponse.json(
+        { error: 'Missing required fields: slug, title, hlsUrl' },
+        { status: 400 }
+      )
+    }
+
+    const video = await createVideo({
+      slug: validatedData.slug,
+      title: validatedData.title,
+      hlsUrl: validatedData.hlsUrl,
+      visibility: validatedData.visibility,
+      description: validatedData.description,
+      thumbnailUrl: validatedData.thumbnailUrl,
+      duration: validatedData.duration,
+      password: validatedData.password,
+      fileSize: validatedData.fileSize,
+      resolution: validatedData.resolution,
+      fps: validatedData.fps,
+      seoTitle: validatedData.seoTitle,
+      seoDescription: validatedData.seoDescription,
+      tags: validatedData.tags,
+      authorId: validatedData.authorId,
+    })
 
     return NextResponse.json({ video }, { status: 201 })
   } catch (error) {
