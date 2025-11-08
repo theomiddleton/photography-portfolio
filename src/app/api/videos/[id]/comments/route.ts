@@ -64,23 +64,19 @@ export async function GET(
       return NextResponse.json({ comments: [] })
     }
 
-    // Build query
-    let query = db
-      .select()
-      .from(videoComments)
-      .where(eq(videoComments.videoId, params.id))
-
+    // Build query conditions
+    const conditions = [eq(videoComments.videoId, params.id)]
+    
     // Only include approved comments unless user is admin
     if (!isAdmin && !includeUnapproved) {
-      query = query.where(
-        and(
-          eq(videoComments.videoId, params.id),
-          eq(videoComments.isApproved, true)
-        )
-      ) as typeof query
+      conditions.push(eq(videoComments.isApproved, true))
     }
 
-    const comments = await query.orderBy(desc(videoComments.createdAt))
+    const comments = await db
+      .select()
+      .from(videoComments)
+      .where(and(...conditions))
+      .orderBy(desc(videoComments.createdAt))
 
     // Organize comments into thread structure
     const commentMap = new Map()
@@ -193,7 +189,7 @@ export async function POST(
     const commentData: typeof videoComments.$inferInsert = {
       videoId: params.id,
       userId: session?.id ?? null,
-      authorName: session?.name ?? validatedData.authorName,
+      authorName: session ? (validatedData.authorName || session.email.split('@')[0]) : validatedData.authorName,
       authorEmail: session?.email ?? validatedData.authorEmail ?? null,
       content: validatedData.content,
       timestamp: validatedData.timestamp ?? null,
