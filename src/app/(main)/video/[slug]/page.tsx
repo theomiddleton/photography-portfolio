@@ -1,7 +1,6 @@
 import { getVideoBySlug, checkVideoAccess, incrementVideoViews, logVideoAccess } from '~/server/services/video-service'
-import { HLSPlayer } from '~/components/video/hls-player'
 import { VideoPasswordForm } from '~/components/video/video-password-form'
-import { VideoComments } from '~/components/video/video-comments'
+import { VideoPageClient } from '~/components/video/video-page-client'
 import { notFound } from 'next/navigation'
 import { Card, CardContent } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -11,7 +10,7 @@ import { headers } from 'next/headers'
 import { getSession } from '~/lib/auth/auth'
 import type { Metadata } from 'next'
 
-export const revalidate = 3600
+export const revalidate = 0
 
 interface VideoPageProps {
   params: Promise<{ slug: string }>
@@ -86,9 +85,16 @@ export default async function VideoPage(props: VideoPageProps) {
 
   return (
     <main className="container max-w-5xl py-24 space-y-6">
-      <HLSPlayer 
-        src={video.hlsUrl} 
-        poster={video.thumbnailUrl ?? undefined}
+      <VideoPageClient
+        videoId={video.id}
+        hlsUrl={video.hlsUrl}
+        thumbnailUrl={video.thumbnailUrl ?? undefined}
+        commentsEnabled={video.commentsEnabled}
+        allowAnonymousComments={video.allowAnonymousComments}
+        requireApproval={video.requireApproval}
+        commentsLocked={video.commentsLocked}
+        isAdmin={session?.role === 'admin'}
+        currentUserId={session?.id ?? null}
       />
       
       <div className="space-y-4">
@@ -150,17 +156,6 @@ export default async function VideoPage(props: VideoPageProps) {
           </div>
         )}
       </div>
-
-      {/* Comments Section */}
-      <VideoComments
-        videoId={video.id}
-        commentsEnabled={video.commentsEnabled}
-        allowAnonymousComments={video.allowAnonymousComments}
-        requireApproval={video.requireApproval}
-        commentsLocked={video.commentsLocked}
-        isAdmin={session?.role === 'admin'}
-        currentUserId={session?.id ?? null}
-      />
     </main>
   )
 }

@@ -10,6 +10,7 @@ interface HLSPlayerProps {
   autoPlay?: boolean
   onError?: (error: Error) => void
   onPlay?: () => void
+  onTimeUpdate?: (currentTime: number) => void
 }
 
 export function HLSPlayer({ 
@@ -18,6 +19,7 @@ export function HLSPlayer({
   autoPlay = false,
   onError,
   onPlay,
+  onTimeUpdate,
 }: HLSPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const hlsRef = useRef<Hls | null>(null)
@@ -31,14 +33,43 @@ export function HLSPlayer({
     setIsLoading(true)
     setError(null)
 
-    // Native HLS support (Safari)
+    // Native HLS support (Safari/WebKit)
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = src
-      video.addEventListener('loadedmetadata', () => setIsLoading(false))
-      video.addEventListener('error', () => {
+      
+      const handleLoadedMetadata = () => {
+        setIsLoading(false)
+        setError(null)
+      }
+      
+      const handleError = (e: Event) => {
+        console.error('Video error:', e)
+        const mediaError = video.error
+        if (mediaError) {
+          console.error('Media error code:', mediaError.code)
+          console.error('Media error message:', mediaError.message)
+        }
         setError('Failed to load video')
         setIsLoading(false)
-      })
+      }
+      
+      const handleCanPlay = () => {
+        setIsLoading(false)
+        setError(null)
+      }
+      
+      video.addEventListener('loadedmetadata', handleLoadedMetadata)
+      video.addEventListener('error', handleError)
+      video.addEventListener('canplay', handleCanPlay)
+      
+      // Trigger load
+      video.load()
+      
+      return () => {
+        video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+        video.removeEventListener('error', handleError)
+        video.removeEventListener('canplay', handleCanPlay)
+      }
     } 
     // HLS.js for other browsers
     else if (Hls.isSupported()) {
@@ -100,6 +131,12 @@ export function HLSPlayer({
     onPlay?.()
   }
 
+  const handleTimeUpdate = () => {
+    if (videoRef.current && onTimeUpdate) {
+      onTimeUpdate(Math.floor(videoRef.current.currentTime))
+    }
+  }
+
   return (
     <div className="relative w-full bg-black rounded-lg overflow-hidden">
       {isLoading && (
@@ -124,6 +161,7 @@ export function HLSPlayer({
         controls
         playsInline
         onPlay={handlePlay}
+        onTimeUpdate={handleTimeUpdate}
       />
     </div>
   )

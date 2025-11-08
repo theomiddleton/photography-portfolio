@@ -19,6 +19,7 @@ interface VideoCommentsProps {
   commentsLocked: boolean
   isAdmin?: boolean
   currentUserId?: number | null
+  currentVideoTime?: number
 }
 
 interface CommentWithReplies extends VideoComment {
@@ -33,6 +34,7 @@ export function VideoComments({
   commentsLocked,
   isAdmin = false,
   currentUserId = null,
+  currentVideoTime = 0,
 }: VideoCommentsProps) {
   const [comments, setComments] = useState<CommentWithReplies[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,7 +44,8 @@ export function VideoComments({
   const [content, setContent] = useState('')
   const [authorName, setAuthorName] = useState('')
   const [authorEmail, setAuthorEmail] = useState('')
-  const [timestamp, setTimestamp] = useState<number | undefined>()
+  // Auto-capture timestamp from current video time
+  const timestamp = currentVideoTime > 0 ? currentVideoTime : undefined
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
   useEffect(() => {
@@ -103,7 +106,6 @@ export function VideoComments({
       setContent('')
       setAuthorName('')
       setAuthorEmail('')
-      setTimestamp(undefined)
       setReplyingTo(null)
       await fetchComments()
     } catch (error) {
@@ -336,13 +338,12 @@ export function VideoComments({
             />
 
             <div className="flex items-center gap-4">
-              <Input
-                type="number"
-                placeholder="Timestamp (optional, in seconds)"
-                value={timestamp || ''}
-                onChange={(e) => setTimestamp(e.target.value ? parseInt(e.target.value) : undefined)}
-                className="max-w-xs"
-              />
+              {timestamp !== undefined && timestamp > 0 && (
+                <Badge variant="secondary" className="gap-1">
+                  <Clock className="h-3 w-3" />
+                  Timestamp: {Math.floor(timestamp / 60)}:{(timestamp % 60).toString().padStart(2, '0')}
+                </Badge>
+              )}
               <Button type="submit" disabled={submitting}>
                 {submitting ? 'Posting...' : 'Post Comment'}
               </Button>
