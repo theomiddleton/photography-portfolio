@@ -7,6 +7,7 @@ export const adminSections = [
   { title: 'Gallery Management', description: 'Manage the layout of the gallery', icon: GalleryThumbnailsIcon, href: '/admin/gallery'},
   { title: 'Custom Galleries', description: 'Create and manage custom galleries', icon: GalleryThumbnailsIcon, href: '/admin/galleries'},
   { title: 'Videos', description: 'Manage HLS videos with visibility controls', icon: VideoIcon, href: '/admin/videos' },
+  { title: 'New Video', description: 'Upload a new HLS video', icon: VideoIcon, href: '/admin/videos/new' },
   { title: 'Blogs', description: 'View and edit blog posts', icon: BookOpenText, href: '/admin/blog' },
   { title: 'New Blog Post', description: 'Create a new blog posts', icon: PenIcon, href: '/admin/blog/new' },
   { title: 'About', description: 'Edit about page content', icon: InfoIcon, href: '/admin/about' },
