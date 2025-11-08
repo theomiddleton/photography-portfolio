@@ -2,7 +2,7 @@
  * Comprehensive SEO-optimized sitemap for the portfolio website
  * 
  * Features:
- * - Includes all public dynamic content (blog posts, custom pages, galleries, images, store products)
+ * - Includes all public dynamic content (blog posts, custom pages, videos, galleries, images, store products)
  * - Excludes admin routes for security and SEO (handled by robots.txt)
  * - Optimized priorities and change frequencies for different content types
  * - Recent blog posts get higher priority and more frequent updates
@@ -18,7 +18,8 @@ import { db } from '~/server/db'
 import { 
   imageData, 
   blogPosts, 
-  customPages, 
+  customPages,
+  videos,
   galleries, 
   multiGalleryPages,
   products
@@ -58,6 +59,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
       .from(customPages)
       .where(eq(customPages.isPublished, true))
+      .limit(500) // Reasonable limit
+
+    // Get public videos
+    const publicVideos = await db
+      .select({
+        slug: videos.slug,
+        lastModified: videos.updatedAt,
+      })
+      .from(videos)
+      .where(eq(videos.visibility, 'public'))
       .limit(500) // Reasonable limit
 
     // Get public galleries
@@ -154,6 +165,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           lastModified: page.lastModified || new Date(),
           changeFrequency: 'monthly' as const,
           priority: 0.6,
+        })
+      })
+
+      // Public videos
+      publicVideos.forEach((video) => {
+        sitemapEntries.push({
+          url: `${baseUrl}/video/${video.slug}`,
+          lastModified: video.lastModified || new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
         })
       })
 

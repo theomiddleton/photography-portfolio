@@ -1,4 +1,4 @@
-import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon, HomeIcon, LogOutIcon, BookOpenText, ImagesIcon, BookOpenIcon, BookOpenTextIcon, ReceiptPoundSterlingIcon, DownloadIcon, GalleryThumbnailsIcon, FolderOpenIcon, SettingsIcon, Database } from 'lucide-react'
+import { ImageIcon, PenIcon, InfoIcon, StoreIcon, UserIcon, HomeIcon, LogOutIcon, BookOpenText, ImagesIcon, BookOpenIcon, BookOpenTextIcon, ReceiptPoundSterlingIcon, DownloadIcon, GalleryThumbnailsIcon, FolderOpenIcon, SettingsIcon, Database, VideoIcon } from 'lucide-react'
 
 export const adminSections = [
   { title: 'Image Upload', description: 'Manage and upload images', icon: ImageIcon, href: '/admin/upload' },
@@ -6,6 +6,7 @@ export const adminSections = [
   { title: 'Image Migration', description: 'Export and import image data', icon: DownloadIcon, href: '/admin/migrate'},
   { title: 'Gallery Management', description: 'Manage the layout of the gallery', icon: GalleryThumbnailsIcon, href: '/admin/gallery'},
   { title: 'Custom Galleries', description: 'Create and manage custom galleries', icon: GalleryThumbnailsIcon, href: '/admin/galleries'},
+  { title: 'Videos', description: 'Manage HLS videos with visibility controls', icon: VideoIcon, href: '/admin/videos' },
   { title: 'Blogs', description: 'View and edit blog posts', icon: BookOpenText, href: '/admin/blog' },
   { title: 'New Blog Post', description: 'Create a new blog posts', icon: PenIcon, href: '/admin/blog/new' },
   { title: 'About', description: 'Edit about page content', icon: InfoIcon, href: '/admin/about' },
