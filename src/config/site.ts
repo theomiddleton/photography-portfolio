@@ -4,6 +4,12 @@ import { getEnv } from './env-utils'
 const defaultConfig = {
   title: 'Photography Portfolio',
   description: 'Professional photography portfolio and online store',
+  logo: {
+    type: 'text', // 'text' | 'image' | 'icon'
+    text: '', // Initials or short text (e.g., 'TM', 'Photo')
+    imageUrl: '', // URL to logo image when type is 'image'
+    alt: 'Site Logo',
+  },
   storeName: 'Photography Store',
   ownerName: 'Photographer Name',
   imageBucketUrl: 'https://your-domain.com/images',
@@ -121,6 +127,12 @@ export function getServerSiteConfig() {
   return {
     title: getEnv('NEXT_PUBLIC_SITE_TITLE', defaultConfig.title),
     description: getEnv('NEXT_PUBLIC_SITE_DESCRIPTION', defaultConfig.description),
+    logo: {
+      type: getEnv('NEXT_PUBLIC_LOGO_TYPE', defaultConfig.logo.type),
+      text: getEnv('NEXT_PUBLIC_LOGO_TEXT', defaultConfig.logo.text),
+      imageUrl: getEnv('NEXT_PUBLIC_LOGO_IMAGE_URL', defaultConfig.logo.imageUrl),
+      alt: getEnv('NEXT_PUBLIC_LOGO_ALT', defaultConfig.logo.alt),
+    },
     storeName: getEnv('NEXT_PUBLIC_STORE_NAME', defaultConfig.storeName),
     ownerName: getEnv('NEXT_PUBLIC_OWNER_NAME', defaultConfig.ownerName),
     imageBucketUrl: getEnv('NEXT_PUBLIC_IMAGE_BUCKET_URL', defaultConfig.imageBucketUrl),

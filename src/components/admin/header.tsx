@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import type { SiteConfig } from '~/config/site'
-import { Icons } from '~/components/ui/icons'
+import { Logo } from '~/components/ui/logo'
 import { MobileSidebar } from '~/components/admin/mobile-sidebar'
 import { AdminSidebar } from '~/components/admin/sidebar'
 import { ThemeToggle } from '~/components/admin/theme/theme-toggle'
@@ -14,7 +14,7 @@ interface AdminHeaderProps {
 export function AdminHeader({ siteConfig }: AdminHeaderProps) {
   return (
     <div>
-      <header className="flex h-14 items-center justify-between border-b bg-muted/40 px-6">
+      <header className="bg-muted/40 flex h-14 items-center justify-between border-b px-6">
         <div className="flex items-center gap-2">
           <div className="lg:hidden">
             <MobileSidebar>
@@ -26,7 +26,7 @@ export function AdminHeader({ siteConfig }: AdminHeaderProps) {
             className="flex items-center gap-2 font-semibold"
             prefetch={false}
           >
-            <Icons.logo className="h-6 w-6" />
+            <Logo className="h-6 w-6" />
             <span>{siteConfig.title}</span>
           </Link>
           <Link href="/admin">

@@ -798,6 +798,7 @@ The main site configuration is located in `src/config/site.ts` and includes:
 - **Social links**: Instagram, Twitter, Facebook, and other social media links
 - **Email addresses**: Contact and support email configuration
 - **Site metadata**: Title, description, and branding
+- **Logo configuration**: Text, image, or icon logos (see [Logo Configuration Guide](./docs/LOGO_CONFIGURATION.md))
 - **Feature flags**: Control which features are enabled (including AI and Store)
 
 #### Configuration Methods
@@ -814,6 +815,12 @@ const defaultConfig = {
   title: 'Your Portfolio Name', // Change from 'Photography Portfolio'
   description: 'Your unique description', // Customize your description
   ownerName: 'Your Name', // Change from 'Photographer Name'
+  logo: {
+    type: 'text', // 'text', 'image', or 'icon'
+    text: 'TM', // Your initials (for text type)
+    imageUrl: '', // URL to logo image (for image type)
+    alt: 'Your Name Photography',
+  },
   url: 'https://yourdomain.com', // Your actual domain
   imageBucketUrl: 'https://yourdomain.com/images', // Your bucket URL
   // ... other settings

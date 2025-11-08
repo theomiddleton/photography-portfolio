@@ -5,7 +5,7 @@ import { AxiomWebVitals } from 'next-axiom'
 import { Toaster } from '~/components/ui/sonner'
 import { ThemeCleanup } from '~/components/admin/theme/theme-cleanup'
 
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Inter, Old_Standard_TT, Playfair_Display } from 'next/font/google'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -15,6 +15,12 @@ const inter = Inter({
 const playfairDisplay = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-serif',
+})
+
+const oldStandard = Old_Standard_TT({
+  subsets: ['latin'],
+  variable: '--font-old-standard',
+  weight: ['400', '700'],
 })
 
 export const viewport = {
@@ -30,7 +36,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`font-sans ${inter.variable} ${playfairDisplay.variable}`}>
+      <body className={`font-sans ${inter.variable} ${playfairDisplay.variable} ${oldStandard.variable}`}>
         <ThemeCleanup />
         {children}
         <Toaster />

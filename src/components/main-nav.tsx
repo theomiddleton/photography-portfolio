@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '~/lib/utils'
 import type { SiteConfig } from '~/config/site'
-import { Icons } from '~/components/ui/icons'
+import { Logo } from '~/components/ui/logo'
 import { MenuIcon, ChevronDownIcon } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '~/components/ui/sheet'
@@ -224,8 +224,8 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
               className="flex items-center space-x-2"
               onClick={() => setOpen(false)}
             >
-              <Icons.logo className="h-6 w-6" />
-              <span className="font-serif text-lg font-semibold">
+              <Logo className="h-6 w-6" />
+              <span className="font-serif text-lg leading-6 font-semibold">
                 {siteConfig.title}
               </span>
             </Link>
@@ -242,8 +242,8 @@ export function MainNav({ isAdmin, siteConfig }: MainNavProps) {
       </Sheet>
       <div className="hidden md:flex">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Icons.logo className="h-6 w-6" />
-          <span className="font-serif text-lg font-semibold">
+          <Logo className="h-6 w-6" />
+          <span className="font-serif text-lg leading-6 font-semibold">
             {siteConfig.title}
           </span>
         </Link>

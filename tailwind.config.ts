@@ -22,6 +22,7 @@ const config: Config = {
       fontFamily: {
         sans: ['var(--font-sans)', 'sans-serif'],
         serif: ['var(--font-serif)', 'serif'],
+        'old-standard': ['var(--font-old-standard)', 'serif'],
       },
       colors: {
         border: 'hsl(var(--border))',

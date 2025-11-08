@@ -3,15 +3,11 @@ import { getSession } from '~/lib/auth/auth'
 import { logout } from '~/lib/auth/userActions'
 import { getServerSiteConfig } from '~/config/site'
 import { cn } from '~/lib/utils'
-import { Icons } from '~/components/ui/icons'
+import { ServerLogo } from '~/components/ui/logo'
 import { MainNav } from '~/components/main-nav'
 import { buttonVariants } from '~/components/ui/button'
 import { Button } from '~/components/ui/button'
-import {
-  User,
-  Settings,
-  Shield,
-} from 'lucide-react'
+import { User, Settings, Shield } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -124,7 +120,7 @@ export async function SiteHeader() {
                   'w-9 px-0',
                 )}
               >
-                <Icons.logo className="h-6 w-6 fill-current" />
+                <ServerLogo siteConfig={siteConfig} className="h-6 w-6" />
                 <span className="sr-only">Website</span>
               </div>
             </Link>

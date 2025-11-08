@@ -1,13 +1,13 @@
 import { siteConfig } from '~/config/site'
 import { cn } from '~/lib/utils'
-import { Icons } from '~/components/ui/icons'
+import { ServerLogo } from '~/components/ui/logo'
 import { buttonVariants } from '~/components/ui/button'
 import Link from 'next/link'
 import { FaGithub, FaInstagram, FaXTwitter, FaFacebook } from 'react-icons/fa6'
 
 export function SiteFooter() {
   return (
-    <footer className="fixed bottom-0 left-0 z-40 w-full border-t border-border/40 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
+    <footer className="border-border/40 bg-background/95 supports-backdrop-filter:bg-background/60 fixed bottom-0 left-0 z-40 w-full border-t backdrop-blur-sm">
       <div className="container flex h-14 max-w-(--breakpoint-2xl) items-center">
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none"></div>
@@ -102,7 +102,7 @@ export function SiteFooter() {
                     'w-9 px-0',
                   )}
                 >
-                  <Icons.logo className="h-6 w-6 fill-current" />
+                  <ServerLogo siteConfig={siteConfig} className="h-6 w-6" />
                   <span className="sr-only">website</span>
                 </div>
               </Link>
