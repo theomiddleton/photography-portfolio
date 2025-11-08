@@ -15,6 +15,7 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
+import { Switch } from '~/components/ui/switch'
 import {
   Select,
   SelectContent,
@@ -40,6 +41,10 @@ const videoFormSchema = z.object({
   seoTitle: z.string().optional().or(z.literal('')),
   seoDescription: z.string().optional().or(z.literal('')),
   tags: z.string().optional().or(z.literal('')),
+  commentsEnabled: z.boolean().default(true),
+  allowAnonymousComments: z.boolean().default(false),
+  requireApproval: z.boolean().default(false),
+  commentsLocked: z.boolean().default(false),
 })
 
 export type VideoFormData = z.infer<typeof videoFormSchema>
@@ -69,10 +74,15 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
       seoTitle: video?.seoTitle ?? '',
       seoDescription: video?.seoDescription ?? '',
       tags: video?.tags ?? '',
+      commentsEnabled: video?.commentsEnabled ?? true,
+      allowAnonymousComments: video?.allowAnonymousComments ?? false,
+      requireApproval: video?.requireApproval ?? false,
+      commentsLocked: video?.commentsLocked ?? false,
     },
   })
 
   const visibility = form.watch('visibility')
+  const commentsEnabled = form.watch('commentsEnabled')
   
   // Auto-generate slug from title for new videos
   const title = useWatch({
@@ -314,6 +324,98 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
             </FormItem>
           )}
         />
+
+        <div className="space-y-4 pt-4 border-t">
+          <h3 className="text-lg font-semibold">Comment Settings</h3>
+          
+          <FormField
+            control={form.control}
+            name="commentsEnabled"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Enable Comments</FormLabel>
+                  <FormDescription>
+                    Allow viewers to leave comments on this video
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          {commentsEnabled && (
+            <>
+              <FormField
+                control={form.control}
+                name="allowAnonymousComments"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Allow Anonymous Comments</FormLabel>
+                      <FormDescription>
+                        Let users comment without logging in (requires name and email)
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="requireApproval"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Require Approval</FormLabel>
+                      <FormDescription>
+                        Comments must be approved before appearing publicly
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="commentsLocked"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Lock Comments</FormLabel>
+                      <FormDescription>
+                        Prevent new comments from being posted (existing comments remain visible)
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
+        </div>
 
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : video ? 'Update Video' : 'Create Video'}

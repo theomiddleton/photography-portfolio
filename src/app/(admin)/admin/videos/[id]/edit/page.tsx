@@ -28,6 +28,10 @@ async function handleUpdateVideo(id: string, data: VideoFormData) {
     seoTitle: data.seoTitle,
     seoDescription: data.seoDescription,
     tags: data.tags,
+    commentsEnabled: data.commentsEnabled,
+    allowAnonymousComments: data.allowAnonymousComments,
+    requireApproval: data.requireApproval,
+    commentsLocked: data.commentsLocked,
   }
   
   await updateVideo(id, updateData)

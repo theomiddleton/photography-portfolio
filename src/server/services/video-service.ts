@@ -29,6 +29,10 @@ export interface CreateVideoInput {
   seoDescription?: string
   tags?: string
   authorId?: number
+  commentsEnabled?: boolean
+  allowAnonymousComments?: boolean
+  requireApproval?: boolean
+  commentsLocked?: boolean
 }
 
 export interface UpdateVideoInput {
@@ -49,6 +53,10 @@ export interface UpdateVideoInput {
   processingStatus?: 'pending' | 'processing' | 'completed' | 'failed'
   processingError?: string
   publishedAt?: Date
+  commentsEnabled?: boolean
+  allowAnonymousComments?: boolean
+  requireApproval?: boolean
+  commentsLocked?: boolean
 }
 
 export interface VideoAccessCheckResult {
@@ -77,6 +85,10 @@ export async function createVideo(input: CreateVideoInput) {
     tags: input.tags,
     authorId: input.authorId,
     publishedAt: input.visibility === 'public' ? new Date() : null,
+    commentsEnabled: input.commentsEnabled ?? true,
+    allowAnonymousComments: input.allowAnonymousComments ?? false,
+    requireApproval: input.requireApproval ?? false,
+    commentsLocked: input.commentsLocked ?? false,
   }
 
   // Hash password if provided for private videos
