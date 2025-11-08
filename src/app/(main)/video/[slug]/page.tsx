@@ -85,7 +85,7 @@ export default async function VideoPage(props: VideoPageProps) {
   }
 
   return (
-    <main className="container max-w-5xl py-6 pt-24 space-y-6">
+    <main className="container max-w-5xl py-24 space-y-6">
       <HLSPlayer 
         src={video.hlsUrl} 
         poster={video.thumbnailUrl ?? undefined}
