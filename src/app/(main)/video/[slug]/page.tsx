@@ -75,6 +75,11 @@ export default async function VideoPage(props: VideoPageProps) {
 
   // Get session for comment permissions
   const session = await getSession()
+  console.log('Video page session:', session)
+  console.log('Session type:', typeof session)
+  console.log('Session ID:', session?.id)
+  console.log('Is Admin:', session?.role === 'admin')
+  console.log('')
 
   const formatDuration = (seconds?: number | null) => {
     if (!seconds) return null

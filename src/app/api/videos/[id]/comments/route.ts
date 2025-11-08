@@ -1,6 +1,6 @@
 /**
  * Video Comments API Routes
- * 
+ *
  * Features:
  * - Rate limiting via Redis (prevents spam)
  * - Support for timestamp-based comments
@@ -11,15 +11,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '~/server/db'
 import { videoComments, videos } from '~/server/db/schema'
-import { eq, and, desc, isNull } from 'drizzle-orm'
+import { eq, and, desc } from 'drizzle-orm'
 import { z } from 'zod'
 import { rateLimit, getClientIP } from '~/lib/rate-limit'
 import { getSession } from '~/lib/auth/auth'
 
 const commentSchema = z.object({
-  content: z.string().min(1, 'Comment cannot be empty').max(2000, 'Comment too long'),
+  content: z
+    .string()
+    .min(1, 'Comment cannot be empty')
+    .max(2000, 'Comment too long'),
   timestamp: z.number().optional(), // Video timestamp in seconds
-  authorName: z.string().min(1, 'Name is required').max(100),
+  authorName: z.string().min(1, 'Name is required').max(100).optional(), // Optional for authenticated users
   authorEmail: z.string().email('Invalid email').optional(),
   parentId: z.string().uuid().optional(), // For threaded replies
 })
@@ -36,7 +39,7 @@ const commentRateLimit = rateLimit({
  */
 export async function GET(
   request: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  props: { params: Promise<{ id: string }> },
 ) {
   const params = await props.params
   try {
@@ -54,10 +57,7 @@ export async function GET(
       .where(eq(videos.id, params.id))
 
     if (!video) {
-      return NextResponse.json(
-        { error: 'Video not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Video not found' }, { status: 404 })
     }
 
     if (!video.commentsEnabled) {
@@ -66,7 +66,7 @@ export async function GET(
 
     // Build query conditions
     const conditions = [eq(videoComments.videoId, params.id)]
-    
+
     // Only include approved comments unless user is admin
     if (!isAdmin && !includeUnapproved) {
       conditions.push(eq(videoComments.isApproved, true))
@@ -82,11 +82,11 @@ export async function GET(
     const commentMap = new Map()
     const rootComments: typeof comments = []
 
-    comments.forEach(comment => {
+    comments.forEach((comment) => {
       commentMap.set(comment.id, { ...comment, replies: [] })
     })
 
-    comments.forEach(comment => {
+    comments.forEach((comment) => {
       if (comment.parentId) {
         const parent = commentMap.get(comment.parentId)
         if (parent) {
@@ -102,7 +102,7 @@ export async function GET(
     console.error('Error fetching comments:', error)
     return NextResponse.json(
       { error: 'Failed to fetch comments' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -112,29 +112,29 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  props: { params: Promise<{ id: string }> },
 ) {
   const params = await props.params
   try {
     // Get client IP for rate limiting
     const clientIP = getClientIP(request)
-    
+
     // Check rate limit
     const rateLimitResult = await commentRateLimit.check(clientIP)
     if (!rateLimitResult.success) {
       return NextResponse.json(
-        { 
+        {
           error: 'Too many comments. Please try again later.',
-          retryAfter: rateLimitResult.reset 
+          retryAfter: rateLimitResult.reset,
         },
-        { 
+        {
           status: 429,
           headers: {
             'X-RateLimit-Limit': rateLimitResult.limit.toString(),
             'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
             'X-RateLimit-Reset': rateLimitResult.reset.toString(),
-          }
-        }
+          },
+        },
       )
     }
 
@@ -145,17 +145,14 @@ export async function POST(
       .where(eq(videos.id, params.id))
 
     if (!video) {
-      return NextResponse.json(
-        { error: 'Video not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Video not found' }, { status: 404 })
     }
 
     // Check if comments are enabled
     if (!video.commentsEnabled) {
       return NextResponse.json(
         { error: 'Comments are disabled for this video' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
@@ -163,7 +160,7 @@ export async function POST(
     if (video.commentsLocked) {
       return NextResponse.json(
         { error: 'Comments are locked for this video' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
@@ -174,13 +171,21 @@ export async function POST(
     if (!video.allowAnonymousComments && !session) {
       return NextResponse.json(
         { error: 'You must be logged in to comment' },
-        { status: 401 }
+        { status: 401 },
       )
     }
 
     // Parse and validate request body
     const body = await request.json()
     const validatedData = commentSchema.parse(body)
+
+    // For anonymous users, ensure name is provided
+    if (!session && !validatedData.authorName) {
+      return NextResponse.json(
+        { error: 'Name is required for anonymous comments' },
+        { status: 400 },
+      )
+    }
 
     // Get user agent
     const userAgent = request.headers.get('user-agent') || undefined
@@ -189,7 +194,9 @@ export async function POST(
     const commentData: typeof videoComments.$inferInsert = {
       videoId: params.id,
       userId: session?.id ?? null,
-      authorName: session ? (validatedData.authorName || session.email.split('@')[0]) : validatedData.authorName,
+      authorName: session
+        ? validatedData.authorName || session.email.split('@')[0]
+        : validatedData.authorName!,
       authorEmail: session?.email ?? validatedData.authorEmail ?? null,
       content: validatedData.content,
       timestamp: validatedData.timestamp ?? null,
@@ -205,27 +212,27 @@ export async function POST(
       .returning()
 
     return NextResponse.json(
-      { 
+      {
         comment,
-        message: video.requireApproval 
+        message: video.requireApproval
           ? 'Comment submitted for approval'
-          : 'Comment posted successfully'
+          : 'Comment posted successfully',
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (error) {
     console.error('Error creating comment:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid comment data', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     return NextResponse.json(
       { error: 'Failed to create comment' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
