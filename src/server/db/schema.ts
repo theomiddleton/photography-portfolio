@@ -206,19 +206,117 @@ export const logs = pgTable(
   }),
 )
 
-export const videos = pgTable('videos', {
-  id: text('id').primaryKey(),
-  slug: text('slug').notNull().unique(),
-  title: text('title').notNull(),
-  description: text('description'),
-  hlsUrl: text('hlsUrl').notNull(),
-  thumbnail: text('thumbnailUrl'),
-  duration: text('duration'),
-  views: text('views').default('0'),
-  isVisible: boolean('isVisible').default(true),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  modifiedAt: timestamp('modifiedAt').defaultNow(),
-})
+// Video visibility types
+export const videoVisibility = ['public', 'private', 'unlisted'] as const
+export type VideoVisibility = (typeof videoVisibility)[number]
+
+// Videos table with enhanced security and visibility controls
+export const videos = pgTable(
+  'videos',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    slug: text('slug').notNull().unique(),
+    title: text('title').notNull(),
+    description: text('description'),
+    
+    // HLS streaming configuration
+    hlsUrl: text('hlsUrl').notNull(),
+    thumbnailUrl: text('thumbnailUrl'),
+    duration: integer('duration'), // Duration in seconds
+    
+    // Visibility and access control
+    visibility: text('visibility', { enum: videoVisibility })
+      .notNull()
+      .default('public'),
+    password: text('password'), // Hashed password for private videos
+    
+    // Metadata
+    views: integer('views').default(0).notNull(),
+    fileSize: bigint('fileSize', { mode: 'number' }), // File size in bytes
+    resolution: text('resolution'), // e.g., "1920x1080"
+    fps: integer('fps'), // Frames per second
+    
+    // Processing status
+    processingStatus: text('processingStatus', {
+      enum: ['pending', 'processing', 'completed', 'failed'],
+    })
+      .notNull()
+      .default('completed'),
+    processingError: text('processingError'),
+    
+    // SEO and metadata
+    seoTitle: text('seoTitle'),
+    seoDescription: text('seoDescription'),
+    tags: text('tags'), // Comma-separated tags
+    
+    // Timestamps
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+    publishedAt: timestamp('publishedAt'),
+    
+    // Author tracking
+    authorId: integer('authorId').references(() => users.id),
+  },
+  (table) => ({
+    slugIndex: index('videos_slug_idx').on(table.slug),
+    visibilityIndex: index('videos_visibility_idx').on(table.visibility),
+    authorIndex: index('videos_author_idx').on(table.authorId),
+    createdAtIndex: index('videos_created_at_idx').on(table.createdAt),
+    visibilityCreatedIndex: index('videos_visibility_created_idx').on(
+      table.visibility,
+      table.createdAt,
+    ),
+  }),
+)
+
+// Video access logs for tracking views and security
+export const videoAccessLogs = pgTable(
+  'videoAccessLogs',
+  {
+    id: serial('id').primaryKey(),
+    videoId: uuid('videoId')
+      .references(() => videos.id, { onDelete: 'cascade' })
+      .notNull(),
+    ipAddress: varchar('ipAddress', { length: 45 }).notNull(),
+    userAgent: text('userAgent'),
+    accessType: varchar('accessType', { length: 20 }).notNull(), // 'view', 'password_success', 'password_fail', 'token_access'
+    accessedAt: timestamp('accessedAt').defaultNow().notNull(),
+    userId: integer('userId').references(() => users.id), // If authenticated user
+  },
+  (table) => ({
+    videoIdIndex: index('video_access_logs_video_id_idx').on(table.videoId),
+    accessedAtIndex: index('video_access_logs_accessed_at_idx').on(
+      table.accessedAt,
+    ),
+    ipAddressIndex: index('video_access_logs_ip_address_idx').on(
+      table.ipAddress,
+    ),
+  }),
+)
+
+// Temporary access tokens for private/unlisted videos
+export const videoAccessTokens = pgTable(
+  'videoAccessTokens',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    videoId: uuid('videoId')
+      .references(() => videos.id, { onDelete: 'cascade' })
+      .notNull(),
+    token: varchar('token', { length: 64 }).notNull().unique(),
+    expiresAt: timestamp('expiresAt').notNull(),
+    maxUses: integer('maxUses').default(1).notNull(),
+    currentUses: integer('currentUses').default(0).notNull(),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    createdBy: integer('createdBy').references(() => users.id),
+  },
+  (table) => ({
+    tokenIndex: index('video_access_tokens_token_idx').on(table.token),
+    videoIdIndex: index('video_access_tokens_video_id_idx').on(table.videoId),
+    expiresAtIndex: index('video_access_tokens_expires_at_idx').on(
+      table.expiresAt,
+    ),
+  }),
+)
 
 export const customPages = pgTable('customPages', {
   id: serial('id').primaryKey(),
@@ -811,6 +909,41 @@ export const alertDismissalRelations = relations(
   }),
 )
 
+// Video relations
+export const videoRelations = relations(videos, ({ one, many }) => ({
+  author: one(users, {
+    fields: [videos.authorId],
+    references: [users.id],
+  }),
+  accessLogs: many(videoAccessLogs),
+  accessTokens: many(videoAccessTokens),
+}))
+
+export const videoAccessLogRelations = relations(videoAccessLogs, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoAccessLogs.videoId],
+    references: [videos.id],
+  }),
+  user: one(users, {
+    fields: [videoAccessLogs.userId],
+    references: [users.id],
+  }),
+}))
+
+export const videoAccessTokenRelations = relations(
+  videoAccessTokens,
+  ({ one }) => ({
+    video: one(videos, {
+      fields: [videoAccessTokens.videoId],
+      references: [videos.id],
+    }),
+    creator: one(users, {
+      fields: [videoAccessTokens.createdBy],
+      references: [users.id],
+    }),
+  }),
+)
+
 // Export types
 export type User = typeof users.$inferSelect
 export type UserSession = typeof userSessions.$inferSelect
@@ -824,3 +957,7 @@ export type AlertDismissal = typeof alertDismissals.$inferSelect
 export type DuplicateFile = typeof duplicateFiles.$inferSelect
 export type UsageAlertConfig = typeof usageAlertConfig.$inferSelect
 export type GlobalStorageConfig = typeof globalStorageConfig.$inferSelect
+export type Video = typeof videos.$inferSelect
+export type VideoInsert = typeof videos.$inferInsert
+export type VideoAccessLog = typeof videoAccessLogs.$inferSelect
+export type VideoAccessToken = typeof videoAccessTokens.$inferSelect
