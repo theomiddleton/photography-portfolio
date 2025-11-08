@@ -11,10 +11,12 @@ import {
 } from '~/components/ui/table'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
-import { Pencil, Trash2, Eye, EyeOff, Lock } from 'lucide-react'
+import { Pencil, Trash2, Eye, EyeOff, Lock, ExternalLink, Copy } from 'lucide-react'
 import Link from 'next/link'
 import type { Video } from '~/server/db/schema'
 import { formatDistanceToNow } from 'date-fns'
+import { toast } from 'sonner'
+import { useState } from 'react'
 
 interface VideoTableProps {
   videos: Video[]
@@ -22,6 +24,8 @@ interface VideoTableProps {
 }
 
 export function VideoTable({ videos, onDelete }: VideoTableProps) {
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+
   const getVisibilityBadge = (visibility: string) => {
     switch (visibility) {
       case 'public':
@@ -40,6 +44,18 @@ export function VideoTable({ videos, onDelete }: VideoTableProps) {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
+  const copyVideoLink = async (slug: string, videoId: string) => {
+    const url = `${window.location.origin}/video/${slug}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedId(videoId)
+      toast.success('Link copied to clipboard')
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch (err) {
+      toast.error('Failed to copy link')
+    }
   }
 
   return (
@@ -85,6 +101,24 @@ export function VideoTable({ videos, onDelete }: VideoTableProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        asChild
+                      >
+                        <Link href={`/video/${video.slug}`} target="_blank">
+                          <ExternalLink className="h-4 w-4" />
+                          <span className="sr-only">View video</span>
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => copyVideoLink(video.slug, video.id)}
+                      >
+                        <Copy className={`h-4 w-4 ${copiedId === video.id ? 'text-green-500' : ''}`} />
+                        <span className="sr-only">Copy link</span>
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"

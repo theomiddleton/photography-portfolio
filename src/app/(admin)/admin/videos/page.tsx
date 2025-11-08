@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: 'Manage HLS videos with public, private, and unlisted visibility options',
 }
 
-export const revalidate = 3600
+export const revalidate = 0
 
 async function deleteVideo(id: string) {
   'use server'
