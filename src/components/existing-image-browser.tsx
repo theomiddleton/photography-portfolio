@@ -141,19 +141,28 @@ export function ExistingImageBrowser({
   }
 
   const getSourceBadgeVariant = (source: string) => {
-    // In All-buckets view, use better contrast variants for gallery badges
-    const isAllBucketsView =
-      currentBucketFilter === 'all' || currentBucketFilter === ''
-
     switch (source) {
       case 'main':
         return 'default'
       case 'custom':
-        return 'default'
+        return 'secondary'
       case 'gallery':
-        return isAllBucketsView ? 'default' : 'secondary'
+        return 'outline'
       default:
         return 'default'
+    }
+  }
+
+  const getSourceLabel = (source: string) => {
+    switch (source) {
+      case 'main':
+        return 'Main'
+      case 'custom':
+        return 'Custom'
+      case 'gallery':
+        return 'Gallery'
+      default:
+        return source
     }
   }
 
@@ -199,6 +208,7 @@ export function ExistingImageBrowser({
                 <SelectItem value="all">All buckets</SelectItem>
                 <SelectItem value="image">Main Gallery</SelectItem>
                 <SelectItem value="custom">Custom Images</SelectItem>
+                <SelectItem value="gallery">Gallery Images</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex gap-2">
@@ -294,7 +304,7 @@ export function ExistingImageBrowser({
                             variant={getSourceBadgeVariant(image.source)}
                             className="text-xs"
                           >
-                            {image.source}
+                            {getSourceLabel(image.source)}
                           </Badge>
                         </div>
                       </div>
@@ -322,7 +332,7 @@ export function ExistingImageBrowser({
                             variant={getSourceBadgeVariant(image.source)}
                             className="text-xs"
                           >
-                            {image.source}
+                            {getSourceLabel(image.source)}
                           </Badge>
                           <span className="text-muted-foreground text-xs">
                             {formatDate(image.uploadedAt)}
