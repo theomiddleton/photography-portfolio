@@ -4,7 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card'
 import { Lock } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -33,8 +39,8 @@ export function VideoPasswordForm({ slug }: VideoPasswordFormProps) {
       const data = await response.json()
 
       if (response.ok && data.canAccess) {
-        // Reload the page with password in URL (will be used to verify access)
-        router.push(`/video/${slug}?password=${encodeURIComponent(password)}`)
+        setPassword('')
+        router.replace(`/video/${slug}`)
         router.refresh()
       } else {
         toast.error('Incorrect password. Please try again.')
@@ -48,9 +54,9 @@ export function VideoPasswordForm({ slug }: VideoPasswordFormProps) {
   }
 
   return (
-    <Card className="max-w-md mx-auto">
+    <Card className="mx-auto max-w-md">
       <CardHeader>
-        <div className="flex items-center gap-2 mb-2">
+        <div className="mb-2 flex items-center gap-2">
           <Lock className="h-5 w-5" />
           <CardTitle>Password Required</CardTitle>
         </div>
@@ -70,7 +76,11 @@ export function VideoPasswordForm({ slug }: VideoPasswordFormProps) {
               autoFocus
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading || !password}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading || !password}
+          >
             {isLoading ? 'Verifying...' : 'Submit'}
           </Button>
         </form>

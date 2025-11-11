@@ -185,10 +185,11 @@ export function StorageAlertProvider({
         )
 
         const previousAlerts = alertsRef.current
+        const previousAlertIds = new Set(previousAlerts.map((a) => a.id))
         const newCriticalAlerts = filteredAlerts.filter(
           (alert: StorageAlert) =>
             alert.alertType === 'critical' &&
-            !previousAlerts.some((prevAlert) => prevAlert.id === alert.id),
+            !previousAlertIds.has(alert.id),
         )
 
         setAlerts((prev) => {

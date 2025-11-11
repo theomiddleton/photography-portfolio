@@ -7,15 +7,16 @@ import {
 import { VideoPasswordForm } from '~/components/video/video-password-form'
 import { VideoPageClient } from '~/components/video/video-page-client'
 import { notFound } from 'next/navigation'
-import { headers } from 'next/headers'
+import { headers, cookies } from 'next/headers'
 import { getSession } from '~/lib/auth/auth'
 import type { Metadata } from 'next'
+import { VIDEO_ACCESS_COOKIE_PREFIX } from '~/lib/video-access'
 
 export const revalidate = 0
 
 interface VideoPageProps {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ token?: string; password?: string }>
+  searchParams: Promise<{ token?: string }>
 }
 
 export async function generateMetadata(
@@ -72,10 +73,17 @@ export default async function VideoPage(props: VideoPageProps) {
   }
 
   // Check access
+  const cookieStore = await cookies()
+  const cookieToken = cookieStore.get(
+    `${VIDEO_ACCESS_COOKIE_PREFIX}${params.slug}`,
+  )?.value
+
+  const effectiveToken = searchParams.token ?? cookieToken
+
   const accessResult = await checkVideoAccess(
     params.slug,
-    searchParams.password,
-    searchParams.token,
+    undefined,
+    effectiveToken,
   )
 
   if (!accessResult.canAccess) {

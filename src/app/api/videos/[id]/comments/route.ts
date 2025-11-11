@@ -44,11 +44,13 @@ export async function GET(
   const params = await props.params
   try {
     const { searchParams } = new URL(request.url)
-    const includeUnapproved = searchParams.get('includeUnapproved') === 'true'
+    const includeUnapprovedRequested =
+      searchParams.get('includeUnapproved') === 'true'
 
     // Check if user is admin
     const session = await getSession()
     const isAdmin = session?.role === 'admin'
+    const includeUnapproved = isAdmin && includeUnapprovedRequested
 
     // Get video to check settings
     const [video] = await db
@@ -67,13 +69,35 @@ export async function GET(
     // Build query conditions
     const conditions = [eq(videoComments.videoId, params.id)]
 
-    // Only include approved comments unless user is admin
-    if (!isAdmin && !includeUnapproved) {
+    // Only include approved comments unless an admin explicitly requests otherwise
+    if (!includeUnapproved) {
       conditions.push(eq(videoComments.isApproved, true))
     }
 
+    const commentSelection = {
+      id: videoComments.id,
+      videoId: videoComments.videoId,
+      userId: videoComments.userId,
+      authorName: videoComments.authorName,
+      content: videoComments.content,
+      timestamp: videoComments.timestamp,
+      parentId: videoComments.parentId,
+      isApproved: videoComments.isApproved,
+      isPinned: videoComments.isPinned,
+      isEdited: videoComments.isEdited,
+      createdAt: videoComments.createdAt,
+      updatedAt: videoComments.updatedAt,
+      ...(isAdmin
+        ? {
+            authorEmail: videoComments.authorEmail,
+            ipAddress: videoComments.ipAddress,
+            userAgent: videoComments.userAgent,
+          }
+        : {}),
+    }
+
     const comments = await db
-      .select()
+      .select(commentSelection)
       .from(videoComments)
       .where(and(...conditions))
       .orderBy(desc(videoComments.createdAt))

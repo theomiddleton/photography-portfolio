@@ -689,7 +689,7 @@ export async function demoteUser(userId: number): Promise<User[]> {
 
 // Force logout a user by revoking all their sessions (admin only)
 export async function logoutUser(userId: number): Promise<User[]> {
-  // Ensure the caller is an admin: resolve session and check role/isAdmin flag
+  // Ensure the caller is an admin: resolve session and check role
   class AuthorizationError extends Error {
     status = 403
     constructor(message = 'Admin privileges required') {
@@ -699,13 +699,7 @@ export async function logoutUser(userId: number): Promise<User[]> {
   }
 
   const caller = await getSession()
-  if (
-    !(
-      caller &&
-      (caller.role === 'admin' ||
-        (caller as unknown as { isAdmin?: boolean }).isAdmin)
-    )
-  ) {
+  if (!(caller && caller.role === 'admin')) {
     // Audit the failed authorization attempt, then throw 403
     void logSecurityEvent({
       type: 'AUTHORIZATION_FAIL',

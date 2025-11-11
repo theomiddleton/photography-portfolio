@@ -21,6 +21,11 @@ const createVideoSchema = z.object({
   seoTitle: z.string().optional(),
   seoDescription: z.string().optional(),
   tags: z.string().optional(),
+  commentsEnabled: z.boolean().optional(),
+  allowAnonymousComments: z.boolean().optional(),
+  requireApproval: z.boolean().optional(),
+  commentsLocked: z.boolean().optional(),
+  allowEmbed: z.boolean().optional(),
   authorId: z.number().optional(),
 })
 
@@ -31,8 +36,18 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const visibility = searchParams.get('visibility') as 'public' | 'private' | 'unlisted' | null
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
-    const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : undefined
+    const limitParam = searchParams.get('limit')
+    const offsetParam = searchParams.get('offset')
+
+    const limit = limitParam !== null ? Number(limitParam) : undefined
+    if (limitParam !== null && (!Number.isFinite(limit) || limit < 0)) {
+      return NextResponse.json({ error: 'Invalid limit' }, { status: 400 })
+    }
+
+    const offset = offsetParam !== null ? Number(offsetParam) : undefined
+    if (offsetParam !== null && (!Number.isFinite(offset) || offset < 0)) {
+      return NextResponse.json({ error: 'Invalid offset' }, { status: 400 })
+    }
 
     const videos = await getVideos({
       visibility: visibility || undefined,

@@ -76,7 +76,10 @@ export function VideoPageClient(props: VideoPageClientProps) {
   const [seekToTime, setSeekToTime] = useState<number | null>(null)
 
   const handleSeekTo = useCallback((time: number) => {
-    setSeekToTime(time)
+    setSeekToTime((prev) => {
+      if (prev === null) return time
+      return prev === time ? time + 0.001 : time
+    })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 

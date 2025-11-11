@@ -21,6 +21,11 @@ const updateVideoSchema = z.object({
   seoTitle: z.string().optional(),
   seoDescription: z.string().optional(),
   tags: z.string().optional(),
+  commentsEnabled: z.boolean().optional(),
+  allowAnonymousComments: z.boolean().optional(),
+  requireApproval: z.boolean().optional(),
+  commentsLocked: z.boolean().optional(),
+  allowEmbed: z.boolean().optional(),
   processingStatus: z.enum(['pending', 'processing', 'completed', 'failed']).optional(),
   processingError: z.string().optional(),
 })

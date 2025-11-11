@@ -16,6 +16,24 @@ import { Switch } from '~/components/ui/switch'
 import { Code, Copy, Check } from 'lucide-react'
 import { toast } from 'sonner'
 
+const escapeHtml = (value: string) =>
+  value.replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case '&':
+        return '&amp;'
+      case '<':
+        return '&lt;'
+      case '>':
+        return '&gt;'
+      case '"':
+        return '&quot;'
+      case "'":
+        return '&#39;'
+      default:
+        return char
+    }
+  })
+
 interface VideoEmbedDialogProps {
   slug: string
   title: string
@@ -32,12 +50,13 @@ export function VideoEmbedDialog({ slug, title }: VideoEmbedDialogProps) {
     const params = new URLSearchParams()
     if (autoplay) params.append('autoplay', '1')
     const queryString = params.toString() ? `?${params.toString()}` : ''
-    
+    const escapedTitle = escapeHtml(title)
+
     return `<iframe
   width="${width}"
   height="${height}"
   src="${origin}/video/${slug}${queryString}"
-  title="${title}"
+  title="${escapedTitle}"
   frameborder="0"
   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
   allowfullscreen
@@ -52,7 +71,7 @@ export function VideoEmbedDialog({ slug, title }: VideoEmbedDialogProps) {
       setCopied(true)
       toast.success('Embed code copied to clipboard')
       setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
+    } catch (_error) {
       toast.error('Failed to copy embed code')
     }
   }
@@ -61,7 +80,7 @@ export function VideoEmbedDialog({ slug, title }: VideoEmbedDialogProps) {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
-          <Code className="h-4 w-4 mr-2" />
+          <Code className="mr-2 h-4 w-4" />
           Embed
         </Button>
       </DialogTrigger>
@@ -83,7 +102,7 @@ export function VideoEmbedDialog({ slug, title }: VideoEmbedDialogProps) {
                 type="number"
                 value={width}
                 onChange={(e) => setWidth(parseInt(e.target.value) || 640)}
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full rounded-md border px-3 py-2"
                 min="320"
                 max="1920"
               />
@@ -96,7 +115,7 @@ export function VideoEmbedDialog({ slug, title }: VideoEmbedDialogProps) {
                 type="number"
                 value={height}
                 onChange={(e) => setHeight(parseInt(e.target.value) || 360)}
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full rounded-md border px-3 py-2"
                 min="180"
                 max="1080"
               />
@@ -106,7 +125,7 @@ export function VideoEmbedDialog({ slug, title }: VideoEmbedDialogProps) {
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
               <Label>Autoplay</Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Start playing automatically when loaded
               </p>
             </div>
@@ -120,7 +139,7 @@ export function VideoEmbedDialog({ slug, title }: VideoEmbedDialogProps) {
               <Textarea
                 value={embedCode}
                 readOnly
-                className="font-mono text-sm h-40 resize-none"
+                className="h-40 resize-none font-mono text-sm"
               />
               <Button
                 variant="ghost"
@@ -140,10 +159,13 @@ export function VideoEmbedDialog({ slug, title }: VideoEmbedDialogProps) {
           {/* Preview */}
           <div className="space-y-2">
             <Label>Preview</Label>
-            <div className="border rounded-lg p-4 bg-muted/50">
+            <div className="bg-muted/50 rounded-lg border p-4">
               <div
-                style={{ width: `${Math.min(width, 560)}px`, height: `${Math.min(height, 315)}px` }}
-                className="mx-auto bg-black/10 rounded flex items-center justify-center text-sm text-muted-foreground"
+                style={{
+                  width: `${Math.min(width, 560)}px`,
+                  height: `${Math.min(height, 315)}px`,
+                }}
+                className="text-muted-foreground mx-auto flex items-center justify-center rounded bg-black/10 text-sm"
               >
                 {width} × {height}px
               </div>

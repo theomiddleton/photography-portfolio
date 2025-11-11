@@ -23,28 +23,27 @@ const updateCommentSchema = z.object({
  */
 export async function PATCH(
   request: NextRequest,
-  props: { params: Promise<{ id: string; commentId: string }> }
+  props: { params: Promise<{ id: string; commentId: string }> },
 ) {
   const params = await props.params
   try {
     const session = await getSession()
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const [comment] = await db
       .select()
       .from(videoComments)
-      .where(eq(videoComments.id, params.commentId))
+      .where(
+        and(
+          eq(videoComments.id, params.commentId),
+          eq(videoComments.videoId, params.id),
+        ),
+      )
 
     if (!comment) {
-      return NextResponse.json(
-        { error: 'Comment not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Comment not found' }, { status: 404 })
     }
 
     const body = await request.json()
@@ -57,15 +56,19 @@ export async function PATCH(
     if (!isAdmin && !isAuthor) {
       return NextResponse.json(
         { error: 'You do not have permission to edit this comment' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
     // Only admins can approve or pin
-    if ((validatedData.isApproved !== undefined || validatedData.isPinned !== undefined) && !isAdmin) {
+    if (
+      (validatedData.isApproved !== undefined ||
+        validatedData.isPinned !== undefined) &&
+      !isAdmin
+    ) {
       return NextResponse.json(
         { error: 'Only admins can approve or pin comments' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
@@ -75,7 +78,7 @@ export async function PATCH(
       if (comment.createdAt < fiveMinutesAgo) {
         return NextResponse.json(
           { error: 'Comments can only be edited within 5 minutes of posting' },
-          { status: 403 }
+          { status: 403 },
         )
       }
     }
@@ -101,23 +104,28 @@ export async function PATCH(
     const [updatedComment] = await db
       .update(videoComments)
       .set(updateData)
-      .where(eq(videoComments.id, params.commentId))
+      .where(
+        and(
+          eq(videoComments.id, params.commentId),
+          eq(videoComments.videoId, params.id),
+        ),
+      )
       .returning()
 
     return NextResponse.json({ comment: updatedComment })
   } catch (error) {
     console.error('Error updating comment:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid update data', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     return NextResponse.json(
       { error: 'Failed to update comment' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -126,29 +134,28 @@ export async function PATCH(
  * DELETE /api/videos/[id]/comments/[commentId] - Delete comment
  */
 export async function DELETE(
-  request: NextRequest,
-  props: { params: Promise<{ id: string; commentId: string }> }
+  _request: NextRequest,
+  props: { params: Promise<{ id: string; commentId: string }> },
 ) {
   const params = await props.params
   try {
     const session = await getSession()
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const [comment] = await db
       .select()
       .from(videoComments)
-      .where(eq(videoComments.id, params.commentId))
+      .where(
+        and(
+          eq(videoComments.id, params.commentId),
+          eq(videoComments.videoId, params.id),
+        ),
+      )
 
     if (!comment) {
-      return NextResponse.json(
-        { error: 'Comment not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Comment not found' }, { status: 404 })
     }
 
     const isAdmin = session.role === 'admin'
@@ -157,18 +164,25 @@ export async function DELETE(
     if (!isAdmin && !isAuthor) {
       return NextResponse.json(
         { error: 'You do not have permission to delete this comment' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
-    await db.delete(videoComments).where(eq(videoComments.id, params.commentId))
+    await db
+      .delete(videoComments)
+      .where(
+        and(
+          eq(videoComments.id, params.commentId),
+          eq(videoComments.videoId, params.id),
+        ),
+      )
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting comment:', error)
     return NextResponse.json(
       { error: 'Failed to delete comment' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

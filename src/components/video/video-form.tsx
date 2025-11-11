@@ -29,10 +29,20 @@ import { slugify } from '~/lib/utils'
 
 const videoFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Slug must be lowercase letters, numbers, and hyphens only'),
+  slug: z
+    .string()
+    .min(1, 'Slug is required')
+    .regex(
+      /^[a-z0-9-]+$/,
+      'Slug must be lowercase letters, numbers, and hyphens only',
+    ),
   description: z.string().optional(),
   hlsUrl: z.string().url('Must be a valid URL'),
-  thumbnailUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  thumbnailUrl: z
+    .string()
+    .url('Must be a valid URL')
+    .optional()
+    .or(z.literal('')),
   duration: z.coerce.number().optional(),
   visibility: z.enum(['public', 'private', 'unlisted']),
   password: z.string().optional().or(z.literal('')),
@@ -55,7 +65,11 @@ interface VideoFormProps {
   isSubmitting?: boolean
 }
 
-export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormProps) {
+export function VideoForm({
+  video,
+  onSubmit,
+  isSubmitting = false,
+}: VideoFormProps) {
   const [showPassword, setShowPassword] = useState(false)
 
   const form = useForm<VideoFormData>({
@@ -89,7 +103,7 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
     control: form.control,
     name: 'commentsEnabled',
   })
-  
+
   // Auto-generate slug from title for new videos
   const title = useWatch({
     control: form.control,
@@ -105,7 +119,27 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
   }, [title, form, video])
 
   const handleSubmit = async (data: VideoFormData) => {
-    await onSubmit(data)
+    const trimmedPassword = data.password?.trim() ?? ''
+    const isPrivate = data.visibility === 'private'
+    const hasExistingPassword = Boolean(video?.password)
+    const passwordRequired = isPrivate && !hasExistingPassword
+
+    if (passwordRequired && !trimmedPassword) {
+      form.setError('password', {
+        type: 'manual',
+        message: 'Password is required for private videos',
+      })
+      return
+    }
+
+    form.clearErrors('password')
+
+    const cleanedData: VideoFormData = {
+      ...data,
+      password: trimmedPassword || undefined,
+    }
+
+    await onSubmit(cleanedData)
   }
 
   return (
@@ -149,7 +183,11 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea {...field} placeholder="Video description..." rows={4} />
+                <Textarea
+                  {...field}
+                  placeholder="Video description..."
+                  rows={4}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -163,7 +201,10 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
             <FormItem>
               <FormLabel>HLS URL</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="https://example.com/video.m3u8" />
+                <Input
+                  {...field}
+                  placeholder="https://example.com/video.m3u8"
+                />
               </FormControl>
               <FormDescription>
                 URL to the HLS manifest file (.m3u8)
@@ -180,7 +221,10 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
             <FormItem>
               <FormLabel>Thumbnail URL</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="https://example.com/thumbnail.jpg" />
+                <Input
+                  {...field}
+                  placeholder="https://example.com/thumbnail.jpg"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -244,9 +288,15 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="public">Public - Visible to everyone</SelectItem>
-                  <SelectItem value="unlisted">Unlisted - Accessible via direct link</SelectItem>
-                  <SelectItem value="private">Private - Requires password</SelectItem>
+                  <SelectItem value="public">
+                    Public - Visible to everyone
+                  </SelectItem>
+                  <SelectItem value="unlisted">
+                    Unlisted - Accessible via direct link
+                  </SelectItem>
+                  <SelectItem value="private">
+                    Private - Requires password
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -262,14 +312,20 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input 
-                    {...field} 
+                  <Input
+                    {...field}
                     type={showPassword ? 'text' : 'password'}
-                    placeholder={video ? 'Leave blank to keep current password' : 'Enter password'}
+                    placeholder={
+                      video
+                        ? 'Leave blank to keep current password'
+                        : 'Enter password'
+                    }
                   />
                 </FormControl>
                 <FormDescription>
-                  {video ? 'Leave blank to keep the current password' : 'Required for private videos'}
+                  {video
+                    ? 'Leave blank to keep the current password'
+                    : 'Required for private videos'}
                   <Button
                     type="button"
                     variant="link"
@@ -295,9 +351,7 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
               <FormControl>
                 <Input {...field} placeholder="travel, nature, documentary" />
               </FormControl>
-              <FormDescription>
-                Comma-separated tags
-              </FormDescription>
+              <FormDescription>Comma-separated tags</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -310,7 +364,10 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
             <FormItem>
               <FormLabel>SEO Title</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Custom title for search engines" />
+                <Input
+                  {...field}
+                  placeholder="Custom title for search engines"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -324,16 +381,20 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
             <FormItem>
               <FormLabel>SEO Description</FormLabel>
               <FormControl>
-                <Textarea {...field} placeholder="Description for search engines..." rows={3} />
+                <Textarea
+                  {...field}
+                  placeholder="Description for search engines..."
+                  rows={3}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="space-y-4 pt-4 border-t">
+        <div className="space-y-4 border-t pt-4">
           <h3 className="text-lg font-semibold">Comment Settings</h3>
-          
+
           <FormField
             control={form.control}
             name="commentsEnabled"
@@ -363,9 +424,12 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Allow Anonymous Comments</FormLabel>
+                      <FormLabel className="text-base">
+                        Allow Anonymous Comments
+                      </FormLabel>
                       <FormDescription>
-                        Let users comment without logging in (requires name and email)
+                        Let users comment without logging in (requires name and
+                        email)
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -384,7 +448,9 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Require Approval</FormLabel>
+                      <FormLabel className="text-base">
+                        Require Approval
+                      </FormLabel>
                       <FormDescription>
                         Comments must be approved before appearing publicly
                       </FormDescription>
@@ -407,7 +473,8 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">Lock Comments</FormLabel>
                       <FormDescription>
-                        Prevent new comments from being posted (existing comments remain visible)
+                        Prevent new comments from being posted (existing
+                        comments remain visible)
                       </FormDescription>
                     </div>
                     <FormControl>

@@ -1,12 +1,17 @@
 /**
  * Video Service Module
- * 
+ *
  * Provides type-safe CRUD operations and access control for the video system.
  * Handles visibility rules, password protection, and access logging.
  */
 
 import { db } from '~/server/db'
-import { videos, videoAccessLogs, videoAccessTokens, type VideoVisibility } from '~/server/db/schema'
+import {
+  videos,
+  videoAccessLogs,
+  videoAccessTokens,
+  type VideoVisibility,
+} from '~/server/db/schema'
 import { eq, and, desc, sql } from 'drizzle-orm'
 import { hash, compare } from 'bcrypt'
 import { randomBytes } from 'crypto'
@@ -92,8 +97,13 @@ export async function createVideo(input: CreateVideoInput) {
   }
 
   // Hash password if provided for private videos
-  if (input.password && input.visibility === 'private') {
-    videoData.password = await hash(input.password, SALT_ROUNDS)
+  if (input.visibility === 'private') {
+    const trimmedPassword = input.password?.trim()
+    if (!trimmedPassword) {
+      throw new Error('Password is required for private videos')
+    }
+
+    videoData.password = await hash(trimmedPassword, SALT_ROUNDS)
   }
 
   const [video] = await db.insert(videos).values(videoData).returning()
@@ -104,23 +114,31 @@ export async function createVideo(input: CreateVideoInput) {
  * Update an existing video
  */
 export async function updateVideo(id: string, input: UpdateVideoInput) {
+  const { password, ...rest } = input
+
   const updateData: Partial<typeof videos.$inferInsert> = {
-    ...input,
+    ...rest,
     updatedAt: new Date(),
   }
 
   // Hash password if provided
-  if (input.password !== undefined) {
-    if (input.password === null) {
+  if (password !== undefined) {
+    if (password === null) {
       updateData.password = null
-    } else if (input.password) {
-      updateData.password = await hash(input.password, SALT_ROUNDS)
+    } else if (typeof password === 'string') {
+      const trimmedPassword = password.trim()
+      if (trimmedPassword) {
+        updateData.password = await hash(trimmedPassword, SALT_ROUNDS)
+      }
     }
   }
 
   // Set published date if changing to public
   if (input.visibility === 'public' && !updateData.publishedAt) {
-    const [existingVideo] = await db.select().from(videos).where(eq(videos.id, id))
+    const [existingVideo] = await db
+      .select()
+      .from(videos)
+      .where(eq(videos.id, id))
     if (existingVideo && !existingVideo.publishedAt) {
       updateData.publishedAt = new Date()
     }
@@ -161,7 +179,7 @@ export async function getVideos(options?: {
   offset?: number
 }) {
   const conditions = []
-  
+
   if (options?.visibility) {
     conditions.push(eq(videos.visibility, options.visibility))
   }
@@ -171,16 +189,15 @@ export async function getVideos(options?: {
   }
 
   const baseQuery = db.select().from(videos)
-  const filteredQuery = conditions.length > 0 
-    ? baseQuery.where(and(...conditions)) 
-    : baseQuery
+  const filteredQuery =
+    conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery
 
   const orderedQuery = filteredQuery.orderBy(desc(videos.createdAt))
-  const limitedQuery = options?.limit 
-    ? orderedQuery.limit(options.limit) 
+  const limitedQuery = options?.limit
+    ? orderedQuery.limit(options.limit)
     : orderedQuery
-  const finalQuery = options?.offset 
-    ? limitedQuery.offset(options.offset) 
+  const finalQuery = options?.offset
+    ? limitedQuery.offset(options.offset)
     : limitedQuery
 
   return await finalQuery
