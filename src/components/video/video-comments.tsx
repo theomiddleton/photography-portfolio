@@ -71,14 +71,6 @@ export function VideoComments({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    console.log('Submitting comment:', {
-      content,
-      authorName,
-      authorEmail,
-      timestamp,
-      replyingTo,
-    })
-
     if (!content.trim()) {
       toast.error('Please enter a comment')
       return

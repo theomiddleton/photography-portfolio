@@ -1,4 +1,9 @@
-import { getVideoBySlug, checkVideoAccess, incrementVideoViews, logVideoAccess } from '~/server/services/video-service'
+import {
+  getVideoBySlug,
+  checkVideoAccess,
+  incrementVideoViews,
+  logVideoAccess,
+} from '~/server/services/video-service'
 import { VideoPasswordForm } from '~/components/video/video-password-form'
 import { VideoPageClient } from '~/components/video/video-page-client'
 import { notFound } from 'next/navigation'
@@ -8,6 +13,7 @@ import { Eye, Calendar, Clock } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { headers } from 'next/headers'
 import { getSession } from '~/lib/auth/auth'
+import { getClientIPFromHeaders } from '~/lib/auth/userActions'
 import type { Metadata } from 'next'
 
 export const revalidate = 0
@@ -17,7 +23,9 @@ interface VideoPageProps {
   searchParams: Promise<{ token?: string; password?: string }>
 }
 
-export async function generateMetadata(props: VideoPageProps): Promise<Metadata> {
+export async function generateMetadata(
+  props: VideoPageProps,
+): Promise<Metadata> {
   const params = await props.params
   const video = await getVideoBySlug(params.slug)
 
@@ -29,7 +37,8 @@ export async function generateMetadata(props: VideoPageProps): Promise<Metadata>
 
   return {
     title: video.seoTitle || video.title,
-    description: video.seoDescription || video.description || `Watch ${video.title}`,
+    description:
+      video.seoDescription || video.description || `Watch ${video.title}`,
   }
 }
 
@@ -63,9 +72,7 @@ export default async function VideoPage(props: VideoPageProps) {
 
   // Log view and increment counter
   const headersList = await headers()
-  const ipAddress = headersList.get('x-forwarded-for') || 
-                    headersList.get('x-real-ip') || 
-                    'unknown'
+  const ipAddress = getClientIPFromHeaders(headersList)
   const userAgent = headersList.get('user-agent') || undefined
 
   await Promise.all([
@@ -75,11 +82,6 @@ export default async function VideoPage(props: VideoPageProps) {
 
   // Get session for comment permissions
   const session = await getSession()
-  console.log('Video page session:', session)
-  console.log('Session type:', typeof session)
-  console.log('Session ID:', session?.id)
-  console.log('Is Admin:', session?.role === 'admin')
-  console.log('')
 
   const formatDuration = (seconds?: number | null) => {
     if (!seconds) return null
@@ -89,7 +91,7 @@ export default async function VideoPage(props: VideoPageProps) {
   }
 
   return (
-    <main className="container max-w-5xl py-24 space-y-6">
+    <main className="container max-w-5xl space-y-6 py-24">
       <VideoPageClient
         videoId={video.id}
         hlsUrl={video.hlsUrl}
@@ -101,14 +103,14 @@ export default async function VideoPage(props: VideoPageProps) {
         isAdmin={session?.role === 'admin'}
         currentUserId={session?.id ?? null}
       />
-      
+
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight mb-2">
+            <h1 className="mb-2 text-3xl font-bold tracking-tight">
               {video.title}
             </h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <div className="text-muted-foreground flex flex-wrap items-center gap-4 text-sm">
               <div className="flex items-center gap-1">
                 <Eye className="h-4 w-4" />
                 <span>{video.views} views</span>
@@ -116,7 +118,9 @@ export default async function VideoPage(props: VideoPageProps) {
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  {formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(video.createdAt), {
+                    addSuffix: true,
+                  })}
                 </span>
               </div>
               {formatDuration(video.duration) && (
@@ -128,7 +132,11 @@ export default async function VideoPage(props: VideoPageProps) {
             </div>
           </div>
           {video.visibility !== 'public' && (
-            <Badge variant={video.visibility === 'private' ? 'destructive' : 'secondary'}>
+            <Badge
+              variant={
+                video.visibility === 'private' ? 'destructive' : 'secondary'
+              }
+            >
               {video.visibility}
             </Badge>
           )}
@@ -155,7 +163,7 @@ export default async function VideoPage(props: VideoPageProps) {
         )}
 
         {video.resolution && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-muted-foreground text-sm">
             Resolution: {video.resolution}
             {video.fps && ` @ ${video.fps}fps`}
           </div>

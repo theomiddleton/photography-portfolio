@@ -36,7 +36,7 @@ const JWT_EXPIRATION_HOURS = parseInt(process.env.JWT_EXPIRATION_HOURS || '168')
 const JWT_EXPIRATION_MS = JWT_EXPIRATION_HOURS * 60 * 60 * 1000
 
 // Helper function to get client IP from headers in server actions
-function getClientIPFromHeaders(headersList: Headers): string {
+export function getClientIPFromHeaders(headersList: Headers): string {
   // Try to get real IP from various headers (handle proxy/CDN scenarios)
   const forwarded = headersList.get('x-forwarded-for')
   const realIP = headersList.get('x-real-ip')
