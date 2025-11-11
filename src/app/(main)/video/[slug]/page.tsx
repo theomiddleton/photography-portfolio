@@ -6,12 +6,7 @@ import {
 } from '~/server/services/video-service'
 import { VideoPasswordForm } from '~/components/video/video-password-form'
 import { VideoPageClient } from '~/components/video/video-page-client'
-import { VideoEmbedDialog } from '~/components/video/video-embed-dialog'
 import { notFound } from 'next/navigation'
-import { Card, CardContent } from '~/components/ui/card'
-import { Badge } from '~/components/ui/badge'
-import { Eye, Calendar, Clock } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
 import { headers } from 'next/headers'
 import { getSession } from '~/lib/auth/auth'
 import type { Metadata } from 'next'
@@ -36,7 +31,8 @@ export async function generateMetadata(
   }
 
   const videoTitle = video.seoTitle || video.title
-  const videoDescription = video.seoDescription || video.description || `Watch ${video.title}`
+  const videoDescription =
+    video.seoDescription || video.description || `Watch ${video.title}`
   const thumbnailUrl = video.thumbnailUrl
 
   return {
@@ -96,7 +92,11 @@ export default async function VideoPage(props: VideoPageProps) {
 
   // Log view and increment counter
   const headersList = await headers()
-  const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || headersList.get('cf-connecting-ip') || 'unknown'
+  const ipAddress =
+    headersList.get('x-forwarded-for') ||
+    headersList.get('x-real-ip') ||
+    headersList.get('cf-connecting-ip') ||
+    'unknown'
   const userAgent = headersList.get('user-agent') || undefined
 
   await Promise.all([
@@ -107,103 +107,28 @@ export default async function VideoPage(props: VideoPageProps) {
   // Get session for comment permissions
   const session = await getSession()
 
-  const formatDuration = (seconds?: number | null) => {
-    if (!seconds) return null
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
-
-  const videoClient = VideoPageClient({
-    videoId: video.id,
-    slug: video.slug,
-    hlsUrl: video.hlsUrl,
-    thumbnailUrl: video.thumbnailUrl ?? undefined,
-    commentsEnabled: video.commentsEnabled,
-    allowAnonymousComments: video.allowAnonymousComments,
-    requireApproval: video.requireApproval,
-    commentsLocked: video.commentsLocked,
-    isAdmin: session?.role === 'admin',
-    currentUserId: session?.id ?? null,
-  })
-
   return (
-    <main className="container max-w-5xl space-y-6 py-24">
-      {videoClient.player}
-
-      <div className="space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <h1 className="mb-2 text-3xl font-bold tracking-tight">
-              {video.title}
-            </h1>
-            <div className="text-muted-foreground flex flex-wrap items-center gap-4 text-sm">
-              <div className="flex items-center gap-1">
-                <Eye className="h-4 w-4" />
-                <span>{video.views} views</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  {formatDistanceToNow(new Date(video.createdAt), {
-                    addSuffix: true,
-                  })}
-                </span>
-              </div>
-              {formatDuration(video.duration) && (
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>{formatDuration(video.duration)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {video.visibility !== 'public' && (
-              <Badge
-                variant={
-                  video.visibility === 'private' ? 'destructive' : 'secondary'
-                }
-              >
-                {video.visibility}
-              </Badge>
-            )}
-            {video.visibility !== 'private' && (
-              <VideoEmbedDialog slug={video.slug} title={video.title} />
-            )}
-          </div>
-        </div>
-
-        {video.description && (
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-muted-foreground whitespace-pre-wrap">
-                {video.description}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {video.tags && (
-          <div className="flex flex-wrap gap-2">
-            {video.tags.split(',').map((tag, index) => (
-              <Badge key={index} variant="outline">
-                {tag.trim()}
-              </Badge>
-            ))}
-          </div>
-        )}
-
-        {video.resolution && (
-          <div className="text-muted-foreground text-sm">
-            Resolution: {video.resolution}
-            {video.fps && ` @ ${video.fps}fps`}
-          </div>
-        )}
-      </div>
-
-      {/* Comments Section - Now below title and description */}
-      {videoClient.comments}
-    </main>
+    <VideoPageClient
+      videoId={video.id}
+      slug={video.slug}
+      hlsUrl={video.hlsUrl}
+      thumbnailUrl={video.thumbnailUrl ?? undefined}
+      title={video.title}
+      description={video.description}
+      views={video.views}
+      createdAt={video.createdAt.toISOString()}
+      duration={video.duration}
+      tags={video.tags}
+      visibility={video.visibility}
+      resolution={video.resolution}
+      fps={video.fps}
+      allowEmbed={video.visibility !== 'private'}
+      commentsEnabled={video.commentsEnabled}
+      allowAnonymousComments={video.allowAnonymousComments}
+      requireApproval={video.requireApproval}
+      commentsLocked={video.commentsLocked}
+      isAdmin={session?.role === 'admin'}
+      currentUserId={session?.id ?? null}
+    />
   )
 }

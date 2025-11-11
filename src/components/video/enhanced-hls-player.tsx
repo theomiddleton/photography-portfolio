@@ -426,6 +426,7 @@ export function EnhancedHLSPlayer({
             className="opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <Share2 className="h-4 w-4 mr-1" />
+            {/* eslint-disable-next-line react-hooks/refs */}
             Share at {Math.floor(videoRef.current?.currentTime || 0)}s
           </Button>
         </div>

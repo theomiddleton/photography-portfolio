@@ -54,7 +54,7 @@ export function VideoControls({
         variant="ghost"
         size="icon"
         onClick={onPlayPause}
-        className="text-white hover:text-white hover:scale-110 transition-transform"
+        className="text-white hover:text-gray-600 hover:scale-110 transition-transform"
       >
         {playing ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
       </Button>
@@ -63,7 +63,7 @@ export function VideoControls({
         variant="ghost"
         size="icon"
         onClick={onMuteToggle}
-        className="text-white hover:text-white hover:scale-110 transition-transform"
+        className="text-white hover:text-gray-600 hover:scale-110 transition-transform"
       >
         {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
       </Button>
@@ -77,7 +77,7 @@ export function VideoControls({
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:text-white hover:scale-105 transition-transform"
+              className="text-white hover:text-gray-600 hover:scale-105 transition-transform"
             >
               <Settings className="h-4 w-4 mr-1" />
               {currentQuality === -1 ? 'Auto' : `${currentQuality}p`}
@@ -109,7 +109,7 @@ export function VideoControls({
           <Button
             variant="ghost"
             size="sm"
-            className="text-white hover:text-white hover:scale-105 transition-transform"
+            className="text-white hover:text-gray-600 hover:scale-105 transition-transform"
           >
             <Settings className="h-4 w-4 mr-1" />
             {playbackRate}x
@@ -134,7 +134,7 @@ export function VideoControls({
           variant="ghost"
           size="icon"
           onClick={onPictureInPicture}
-          className="text-white hover:text-white hover:scale-110 transition-transform"
+          className="text-white hover:text-gray-600 hover:scale-110 transition-transform"
           title="Picture in Picture"
         >
           <PictureInPicture className="h-5 w-5" />
@@ -146,7 +146,7 @@ export function VideoControls({
         variant="ghost"
         size="icon"
         onClick={onFullscreen}
-        className="text-white hover:text-white hover:scale-110 transition-transform"
+        className="text-white hover:text-gray-600 hover:scale-110 transition-transform"
         title="Fullscreen (F)"
       >
         <Maximize className="h-5 w-5" />
