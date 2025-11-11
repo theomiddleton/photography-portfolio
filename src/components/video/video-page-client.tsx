@@ -51,8 +51,8 @@ export function VideoPageClient({
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
-  return (
-    <>
+  return {
+    player: (
       <EnhancedHLSPlayer 
         src={hlsUrl} 
         poster={thumbnailUrl}
@@ -62,8 +62,8 @@ export function VideoPageClient({
         seekToTime={seekToTime}
         onTimeUpdate={setCurrentVideoTime}
       />
-      
-      {/* Comments Section */}
+    ),
+    comments: (
       <VideoComments
         videoId={videoId}
         commentsEnabled={commentsEnabled}
@@ -75,6 +75,6 @@ export function VideoPageClient({
         currentVideoTime={currentVideoTime}
         onSeekTo={handleSeekTo}
       />
-    </>
-  )
+    )
+  }
 }

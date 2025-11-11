@@ -46,6 +46,8 @@ export function EnhancedHLSPlayer({
   const [playbackRate, setPlaybackRate] = useState(1)
   const [showControls, setShowControls] = useState(true)
   const [supportsPiP, setSupportsPiP] = useState(false)
+  const [qualities, setQualities] = useState<number[]>([])
+  const [currentQuality, setCurrentQuality] = useState(-1) // -1 = auto
 
   // Save progress key
   useEffect(() => {
@@ -164,6 +166,11 @@ export function EnhancedHLSPlayer({
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsLoading(false)
+        
+        // Extract available quality levels
+        const levels = hls.levels.map(level => level.height)
+        setQualities(levels.filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => b - a))
+        
         if (autoPlay) {
           video.play().catch((err) => console.log('Autoplay prevented:', err))
         }
@@ -299,6 +306,26 @@ export function EnhancedHLSPlayer({
     }
   }, [])
 
+  const handleQualityChange = useCallback((quality: number) => {
+    if (hlsRef.current) {
+      const hls = hlsRef.current
+      if (quality === -1) {
+        // Auto quality
+        hls.currentLevel = -1
+        setCurrentQuality(-1)
+        toast.success('Quality: Auto')
+      } else {
+        // Find the level index for the selected quality
+        const levelIndex = hls.levels.findIndex(level => level.height === quality)
+        if (levelIndex !== -1) {
+          hls.currentLevel = levelIndex
+          setCurrentQuality(quality)
+          toast.success(`Quality: ${quality}p`)
+        }
+      }
+    }
+  }, [])
+
   const shareAtTimestamp = useCallback(() => {
     if (videoRef.current && slug) {
       const currentTime = Math.floor(videoRef.current.currentTime)
@@ -377,11 +404,14 @@ export function EnhancedHLSPlayer({
           playing={playing}
           muted={muted}
           playbackRate={playbackRate}
+          currentQuality={currentQuality}
+          qualities={qualities}
           onPlayPause={togglePlayPause}
           onMuteToggle={toggleMute}
           onFullscreen={toggleFullscreen}
           onPictureInPicture={togglePictureInPicture}
           onPlaybackRateChange={handlePlaybackRateChange}
+          onQualityChange={handleQualityChange}
           supportsPiP={supportsPiP}
         />
       </div>

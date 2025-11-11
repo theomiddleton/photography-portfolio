@@ -35,10 +35,34 @@ export async function generateMetadata(
     }
   }
 
+  const videoTitle = video.seoTitle || video.title
+  const videoDescription = video.seoDescription || video.description || `Watch ${video.title}`
+  const thumbnailUrl = video.thumbnailUrl
+
   return {
-    title: video.seoTitle || video.title,
-    description:
-      video.seoDescription || video.description || `Watch ${video.title}`,
+    title: videoTitle,
+    description: videoDescription,
+    openGraph: {
+      title: videoTitle,
+      description: videoDescription,
+      type: 'video.other',
+      ...(thumbnailUrl && {
+        images: [
+          {
+            url: thumbnailUrl,
+            alt: videoTitle,
+          },
+        ],
+      }),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: videoTitle,
+      description: videoDescription,
+      ...(thumbnailUrl && {
+        images: [thumbnailUrl],
+      }),
+    },
   }
 }
 
@@ -90,20 +114,22 @@ export default async function VideoPage(props: VideoPageProps) {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
+  const videoClient = VideoPageClient({
+    videoId: video.id,
+    slug: video.slug,
+    hlsUrl: video.hlsUrl,
+    thumbnailUrl: video.thumbnailUrl ?? undefined,
+    commentsEnabled: video.commentsEnabled,
+    allowAnonymousComments: video.allowAnonymousComments,
+    requireApproval: video.requireApproval,
+    commentsLocked: video.commentsLocked,
+    isAdmin: session?.role === 'admin',
+    currentUserId: session?.id ?? null,
+  })
+
   return (
     <main className="container max-w-5xl space-y-6 py-24">
-      <VideoPageClient
-        videoId={video.id}
-        slug={video.slug}
-        hlsUrl={video.hlsUrl}
-        thumbnailUrl={video.thumbnailUrl ?? undefined}
-        commentsEnabled={video.commentsEnabled}
-        allowAnonymousComments={video.allowAnonymousComments}
-        requireApproval={video.requireApproval}
-        commentsLocked={video.commentsLocked}
-        isAdmin={session?.role === 'admin'}
-        currentUserId={session?.id ?? null}
-      />
+      {videoClient.player}
 
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-4">
@@ -175,6 +201,9 @@ export default async function VideoPage(props: VideoPageProps) {
           </div>
         )}
       </div>
+
+      {/* Comments Section - Now below title and description */}
+      {videoClient.comments}
     </main>
   )
 }
