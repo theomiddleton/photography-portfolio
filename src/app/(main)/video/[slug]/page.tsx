@@ -93,6 +93,7 @@ export default async function VideoPage(props: VideoPageProps) {
     <main className="container max-w-5xl space-y-6 py-24">
       <VideoPageClient
         videoId={video.id}
+        slug={video.slug}
         hlsUrl={video.hlsUrl}
         thumbnailUrl={video.thumbnailUrl ?? undefined}
         commentsEnabled={video.commentsEnabled}

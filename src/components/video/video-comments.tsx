@@ -20,6 +20,7 @@ interface VideoCommentsProps {
   isAdmin?: boolean
   currentUserId?: number | null
   currentVideoTime?: number
+  onSeekTo?: (time: number) => void
 }
 
 interface CommentWithReplies extends VideoComment {
@@ -35,6 +36,7 @@ export function VideoComments({
   isAdmin = false,
   currentUserId = null,
   currentVideoTime = 0,
+  onSeekTo,
 }: VideoCommentsProps) {
   const [comments, setComments] = useState<CommentWithReplies[]>([])
   const [loading, setLoading] = useState(true)
@@ -235,7 +237,12 @@ export function VideoComments({
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-semibold">{comment.authorName}</span>
               {comment.timestamp !== null && (
-                <Badge variant="outline" className="gap-1">
+                <Badge
+                  variant="outline"
+                  className={`gap-1 ${onSeekTo ? 'cursor-pointer hover:bg-accent' : ''}`}
+                  onClick={() => onSeekTo?.(comment.timestamp!)}
+                  title={onSeekTo ? 'Jump to this timestamp' : undefined}
+                >
                   <Clock className="h-3 w-3" />
                   {formatTimestamp(comment.timestamp)}
                 </Badge>
