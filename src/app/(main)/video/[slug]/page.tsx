@@ -13,7 +13,6 @@ import { Eye, Calendar, Clock } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { headers } from 'next/headers'
 import { getSession } from '~/lib/auth/auth'
-import { getClientIPFromHeaders } from '~/lib/auth/userActions'
 import type { Metadata } from 'next'
 
 export const revalidate = 0
@@ -72,7 +71,7 @@ export default async function VideoPage(props: VideoPageProps) {
 
   // Log view and increment counter
   const headersList = await headers()
-  const ipAddress = getClientIPFromHeaders(headersList)
+  const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || headersList.get('cf-connecting-ip') || 'unknown'
   const userAgent = headersList.get('user-agent') || undefined
 
   await Promise.all([
