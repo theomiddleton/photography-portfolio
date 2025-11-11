@@ -8,6 +8,7 @@ A full-featured photography portfolio and e-commerce platform built with Next.js
 - [Features](#-features)
 - [Technology Stack](#️-technology-stack)
 - [AI Features & Privacy Options](#-ai-features--privacy-options)
+- [Video System](#-video-system)
 - [Quick Start](#-quick-start)
 - [Environment Setup](#-environment-setup)
 - [Store Setup Guide](#store-setup-guide)
@@ -127,6 +128,19 @@ When AI features are disabled:
 - AI analysis is performed via Google's API with their standard privacy policies
 - No permanent storage of images by AI providers
 - You maintain full control over all generated content
+
+## 🎥 Video System
+
+The video pipeline is built for HLS playback with visibility controls and audience engagement tooling.
+
+- **Adaptive streaming**: Client-side player prefers Safari's native HLS implementation and falls back to `hls.js`, with verbose debug logging when needed.
+- **Visibility modes**: Publish videos as `public`, `unlisted`, or `private` (password protected) directly from the admin dashboard.
+- **Access tracking**: View counters and audit logging capture every play with IP/UA context for security reviews.
+- **Timestamped comments**: Users (or admins) can leave threaded comments pinned to the active playback position, with optional moderation, approvals, and anonymous posting.
+- **HLS diagnostics**: `/admin/videos/hls-test` ships with a built-in debugger that loads known-good streams, toggles autoplay/debug logging, and records client events—ideal for Safari/WebKit testing.
+- **CSP-ready origins**: Allowed media hosts are managed through `NEXT_PUBLIC_MEDIA_HOSTS` and the configured streaming bucket, so new CDN origins can be added without code changes.
+
+> 📌 **Remember:** if you introduce a new CDN or a different storage bucket for video manifests, append it to `NEXT_PUBLIC_MEDIA_HOSTS` (comma-separated) and restart the server so the content security policy can grant access.
 
 ### 🛒 Store Features & Configuration
 
@@ -303,6 +317,9 @@ LIGHTROOM_API_KEY="your-secure-lightroom-api-key"
 # Sign up at upstash.com and create a Redis database
 UPSTASH_REDIS_REST_URL="https://your-redis-instance.upstash.io"
 UPSTASH_REDIS_REST_TOKEN="your-upstash-redis-token"
+
+# Media Streaming (Optional)
+NEXT_PUBLIC_MEDIA_HOSTS="https://cdn1.example.com,https://cdn2.example.com"
 
 # Application
 SITE_URL="http://localhost:3000" # Set as production domain when deploying

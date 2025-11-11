@@ -160,6 +160,9 @@ EDGE_CONFIG="https://edge-config.vercel.com/..."  # For feature flags
 # AI Integration (Optional)
 GOOGLE_GENERATIVE_AI_API_KEY="AI..."  # For AI features
 
+# Media Streaming (Optional)
+NEXT_PUBLIC_MEDIA_HOSTS="https://cdn1.example.com,https://cdn2.example.com"  # Extra CSP media-src hosts
+
 # Cron Job Security (Optional)
 CRON_SECRET="your-cron-secret"  # For securing scheduled tasks
 ```
@@ -235,11 +238,19 @@ Implemented via [`src/middleware.ts`](src/middleware.ts):
 default-src 'self';
 script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com;
 style-src 'self' 'unsafe-inline';
+media-src 'self' data: blob: https://*.r2.cloudflarestorage.com ${NEXT_PUBLIC_STREAM_BUCKET_URL} [NEXT_PUBLIC_MEDIA_HOSTS];
 img-src 'self' data: https:;
 font-src 'self' data:;
 connect-src 'self' https://api.stripe.com;
 frame-src https://js.stripe.com;
 ```
+
+#### Configuring Media Hosts
+
+- The CSP `media-src` directive is generated at runtime from the configured streaming bucket and the comma-separated list stored in `NEXT_PUBLIC_MEDIA_HOSTS`.
+- Default builds include sample hosts for the HLS debugger (Mux, Akamai, Apple) so testing works immediately.
+- To allow additional CDNs, set `NEXT_PUBLIC_MEDIA_HOSTS="https://cdn1.example.com, https://cdn2.example.com"` and restart the server. The policy de-duplicates entries automatically.
+- Ensure every host you add serves over HTTPS to avoid mixed-content failures in modern browsers.
 
 ### Input Validation
 

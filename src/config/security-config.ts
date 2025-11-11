@@ -1,5 +1,18 @@
 import { siteConfig } from '~/config/site'
 
+const mediaSrcHosts = Array.from(
+  new Set(
+    [
+      'https://*.r2.cloudflarestorage.com',
+      siteConfig.streamBucketUrl,
+      ...(siteConfig.mediaHosts ?? []),
+    ].filter(Boolean),
+  ),
+)
+
+const mediaSrcDirective =
+  ["media-src 'self' data: blob:", ...mediaSrcHosts].join(' ') + ';'
+
 // Security configuration for the application
 export const securityConfig = {
   // Password requirements
@@ -10,32 +23,32 @@ export const securityConfig = {
     requireLowercase: true,
     requireNumbers: true,
     requireSpecialChars: true,
-    bcryptRounds: 12
+    bcryptRounds: 12,
   },
-  
+
   // JWT configuration
   jwt: {
     minSecretLength: 32,
     defaultExpirationHours: 168, // 1 week (reduced from 30 days)
-    algorithm: 'HS256' as const
+    algorithm: 'HS256' as const,
   },
-  
+
   // Session configuration
   session: {
     cookieName: 'session',
     httpOnly: true,
     secure: true, // Always secure in production
     sameSite: 'strict' as const,
-    path: '/'
+    path: '/',
   },
-  
+
   // Rate limiting configuration
   rateLimiting: {
     failClosedEndpoints: ['passwordAttempt', 'email', 'upload'],
     failOpenEndpoints: ['webhook', 'revalidate'],
-    adminMultiplier: 3
+    adminMultiplier: 3,
   },
-  
+
   // Security headers
   headers: {
     'X-Content-Type-Options': 'nosniff',
@@ -48,34 +61,37 @@ export const securityConfig = {
       style-src 'self' 'unsafe-inline';
       img-src 'self' data: https: blob:;
       font-src 'self' data:;
+  ${mediaSrcDirective}
       connect-src 'self' https://api.stripe.com https://*.r2.cloudflarestorage.com ${siteConfig.imageBucketUrl} ${siteConfig.blogBucketUrl} ${siteConfig.aboutBucketUrl} ${siteConfig.customBucketUrl} ${siteConfig.streamBucketUrl} ${siteConfig.filesBucketUrl} ${siteConfig.bucketsUrl};
       frame-src https://js.stripe.com;
-    `.replace(/\s+/g, ' ').trim()
+    `
+      .replace(/\s+/g, ' ')
+      .trim(),
   },
-  
+
   // Input validation
   validation: {
     emailMaxLength: 255,
     nameMaxLength: 100,
     passwordMaxLength: 128,
-    userAgentMaxLength: 100
+    userAgentMaxLength: 100,
   },
-  
+
   // Security logging
   logging: {
     maskEmails: true,
     maskIPs: true,
     truncateUserAgent: true,
-    maxDetailLength: 200
+    maxDetailLength: 200,
   },
-  
+
   // Account security
   account: {
     maxFailedAttempts: 5,
     lockoutDurationMinutes: 15,
     requireEmailVerification: true, // Enable email verification
-    passwordChangeInvalidatesSessions: true
-  }
+    passwordChangeInvalidatesSessions: true,
+  },
 } as const
 
 export type SecurityConfig = typeof securityConfig

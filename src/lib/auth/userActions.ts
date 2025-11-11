@@ -96,6 +96,8 @@ export interface User {
   accountLockedUntil: Date | null
 }
 
+const isProduction = process.env.NODE_ENV === 'production'
+
 // login function, returns a FormState for sending messages to the client, takes a FormState and a FormData
 export async function login(
   _prevState: FormState,
@@ -322,13 +324,13 @@ export async function login(
 
     cookieStore.set('session', session, {
       httpOnly: true,
-      secure: true, // Always secure
+      secure: isProduction,
       sameSite: 'strict',
       expires: new Date(
         Date.now() +
           (rememberMe ? 30 * 24 * 60 * 60 * 1000 : JWT_EXPIRATION_MS),
       ),
-      path: '/', // Explicit path
+      path: '/',
     })
 
     // Update user login tracking
@@ -609,7 +611,7 @@ export async function logout(_prevState: LogoutState): Promise<LogoutState> {
     cookieStore.set('session', '', {
       expires: new Date(0),
       httpOnly: true,
-      secure: true,
+      secure: isProduction,
       sameSite: 'strict',
       path: '/',
     })
@@ -697,7 +699,13 @@ export async function logoutUser(userId: number): Promise<User[]> {
   }
 
   const caller = await getSession()
-  if (!(caller && (caller.role === 'admin' || (caller as unknown as { isAdmin?: boolean }).isAdmin))) {
+  if (
+    !(
+      caller &&
+      (caller.role === 'admin' ||
+        (caller as unknown as { isAdmin?: boolean }).isAdmin)
+    )
+  ) {
     // Audit the failed authorization attempt, then throw 403
     void logSecurityEvent({
       type: 'AUTHORIZATION_FAIL',

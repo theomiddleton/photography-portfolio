@@ -27,6 +27,7 @@ const key = new TextEncoder().encode(env.JWT_SECRET)
 
 const JWT_EXPIRATION_HOURS = parseInt(process.env.JWT_EXPIRATION_HOURS || '168') // Reduced from 720h to 168h (1 week)
 const JWT_EXPIRATION_MS = JWT_EXPIRATION_HOURS * 60 * 60 * 1000
+const isProduction = process.env.NODE_ENV === 'production'
 
 export async function getSession(): Promise<UserSession | null> {
   const session = (await cookies()).get('session')?.value
@@ -96,7 +97,7 @@ export async function updateSession(
       name: 'session',
       value: newSession,
       httpOnly: true,
-      secure: true, // Always secure in production
+      secure: isProduction,
       sameSite: 'strict',
       expires: new Date(Date.now() + JWT_EXPIRATION_MS),
       path: '/', // Explicit path
@@ -131,7 +132,7 @@ export async function createGalleryPasswordCookie(
     name: `gallery_access_${gallerySlug}`,
     value: cookieValue,
     httpOnly: true,
-    secure: true, // Always secure
+    secure: isProduction,
     sameSite: 'strict' as const,
     expires: new Date(Date.now() + duration * 24 * 60 * 60 * 1000), // Convert days to milliseconds
   }
