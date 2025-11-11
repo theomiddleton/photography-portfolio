@@ -19,6 +19,11 @@ const defaultConfig = {
   streamBucketUrl: 'https://your-domain.com/stream-files',
   filesBucketUrl: 'https://your-domain.com/files',
   bucketsUrl: 'https://your-domain.com/buckets',
+  mediaHosts: [
+    'https://test-streams.mux.dev',
+    'https://akamaized.net',
+    'https://devstreaming-cdn.apple.com',
+  ],
   url: 'https://your-domain.com',
   altUrl: 'https://your-alt-domain.com',
   imageDomain: 'your-domain.com', // Domain pattern for Next.js image optimization
@@ -104,7 +109,7 @@ const defaultConfig = {
   uploadLimits: {
     // Upload size limits in MB for different buckets
     image: 20, // Main gallery images
-    blog: 5, // Blog editor images  
+    blog: 5, // Blog editor images
     about: 20, // About page images
     custom: 20, // Custom bucket images
     files: 20, // General file uploads
@@ -118,15 +123,35 @@ const defaultConfig = {
  */
 export function getServerSiteConfig() {
   // During build time and server-side rendering, create config with environment variables
-  const configLocation = getEnv('NEXT_PUBLIC_CONFIG_LOCATION', defaultConfig.configLocation)
-  
+  const configLocation = getEnv(
+    'NEXT_PUBLIC_CONFIG_LOCATION',
+    defaultConfig.configLocation,
+  )
+
   // Log configuration location during build for debugging
   if (process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV) {
     console.log(`🔧 Site Configuration loaded from: ${configLocation}`)
   }
+
+  const streamBucketUrl = getEnv(
+    'NEXT_PUBLIC_STREAM_BUCKET_URL',
+    defaultConfig.streamBucketUrl,
+  )
+  const extraMediaHostsEnv = process.env.NEXT_PUBLIC_MEDIA_HOSTS ?? ''
+  const extraMediaHosts = extraMediaHostsEnv
+    .split(',')
+    .map((host) => host.trim())
+    .filter(Boolean)
+  const mediaHosts = Array.from(
+    new Set([streamBucketUrl, ...defaultConfig.mediaHosts, ...extraMediaHosts]),
+  )
+
   return {
     title: getEnv('NEXT_PUBLIC_SITE_TITLE', defaultConfig.title),
-    description: getEnv('NEXT_PUBLIC_SITE_DESCRIPTION', defaultConfig.description),
+    description: getEnv(
+      'NEXT_PUBLIC_SITE_DESCRIPTION',
+      defaultConfig.description,
+    ),
     logo: {
       type: getEnv('NEXT_PUBLIC_LOGO_TYPE', defaultConfig.logo.type),
       text: getEnv('NEXT_PUBLIC_LOGO_TEXT', defaultConfig.logo.text),
@@ -135,22 +160,44 @@ export function getServerSiteConfig() {
     },
     storeName: getEnv('NEXT_PUBLIC_STORE_NAME', defaultConfig.storeName),
     ownerName: getEnv('NEXT_PUBLIC_OWNER_NAME', defaultConfig.ownerName),
-    imageBucketUrl: getEnv('NEXT_PUBLIC_IMAGE_BUCKET_URL', defaultConfig.imageBucketUrl),
-    blogBucketUrl: getEnv('NEXT_PUBLIC_BLOG_BUCKET_URL', defaultConfig.blogBucketUrl),
-    aboutBucketUrl: getEnv('NEXT_PUBLIC_ABOUT_BUCKET_URL', defaultConfig.aboutBucketUrl),
-    customBucketUrl: getEnv('NEXT_PUBLIC_CUSTOM_BUCKET_URL', defaultConfig.customBucketUrl),
-    streamBucketUrl: getEnv('NEXT_PUBLIC_STREAM_BUCKET_URL', defaultConfig.streamBucketUrl),
-    filesBucketUrl: getEnv('NEXT_PUBLIC_FILES_BUCKET_URL', defaultConfig.filesBucketUrl),
+    imageBucketUrl: getEnv(
+      'NEXT_PUBLIC_IMAGE_BUCKET_URL',
+      defaultConfig.imageBucketUrl,
+    ),
+    blogBucketUrl: getEnv(
+      'NEXT_PUBLIC_BLOG_BUCKET_URL',
+      defaultConfig.blogBucketUrl,
+    ),
+    aboutBucketUrl: getEnv(
+      'NEXT_PUBLIC_ABOUT_BUCKET_URL',
+      defaultConfig.aboutBucketUrl,
+    ),
+    customBucketUrl: getEnv(
+      'NEXT_PUBLIC_CUSTOM_BUCKET_URL',
+      defaultConfig.customBucketUrl,
+    ),
+    streamBucketUrl,
+    filesBucketUrl: getEnv(
+      'NEXT_PUBLIC_FILES_BUCKET_URL',
+      defaultConfig.filesBucketUrl,
+    ),
     bucketsUrl: getEnv('NEXT_PUBLIC_BUCKETS_URL', defaultConfig.bucketsUrl),
+    mediaHosts,
     url: getEnv('NEXT_PUBLIC_SITE_URL', defaultConfig.url),
     altUrl: getEnv('NEXT_PUBLIC_ALT_URL', defaultConfig.altUrl),
     imageDomain: getEnv('NEXT_PUBLIC_IMAGE_DOMAIN', defaultConfig.imageDomain),
     links: {
       github: getEnv('NEXT_PUBLIC_GITHUB_URL', defaultConfig.links.github),
       website: getEnv('NEXT_PUBLIC_WEBSITE_URL', defaultConfig.links.website),
-      instagram: getEnv('NEXT_PUBLIC_INSTAGRAM_URL', defaultConfig.links.instagram),
+      instagram: getEnv(
+        'NEXT_PUBLIC_INSTAGRAM_URL',
+        defaultConfig.links.instagram,
+      ),
       twitter: getEnv('NEXT_PUBLIC_TWITTER_URL', defaultConfig.links.twitter),
-      facebook: getEnv('NEXT_PUBLIC_FACEBOOK_URL', defaultConfig.links.facebook),
+      facebook: getEnv(
+        'NEXT_PUBLIC_FACEBOOK_URL',
+        defaultConfig.links.facebook,
+      ),
     },
     headers: {
       main: getEnv('NEXT_PUBLIC_MAIN_HEADER', defaultConfig.headers.main),
@@ -159,77 +206,185 @@ export function getServerSiteConfig() {
     seo: {
       // Basic SEO settings
       jobTitle: getEnv('NEXT_PUBLIC_SEO_JOB_TITLE', defaultConfig.seo.jobTitle),
-      profession: getEnv('NEXT_PUBLIC_SEO_PROFESSION', defaultConfig.seo.profession),
+      profession: getEnv(
+        'NEXT_PUBLIC_SEO_PROFESSION',
+        defaultConfig.seo.profession,
+      ),
       location: {
-        locality: getEnv('NEXT_PUBLIC_SEO_LOCALITY', defaultConfig.seo.location.locality),
-        region: getEnv('NEXT_PUBLIC_SEO_REGION', defaultConfig.seo.location.region),
-        country: getEnv('NEXT_PUBLIC_SEO_COUNTRY', defaultConfig.seo.location.country),
+        locality: getEnv(
+          'NEXT_PUBLIC_SEO_LOCALITY',
+          defaultConfig.seo.location.locality,
+        ),
+        region: getEnv(
+          'NEXT_PUBLIC_SEO_REGION',
+          defaultConfig.seo.location.region,
+        ),
+        country: getEnv(
+          'NEXT_PUBLIC_SEO_COUNTRY',
+          defaultConfig.seo.location.country,
+        ),
       },
       // OpenGraph configuration
       openGraph: {
         type: 'website',
-        locale: getEnv('NEXT_PUBLIC_OG_LOCALE', defaultConfig.seo.openGraph.locale),
-        siteName: getEnv('NEXT_PUBLIC_OG_SITE_NAME', defaultConfig.seo.openGraph.siteName),
+        locale: getEnv(
+          'NEXT_PUBLIC_OG_LOCALE',
+          defaultConfig.seo.openGraph.locale,
+        ),
+        siteName: getEnv(
+          'NEXT_PUBLIC_OG_SITE_NAME',
+          defaultConfig.seo.openGraph.siteName,
+        ),
         images: [
           {
-            url: getEnv('NEXT_PUBLIC_OG_IMAGE_URL', defaultConfig.seo.openGraph.images[0].url),
-            width: getEnv('NEXT_PUBLIC_OG_IMAGE_WIDTH', defaultConfig.seo.openGraph.images[0].width),
-            height: getEnv('NEXT_PUBLIC_OG_IMAGE_HEIGHT', defaultConfig.seo.openGraph.images[0].height),
-            alt: getEnv('NEXT_PUBLIC_OG_IMAGE_ALT', defaultConfig.seo.openGraph.images[0].alt),
+            url: getEnv(
+              'NEXT_PUBLIC_OG_IMAGE_URL',
+              defaultConfig.seo.openGraph.images[0].url,
+            ),
+            width: getEnv(
+              'NEXT_PUBLIC_OG_IMAGE_WIDTH',
+              defaultConfig.seo.openGraph.images[0].width,
+            ),
+            height: getEnv(
+              'NEXT_PUBLIC_OG_IMAGE_HEIGHT',
+              defaultConfig.seo.openGraph.images[0].height,
+            ),
+            alt: getEnv(
+              'NEXT_PUBLIC_OG_IMAGE_ALT',
+              defaultConfig.seo.openGraph.images[0].alt,
+            ),
           },
         ],
       },
       // Twitter card configuration
       twitter: {
-        site: getEnv('NEXT_PUBLIC_TWITTER_SITE', defaultConfig.seo.twitter.site),
-        creator: getEnv('NEXT_PUBLIC_TWITTER_CREATOR', defaultConfig.seo.twitter.creator),
+        site: getEnv(
+          'NEXT_PUBLIC_TWITTER_SITE',
+          defaultConfig.seo.twitter.site,
+        ),
+        creator: getEnv(
+          'NEXT_PUBLIC_TWITTER_CREATOR',
+          defaultConfig.seo.twitter.creator,
+        ),
       },
       // Additional meta tags
       meta: {
         keywords: [], // Will be populated dynamically per page
-        author: getEnv('NEXT_PUBLIC_META_AUTHOR', defaultConfig.seo.meta.author),
-        themeColor: getEnv('NEXT_PUBLIC_THEME_COLOR', defaultConfig.seo.meta.themeColor),
+        author: getEnv(
+          'NEXT_PUBLIC_META_AUTHOR',
+          defaultConfig.seo.meta.author,
+        ),
+        themeColor: getEnv(
+          'NEXT_PUBLIC_THEME_COLOR',
+          defaultConfig.seo.meta.themeColor,
+        ),
       },
     },
     emails: {
       order: getEnv('NEXT_PUBLIC_ORDER_EMAIL', defaultConfig.emails.order),
-      support: getEnv('NEXT_PUBLIC_SUPPORT_EMAIL', defaultConfig.emails.support),
-      replyTo: getEnv('NEXT_PUBLIC_REPLY_TO_EMAIL', defaultConfig.emails.replyTo),
-      noReply: getEnv('NEXT_PUBLIC_NO_REPLY_EMAIL', defaultConfig.emails.noReply),
+      support: getEnv(
+        'NEXT_PUBLIC_SUPPORT_EMAIL',
+        defaultConfig.emails.support,
+      ),
+      replyTo: getEnv(
+        'NEXT_PUBLIC_REPLY_TO_EMAIL',
+        defaultConfig.emails.replyTo,
+      ),
+      noReply: getEnv(
+        'NEXT_PUBLIC_NO_REPLY_EMAIL',
+        defaultConfig.emails.noReply,
+      ),
     },
     features: {
-      aiEnabled: getEnv('NEXT_PUBLIC_AI_ENABLED', defaultConfig.features.aiEnabled),
-      storeEnabled: getEnv('NEXT_PUBLIC_STORE_ENABLED', defaultConfig.features.storeEnabled),
+      aiEnabled: getEnv(
+        'NEXT_PUBLIC_AI_ENABLED',
+        defaultConfig.features.aiEnabled,
+      ),
+      storeEnabled: getEnv(
+        'NEXT_PUBLIC_STORE_ENABLED',
+        defaultConfig.features.storeEnabled,
+      ),
       store: {
-        reviewsEnabled: getEnv('NEXT_PUBLIC_REVIEWS_ENABLED', defaultConfig.features.store.reviewsEnabled),
-        showTax: getEnv('NEXT_PUBLIC_SHOW_TAX', defaultConfig.features.store.showTax),
+        reviewsEnabled: getEnv(
+          'NEXT_PUBLIC_REVIEWS_ENABLED',
+          defaultConfig.features.store.reviewsEnabled,
+        ),
+        showTax: getEnv(
+          'NEXT_PUBLIC_SHOW_TAX',
+          defaultConfig.features.store.showTax,
+        ),
       },
       security: {
-        allowDangerousFiles: getEnv('NEXT_PUBLIC_ALLOW_DANGEROUS_FILES', defaultConfig.features.security.allowDangerousFiles),
+        allowDangerousFiles: getEnv(
+          'NEXT_PUBLIC_ALLOW_DANGEROUS_FILES',
+          defaultConfig.features.security.allowDangerousFiles,
+        ),
       },
     },
     rateLimiting: {
       // Base rate limits (requests per minute)
       limits: {
-        upload: getEnv('NEXT_PUBLIC_RATE_LIMIT_UPLOAD', defaultConfig.rateLimiting.limits.upload),
-        imageProcessing: getEnv('NEXT_PUBLIC_RATE_LIMIT_IMAGE_PROCESSING', defaultConfig.rateLimiting.limits.imageProcessing),
-        aiGeneration: getEnv('NEXT_PUBLIC_RATE_LIMIT_AI_GENERATION', defaultConfig.rateLimiting.limits.aiGeneration),
-        passwordAttempt: getEnv('NEXT_PUBLIC_RATE_LIMIT_PASSWORD_ATTEMPT', defaultConfig.rateLimiting.limits.passwordAttempt),
-        email: getEnv('NEXT_PUBLIC_RATE_LIMIT_EMAIL', defaultConfig.rateLimiting.limits.email),
-        webhook: getEnv('NEXT_PUBLIC_RATE_LIMIT_WEBHOOK', defaultConfig.rateLimiting.limits.webhook),
-        checkout: getEnv('NEXT_PUBLIC_RATE_LIMIT_CHECKOUT', defaultConfig.rateLimiting.limits.checkout),
-        revalidate: getEnv('NEXT_PUBLIC_RATE_LIMIT_REVALIDATE', defaultConfig.rateLimiting.limits.revalidate),
+        upload: getEnv(
+          'NEXT_PUBLIC_RATE_LIMIT_UPLOAD',
+          defaultConfig.rateLimiting.limits.upload,
+        ),
+        imageProcessing: getEnv(
+          'NEXT_PUBLIC_RATE_LIMIT_IMAGE_PROCESSING',
+          defaultConfig.rateLimiting.limits.imageProcessing,
+        ),
+        aiGeneration: getEnv(
+          'NEXT_PUBLIC_RATE_LIMIT_AI_GENERATION',
+          defaultConfig.rateLimiting.limits.aiGeneration,
+        ),
+        passwordAttempt: getEnv(
+          'NEXT_PUBLIC_RATE_LIMIT_PASSWORD_ATTEMPT',
+          defaultConfig.rateLimiting.limits.passwordAttempt,
+        ),
+        email: getEnv(
+          'NEXT_PUBLIC_RATE_LIMIT_EMAIL',
+          defaultConfig.rateLimiting.limits.email,
+        ),
+        webhook: getEnv(
+          'NEXT_PUBLIC_RATE_LIMIT_WEBHOOK',
+          defaultConfig.rateLimiting.limits.webhook,
+        ),
+        checkout: getEnv(
+          'NEXT_PUBLIC_RATE_LIMIT_CHECKOUT',
+          defaultConfig.rateLimiting.limits.checkout,
+        ),
+        revalidate: getEnv(
+          'NEXT_PUBLIC_RATE_LIMIT_REVALIDATE',
+          defaultConfig.rateLimiting.limits.revalidate,
+        ),
       },
       // Admin multiplier - admins get 3x the base limits
-      adminMultiplier: getEnv('NEXT_PUBLIC_ADMIN_MULTIPLIER', defaultConfig.rateLimiting.adminMultiplier),
+      adminMultiplier: getEnv(
+        'NEXT_PUBLIC_ADMIN_MULTIPLIER',
+        defaultConfig.rateLimiting.adminMultiplier,
+      ),
     },
     uploadLimits: {
       // Upload size limits in MB for different buckets
-      image: getEnv('NEXT_PUBLIC_UPLOAD_LIMIT_IMAGE', defaultConfig.uploadLimits.image),
-      blog: getEnv('NEXT_PUBLIC_UPLOAD_LIMIT_BLOG', defaultConfig.uploadLimits.blog),
-      about: getEnv('NEXT_PUBLIC_UPLOAD_LIMIT_ABOUT', defaultConfig.uploadLimits.about),
-      custom: getEnv('NEXT_PUBLIC_UPLOAD_LIMIT_CUSTOM', defaultConfig.uploadLimits.custom),
-      files: getEnv('NEXT_PUBLIC_UPLOAD_LIMIT_FILES', defaultConfig.uploadLimits.files),
+      image: getEnv(
+        'NEXT_PUBLIC_UPLOAD_LIMIT_IMAGE',
+        defaultConfig.uploadLimits.image,
+      ),
+      blog: getEnv(
+        'NEXT_PUBLIC_UPLOAD_LIMIT_BLOG',
+        defaultConfig.uploadLimits.blog,
+      ),
+      about: getEnv(
+        'NEXT_PUBLIC_UPLOAD_LIMIT_ABOUT',
+        defaultConfig.uploadLimits.about,
+      ),
+      custom: getEnv(
+        'NEXT_PUBLIC_UPLOAD_LIMIT_CUSTOM',
+        defaultConfig.uploadLimits.custom,
+      ),
+      files: getEnv(
+        'NEXT_PUBLIC_UPLOAD_LIMIT_FILES',
+        defaultConfig.uploadLimits.files,
+      ),
     },
     configLocation,
   }
@@ -255,9 +410,9 @@ export function isDefaultSiteConfig(config: SiteConfig = siteConfig): boolean {
     config.emails.order.includes('your-domain.com'),
     config.emails.support.includes('your-domain.com'),
   ]
-  
+
   // If any of these default indicators are true, config likely hasn't been customized
-  return defaultIndicators.some(indicator => indicator)
+  return defaultIndicators.some((indicator) => indicator)
 }
 
 // Export default config for fallback scenarios

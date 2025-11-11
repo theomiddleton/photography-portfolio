@@ -9,6 +9,8 @@ export const adminSections = [
   { title: 'Blogs', description: 'View and edit blog posts', icon: BookOpenText, href: '/admin/blog' },
   { title: 'New Blog Post', description: 'Create a new blog posts', icon: PenIcon, href: '/admin/blog/new' },
   { title: 'About', description: 'Edit about page content', icon: InfoIcon, href: '/admin/about' },
+  { title: 'Videos', description: 'Manage HLS videos', icon: FilmIcon, href: '/admin/videos' },
+  { title: 'Video Upload', description: 'Upload a new Video', icon: FileVideoIcon, href: '/admin/videos/new' },
   { title: 'Store', description: 'Manage orders and store items', icon: StoreIcon, href: '/admin/store' },
   { title: 'Costs', description: 'Manage shipping, tax rates, and print sizes', icon: ReceiptPoundSterlingIcon, href: '/admin/store/costs' },
   { title: 'Users', description: 'Manage user accounts and permissions', icon: UserIcon, href: '/admin/users'},
@@ -16,7 +18,7 @@ export const adminSections = [
   { title: 'Storage Alerts', description: 'Monitor R2 storage usage and configure alerts', icon: Database, href: '/admin/storage-alerts' },
   { title: 'Config Inspector', description: 'Compare server and client site configuration states', icon: SettingsIcon, href: '/admin/site-config' },
   { title: 'Videos', description: 'Manage HLS videos', icon: FilmIcon, href: '/admin/videos'  },
-  { title: 'Video Upload', description: 'Upload a new Video', icon: FileVideoIcon, href: '/admin/videos/new'  }, 
+  { title: 'Video Upload', description: 'Upload a new Video', icon: FileVideoIcon, href: '/admin/videos/new'  },
   { title: 'Return to Home', description: 'Return to home page', icon: HomeIcon, href: '/' },
   { title: 'Logout', description: 'Sign out of admin panel', icon: LogOutIcon, href: '/logout' },
 ]

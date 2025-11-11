@@ -54,10 +54,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const visibleVideos = await db
       .select({
         slug: videos.slug,
-        lastModified: videos.modifiedAt,
+        lastModified: videos.updatedAt,
       })
       .from(videos)
-      .where(eq(videos.isVisible, true))
+      .where(eq(videos.visibility, 'public'))
       .limit(500) // Reasonable limit
 
     // Get public galleries
@@ -152,8 +152,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         sitemapEntries.push({
           url: `${baseUrl}/video/${video.slug}`,
           lastModified: video.lastModified || new Date(),
-          changeFrequency: 'monthly' as const,
-          priority: 0.6,
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
         })
       })
 

@@ -1,39 +1,50 @@
-import { VideoForm } from '~/components/video/video-form'
+import { VideoForm, type VideoFormData } from '~/components/video/video-form'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import type { VideoFormData } from '~/components/video/video-form'
-import { db } from '~/server/db'
-import { videos } from '~/server/db/schema'
+import { createVideo } from '~/server/services/video-service'
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 
+export const metadata: Metadata = {
+  title: 'New Video - Admin',
+  description: 'Create a new HLS video',
+}
 
-async function createVideo(data: VideoFormData) {
+async function handleCreateVideo(data: VideoFormData) {
   'use server'
 
-  // Ensure we're working with a plain object
   const videoData = {
-    id: crypto.randomUUID(),
-    title: data.title,
     slug: data.slug,
-    description: data.description ?? null,
+    title: data.title,
+    description: data.description,
     hlsUrl: data.hlsUrl,
-    thumbnail: data.thumbnail ?? null,
-    duration: data.duration ?? null,
-    isVisible: data.isVisible
+    thumbnailUrl: data.thumbnailUrl,
+    duration: data.duration,
+    visibility: data.visibility,
+    password: data.password,
+    resolution: data.resolution,
+    fps: data.fps,
+    seoTitle: data.seoTitle,
+    seoDescription: data.seoDescription,
+    tags: data.tags,
+    commentsEnabled: data.commentsEnabled,
+    allowAnonymousComments: data.allowAnonymousComments,
+    requireApproval: data.requireApproval,
+    commentsLocked: data.commentsLocked,
   }
   
-  await db.insert(videos).values(videoData)
+  await createVideo(videoData)
   redirect('/admin/videos')
 }
 
 export default function NewVideoPage() {
   return (
-    <div className="container max-w-2xl py-6">
+    <div className="container max-w-3xl py-6">
       <Card>
         <CardHeader>
-          <CardTitle>New Video</CardTitle>
+          <CardTitle>Create New Video</CardTitle>
         </CardHeader>
         <CardContent>
-          <VideoForm action={createVideo} />
+          <VideoForm onSubmit={handleCreateVideo} />
         </CardContent>
       </Card>
     </div>

@@ -1,30 +1,40 @@
-import { VideoForm } from '~/components/video/video-form'
-import type { VideoFormData } from '~/components/video/video-form'
-import { db } from '~/server/db'
-import { videos } from '~/server/db/schema'
-import { eq } from 'drizzle-orm'
-import { notFound, redirect } from 'next/navigation'
+import { VideoForm, type VideoFormData } from '~/components/video/video-form'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
+import { getVideoById, updateVideo } from '~/server/services/video-service'
+import { redirect, notFound } from 'next/navigation'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Edit Video - Admin',
+  description: 'Edit video details and settings',
+}
 
 export const revalidate = 3600
 
-async function updateVideo(id: string, data: VideoFormData) {
+async function handleUpdateVideo(id: string, data: VideoFormData) {
   'use server'
-  
-  const videoData = {
-    title: data.title,
+
+  const updateData = {
     slug: data.slug,
-    description: data.description ?? null,
+    title: data.title,
+    description: data.description,
     hlsUrl: data.hlsUrl,
-    thumbnail: data.thumbnail ?? null,
-    duration: data.duration ?? null,
-    isVisible: data.isVisible
+    thumbnailUrl: data.thumbnailUrl,
+    duration: data.duration,
+    visibility: data.visibility,
+    password: data.password || null,
+    resolution: data.resolution,
+    fps: data.fps,
+    seoTitle: data.seoTitle,
+    seoDescription: data.seoDescription,
+    tags: data.tags,
+    commentsEnabled: data.commentsEnabled,
+    allowAnonymousComments: data.allowAnonymousComments,
+    requireApproval: data.requireApproval,
+    commentsLocked: data.commentsLocked,
   }
   
-  await db.update(videos)
-    .set(videoData)
-    .where(eq(videos.id, id))
-
+  await updateVideo(id, updateData)
   redirect('/admin/videos')
 }
 
@@ -34,31 +44,24 @@ export default async function EditVideoPage(
   }
 ) {
   const params = await props.params
-  const [video] = await db
-    .select()
-    .from(videos)
-    .where(eq(videos.id, params.id))
+  const video = await getVideoById(params.id)
 
   if (!video) {
     notFound()
   }
 
-  const action = updateVideo.bind(null, video.id)
+  const action = handleUpdateVideo.bind(null, video.id)
 
   return (
-    <div className="container max-w-2xl py-6">
+    <div className="container max-w-3xl py-6">
       <Card>
         <CardHeader>
-          <CardTitle>Edit Video</CardTitle>
+          <CardTitle>Edit Video: {video.title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <VideoForm 
-            video={video} 
-            action={action}
-          />
+          <VideoForm video={video} onSubmit={action} />
         </CardContent>
       </Card>
     </div>
   )
 }
-

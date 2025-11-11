@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from 'react'
 import { toast } from 'sonner'
 import { Button } from '~/components/ui/button'
@@ -32,6 +33,28 @@ interface StorageAlertContextType {
   checkAlerts: () => void
 }
 
+const alertsAreEqual = (prev: StorageAlert[], next: StorageAlert[]) => {
+  if (prev.length !== next.length) return false
+
+  const prevMap = new Map(prev.map((alert) => [alert.id, alert]))
+
+  for (const alert of next) {
+    const existing = prevMap.get(alert.id)
+    if (!existing) return false
+    if (
+      existing.bucketName !== alert.bucketName ||
+      existing.usagePercent !== alert.usagePercent ||
+      existing.alertType !== alert.alertType ||
+      existing.formattedUsage !== alert.formattedUsage ||
+      existing.formattedMax !== alert.formattedMax
+    ) {
+      return false
+    }
+  }
+
+  return true
+}
+
 const StorageAlertContext = createContext<StorageAlertContextType | undefined>(
   undefined,
 )
@@ -51,10 +74,15 @@ export function StorageAlertProvider({
 }) {
   const [alerts, setAlerts] = useState<StorageAlert[]>([])
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
+  const alertsRef = useRef<StorageAlert[]>([])
+
+  useEffect(() => {
+    alertsRef.current = alerts
+  }, [alerts])
 
   const dismissAlert = useCallback(
     async (alertId: string, duration: string) => {
-      const alert = alerts.find((a) => a.id === alertId)
+      const alert = alertsRef.current.find((a) => a.id === alertId)
       if (!alert) return
 
       try {
@@ -71,9 +99,11 @@ export function StorageAlertProvider({
         if (response.ok) {
           // Remove from local state
           setAlerts((prev) => prev.filter((a) => a.id !== alertId))
-          setDismissedAlerts((prev) =>
-            new Set(prev).add(`${alert.alertType}-${alert.bucketName}`),
-          )
+          setDismissedAlerts((prev) => {
+            const next = new Set(prev)
+            next.add(`${alert.alertType}-${alert.bucketName}`)
+            return next
+          })
 
           toast.success(`Alert dismissed for ${duration}`)
         }
@@ -82,7 +112,7 @@ export function StorageAlertProvider({
         toast.error('Failed to dismiss alert')
       }
     },
-    [alerts],
+    [setAlerts, setDismissedAlerts],
   )
 
   const showCriticalAlertToast = useCallback(
@@ -154,13 +184,25 @@ export function StorageAlertProvider({
             !dismissedAlerts.has(`${alert.alertType}-${alert.bucketName}`),
         )
 
-        setAlerts(filteredAlerts)
+        const previousAlerts = alertsRef.current
+        const previousAlertIds = new Set(previousAlerts.map((a) => a.id))
+        const newCriticalAlerts = filteredAlerts.filter(
+          (alert: StorageAlert) =>
+            alert.alertType === 'critical' &&
+            !previousAlertIds.has(alert.id),
+        )
+
+        setAlerts((prev) => {
+          if (alertsAreEqual(prev, filteredAlerts)) {
+            return prev
+          }
+
+          return filteredAlerts
+        })
 
         // Show toast notifications for new critical alerts
-        filteredAlerts.forEach((alert: StorageAlert) => {
-          if (alert.alertType === 'critical') {
-            showCriticalAlertToast(alert)
-          }
+        newCriticalAlerts.forEach((alert: StorageAlert) => {
+          showCriticalAlertToast(alert)
         })
       }
     } catch (error) {
