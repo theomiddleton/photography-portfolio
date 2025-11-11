@@ -53,7 +53,7 @@ export function VideoTable({ videos, onDelete }: VideoTableProps) {
       setCopiedId(videoId)
       toast.success('Link copied to clipboard')
       setTimeout(() => setCopiedId(null), 2000)
-    } catch (err) {
+    } catch (_err) {
       toast.error('Failed to copy link')
     }
   }

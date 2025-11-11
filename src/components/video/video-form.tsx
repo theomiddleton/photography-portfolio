@@ -81,8 +81,14 @@ export function VideoForm({ video, onSubmit, isSubmitting = false }: VideoFormPr
     },
   })
 
-  const visibility = form.watch('visibility')
-  const commentsEnabled = form.watch('commentsEnabled')
+  const visibility = useWatch({
+    control: form.control,
+    name: 'visibility',
+  })
+  const commentsEnabled = useWatch({
+    control: form.control,
+    name: 'commentsEnabled',
+  })
   
   // Auto-generate slug from title for new videos
   const title = useWatch({
