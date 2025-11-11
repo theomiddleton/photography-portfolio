@@ -201,6 +201,33 @@ export function EnhancedHLSPlayer({
     }
   }, [src, autoPlay, onError])
 
+  const togglePlayPause = useCallback(() => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play()
+      } else {
+        videoRef.current.pause()
+      }
+    }
+  }, [])
+
+  const toggleMute = useCallback(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted
+      setMuted(videoRef.current.muted)
+    }
+  }, [])
+
+  const toggleFullscreen = useCallback(() => {
+    if (containerRef.current) {
+      if (!document.fullscreenElement) {
+        containerRef.current.requestFullscreen()
+      } else {
+        document.exitFullscreen()
+      }
+    }
+  }, [])
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -248,34 +275,7 @@ export function EnhancedHLSPlayer({
 
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [])
-
-  const togglePlayPause = useCallback(() => {
-    if (videoRef.current) {
-      if (videoRef.current.paused) {
-        videoRef.current.play()
-      } else {
-        videoRef.current.pause()
-      }
-    }
-  }, [])
-
-  const toggleMute = useCallback(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted
-      setMuted(videoRef.current.muted)
-    }
-  }, [])
-
-  const toggleFullscreen = useCallback(() => {
-    if (containerRef.current) {
-      if (!document.fullscreenElement) {
-        containerRef.current.requestFullscreen()
-      } else {
-        document.exitFullscreen()
-      }
-    }
-  }, [])
+  }, [togglePlayPause, toggleMute, toggleFullscreen])
 
   const togglePictureInPicture = useCallback(async () => {
     if (videoRef.current) {

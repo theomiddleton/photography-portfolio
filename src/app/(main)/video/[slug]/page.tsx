@@ -6,6 +6,7 @@ import {
 } from '~/server/services/video-service'
 import { VideoPasswordForm } from '~/components/video/video-password-form'
 import { VideoPageClient } from '~/components/video/video-page-client'
+import { VideoEmbedDialog } from '~/components/video/video-embed-dialog'
 import { notFound } from 'next/navigation'
 import { Card, CardContent } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -131,15 +132,20 @@ export default async function VideoPage(props: VideoPageProps) {
               )}
             </div>
           </div>
-          {video.visibility !== 'public' && (
-            <Badge
-              variant={
-                video.visibility === 'private' ? 'destructive' : 'secondary'
-              }
-            >
-              {video.visibility}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {video.visibility !== 'public' && (
+              <Badge
+                variant={
+                  video.visibility === 'private' ? 'destructive' : 'secondary'
+                }
+              >
+                {video.visibility}
+              </Badge>
+            )}
+            {video.visibility !== 'private' && (
+              <VideoEmbedDialog slug={video.slug} title={video.title} />
+            )}
+          </div>
         </div>
 
         {video.description && (
