@@ -1,0 +1,143 @@
+# Auth System Directory Structure
+
+## Core Authentication Library
+src/lib/auth/
+├── accountActions.ts           # Server actions for account management
+├── accountManagement.ts        # Account lifecycle operations
+├── auth.ts                     # Barrel file (re-exports)
+├── authDatabase.ts             # Database queries for auth
+├── authHelpers.ts              # Password hashing, JWT creation
+├── authSession.ts              # Session cookie management ⭐ MOST USED
+├── changePasswordAction.ts     # Password change server action
+├── emailVerification.ts        # Email verification logic
+├── forgotPasswordAction.ts     # Forgot password server action
+├── passwordManagement.ts       # Password operations
+├── permissions.ts              # Authorization guards ⭐ CRITICAL
+├── resendVerificationAction.ts # Resend verification server action
+├── resetPasswordAction.ts      # Reset password server action
+├── sessionManagement.ts        # Database session operations
+├── sessionMonitoring.ts        # Session health monitoring
+├── setupAdmin.ts               # First admin setup
+├── tokenHelpers.ts             # Token generation & validation
+└── userActions.ts              # User CRUD operations ⭐ CORE
+
+## Auth Components
+src/components/auth/
+├── AdminSetupChecker.tsx       # Check if admin setup required
+├── AdminSetupGuard.tsx         # Guard component for setup
+├── ForgotPasswordForm.tsx      # Forgot password form
+├── LogoutPageClient.tsx        # Logout page client component
+├── PasswordRequirements.tsx    # Password strength display
+├── ResendVerificationForm.tsx  # Resend verification form
+├── ResetPasswordForm.tsx       # Reset password form
+├── SetupAdminForm.tsx          # First admin setup form
+├── SigninForm.tsx              # Login form
+└── SignupForm.tsx              # Registration form
+
+## Auth Pages
+src/app/(auth)/
+├── layout.tsx                  # Auth layout wrapper
+├── auth-test/page.tsx          # Testing page
+├── forgot-password/page.tsx    # Request password reset
+├── login/page.tsx              # Login (legacy)
+├── logout/page.tsx             # Logout page
+├── reset-password/page.tsx     # Reset with token
+├── reset-password-success/page.tsx
+├── setup-admin/page.tsx        # First admin setup
+├── signin/page.tsx             # Sign in page
+├── signup/page.tsx             # Registration page
+├── verify-email/page.tsx       # Email verification
+└── verify-email-notice/page.tsx
+
+## Email Templates
+src/components/emails/auth/
+├── email-verification.tsx      # Verification email template
+├── index.ts                    # Exports
+├── password-reset.tsx          # Reset password email
+└── security-notification.tsx   # Security alert email
+
+## Types & Schemas
+src/lib/types/
+├── loginSchema.ts              # Login validation (Zod)
+├── registerSchema.ts           # Registration validation (Zod)
+├── session.ts                  # Session TypeScript types
+└── galleryType.ts              # Gallery password types
+
+## Configuration
+src/config/
+├── security-config.ts          # ⭐ ALL SECURITY SETTINGS
+├── site.ts                     # Site config
+└── seo.ts                      # SEO config
+
+## Security & Monitoring
+src/lib/
+├── account-security.ts         # Account lockout logic
+├── rate-limit.ts               # Rate limiting middleware
+├── rate-limiting.ts            # Advanced rate limiting
+└── security-logging.ts         # Security event logging
+
+## Database Schema
+src/server/db/
+└── schema.ts
+    ├── users table             # User accounts (20+ fields)
+    └── userSessions table      # Active sessions (11 fields)
+
+## Middleware
+src/
+└── proxy.ts                    # ⭐ MAIN AUTH MIDDLEWARE
+                                # Protects: /admin/*, /store/*, /api/files/*
+
+## Account Management
+src/components/account/
+├── AccountDashboard.tsx        # Account overview
+└── ChangePasswordForm.tsx      # Change password form
+
+## User Management (Admin)
+src/components/user/
+├── users.tsx                   # User list & management
+└── user-dialogs.tsx            # User action dialogs
+
+## Admin Pages (All Protected)
+src/app/(admin)/admin/
+├── layout.tsx                  # Admin layout
+├── page.tsx                    # Dashboard
+├── about/page.tsx
+├── blog/...                    # Multiple blog pages
+├── files/page.tsx
+├── galleries/...               # Gallery management
+├── storage-alerts/...          # Storage management
+├── store/...                   # Store management
+├── users/page.tsx              # User management
+├── videos/...                  # Video management
+└── [more admin pages...]       # 25+ total pages
+
+## Account Pages
+src/app/(account)/account/
+├── layout.tsx                  # Account layout
+├── page.tsx                    # Account dashboard
+└── change-password/page.tsx    # Change password
+
+## API Routes Using Auth (40+ routes)
+src/app/api/
+├── auth/session/route.ts       # Session API
+├── upload/...                  # Upload endpoints
+├── files/...                   # File management (8 routes)
+├── images/...                  # Image operations (9 routes)
+├── gallery/...                 # Gallery operations (4 routes)
+├── storage/...                 # Storage management (9 routes)
+├── blog/posts/...              # Blog operations (2 routes)
+├── videos/...                  # Video operations (2 routes)
+├── metadata/...                # Metadata operations (2 routes)
+└── [more routes...]            # All check getSession()
+
+## Legend
+⭐ = Critical/Most Used
+[number] = Count of related files
+
+## Key Dependencies
+- bcrypt/bcryptjs    → Password hashing
+- jsonwebtoken       → JWT sessions
+- zod               → Schema validation
+- drizzle-orm       → Database ORM
+- next              → Framework
+- react             → UI
