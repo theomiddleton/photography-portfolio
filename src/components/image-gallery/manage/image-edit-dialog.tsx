@@ -28,6 +28,7 @@ import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
+import { ScrollArea } from '~/components/ui/scroll-area'
 import { updateImageMetadata } from '~/lib/actions/gallery/gallery'
 
 interface GalleryImage {
@@ -131,29 +132,30 @@ export function ImageEditDialog({ image, open, onOpenChange, onImageUpdate }: Im
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edit Image Details</DialogTitle>
           <DialogDescription>
             Update the name, description, caption, alt text, and tags for this image.
           </DialogDescription>
         </DialogHeader>
-        <div className="mb-4">
-          <div className="aspect-video relative overflow-hidden rounded-lg bg-muted">
-            <Image
-              src={image.fileUrl}
-              alt={image.alt || image.name}
-              fill
-              className="object-cover"
-            />
+        <ScrollArea className="flex-1 pr-4">
+          <div className="mb-4">
+            <div className="aspect-video relative overflow-hidden rounded-lg bg-muted">
+              <Image
+                src={image.fileUrl}
+                alt={image.alt || image.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              {image.fileName} • Uploaded {new Date(image.uploadedAt).toLocaleDateString()}
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            {image.fileName} • Uploaded {new Date(image.uploadedAt).toLocaleDateString()}
-          </p>
-        </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -250,21 +252,22 @@ export function ImageEditDialog({ image, open, onOpenChange, onImageUpdate }: Im
               )}
             />
 
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+              <DialogFooter className="mt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => onOpenChange(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )
